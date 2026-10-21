@@ -3,7 +3,7 @@
 本仓库是论文《面向多任务脑电分析的智能体执行框架研究与应用》的正式开发目录。当前代码基线只复现原始 EEGAgent 的一条确定性分析链：
 
 ```text
-真实 EDF → 原有滤波/陷波/重采样 → 22 导双极数据
+真实 EDF → 原有滤波/陷波/重采样 → 显式 EEGRecord（22 导双极数据）
          → 幅值与频带功率 → seizure/non-seizure 模型推理 → JSON 结果
 ```
 
@@ -73,9 +73,13 @@ $env:EEG_HARNESS_MODEL_PATH = 'D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAg
 & $python -m unittest discover -s tests -v
 ```
 
+## 显式数据对象
+
+正式执行链使用 `EEGRecord` 显式携带二维 EEG 数组、真实采样率、通道名、参考/导联说明、原始来源和处理元数据。幅值、PSD 与癫痫推理工具均直接接收该对象；统一 `record.slice(start, end, channels)` 接口负责通道、时间顺序、空窗口和记录长度校验。`legacy.register_data` 仅为来源对照保留，正式 pipeline 不再导入或调用它。
+
 ## 当前遗留边界
 
-- `legacy.register_data` 保留了原 EEGAgent 的进程级全局数组，用于本阶段低风险复现；它不支持并发、多记录隔离，后续应替换为显式 EEG 上下文。
+- `legacy.register_data` 文件仅作为迁移来源留存，不属于正式执行链；后续确认无兼容需求后可删除。
 - 当前只迁移 22 导 TUEV 风格双极链路和一个癫痫二分类权重接口。
 - 模型训练数据来源、许可证和原始指标在源码中未提供；输出仅用于工程复现，不构成临床结论。
 - LLM、RAG、Sleep、MDD 和其他模型工具未进入本代码基线。

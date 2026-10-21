@@ -3,25 +3,24 @@
 import numpy as np
 from scipy.signal import welch
 
-from .polar import INDEX_TO_NAME, NAME_TO_INDEX
-from .register_data import getRegisteredData
+from ..record import EEGRecord
 
 
-def _select_channels(name, data):
-    try:
-        ids = sorted(NAME_TO_INDEX[channel] for channel in name)
-    except KeyError as exc:
-        raise ValueError(f"Unknown bipolar channel: {exc.args[0]}") from exc
-    return ids, [INDEX_TO_NAME[index] for index in ids], data[ids]
+def _ordered_channels(record, names):
+    requested = (names,) if isinstance(names, str) else tuple(names)
+    missing = [name for name in requested if name not in record.channel_names]
+    if missing:
+        raise ValueError(f"Unknown EEG channel(s): {', '.join(missing)}")
+    return sorted(requested, key=record.channel_names.index)
 
 
-def compute_amplitude(name, start, end, config):
+def compute_amplitude(record: EEGRecord, name, start, end, config):
     if not 0 <= start < end:
         raise ValueError("Expected 0 <= start < end")
     if end - start > 60:
         raise ValueError("The time interval must not exceed 60 seconds")
-    data = getRegisteredData(start, end, config)
-    _, channels, selected = _select_channels(name, data)
+    channels = _ordered_channels(record, name)
+    selected = record.slice(start, end, channels)
     amplitude_features = {}
     for channel, channel_data in zip(channels, selected):
         amplitude_features[channel] = {
@@ -33,14 +32,14 @@ def compute_amplitude(name, start, end, config):
     return amplitude_features
 
 
-def compute_psd(name, start, end, config):
+def compute_psd(record: EEGRecord, name, start, end, config):
     if not 0 <= start < end:
         raise ValueError("Expected 0 <= start < end")
     if end - start > 60:
         raise ValueError("The time interval must not exceed 60 seconds")
-    data = getRegisteredData(start, end, config)
-    _, channels, selected = _select_channels(name, data)
-    fs = config["fs"]
+    channels = _ordered_channels(record, name)
+    selected = record.slice(start, end, channels)
+    fs = record.sfreq
     freq_bands = config["freq_bands"]
     psds = {}
     for channel, channel_data in zip(channels, selected):

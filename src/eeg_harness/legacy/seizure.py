@@ -11,8 +11,7 @@ import torch
 import torch.nn as nn
 
 from .model_components import RoPETransformer
-from .polar import INDEX_TO_NAME, NAME_TO_INDEX
-from .register_data import getRegisteredData
+from ..record import EEGRecord
 
 
 class ModelResourceError(RuntimeError):
@@ -74,27 +73,30 @@ def load_seizure_model(model_path):
     return model
 
 
-def seizureNormalModel_OneSecond(name, start, end, config, model_path):
+def seizureNormalModel_OneSecond(record: EEGRecord, name, start, end, config, model_path):
     if not 0 <= start < end:
         raise ValueError("Expected 0 <= start < end")
     if end - start > 10:
         raise ValueError("The time interval must not exceed 10 seconds")
-    if config["fs"] != 256:
+    if record.sfreq != 256:
         raise ValueError("SingleChannelEEG requires a 256 Hz input")
+    if not float(start).is_integer() or not float(end).is_integer():
+        raise ValueError("SingleChannelEEG requires integer-second window boundaries")
 
-    try:
-        indices = sorted(NAME_TO_INDEX[channel] for channel in name)
-    except KeyError as exc:
-        raise ValueError(f"Unknown bipolar channel: {exc.args[0]}") from exc
-
-    channels = [INDEX_TO_NAME[index] for index in indices]
-    data = getRegisteredData(start, end, config)[indices]
+    requested = (name,) if isinstance(name, str) else tuple(name)
+    missing = [channel for channel in requested if channel not in record.channel_names]
+    if missing:
+        raise ValueError(f"Unknown EEG channel(s): {', '.join(missing)}")
+    channels = sorted(requested, key=record.channel_names.index)
+    data = record.slice(start, end, channels)
     model = load_seizure_model(str(Path(model_path).expanduser().resolve()))
     results = []
 
-    for second_offset in range(end - start):
-        start_index = second_offset * config["fs"]
-        end_index = (second_offset + 1) * config["fs"]
+    start_second = int(start)
+    end_second = int(end)
+    for second_offset in range(end_second - start_second):
+        start_index = second_offset * int(record.sfreq)
+        end_index = (second_offset + 1) * int(record.sfreq)
         segment = data[:, start_index:end_index]
         if segment.shape[1] != 256:
             raise ValueError(f"Expected 256 samples per segment, got {segment.shape[1]}")
@@ -102,7 +104,7 @@ def seizureNormalModel_OneSecond(name, start, end, config, model_path):
         with torch.no_grad():
             probabilities = torch.softmax(model(tensor), dim=-1)
 
-        item = {"duration": f"{start + second_offset}s-{start + second_offset + 1}s"}
+        item = {"duration": f"{start_second + second_offset}s-{start_second + second_offset + 1}s"}
         for index, channel in enumerate(channels):
             item[channel] = {
                 "Non-seiz": round(float(probabilities[index, 0].item()), 2),

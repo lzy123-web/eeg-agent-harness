@@ -166,7 +166,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 已迁移原 EEGAgent 的预处理顺序、22 导双极 montage、EDF 派生逻辑、幅值、PSD、RoPE 模型组件和癫痫/非癫痫单通道模型。
 - 已增加无 LLM CLI、外部资源路径、SHA-256、运行环境和 JSON 结果记录。
 - 模型权重和测试 EDF 没有复制到正式项目；通过命令行参数或环境变量引用原始项目资源。
-- 为降低本阶段迁移风险，`src/eeg_harness/legacy/register_data.py` 暂时保留进程级全局数据。测试会在每个用例前后显式注册和清理；这不改变其不适用于并发和多记录执行的结论。
-- 原计划中的完整 `EEGRecord/TaskProfile/Executor` 尚未实施，也不应把当前最小 pipeline 描述为新 Harness 架构已经完成。
+- 2026-10-21 的第二次阶段 1 实施已新增通用 `EEGRecord`，由正式 pipeline 显式传入幅值、PSD 和癫痫推理工具；统一切片负责通道、时间顺序、空窗和记录长度校验。`legacy/register_data.py` 只作为迁移来源保留，正式链路和测试不再导入它。
+- `EEGRecord` 已实现，但完整 `TaskProfile/Executor` 仍未实施，也不应把当前最小 pipeline 描述为完整 Agent Harness 已经完成。
 
 当前确定性入口为 `python -m eeg_harness.cli`，自动化入口为 `python -m unittest discover -s tests -v`。真实样例已验证 22 导、256 Hz、幅值、PSD、模型二分类输出和 JSON 序列化；缺失权重会抛出明确的 `ModelResourceError`。

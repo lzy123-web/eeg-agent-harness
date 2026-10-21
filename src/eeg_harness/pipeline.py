@@ -13,10 +13,8 @@ import numpy as np
 import scipy
 import torch
 
-from .legacy.data_load import dataLoad, inspect_edf
+from .legacy.data_load import load_edf_record
 from .legacy.features import compute_amplitude, compute_psd
-from .legacy.polar import INDEX_TO_NAME
-from .legacy.register_data import clearRegisteredData, registerData
 from .legacy.seizure import seizureNormalModel_OneSecond
 
 
@@ -44,33 +42,28 @@ def run_baseline(edf_path, model_path, config_path, channel="FP1-F7", start=0, e
     model = Path(model_path).expanduser().resolve()
     config_file = Path(config_path).expanduser().resolve()
     config = load_config(config_file)
-    source_info = inspect_edf(edf)
-
     started = time.perf_counter()
-    data = dataLoad(edf, config)
+    record = load_edf_record(edf, config)
+    source_info = record.metadata["source_edf"]
     load_seconds = time.perf_counter() - started
-    if data.shape[0] != 22:
-        raise ValueError(f"Expected 22 bipolar channels, got {data.shape[0]}")
-    if data.dtype != np.float32:
-        raise ValueError(f"Expected float32 data, got {data.dtype}")
+    if record.data.shape[0] != 22:
+        raise ValueError(f"Expected 22 bipolar channels, got {record.data.shape[0]}")
+    if record.data.dtype != np.float32:
+        raise ValueError(f"Expected float32 data, got {record.data.dtype}")
 
-    registerData(data)
-    try:
-        feature_started = time.perf_counter()
-        amplitude = compute_amplitude([channel], start, end, config)
-        psd = compute_psd([channel], start, end, config)
-        feature_seconds = time.perf_counter() - feature_started
+    feature_started = time.perf_counter()
+    amplitude = compute_amplitude(record, [channel], start, end, config)
+    psd = compute_psd(record, [channel], start, end, config)
+    feature_seconds = time.perf_counter() - feature_started
 
-        inference_started = time.perf_counter()
-        seizure = seizureNormalModel_OneSecond(
-            [channel], start, end, config, model_path=model
-        )
-        inference_seconds = time.perf_counter() - inference_started
-    finally:
-        clearRegisteredData()
+    inference_started = time.perf_counter()
+    seizure = seizureNormalModel_OneSecond(
+        record, [channel], start, end, config, model_path=model
+    )
+    inference_seconds = time.perf_counter() - inference_started
 
     result = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "input": {
             "edf_path": str(edf),
@@ -84,16 +77,19 @@ def run_baseline(edf_path, model_path, config_path, channel="FP1-F7", start=0, e
             "h_freq": config["h_freq"],
             "notch_freq": config["notch_freq"],
             "target_sfreq": config["fs"],
-            "output_shape": list(data.shape),
-            "output_dtype": str(data.dtype),
-            "output_channel_names": [INDEX_TO_NAME[index] for index in range(22)],
+            "output_shape": list(record.data.shape),
+            "output_dtype": str(record.data.dtype),
+            "output_channel_names": list(record.channel_names),
+            "reference": record.reference,
+            "montage": record.montage,
+            "processing_steps": list(record.processing_metadata),
         },
         "features": {"amplitude": amplitude, "band_power": psd},
         "model_inference": {
             "tool": "seizureNormalModel_OneSecond",
             "model_path": str(model),
             "model_sha256": _sha256(model),
-            "model_input_shape_per_second": [1, config["fs"]],
+            "model_input_shape_per_second": [1, int(record.sfreq)],
             "result": seizure,
             "training_data_source": "源码未提供",
         },
@@ -109,9 +105,10 @@ def run_baseline(edf_path, model_path, config_path, channel="FP1-F7", start=0, e
             "feature_seconds": round(feature_seconds, 6),
             "inference_seconds": round(inference_seconds, 6),
         },
-        "legacy": {
-            "uses_process_global_data_store": True,
-            "replacement_required": "Replace legacy.register_data before concurrent or multi-record execution",
+        "data_management": {
+            "record_type": "EEGRecord",
+            "uses_process_global_data_store": False,
+            "source": record.source,
         },
     }
     json.dumps(result, ensure_ascii=False, allow_nan=False)
