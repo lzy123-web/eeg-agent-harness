@@ -27,5 +27,18 @@ Commit：`4c07b20`（`实现 TaskProfile 与 EDF 数据适配`）。
 - 所有结果均可 JSON 序列化；错误以稳定错误码返回，不向上层暴露 traceback。
 - `compileall` 通过；22 项测试通过，包含真实 EDF 与真实权重的 Executor 推理。
 
+Commit：`a27b16c`（`建立工具注册与安全执行器`）。
+
+## 阶段 C：执行状态与可复现工作流
+
+状态：已完成。
+
+- 新增每任务独立的 `ExecutionContext`，持有 `EEGRecord`、Profile、Executor、结果映射和调用历史。
+- `ExecutionTrace` 记录序号、工具、解析后参数、校验/执行状态、输出摘要、耗时、结构化错误和终止原因。
+- 支持通过显式 `$result` 引用读取前一步结果；引用不存在或路径错误时返回 `RESULT_REFERENCE_ERROR`，不推断数据转换。
+- 新增确定性 Workflow 与 CLI：EDF → 基础信息 → PSD →（仅兼容 Profile）癫痫推理。
+- Reproducibility bundle 保存 Profile、采样率、通道、shape、处理步骤、配置、请求、结果和 Trace，不保存原始 EEG 数组。
+- `compileall` 通过；27 项测试通过，包含上下文隔离、结果引用、非法工具后恢复、轨迹序列化和真实多工具工作流。
+
 Commit：将在阶段提交完成后回填。
 
