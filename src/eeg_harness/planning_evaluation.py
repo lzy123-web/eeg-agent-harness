@@ -170,7 +170,7 @@ def _expert_preflight_tool(context, name, arguments):
                 return False
         if spec.requires_window:
             context.record.slice(arguments["start"], arguments["end"], arguments["channels"])
-        if name in ("epoch_summary", "event_bandpower"):
+        if spec.consumes_artifact:
             if arguments["artifact_id"] not in context.artifacts:
                 return False
     except (ProfileValidationError, TypeError, ValueError, KeyError):
