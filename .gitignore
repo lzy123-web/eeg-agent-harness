@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+config/resources.local.json
+
+# EEG data, annotations, model resources, and generated outputs
+*.edf
+*.bdf
+*.set
+*.fif
+*.rec
+*.pth
+*.pt
+*.ckpt
+data/
+models/
+resources/data/
+resources/models/
+artifacts/
+results/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
