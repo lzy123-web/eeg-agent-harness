@@ -64,6 +64,17 @@ class ConstrainedPlannerTest(unittest.TestCase):
             "list_events", "create_epochs", "event_bandpower",
         ])
 
+    def test_new_epoch_summary_dependency_uses_declarative_contracts(self):
+        context = make_context()
+        task = TaskSpec("epoch_summary", {
+            "labels": ["A"], "tmin": -0.1, "tmax": 0.2,
+        })
+        result = ConstrainedPlanRunner(context).run(task)
+        self.assertEqual(result.status, "completed")
+        self.assertEqual([item["tool_name"] for item in result.tool_results], [
+            "list_events", "create_epochs", "epoch_summary",
+        ])
+
     def test_missing_label_invalid_channel_and_profile_are_preflight_rejections(self):
         missing = ConstrainedPlanRunner(make_context()).run(TaskSpec(
             "event_bandpower", {"labels": ["missing"], "tmin": 0, "tmax": 1}

@@ -192,17 +192,20 @@ def _expert(task, context, drop_artifact=False):
                 drop_artifact = False
             results.append(context.execute(ToolRequest(name, arguments)).to_dict())
             return results[-1]["success"]
-        if current.goal != "event_bandpower":
+        spec = context.executor.registry.get(current.goal)
+        contract = None if spec is None else spec.consumes_artifact
+        if not contract:
             return False
+        consumer = current.goal
         arguments = dict(current.arguments)
         existing = arguments.get("artifact_id")
         if existing:
-            if not _expert_preflight_tool(context, "event_bandpower", {"artifact_id": existing}):
+            if not _expert_preflight_tool(context, consumer, {"artifact_id": existing}):
                 return False
             if drop_artifact:
                 context.artifacts.clear()
                 drop_artifact = False
-            results.append(context.execute(ToolRequest("event_bandpower", {"artifact_id": existing})).to_dict())
+            results.append(context.execute(ToolRequest(consumer, {"artifact_id": existing})).to_dict())
             return results[-1]["success"]
         events = context.record.events
         labels = arguments.get("labels", [])
@@ -210,7 +213,8 @@ def _expert(task, context, drop_artifact=False):
             return False
         try:
             tmin, tmax = float(arguments["tmin"]), float(arguments["tmax"])
-            if tmax - tmin < 1 or tmin >= tmax:
+            minimum = float(spec.preconditions.get("min_artifact_duration_seconds", 0))
+            if tmax - tmin < minimum or tmin >= tmax:
                 return False
             baseline = arguments.get("baseline")
             if baseline is not None:
@@ -228,7 +232,7 @@ def _expert(task, context, drop_artifact=False):
         if not created.success:
             return False
         results.append(context.execute(ToolRequest(
-            "event_bandpower", {"artifact_id": created.data["artifact_id"]}, "expert-power"
+            consumer, {"artifact_id": created.data["artifact_id"]}, "expert-consume"
         )).to_dict())
         return results[-1]["success"]
 
@@ -247,18 +251,23 @@ def _expert_with_recovery(task, context, drop_artifact=False):
     first["state_checks"] = 1
     if first["status"] != "execution_failed" or DEFAULT_BUDGET.max_recoveries < 1:
         return first
-    if task.goal != "event_bandpower" or not task.arguments.get("artifact_id"):
-        return first
     fallback = dict(task.arguments)
-    fallback.pop("artifact_id", None)
-    required = ("labels", "tmin", "tmax")
-    if any(key not in fallback for key in required):
-        return first
-    retry_task = TaskSpec(task.goal, fallback, task.subtasks, task.task_id)
+    if task.goal == "tool":
+        retry_task = task
+    else:
+        spec = context.executor.registry.get(task.goal)
+        if spec is None or not spec.consumes_artifact:
+            return first
+        fallback.pop("artifact_id", None)
+        required = ("labels", "tmin", "tmax")
+        if any(key not in fallback for key in required):
+            return first
+        retry_task = TaskSpec(task.goal, fallback, task.subtasks, task.task_id)
     retry = _expert(retry_task, context, False)
     combined = list(first["tool_results"]) + list(retry["tool_results"])
     payload = _policy_payload(
-        retry["status"], combined, retry["preflight_rejected"],
+        retry["status"], combined,
+        retry["preflight_rejected"] and not combined,
         first["duration_ms"] + retry["duration_ms"], replans=1, state_checks=2,
     )
     if payload["tool_calls"] > DEFAULT_BUDGET.max_tool_calls:
@@ -285,14 +294,15 @@ def _planner(task, context, drop_artifact=False, max_replans=1):
 
 def _blind_dependency(task, context, drop_artifact=False):
     """Ablation: dependency templates without state-aware preflight."""
-    if task.goal != "event_bandpower":
+    spec = context.executor.registry.get(task.goal)
+    if spec is None or not spec.consumes_artifact:
         return _execution_only(task, context, drop_artifact)
     started = time.perf_counter()
     if drop_artifact:
         context.artifacts.clear()
     arguments = dict(task.arguments)
     if arguments.get("artifact_id"):
-        result = context.execute(ToolRequest("event_bandpower", {"artifact_id": arguments["artifact_id"]}))
+        result = context.execute(ToolRequest(task.goal, {"artifact_id": arguments["artifact_id"]}))
         results = [result.to_dict()]
     else:
         epoch_args = {key: arguments[key] for key in ("labels", "tmin", "tmax", "baseline") if key in arguments}
@@ -300,7 +310,7 @@ def _blind_dependency(task, context, drop_artifact=False):
         results = [created.to_dict()]
         if created.success:
             results.append(context.execute(ToolRequest(
-                "event_bandpower", {"artifact_id": created.data["artifact_id"]}, "blind-power"
+                task.goal, {"artifact_id": created.data["artifact_id"]}, "blind-consume"
             )).to_dict())
     status = "completed" if all(item["success"] for item in results) else "execution_failed"
     return _policy_payload(status, results, False, round((time.perf_counter() - started) * 1000, 3))

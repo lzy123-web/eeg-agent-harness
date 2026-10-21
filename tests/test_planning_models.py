@@ -42,6 +42,12 @@ class PlanningModelTest(unittest.TestCase):
         self.assertEqual(len(contracts), 8)
         self.assertEqual(contracts["create_epochs"].produces_artifact, "epochs")
         self.assertEqual(contracts["event_bandpower"].consumes_artifact, "epochs")
+        self.assertEqual(contracts["epoch_summary"].consumes_artifact, "epochs")
+        self.assertEqual(contracts["list_events"].observes_state, ("events",))
+        self.assertEqual(
+            contracts["event_bandpower"].preconditions["min_artifact_duration_seconds"],
+            1.0,
+        )
         self.assertEqual(contracts["seizure_detection"].required_resources, ("seizure_model",))
 
     def test_snapshot_contains_verified_facts_but_no_raw_array(self):

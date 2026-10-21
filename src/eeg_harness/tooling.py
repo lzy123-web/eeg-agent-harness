@@ -47,6 +47,12 @@ class ToolSpec:
     max_window_seconds: Optional[float] = None
     required_sfreq: Optional[float] = None
     required_resources: tuple[str, ...] = ()
+    consumes_artifact: Optional[str] = None
+    produces_artifact: Optional[str] = None
+    requires_events: bool = False
+    observes_state: tuple[str, ...] = ()
+    state_effect: str = "result_only"
+    preconditions: Mapping[str, Any] = field(default_factory=dict)
 
     def public_definition(self):
         return {

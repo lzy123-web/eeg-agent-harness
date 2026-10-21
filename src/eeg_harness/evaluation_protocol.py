@@ -27,7 +27,7 @@ def classify_outcome(expected, status, *, preflight_rejected=False, recoveries=0
 
     if expected == "complete" and status == "completed":
         return RECOVERED_TRANSIENT if recoveries else COMPLETED
-    if expected == "reject" and status == "rejected":
+    if expected == "reject" and status.startswith("rejected"):
         return REJECTED_PREFLIGHT if preflight_rejected else REJECTED_EXECUTOR
     if expected == "reject" and status == "execution_failed":
         return REJECTED_EXECUTOR

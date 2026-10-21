@@ -129,6 +129,8 @@ class OperationContract:
     requires_events: bool = False
     required_resources: tuple[str, ...] = ()
     state_effect: str = "result_only"
+    observes_state: tuple[str, ...] = ()
+    preconditions: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self):
         return {
@@ -140,24 +142,27 @@ class OperationContract:
             "requires_events": self.requires_events,
             "required_resources": list(self.required_resources),
             "state_effect": self.state_effect,
+            "observes_state": list(self.observes_state),
+            "preconditions": dict(self.preconditions),
         }
 
 
 def build_operation_contracts(registry):
     """Build contracts for the eight registered tools without loading models."""
 
-    artifact_consumers = {"epoch_summary": "epochs", "event_bandpower": "epochs"}
     contracts = {}
     for spec in registry.list_specs():
         contracts[spec.name] = OperationContract(
             tool_name=spec.name,
             required_parameters=tuple(spec.parameters.get("required", ())),
             compatible_profiles=tuple(spec.compatible_profiles),
-            consumes_artifact=artifact_consumers.get(spec.name),
-            produces_artifact="epochs" if spec.name == "create_epochs" else None,
-            requires_events=spec.name == "create_epochs",
+            consumes_artifact=spec.consumes_artifact,
+            produces_artifact=spec.produces_artifact,
+            requires_events=spec.requires_events,
             required_resources=tuple(spec.required_resources),
-            state_effect="stores_session_artifact" if spec.name == "create_epochs" else "result_only",
+            state_effect=spec.state_effect,
+            observes_state=tuple(spec.observes_state),
+            preconditions=dict(spec.preconditions),
         )
     return contracts
 
@@ -284,7 +289,7 @@ class StateAwareConstrainedPlanner:
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
-    def _validate_epoch_goal(self, task, arguments, state):
+    def _validate_epoch_goal(self, task, arguments, state, consumer):
         labels = tuple(arguments.get("labels", ()))
         if not labels:
             return "UNSATISFIABLE_CONSTRAINTS", "At least one event label is required"
@@ -302,9 +307,14 @@ class StateAwareConstrainedPlanner:
             return "UNSATISFIABLE_CONSTRAINTS", "Finite tmin and tmax are required"
         if not (tmin < tmax):
             return "UNSATISFIABLE_CONSTRAINTS", "Epoch requires tmin < tmax"
-        if tmax - tmin < 1.0:
+        minimum = float(
+            self.contracts[consumer].preconditions.get(
+                "min_artifact_duration_seconds", 0.0
+            )
+        )
+        if tmax - tmin < minimum:
             return "UNSATISFIABLE_CONSTRAINTS", (
-                "event_bandpower requires at least a one-second Epoch"
+                f"{consumer} requires an Epoch of at least {minimum:g} seconds"
             )
         baseline = arguments.get("baseline")
         if baseline is not None:
@@ -316,21 +326,41 @@ class StateAwareConstrainedPlanner:
                 return "UNSATISFIABLE_CONSTRAINTS", "Baseline must be inside the Epoch window"
         return None
 
-    def _plan_event_bandpower(self, task, state):
+    def _find_artifact_producer(self, artifact_type):
+        return next(
+            (item for item in self.contracts.values() if item.produces_artifact == artifact_type),
+            None,
+        )
+
+    def _find_state_observer(self, state_name):
+        return next(
+            (item for item in self.contracts.values() if state_name in item.observes_state),
+            None,
+        )
+
+    def _plan_artifact_consumer(self, task, state):
+        consumer = task.goal
+        consumer_contract = self.contracts[consumer]
         arguments = dict(task.arguments)
         artifact_id = arguments.get("artifact_id")
         if artifact_id and state.artifact(artifact_id):
             tool_args = {"artifact_id": artifact_id}
-            failure = self._validate_tool(task, "event_bandpower", tool_args, state)
+            failure = self._validate_tool(task, consumer, tool_args, state)
             if failure:
                 return _reject(task, state, failure[0], failure[1])
             return Plan(
                 task.task_id,
                 "ready",
-                (PlanStep("bandpower", "event_bandpower", tool_args, purpose="consume existing Epoch artifact"),),
+                (PlanStep("consume-artifact", consumer, tool_args, purpose="consume existing session artifact"),),
                 state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
             )
-        failure = self._validate_epoch_goal(task, arguments, state)
+        producer = self._find_artifact_producer(consumer_contract.consumes_artifact)
+        if producer is None:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                f"No tool produces {consumer_contract.consumes_artifact} artifacts",
+            )
+        failure = self._validate_epoch_goal(task, arguments, state, consumer)
         if failure:
             return _reject(task, state, failure[0], failure[1])
         epoch_args = {
@@ -340,20 +370,32 @@ class StateAwareConstrainedPlanner:
         }
         if "baseline" in arguments:
             epoch_args["baseline"] = list(arguments["baseline"])
+        steps = []
+        observer = self._find_state_observer("events") if producer.requires_events else None
+        producer_dependencies = ()
+        if observer is not None:
+            steps.append(PlanStep(
+                "observe-events", observer.tool_name, {},
+                purpose="record visible event state",
+            ))
+            producer_dependencies = ("observe-events",)
+        steps.extend((
+            PlanStep(
+                "produce-artifact", producer.tool_name, epoch_args,
+                producer_dependencies, "produce declared session artifact",
+            ),
+            PlanStep(
+                "consume-artifact",
+                consumer,
+                {"artifact_id": {"$result": "produce-artifact", "path": ["artifact_id"]}},
+                ("produce-artifact",),
+                "consume the newly produced declared artifact",
+            ),
+        ))
         return Plan(
             task.task_id,
             "ready",
-            (
-                PlanStep("list-events", "list_events", {}, purpose="record visible event state"),
-                PlanStep("create-epochs", "create_epochs", epoch_args, ("list-events",), "produce session Epoch artifact"),
-                PlanStep(
-                    "bandpower",
-                    "event_bandpower",
-                    {"artifact_id": {"$result": "create-epochs", "path": ["artifact_id"]}},
-                    ("create-epochs",),
-                    "consume the newly produced Epoch artifact",
-                ),
-            ),
+            tuple(steps),
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
@@ -361,8 +403,8 @@ class StateAwareConstrainedPlanner:
         state = state or EEGStateSnapshot.from_context(self.context)
         if task.goal == "tool":
             return self._plan_tool(task, state)
-        if task.goal == "event_bandpower":
-            return self._plan_event_bandpower(task, state)
+        if task.goal in self.contracts and self.contracts[task.goal].consumes_artifact:
+            return self._plan_artifact_consumer(task, state)
         if task.goal == "sequence":
             steps = []
             for index, subtask in enumerate(task.subtasks):

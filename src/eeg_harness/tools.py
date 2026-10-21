@@ -203,6 +203,7 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=event_profiles,
             handler=_list_events,
+            observes_state=("events",),
         )
     )
     registry.register(
@@ -223,6 +224,9 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=event_profiles,
             handler=_create_epochs,
+            produces_artifact="epochs",
+            requires_events=True,
+            state_effect="stores_session_artifact",
         )
     )
     artifact_schema = {
@@ -239,6 +243,7 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=event_profiles,
             handler=_epoch_summary,
+            consumes_artifact="epochs",
         )
     )
     registry.register(
@@ -249,6 +254,8 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=event_profiles,
             handler=_event_bandpower,
+            consumes_artifact="epochs",
+            preconditions={"min_artifact_duration_seconds": 1.0},
         )
     )
     return registry
