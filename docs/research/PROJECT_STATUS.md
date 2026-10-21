@@ -146,3 +146,4 @@ Milestone 3：真实事件 EEG 验证、R3 适配及受试者级分析基线已�
 - Issue #2 阶段 A Commit：`f7f95da`（`阶段A 修复会话隔离与事件时间校验`）。
 - Issue #2 阶段 B Commit：`812a899`（`阶段B 增加通用预处理与R3适配器`）。
 - Issue #2 阶段 C Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。
+- Issue #2 阶段 D Commit：`c9af7aa`（`阶段D 完成R3真实事件验收与研究文档`）。

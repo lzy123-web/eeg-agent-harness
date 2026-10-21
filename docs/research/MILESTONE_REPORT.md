@@ -144,3 +144,5 @@ Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。
 - 原癫痫模型、Fake Agent、确定性 workflow 持续回归通过。
 - 最终测试数量、CI 和提交状态见 `PROJECT_STATUS.md`；科学边界详见 `R3_INTEGRATION_REPORT.md`。
 
+Commit：`c9af7aa`（`阶段D 完成R3真实事件验收与研究文档`）。
+
