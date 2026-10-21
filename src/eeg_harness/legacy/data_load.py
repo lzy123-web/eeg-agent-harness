@@ -71,22 +71,16 @@ def inspect_edf(file_path):
 def load_edf_record(file_path, config):
     """Load and preprocess an EDF into an explicit 22-channel EEG record."""
 
-    path = Path(file_path).expanduser().resolve()
-    source_info = inspect_edf(path)
-    data = dataLoad(path, config)
-    channel_names = tuple(f"{left}-{right}" for left, right in BIPOLAR_PAIRS)
-    return EEGRecord(
-        data=data,
-        sfreq=float(config["fs"]),
-        channel_names=channel_names,
-        reference="pairwise subtraction (left-right)",
-        montage="22-channel longitudinal bipolar montage",
-        source=str(path),
-        processing_metadata=(
-            {"operation": "bandpass_filter", "l_freq": config["l_freq"], "h_freq": config["h_freq"]},
-            {"operation": "notch_filter", "frequency": config["notch_freq"]},
-            {"operation": "resample", "sfreq": config["fs"]},
-            {"operation": "bipolar_derivation", "channel_count": len(channel_names)},
-        ),
-        metadata={"source_edf": source_info},
-    )
+    from ..edf import load_edf
+    from ..profiles import TUEV_BIPOLAR_22
+
+    expected = {
+        "fs": int(TUEV_BIPOLAR_22.target_sfreq),
+        "l_freq": TUEV_BIPOLAR_22.l_freq,
+        "h_freq": TUEV_BIPOLAR_22.h_freq,
+        "notch_freq": TUEV_BIPOLAR_22.notch_freq,
+    }
+    actual = {name: config[name] for name in expected}
+    if actual != expected:
+        raise ValueError(f"Legacy loader config does not match tuev_bipolar_22: {actual}")
+    return load_edf(file_path, TUEV_BIPOLAR_22)

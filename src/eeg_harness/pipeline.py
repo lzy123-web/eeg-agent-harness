@@ -13,9 +13,10 @@ import numpy as np
 import scipy
 import torch
 
-from .legacy.data_load import load_edf_record
+from .edf import load_edf
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
+from .profiles import TUEV_BIPOLAR_22
 
 
 def _sha256(path):
@@ -43,7 +44,7 @@ def run_baseline(edf_path, model_path, config_path, channel="FP1-F7", start=0, e
     config_file = Path(config_path).expanduser().resolve()
     config = load_config(config_file)
     started = time.perf_counter()
-    record = load_edf_record(edf, config)
+    record = load_edf(edf, TUEV_BIPOLAR_22)
     source_info = record.metadata["source_edf"]
     load_seconds = time.perf_counter() - started
     if record.data.shape[0] != 22:
