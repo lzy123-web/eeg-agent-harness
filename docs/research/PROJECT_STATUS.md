@@ -45,7 +45,7 @@
 | PSD 结果（FP1-F7, 0–1 s） | delta `1.86e-10`、theta `1.24e-10`、alpha `2.03e-11`、beta `1.56e-12`、gamma `6.96e-13`。 |
 | 癫痫模型结果（FP1-F7, 0–1 s） | `Non-seiz=0.0`、`seiz=1.0`；这是现有权重在单一样例窗口的工程输出，不是性能或临床结论。 |
 | 模型输入与权重 | 单窗 shape `[1, 256]`；`seiz&normal.pth` SHA-256 `e67a7b7aa958642b4d194c03fe4750995be89150e84b82cf78d662d35831c41b`。 |
-| EDF 校验值 | `gped_049_a_6.edf` SHA-256 由 CLI 写入结果文件；资源未进入 Git。 |
+| EDF 校验值 | `gped_049_a_6.edf` SHA-256 `9f83f1294724fa04686e9051f085c4a9c0d1fe9854126c3c13c52c25577104cf`；资源未进入 Git。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -75,6 +75,6 @@
 
 ## Git Commit 信息
 
-- 正式项目将在本次任务中初始化本地 Git 仓库；相邻原始 EEGAgent 目录保持非 Git、未修改。
+- 正式项目已初始化本地 Git 仓库；相邻原始 EEGAgent 目录保持非 Git、未修改。
 - 不配置或推送远程仓库。
-- 本轮 Commit：完成本地提交后补记。
+- 代码基线 Commit：`9f235b8`（`建立最小 EEG 分析代码基线`）。
