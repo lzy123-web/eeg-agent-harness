@@ -28,6 +28,10 @@ def _validate_schema(arguments, schema):
             raise ValueError(f"Parameter {name} must be an array")
         if expected == "array" and len(value) < properties[name].get("minItems", 0):
             raise ValueError(f"Parameter {name} must not be empty")
+        if expected == "array":
+            item_type = properties[name].get("items", {}).get("type")
+            if item_type == "string" and any(not isinstance(item, str) for item in value):
+                raise ValueError(f"Every item in parameter {name} must be a string")
         if expected == "number" and (not isinstance(value, (int, float)) or isinstance(value, bool)):
             raise ValueError(f"Parameter {name} must be a number")
         if expected == "number" and not math.isfinite(float(value)):

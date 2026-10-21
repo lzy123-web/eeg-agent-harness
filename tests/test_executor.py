@@ -78,6 +78,35 @@ class RegistryExecutorTest(unittest.TestCase):
             "INVALID_WINDOW",
         )
 
+    def test_schema_boundaries_are_structured_errors(self):
+        cases = [
+            {"channels": [1], "start": 0, "end": 1},
+            {"channels": ["C1"], "start": float("nan"), "end": 1},
+            {"channels": ["C1"], "start": 1, "end": 1},
+            {"channels": ["C1"], "start": 0, "end": 1, "unexpected": True},
+        ]
+        expected = ["INVALID_ARGUMENT", "INVALID_ARGUMENT", "INVALID_WINDOW", "INVALID_ARGUMENT"]
+        actual = [
+            self.executor.execute(self.record, EDF_NATIVE, ToolRequest("amplitude", args)).error_code
+            for args in cases
+        ]
+        self.assertEqual(actual, expected)
+
+    def test_record_and_declared_profile_mismatch_is_rejected(self):
+        mismatched = EEGRecord(
+            data=self.record.data,
+            sfreq=self.record.sfreq,
+            channel_names=self.record.channel_names,
+            reference=self.record.reference,
+            montage=self.record.montage,
+            source=self.record.source,
+            metadata={"profile_id": "another_profile"},
+        )
+        result = self.executor.execute(
+            mismatched, EDF_NATIVE, ToolRequest("record_info", {})
+        )
+        self.assertEqual(result.error_code, "INCOMPATIBLE_PROFILE")
+
     def test_profile_incompatibility_precedes_model_resource_check(self):
         request = ToolRequest(
             "seizure_detection", {"channels": ["C1"], "start": 0, "end": 1}
