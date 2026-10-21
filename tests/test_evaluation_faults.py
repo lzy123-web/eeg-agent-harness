@@ -49,6 +49,23 @@ class EvaluationFaultTest(unittest.TestCase):
             self.assertEqual(result.error_code, "MODEL_RESOURCE_MISSING")
             self.assertEqual(context.executor.resources["seizure_model"], "")
 
+    def test_profile_mismatch_is_injected_before_model_load(self):
+        config = load_config("config/baseline.json")
+        context = make_synthetic_context("tuev", "profile-fault", config)
+        with tempfile.TemporaryDirectory() as directory:
+            resource = Path(directory) / "model.pth"
+            resource.write_bytes(b"evaluation-placeholder")
+            base = Executor(
+                build_default_registry(), config, {"seizure_model": str(resource)}
+            )
+            context.executor = FaultInjectingExecutor(base, "profile_mismatch")
+            result = context.execute(ToolRequest("seizure_detection", {
+                "channels": [context.record.channel_names[0]], "start": 0, "end": 1,
+            }))
+            self.assertFalse(result.success)
+            self.assertEqual(result.error_code, "INCOMPATIBLE_PROFILE")
+            self.assertTrue(context.executor.applied)
+
 
 if __name__ == "__main__":
     unittest.main()

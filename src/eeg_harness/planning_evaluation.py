@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import tempfile
 import time
 
 import mne
@@ -12,6 +13,7 @@ from .context import ExecutionContext
 from .evaluation_protocol import DEFAULT_BUDGET, classify_outcome
 from .events import events_from_mne_raw
 from .executor import Executor, _validate_schema
+from .evaluation_faults import FaultInjectingExecutor
 from .pipeline import load_config
 from .planning import ConstrainedPlanRunner, StateAwareConstrainedPlanner, TaskSpec
 from .profiles import EDF_NATIVE, TUEV_BIPOLAR_22, ProfileValidationError
@@ -28,6 +30,7 @@ class BenchmarkCase:
     expected: str
     task: TaskSpec
     setup: str | None = None
+    fault: str | None = None
 
 
 def _task_from_dict(payload, task_id):
@@ -50,13 +53,14 @@ def load_frozen_suite(path):
         BenchmarkCase(
             item["case_id"], item["split"], item["variant"], item["expected"],
             _task_from_dict(item["task"], item["case_id"]), item.get("setup"),
+            item.get("fault"),
         )
         for item in payload["cases"]
     )
     return payload["suite_version"], cases
 
 
-def make_synthetic_context(variant, task_id, config):
+def make_synthetic_context(variant, task_id, config, resources=None):
     profile = TUEV_BIPOLAR_22 if variant.startswith("tuev") else EDF_NATIVE
     sfreq = 128.0 if variant == "tuev_wrong_sfreq" else (profile.target_sfreq or 128.0)
     channels = profile.required_channels or ("C1", "C2")
@@ -75,7 +79,9 @@ def make_synthetic_context(variant, task_id, config):
         metadata={"profile_id": profile.profile_id},
         events=events_from_mne_raw(raw, f"synthetic://benchmark/{task_id}"),
     )
-    return ExecutionContext(record, profile, Executor(build_default_registry(), config), task_id)
+    return ExecutionContext(
+        record, profile, Executor(build_default_registry(), config, resources), task_id
+    )
 
 
 def _prepare(case, context):
@@ -88,7 +94,7 @@ def _prepare(case, context):
     ))
     arguments = dict(task.arguments)
     arguments["artifact_id"] = created.data["artifact_id"]
-    return TaskSpec(task.goal, arguments, task.subtasks, task.task_id), True
+    return TaskSpec(task.goal, arguments, task.subtasks, task.task_id), case.fault is None
 
 
 def _policy_payload(
@@ -151,6 +157,9 @@ def _expert_preflight_tool(context, name, arguments):
     if spec is None or not context.profile.supports_tool(name):
         return False
     try:
+        record_profile = context.record.metadata.get("profile_id")
+        if record_profile and record_profile != context.profile.profile_id:
+            return False
         context.profile.validate_record(context.record)
         _validate_schema(arguments, spec.parameters)
         if spec.required_sfreq is not None and context.record.sfreq != spec.required_sfreq:
@@ -332,7 +341,10 @@ def _summarize_rows(rows):
     rejectable = [row for row in rows if row["expected"] == "reject"]
     return {
         "valid_task_completion_rate": sum(row["status"] == "completed" for row in executable) / len(executable),
-        "correct_rejection_rate": sum(row["status"] == "rejected" for row in rejectable) / len(rejectable),
+        "correct_rejection_rate": sum(
+            row["outcome_class"] in ("rejected_preflight", "rejected_executor")
+            for row in rejectable
+        ) / len(rejectable),
         "pre_execution_invalid_call_rate": sum(row["pre_execution_invalid_calls"] for row in rows) / max(1, sum(row["tool_calls"] for row in rows)),
         "runtime_errors": sum(row["runtime_errors"] for row in rows),
         "tool_calls": sum(row["tool_calls"] for row in rows),
@@ -340,6 +352,16 @@ def _summarize_rows(rows):
         "redundant_calls": sum(row["redundant_calls"] for row in rows),
         "replans": sum(row["replans"] for row in rows),
         "state_checks": sum(row["state_checks"] for row in rows),
+        "recovered_transient": sum(
+            row["outcome_class"] == "recovered_transient" for row in rows
+        ),
+        "rejected_preflight": sum(
+            row["outcome_class"] == "rejected_preflight" for row in rows
+        ),
+        "rejected_executor": sum(
+            row["outcome_class"] == "rejected_executor" for row in rows
+        ),
+        "failures": sum(row["outcome_class"] == "failed" for row in rows),
     }
 
 
@@ -355,28 +377,39 @@ def run_benchmark(suite_path, config_path="config/baseline.json"):
     version, cases = load_frozen_suite(suite_path)
     config = load_config(config_path)
     outcomes = []
-    for policy_name, policy in POLICIES.items():
-        for case in cases:
-            context = make_synthetic_context(case.variant, f"{policy_name}-{case.case_id}", config)
-            task, drop = _prepare(case, context)
-            outcome = policy(task, context, drop)
-            outcome_class = classify_outcome(
-                case.expected,
-                outcome["status"],
-                preflight_rejected=outcome["preflight_rejected"],
-                recoveries=outcome["replans"],
-            )
-            outcomes.append({
-                "policy": policy_name,
-                "case_id": case.case_id,
-                "split": case.split,
-                "expected": case.expected,
-                "outcome_class": outcome_class,
-                **{key: value for key, value in outcome.items() if key != "tool_results"},
-                "error_codes": [
-                    item["error"]["code"] for item in outcome["tool_results"] if item["error"]
-                ],
-            })
+    with tempfile.TemporaryDirectory(prefix="eeg-planning-eval-") as directory:
+        placeholder = Path(directory) / "seizure_model.pth"
+        placeholder.write_bytes(b"evaluation placeholder; never loaded")
+        for policy_name, policy in POLICIES.items():
+            for case in cases:
+                resources = None
+                if case.fault in ("model_resource_removed", "profile_mismatch"):
+                    resources = {"seizure_model": str(placeholder)}
+                context = make_synthetic_context(
+                    case.variant, f"{policy_name}-{case.case_id}", config, resources
+                )
+                task, drop = _prepare(case, context)
+                if case.fault:
+                    context.executor = FaultInjectingExecutor(context.executor, case.fault)
+                outcome = policy(task, context, drop)
+                outcome_class = classify_outcome(
+                    case.expected,
+                    outcome["status"],
+                    preflight_rejected=outcome["preflight_rejected"],
+                    recoveries=outcome["replans"],
+                )
+                outcomes.append({
+                    "policy": policy_name,
+                    "case_id": case.case_id,
+                    "split": case.split,
+                    "expected": case.expected,
+                    "fault": case.fault,
+                    "outcome_class": outcome_class,
+                    **{key: value for key, value in outcome.items() if key != "tool_results"},
+                    "error_codes": [
+                        item["error"]["code"] for item in outcome["tool_results"] if item["error"]
+                    ],
+                })
     payload = {
         "suite_version": version,
         "case_count": len(cases),

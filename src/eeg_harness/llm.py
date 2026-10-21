@@ -186,3 +186,20 @@ class DeterministicGoalFakeLLM:
             }}
         return {"role": "assistant", "content": json.dumps(task, ensure_ascii=False)}
 
+
+class DeterministicComparisonFakeLLM:
+    """One deterministic backend supporting both compared output protocols."""
+
+    def __init__(self):
+        self.native = DemoFakeLLM()
+        self.goal = DeterministicGoalFakeLLM()
+
+    @property
+    def calls(self):
+        return self.native.calls + self.goal.calls
+
+    def complete(self, messages, tools):
+        if tools:
+            return self.native.complete(messages, tools)
+        return self.goal.complete(messages, tools)
+

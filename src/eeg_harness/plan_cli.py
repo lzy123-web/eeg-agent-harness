@@ -7,6 +7,7 @@ from pathlib import Path
 from .pipeline import load_config
 from .planning import ConstrainedPlanRunner, TaskSpec
 from .planning_evaluation import _task_from_dict, make_synthetic_context, run_benchmark
+from .nl_evaluation import run_fake_nl_comparison
 
 
 DEMOS = {
@@ -33,13 +34,16 @@ def main(argv=None):
     source.add_argument("--demo", choices=sorted(DEMOS))
     source.add_argument("--task", help="JSON TaskSpec file")
     source.add_argument("--benchmark", action="store_true")
+    source.add_argument("--nl-benchmark", action="store_true")
     parser.add_argument("--variant", default="native_events")
     parser.add_argument("--config", default="config/baseline.json")
     parser.add_argument("--suite", default="config/planning_benchmark_v1.json")
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
 
-    if args.benchmark:
+    if args.nl_benchmark:
+        payload = run_fake_nl_comparison(args.config)
+    elif args.benchmark:
         payload = run_benchmark(args.suite, args.config)
     else:
         task_payload = DEMOS[args.demo] if args.demo else json.loads(
