@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-阶段 1：显式 EEG 数据对象与最小确定性分析链已建立。
+基础运行时 MVP：阶段 A–D 已完成，进入多任务扩展前的稳定化阶段。
 
 当前工作目录 `D:\Profession\Programs\CANKAO\eeg-agent-harness` 已成为可独立维护的 Python 项目；审计和复用源仍为相邻的 `D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main`。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -24,6 +24,11 @@
 - 新增统一 `EEGRecord.slice` 接口，校验未知通道、负时间、倒置时间、空时间窗、记录越界和采样后空窗。
 - 将幅值、PSD、`seizureNormalModel_OneSecond` 及 `pipeline.py` 改为显式接收/传递 `EEGRecord`；正式执行链不再导入或调用 `legacy.register_data`。
 - 保留原始预处理、幅值、Welch PSD、模型结构和权重加载算法，未修改相邻原始 EEGAgent 项目。
+- 实现 `TaskProfile`，提供 `tuev_bipolar_22` 与 `edf_native` 两种数据适配；加载器与 Profile 分离。
+- 实现四个标准工具、惰性 `ToolRegistry` 和结构化 `Executor`，统一返回 JSON 安全的 `ToolResult` 与错误码。
+- 实现任务隔离的 `ExecutionContext`、`ExecutionTrace`、结果引用和确定性多工具 Workflow。
+- 实现 OpenAI 兼容原生 Tool Calling Agent Loop、环境变量配置和 `DemoFakeLLM`。
+- 新增 Workflow CLI 与 Agent CLI；没有实现候选论文创新机制、ASD、RAG 或新模型训练。
 
 ## 实际验证结果
 
@@ -52,6 +57,12 @@
 | 模型输入与权重 | 单窗 shape `[1, 256]`；`seiz&normal.pth` SHA-256 `e67a7b7aa958642b4d194c03fe4750995be89150e84b82cf78d662d35831c41b`。 |
 | EDF 校验值 | `gped_049_a_6.edf` SHA-256 `9f83f1294724fa04686e9051f085c4a9c0d1fe9854126c3c13c52c25577104cf`；资源未进入 Git。 |
 | 改造前后回归 | 使用同一 EDF、权重、`FP1-F7` 0–1 秒窗口比较；输出 shape、256 Hz 采样率、幅值与五频带 PSD 结果、模型概率、EDF 与模型 SHA-256 全部一致，确定性字段无差异。 |
+| MVP 完整测试 | `compileall` 通过；`unittest discover` 共 32 项通过、0 失败、0 跳过（已提供真实资源）。 |
+| Profile | `tuev_bipolar_22` 输出 `(22, 61696)`/256 Hz；`edf_native` 保留所选 EDF 通道与原始 250 Hz。 |
+| Registry/Executor | 4 个工具注册；Native 暴露 3 个，双极 Profile 暴露 4 个；列表查询不加载权重。 |
+| Workflow | 基础信息→PSD→癫痫推理三步成功，结果与 Trace 可 JSON 序列化。 |
+| Fake LLM | 基础信息、频带功率、真实癫痫权重调用闭环均通过；工具调用上限测试通过。 |
+| 真实 LLM | 环境未配置 Base URL、API Key、模型名，故未执行、未验证。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -72,26 +83,26 @@
 
 ## 未解决问题
 
-1. 默认主入口固定生成 22 导数据，Sleep 2 导和 MDD 19 导工具无法按任务自动选择正确加载链。
+1. 当前仅有 `tuev_bipolar_22` 与 `edf_native`；Sleep 2 导、MDD 19 导和 ERP 尚无已验证 Profile。
 2. `legacy/register_data.py` 文件仍为迁移来源保留，但正式 pipeline、工具和测试已不再依赖；尚未执行物理删除。
-3. 工具自动发现会加载全部本地模型；缺少 Profile 过滤、惰性加载和统一资源错误。
-4. 工具 schema 不是标准 JSON Schema，工具调用依赖正则文本协议，参数校验不足。
+3. 当前 Registry 已避免枚举时加载权重，但尚无插件发现、资源 manifest 和跨进程模型生命周期管理。
+4. 已使用 JSON Schema 风格声明和结构化 Tool Calling，但本地 schema 校验器仅覆盖当前 MVP 所需子集。
 5. `reflectData` 返回 NumPy 数组，当前消息回注无法直接 JSON 序列化。
 6. RAG 主模型权重缺失，报告模板也没有进入当前生效 Prompt。
 7. MDD、Sleep、TUEV Agent 评估脚本与默认路径或返回结构不一致，不能直接作为回归测试。
 8. 多数本地权重的训练数据、版本、许可证和指标来源在源码中未提供。
-9. 已有最小 CLI、显式数据对象测试和资源型 smoke test，但尚无 CI、跨平台锁文件、完整资源 manifest 或多样本回归集。
+9. 已有三类 CLI、32 项测试和资源型 smoke test，但尚无 CI、跨平台锁文件、完整资源 manifest 或多样本回归集。
 10. 原始项目没有发现许可证文件；源码和权重许可需在公开分发前确认。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 把 22 导 montage、采样率和模型输入约束提升为最小 `TaskProfile`，增加缺导和错误采样率测试。
-2. 在确认没有兼容调用方后移除已脱离正式链路的 `legacy/register_data.py`，并将迁移工具逐步移出 `legacy` 命名空间。
-3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态。
-4. 增加 CI 可运行的无权重单元测试，并为资源型 smoke test保留显式启用方式。
-5. 以上接口稳定后再设计统一 Executor/Trace；LLM、Sleep、MDD、ERP 和 ASD 继续后置。
+1. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并增加 CI 的无资源测试矩阵。
+2. 稳定 `TaskProfile` 与 Tool Schema，增加更完整的 JSON Schema 校验、错误码测试和版本兼容策略。
+3. 在确认没有兼容调用方后移除 `legacy/register_data.py`，逐步将已验证算法移出 `legacy` 命名空间。
+4. 获取合法的多样本数据后建立事件级回归与性能评估，严格分离工具能力和 Agent 规划质量。
+5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
 6. 候选研究机制“状态感知与约束规划”和“证据驱动自适应分析”仍为拟研究功能，本阶段没有实施。
 
 ## Git Commit 信息
@@ -102,3 +113,7 @@
 - 代码基线 Commit：`9f235b8`（`建立最小 EEG 分析代码基线`）。
 - 基线验证状态 Commit：`e962991`（`记录基线验证与提交信息`）。
 - 显式数据链路 Commit：`9e48f99`（`引入显式 EEGRecord 数据链路`）。
+- 阶段 A Commit：`4c07b20`（`实现 TaskProfile 与 EDF 数据适配`）。
+- 阶段 B Commit：`a27b16c`（`建立工具注册与安全执行器`）。
+- 阶段 C Commit：`1450179`（`实现可追踪多工具执行上下文`）。
+- 阶段 D Commit：`d51de85`（`接入结构化工具调用 Agent Loop`）。

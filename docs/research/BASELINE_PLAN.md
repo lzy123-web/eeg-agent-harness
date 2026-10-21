@@ -126,11 +126,13 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 迁移幅值、PSD、对称性和癫痫/非癫痫工具；输出统一 JSON。
 - 验收：同一 EDF 在无 LLM 条件下得到 22 导、256 Hz 数据；三个基础工具和一次一秒癫痫推理成功；重复运行 shape、通道顺序和结果一致；所有结果通过 `json.dumps`。
 
-### 阶段 2：受约束 Agent Harness
+### 阶段 2：受约束 Agent Harness（基础运行时已实现）
 
 - 建立惰性 Registry、Executor、LLM adapter 和 ExecutionTrace。
 - 只向 Agent 暴露与当前 Profile 兼容的第一阶段工具。
 - 验收：合法请求在限定轮数内完成；非法通道、负时间、倒置/越界窗口、缺失权重和错误维度均返回预期错误码；没有进程级 EEG 全局状态。
+
+2026-10-21 实施状态：`TaskProfile`、惰性 Registry、Executor、ExecutionContext、ExecutionTrace、OpenAI 兼容客户端与 Fake LLM Agent Loop 已实现。此处“受约束”仅指固定 Profile/Schema 的工程校验和有界循环，不代表候选论文机制“状态感知与约束规划”已经实现。
 
 ### 阶段 3：事件评估与回归
 
@@ -167,6 +169,6 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 已增加无 LLM CLI、外部资源路径、SHA-256、运行环境和 JSON 结果记录。
 - 模型权重和测试 EDF 没有复制到正式项目；通过命令行参数或环境变量引用原始项目资源。
 - 2026-10-21 的第二次阶段 1 实施已新增通用 `EEGRecord`，由正式 pipeline 显式传入幅值、PSD 和癫痫推理工具；统一切片负责通道、时间顺序、空窗和记录长度校验。`legacy/register_data.py` 只作为迁移来源保留，正式链路和测试不再导入它。
-- `EEGRecord` 已实现，但完整 `TaskProfile/Executor` 仍未实施，也不应把当前最小 pipeline 描述为完整 Agent Harness 已经完成。
+- `EEGRecord`、两个 `TaskProfile`、统一 Registry/Executor、ExecutionTrace 和结构化 Tool Calling Agent Loop 已实现，构成基础运行时 MVP；完整的 Profile 插件机制、事件评估和多数据集验证仍未实现。
 
 当前确定性入口为 `python -m eeg_harness.cli`，自动化入口为 `python -m unittest discover -s tests -v`。真实样例已验证 22 导、256 Hz、幅值、PSD、模型二分类输出和 JSON 序列化；缺失权重会抛出明确的 `ModelResourceError`。

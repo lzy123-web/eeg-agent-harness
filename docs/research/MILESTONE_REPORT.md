@@ -53,7 +53,16 @@ Commit：`1450179`（`实现可追踪多工具执行上下文`）。
 - 内置 `DemoFakeLLM` 完成基础信息、频带功率和符合条件的真实癫痫模型三类闭环；Native Profile 会拒绝癫痫工具。
 - `compileall` 通过；32 项测试通过，包括 Fake LLM 闭环、真实权重推理和工具调用上限。
 
-Commit：将在阶段提交完成后回填。
+Commit：`d51de85`（`接入结构化工具调用 Agent Loop`）。
+
+## 最终验证
+
+- `python -m compileall -q src tests`：通过。
+- `python -m unittest discover -s tests -v`：32 项通过、0 失败、0 跳过（本地已显式提供现有 EDF 与权重）。
+- 清除资源环境变量后重复运行：23 项通过、9 项资源测试按设计跳过、0 失败，证明核心运行时测试不依赖本地 EDF 或权重。
+- 确定性 Workflow CLI 成功生成三步 JSON bundle；Fake Agent CLI 成功调用真实癫痫工具并生成 JSON 结果。
+- LLM 环境检查：Base URL、API Key、模型名均未配置，因此真实外部 LLM 端到端状态为“未验证”，未伪造结果。
+- EDF、权重和 `artifacts/` 均保持 Git 忽略；相邻原始 EEGAgent 未修改。
 
 ## 能力表述边界
 

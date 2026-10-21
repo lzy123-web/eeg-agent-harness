@@ -1,85 +1,97 @@
 # EEG Agent Harness
 
-本仓库是论文《面向多任务脑电分析的智能体执行框架研究与应用》的正式开发目录。当前代码基线只复现原始 EEGAgent 的一条确定性分析链：
+本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基础运行时 MVP。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop。
+
+它不包含状态感知约束规划、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练。“具有多个工具”不等于“已在多个 EEG 数据集上验证”：当前真实资源验证仍只有原 EEGAgent 的一个 EDF 样例和一个已有权重。
+
+## 架构
 
 ```text
-真实 EDF → 原有滤波/陷波/重采样 → 显式 EEGRecord（22 导双极数据）
-         → 幅值与频带功率 → seizure/non-seizure 模型推理 → JSON 结果
+EDFReader → TaskProfile Adapter → EEGRecord
+                                    ↓
+Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
+                                                   ↓
+                                      ToolResult + ExecutionTrace
 ```
 
-该链路不调用 LLM API，不包含状态感知规划、证据驱动自适应分析或 ASD 综合评估。
+主要模块：
 
-## 来源和资源边界
+- `record.py`：通用 `EEGRecord` 与严格时间/通道切片。
+- `edf.py`、`profiles.py`：数据集无关读取和 Profile 适配。
+- `tooling.py`、`tools.py`、`executor.py`：工具契约、注册、校验与结构化错误。
+- `context.py`、`workflow.py`：任务隔离、结果复用、执行轨迹和确定性工作流。
+- `llm.py`、`agent.py`：OpenAI 兼容客户端、Fake LLM 和有界 Agent Loop。
+- `legacy/`：从原 EEGAgent 迁移的数值算法及模型结构；全局 `register_data` 不在正式链路中使用。
 
-代码从本地原始项目 `D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main` 的相关模块迁移并做最小封装。来源和许可状态见 [THIRD_PARTY_NOTICE.md](THIRD_PARTY_NOTICE.md)。
+## Profile
 
-以下资源不复制进本仓库，也被 `.gitignore` 排除：
+| Profile | 数据处理 | 工具 | 验证范围 |
+|---|---|---|---|
+| `tuev_bipolar_22` | 0.5–70 Hz、60 Hz 陷波、256 Hz、22 导双极派生 | 基础信息、幅值、PSD、癫痫推理 | 单个现有 EDF 与现有权重 |
+| `edf_native` | 保留选定 EDF EEG 通道、原始采样率和参考结构 | 基础信息、幅值、PSD | 同一 EDF 的原生通道适配 |
 
-- 测试 EDF：原项目 `data/gped_049_a_6.edf`；
-- 模型权重：原项目 `tools/localModels/seiz&normal.pth`；
-- API 密钥、真实 EEG 数据和运行结果。
+癫痫模型只允许在 `tuev_bipolar_22` 下运行；系统不会仅凭“有 22 个通道”推断模型适用。
 
-运行时必须通过命令行参数或环境变量显式提供资源路径：
+## 外部资源与环境
 
-- `EEG_HARNESS_EDF_PATH`
-- `EEG_HARNESS_MODEL_PATH`
+EDF、模型权重、API 密钥和运行产物不进入 Git。常用环境变量：
 
-## 已验证环境
+```text
+EEG_HARNESS_EDF_PATH
+EEG_HARNESS_MODEL_PATH
+EEG_HARNESS_LLM_BASE_URL
+EEG_HARNESS_LLM_API_KEY
+EEG_HARNESS_LLM_MODEL
+EEG_HARNESS_LLM_TIMEOUT（可选）
+```
 
-- Windows 11
-- Python 3.10.17
-- MNE 1.6.1
-- NumPy 1.24.4
-- SciPy 1.10.1
-- PyTorch 2.14.1+cpu
+已验证环境为 Python 3.10.17、MNE 1.6.1、NumPy 1.24.4、SciPy 1.10.1、PyTorch 2.14.1+cpu。来源及许可边界见 `THIRD_PARTY_NOTICE.md`；原始 EEGAgent 未发现许可证文件，本项目不声明相关迁移代码或权重可自由再许可。
 
-可使用现有 Conda 环境：
+## 运行入口
 
 ```powershell
 $python = 'C:\Users\Nick\.conda\envs\eegagent\python.exe'
 $env:PYTHONPATH = "$PWD\src"
-& $python -m pip check
+$env:EEG_HARNESS_EDF_PATH = '<合法 EDF 路径>'
+$env:EEG_HARNESS_MODEL_PATH = '<已有 seizure&normal 权重路径>'
 ```
 
-新环境可参考 `environment.yml` 或 `requirements.txt`。PyTorch 的 CPU/CUDA 构建应按运行机器和官方安装源选择；`requirements.txt` 记录本次验证的主版本。
-
-## 运行最小链路
+确定性旧基线：
 
 ```powershell
-$python = 'C:\Users\Nick\.conda\envs\eegagent\python.exe'
-$env:PYTHONPATH = "$PWD\src"
-
-& $python -m eeg_harness.cli `
-  --edf 'D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main\data\gped_049_a_6.edf' `
-  --model 'D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main\tools\localModels\seiz&normal.pth' `
-  --channel 'FP1-F7' `
-  --start 0 `
-  --end 1 `
-  --output 'artifacts\baseline_result.json'
+& $python -m eeg_harness.cli --channel FP1-F7 --start 0 --end 1
 ```
 
-也可先设置环境变量，再省略 `--edf` 和 `--model`。CLI 会把真实输入 shape、采样率、特征、模型概率、依赖版本和资源 SHA-256 写入 JSON。`artifacts/` 不进入 Git。
-
-## 自动化测试
-
-资源型 smoke test 通过环境变量接入外部 EDF 和权重；资源未配置时会明确跳过，而缺失模型错误测试始终运行。
+带 Trace 的多工具 Workflow：
 
 ```powershell
-$python = 'C:\Users\Nick\.conda\envs\eegagent\python.exe'
-$env:PYTHONPATH = "$PWD\src"
-$env:EEG_HARNESS_TEST_EDF = 'D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main\data\gped_049_a_6.edf'
-$env:EEG_HARNESS_MODEL_PATH = 'D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main\tools\localModels\seiz&normal.pth'
+& $python -m eeg_harness.workflow_cli --profile tuev_bipolar_22 `
+  --channel FP1-F7 --output artifacts\workflow.json
+```
 
+Fake LLM Agent：
+
+```powershell
+& $python -m eeg_harness.agent_cli --fake --profile tuev_bipolar_22 `
+  --request '检查癫痫活动' --output artifacts\fake_agent.json
+```
+
+真实 OpenAI 兼容服务需先设置三个 `EEG_HARNESS_LLM_*` 必需变量，再移除 `--fake`。客户端使用原生 `tool_calls`，不采用原项目的正则文本协议。
+
+## 测试
+
+```powershell
+$env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
+& $python -m compileall -q src tests
 & $python -m unittest discover -s tests -v
 ```
 
-## 显式数据对象
+2026-10-21 使用现有真实 EDF 与权重运行：32 项全部通过。未配置资源时，纯单元测试仍运行，资源型集成测试会明确跳过。
 
-正式执行链使用 `EEGRecord` 显式携带二维 EEG 数组、真实采样率、通道名、参考/导联说明、原始来源和处理元数据。幅值、PSD 与癫痫推理工具均直接接收该对象；统一 `record.slice(start, end, channels)` 接口负责通道、时间顺序、空窗口和记录长度校验。`legacy.register_data` 仅为来源对照保留，正式 pipeline 不再导入或调用它。
+## 当前边界
 
-## 当前遗留边界
-
-- `legacy.register_data` 文件仅作为迁移来源留存，不属于正式执行链；后续确认无兼容需求后可删除。
-- 当前只迁移 22 导 TUEV 风格双极链路和一个癫痫二分类权重接口。
-- 模型训练数据来源、许可证和原始指标在源码中未提供；输出仅用于工程复现，不构成临床结论。
-- LLM、RAG、Sleep、MDD 和其他模型工具未进入本代码基线。
+- 未验证多数据集泛化、事件级性能或临床有效性。
+- Sleep、MDD、ERP、ASD 和其他原 EEGAgent 模型尚未迁移到运行时。
+- 真实外部 LLM 尚未验证；当前环境没有所需配置。
+- 尚无 CI、完整资源 manifest、TaskProfile 插件机制和事件级评估集。
+- `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
