@@ -6,6 +6,7 @@ from pathlib import Path
 import time
 
 from .legacy.seizure import ModelResourceError
+from .events import EpochError, EventError
 from .profiles import ProfileValidationError
 from .tooling import ToolResult
 
@@ -36,6 +37,10 @@ def _validate_schema(arguments, schema):
             raise ValueError(f"Parameter {name} must be a number")
         if expected == "number" and not math.isfinite(float(value)):
             raise ValueError(f"Parameter {name} must be finite")
+        if expected == "string" and not isinstance(value, str):
+            raise ValueError(f"Parameter {name} must be a string")
+        if expected == "string" and not value:
+            raise ValueError(f"Parameter {name} must not be empty")
 
 
 class Executor:
@@ -109,6 +114,12 @@ class Executor:
             json.dumps(data, ensure_ascii=False, allow_nan=False)
         except ModelResourceError as exc:
             return fail("MODEL_RESOURCE_ERROR", exc)
+        except EventError as exc:
+            return fail("EVENT_DATA_ERROR", exc)
+        except EpochError as exc:
+            return fail("EPOCH_CREATION_FAILED", exc)
+        except LookupError as exc:
+            return fail("ARTIFACT_NOT_FOUND", exc)
         except (TypeError, ValueError, KeyError) as exc:
             return fail("TOOL_EXECUTION_FAILED", exc)
         except Exception:

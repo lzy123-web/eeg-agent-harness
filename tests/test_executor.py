@@ -40,9 +40,12 @@ class RegistryExecutorTest(unittest.TestCase):
     def test_registry_lists_profile_tools_without_model_resource(self):
         load_seizure_model.cache_clear()
         names = [spec.name for spec in self.registry.list_specs("edf_native")]
-        self.assertEqual(names, ["record_info", "amplitude", "psd"])
+        self.assertEqual(names, [
+            "record_info", "amplitude", "psd", "list_events",
+            "create_epochs", "epoch_summary", "event_bandpower",
+        ])
         definitions = self.registry.public_definitions("tuev_bipolar_22")
-        self.assertEqual(len(definitions), 4)
+        self.assertEqual(len(definitions), 8)
         self.assertEqual(load_seizure_model.cache_info().misses, 0)
         json.dumps(definitions, allow_nan=False)
 

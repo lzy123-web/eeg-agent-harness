@@ -1,5 +1,9 @@
-"""Standard tool wrappers around the migrated EEG algorithms."""
+"""Standard tool wrappers around the migrated and event-related EEG algorithms."""
 
+import numpy as np
+from scipy.signal import welch
+
+from .events import create_epoch_set
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
 from .tooling import ToolRegistry, ToolSpec
@@ -54,6 +58,82 @@ def _seizure(record, arguments, config, resources):
     )
 
 
+def _list_events(record, arguments, config, resources):
+    if record.events is None:
+        return {
+            "event_count": 0,
+            "labels": {},
+            "time_reference": "seconds_from_record_start",
+            "first_onset_seconds": None,
+            "last_onset_seconds": None,
+            "source": record.source,
+        }
+    return record.events.summary()
+
+
+def _create_epochs(record, arguments, config, resources):
+    epochs = create_epoch_set(
+        record,
+        arguments["labels"],
+        arguments["tmin"],
+        arguments["tmax"],
+        baseline=arguments.get("baseline"),
+    )
+    resources["artifact_store"][epochs.artifact_id] = epochs
+    return epochs.summary()
+
+
+def _get_epoch_artifact(arguments, resources):
+    artifact_id = arguments["artifact_id"]
+    try:
+        return resources["artifact_store"][artifact_id]
+    except KeyError as exc:
+        raise LookupError(f"Epoch artifact not found: {artifact_id}") from exc
+
+
+def _epoch_summary(record, arguments, config, resources):
+    return _get_epoch_artifact(arguments, resources).summary()
+
+
+def _event_bandpower(record, arguments, config, resources):
+    epochs = _get_epoch_artifact(arguments, resources)
+    freq_bands = config["freq_bands"]
+    output = {}
+    for label in sorted(set(epochs.event_labels)):
+        indices = [index for index, value in enumerate(epochs.event_labels) if value == label]
+        condition = epochs.data[indices]
+        channel_output = {}
+        for channel_index, channel_name in enumerate(epochs.channel_names):
+            per_epoch = []
+            for epoch in condition[:, channel_index, :]:
+                frequencies, density = welch(
+                    epoch,
+                    fs=epochs.sfreq,
+                    nperseg=min(len(epoch), max(1, int(round(epochs.sfreq)))),
+                )
+                per_epoch.append([
+                    float(np.trapz(
+                        density[np.logical_and(frequencies >= low, frequencies <= high)],
+                        frequencies[np.logical_and(frequencies >= low, frequencies <= high)],
+                    ))
+                    for low, high in freq_bands.values()
+                ])
+            mean_power = np.asarray(per_epoch, dtype=float).mean(axis=0)
+            channel_output[channel_name] = {
+                band_name: float(value)
+                for band_name, value in zip(freq_bands, mean_power)
+            }
+        output[label] = {
+            "epoch_count": len(indices),
+            "channels": channel_output,
+        }
+    return {
+        "artifact_id": epochs.artifact_id,
+        "method": "Welch PSD followed by arithmetic mean across Epochs",
+        "conditions": output,
+    }
+
+
 def build_default_registry():
     registry = ToolRegistry()
     common_profiles = ("tuev_bipolar_22", "edf_native")
@@ -103,6 +183,63 @@ def build_default_registry():
             max_window_seconds=10.0,
             required_sfreq=256.0,
             required_resources=("seizure_model",),
+        )
+    )
+    event_profiles = ("tuev_bipolar_22", "edf_native")
+    registry.register(
+        ToolSpec(
+            name="list_events",
+            description="List event labels, counts and onset-time range without returning EEG arrays.",
+            parameters={"type": "object", "properties": {}, "additionalProperties": False},
+            return_type="object",
+            compatible_profiles=event_profiles,
+            handler=_list_events,
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="create_epochs",
+            description="Create an in-session Epoch artifact for selected event labels and a relative window.",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "labels": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                    "tmin": {"type": "number"},
+                    "tmax": {"type": "number"},
+                    "baseline": {"type": "array"},
+                },
+                "required": ["labels", "tmin", "tmax"],
+                "additionalProperties": False,
+            },
+            return_type="object",
+            compatible_profiles=event_profiles,
+            handler=_create_epochs,
+        )
+    )
+    artifact_schema = {
+        "type": "object",
+        "properties": {"artifact_id": {"type": "string"}},
+        "required": ["artifact_id"],
+        "additionalProperties": False,
+    }
+    registry.register(
+        ToolSpec(
+            name="epoch_summary",
+            description="Return metadata and rejection summary for an in-session Epoch artifact.",
+            parameters=artifact_schema,
+            return_type="object",
+            compatible_profiles=event_profiles,
+            handler=_epoch_summary,
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="event_bandpower",
+            description="Compute reproducible mean Welch band power per event condition and channel.",
+            parameters=artifact_schema,
+            return_type="object",
+            compatible_profiles=event_profiles,
+            handler=_event_bandpower,
         )
     )
     return registry

@@ -4,11 +4,13 @@ from pathlib import Path
 import unittest
 
 import numpy as np
+import mne
 
 from eeg_harness.agent import EEGAgent
 from eeg_harness.context import ExecutionContext
 from eeg_harness.edf import load_edf
 from eeg_harness.executor import Executor
+from eeg_harness.events import events_from_mne_raw
 from eeg_harness.llm import DemoFakeLLM
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE, TUEV_BIPOLAR_22
@@ -29,6 +31,25 @@ def native_context():
         montage="native",
         source="memory://agent",
         metadata={"profile_id": "edf_native"},
+    )
+    return ExecutionContext(record, EDF_NATIVE, Executor(build_default_registry(), CONFIG))
+
+
+def event_context():
+    sfreq = 64.0
+    times = np.arange(0, 5, 1 / sfreq)
+    data = np.vstack([np.sin(2 * np.pi * 10 * times)]).astype(np.float32)
+    raw = mne.io.RawArray(data, mne.create_info(["C1"], sfreq, "eeg"), verbose=False)
+    raw.set_annotations(mne.Annotations([1.0, 3.0], [0, 0], ["stimulus", "stimulus"]))
+    record = EEGRecord(
+        data=data,
+        sfreq=sfreq,
+        channel_names=("C1",),
+        reference="native",
+        montage="native",
+        source="memory://agent-events",
+        metadata={"profile_id": "edf_native"},
+        events=events_from_mne_raw(raw, "memory://agent-events"),
     )
     return ExecutionContext(record, EDF_NATIVE, Executor(build_default_registry(), CONFIG))
 
@@ -71,6 +92,16 @@ class FakeAgentLoopTest(unittest.TestCase):
         ).run("持续调用")
         self.assertEqual(result.stop_reason, "tool_call_limit")
         self.assertEqual(result.tool_calls, 2)
+
+    def test_event_request_runs_four_tool_chain(self):
+        result = EEGAgent(DemoFakeLLM(), event_context()).run("执行事件 Epoch 分析")
+        self.assertEqual(result.stop_reason, "completed")
+        self.assertEqual(
+            [item["tool_name"] for item in result.tool_results],
+            ["list_events", "create_epochs", "epoch_summary", "event_bandpower"],
+        )
+        self.assertTrue(all(item["success"] for item in result.tool_results))
+        self.assertNotIn("data", result.tool_results[1]["data"])
 
 
 @unittest.skipUnless(

@@ -81,6 +81,8 @@ class ExecutionContext:
         self.executor = executor
         self.task_id = task_id or str(uuid4())
         self.results = {}
+        self.artifacts = {}
+        self.executor.resources["artifact_store"] = self.artifacts
         self.history = []
         self.trace = ExecutionTrace(self.task_id, profile.profile_id, record.source)
 
@@ -167,6 +169,10 @@ class ExecutionContext:
                 for event in self.trace.events
             ],
             "results": [self.results[request_id].to_dict() for request_id in self.history],
+            "artifacts": [
+                artifact.summary() if hasattr(artifact, "summary") else {"artifact_id": artifact_id}
+                for artifact_id, artifact in self.artifacts.items()
+            ],
             "trace": self.trace.to_dict(),
         }
         json.dumps(bundle, ensure_ascii=False, allow_nan=False)

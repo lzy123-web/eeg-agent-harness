@@ -57,16 +57,41 @@ class DemoFakeLLM:
 
     def complete(self, messages, tools):
         self.calls.append({"messages": messages, "tools": tools})
-        if messages[-1]["role"] == "tool":
-            result = json.loads(messages[-1]["content"])
-            status = "成功" if result["success"] else f"失败（{result['error']['code']}）"
-            return {"role": "assistant", "content": f"工具 {result['tool_name']} 执行{status}。"}
-
         user_text = next(
             message["content"] for message in reversed(messages) if message["role"] == "user"
         )
+        is_event_request = any(word in user_text.lower() for word in ("事件", "epoch", "erp"))
+        if messages[-1]["role"] == "tool":
+            result = json.loads(messages[-1]["content"])
+            if is_event_request and result["success"]:
+                if result["tool_name"] == "list_events":
+                    labels = list(result["data"]["labels"])
+                    if not labels:
+                        return {"role": "assistant", "content": "当前记录没有可用事件。"}
+                    return self._tool_call(
+                        "create_epochs",
+                        {"labels": [labels[0]], "tmin": -0.2, "tmax": 0.8, "baseline": [-0.2, 0]},
+                        "fake-create-epochs",
+                    )
+                if result["tool_name"] == "create_epochs":
+                    return self._tool_call(
+                        "epoch_summary",
+                        {"artifact_id": result["data"]["artifact_id"]},
+                        "fake-epoch-summary",
+                    )
+                if result["tool_name"] == "epoch_summary":
+                    return self._tool_call(
+                        "event_bandpower",
+                        {"artifact_id": result["data"]["artifact_id"]},
+                        "fake-event-bandpower",
+                    )
+            status = "成功" if result["success"] else f"失败（{result['error']['code']}）"
+            return {"role": "assistant", "content": f"工具 {result['tool_name']} 执行{status}。"}
+
         names = {item["function"]["name"] for item in tools}
-        if any(word in user_text.lower() for word in ("癫痫", "seizure")):
+        if is_event_request:
+            tool_name = "list_events"
+        elif any(word in user_text.lower() for word in ("癫痫", "seizure")):
             tool_name = "seizure_detection"
         elif any(word in user_text.lower() for word in ("频带", "功率", "psd")):
             tool_name = "psd"
@@ -76,19 +101,23 @@ class DemoFakeLLM:
             return {"role": "assistant", "content": f"当前 Profile 不支持工具 {tool_name}。"}
 
         arguments = {}
-        if tool_name != "record_info":
+        if tool_name in {"amplitude", "psd", "seizure_detection"}:
             metadata = json.loads(messages[0]["content"].split("RECORD_METADATA=", 1)[1])
             arguments = {
                 "channels": [metadata["channel_names"][0]],
                 "start": 0,
                 "end": 1,
             }
+        return self._tool_call(tool_name, arguments, "fake-tool-call-1")
+
+    @staticmethod
+    def _tool_call(tool_name, arguments, call_id):
         return {
             "role": "assistant",
             "content": None,
             "tool_calls": [
                 {
-                    "id": "fake-tool-call-1",
+                    "id": call_id,
                     "type": "function",
                     "function": {"name": tool_name, "arguments": json.dumps(arguments)},
                 }

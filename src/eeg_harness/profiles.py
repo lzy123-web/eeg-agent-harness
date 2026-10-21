@@ -52,7 +52,10 @@ TUEV_BIPOLAR_22 = TaskProfile(
     required_channels=BIPOLAR_22_CHANNELS,
     target_sfreq=256.0,
     max_window_seconds=60.0,
-    compatible_tools=("record_info", "amplitude", "psd", "seizure_detection"),
+    compatible_tools=(
+        "record_info", "amplitude", "psd", "seizure_detection",
+        "list_events", "create_epochs", "epoch_summary", "event_bandpower",
+    ),
     l_freq=0.5,
     h_freq=70.0,
     notch_freq=60.0,
@@ -67,7 +70,10 @@ EDF_NATIVE = TaskProfile(
     required_channels=(),
     target_sfreq=None,
     max_window_seconds=60.0,
-    compatible_tools=("record_info", "amplitude", "psd"),
+    compatible_tools=(
+        "record_info", "amplitude", "psd",
+        "list_events", "create_epochs", "epoch_summary", "event_bandpower",
+    ),
 )
 
 PROFILES = {profile.profile_id: profile for profile in (TUEV_BIPOLAR_22, EDF_NATIVE)}
