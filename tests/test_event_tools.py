@@ -85,6 +85,16 @@ class EventToolTest(unittest.TestCase):
         ))
         self.assertEqual(result.error_code, "EVENT_DATA_ERROR")
 
+    def test_short_epoch_bandpower_is_rejected_as_invalid_analysis(self):
+        created = self.context.execute(ToolRequest(
+            "create_epochs", {"labels": ["A"], "tmin": -0.1, "tmax": 0.1}
+        ))
+        result = self.context.execute(ToolRequest(
+            "event_bandpower", {"artifact_id": created.data["artifact_id"]}
+        ))
+        self.assertEqual(result.error_code, "TOOL_EXECUTION_FAILED")
+        self.assertIn("at least one second", result.error_message)
+
     def test_deterministic_event_workflow(self):
         bundle = run_event_workflow(
             event_record(), EDF_NATIVE, CONFIG, ["A"], -0.25, 0.75, (-0.25, 0)

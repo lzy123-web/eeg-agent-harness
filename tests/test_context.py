@@ -34,6 +34,40 @@ def context_with(value, task_id):
 
 
 class ExecutionContextTest(unittest.TestCase):
+    def test_shared_executor_keeps_artifacts_request_scoped(self):
+        shared = Executor(build_default_registry(), CONFIG)
+        def make_event_record(source):
+            import mne
+            from eeg_harness.events import events_from_mne_raw
+
+            sfreq = 64.0
+            data = np.zeros((1, 256), dtype=np.float32)
+            raw = mne.io.RawArray(data, mne.create_info(["C1"], sfreq, "eeg"), verbose=False)
+            raw.set_annotations(mne.Annotations([1.0], [0], ["A"]))
+            return EEGRecord(
+                data=data,
+                sfreq=sfreq,
+                channel_names=("C1",),
+                reference="native",
+                montage="native",
+                source=source,
+                metadata={"profile_id": "edf_native"},
+                events=events_from_mne_raw(raw, source),
+            )
+
+        first = ExecutionContext(make_event_record("memory://first"), EDF_NATIVE, shared, "first-events")
+        second = ExecutionContext(make_event_record("memory://second"), EDF_NATIVE, shared, "second-events")
+        arguments = {"labels": ["A"], "tmin": -0.25, "tmax": 0.75}
+        first_created = first.execute(ToolRequest("create_epochs", arguments, "first-create"))
+        second_created = second.execute(ToolRequest("create_epochs", arguments, "second-create"))
+        first_id = first_created.data["artifact_id"]
+        second_id = second_created.data["artifact_id"]
+
+        self.assertTrue(first.execute(ToolRequest("epoch_summary", {"artifact_id": first_id})).success)
+        self.assertTrue(second.execute(ToolRequest("epoch_summary", {"artifact_id": second_id})).success)
+        cross = first.execute(ToolRequest("epoch_summary", {"artifact_id": second_id}))
+        self.assertEqual(cross.error_code, "ARTIFACT_NOT_FOUND")
+        self.assertNotIn("artifact_store", shared.resources)
     def test_contexts_are_isolated(self):
         first = context_with(1, "first")
         second = context_with(2, "second")

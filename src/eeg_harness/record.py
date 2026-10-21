@@ -42,6 +42,8 @@ class EEGRecord:
             raise ValueError("EEG channel names must be unique")
         if data.shape[1] == 0:
             raise ValueError("EEG data must contain at least one sample")
+        if not np.isfinite(data).all():
+            raise ValueError("EEG data must contain only finite samples")
 
         object.__setattr__(self, "data", data)
         object.__setattr__(self, "sfreq", float(self.sfreq))

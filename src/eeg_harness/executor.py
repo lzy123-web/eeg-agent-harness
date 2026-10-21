@@ -49,8 +49,10 @@ class Executor:
         self.config = config
         self.resources = dict(resources or {})
 
-    def execute(self, record, profile, request):
+    def execute(self, record, profile, request, session_resources=None):
         started = time.perf_counter()
+        resources = dict(self.resources)
+        resources.update(session_resources or {})
 
         def fail(code, message):
             return ToolResult(
@@ -91,7 +93,7 @@ class Executor:
                 f"Tool {spec.name} requires {spec.required_sfreq:g} Hz, got {record.sfreq:g} Hz",
             )
         for resource_name in spec.required_resources:
-            resource = self.resources.get(resource_name)
+            resource = resources.get(resource_name)
             if not resource or not Path(resource).expanduser().is_file():
                 return fail("MODEL_RESOURCE_MISSING", f"Required resource is missing: {resource_name}")
         if spec.requires_window:
@@ -110,7 +112,7 @@ class Executor:
                 return fail(code, message)
 
         try:
-            data = spec.handler(record, dict(request.arguments), self.config, self.resources)
+            data = spec.handler(record, dict(request.arguments), self.config, resources)
             json.dumps(data, ensure_ascii=False, allow_nan=False)
         except ModelResourceError as exc:
             return fail("MODEL_RESOURCE_ERROR", exc)

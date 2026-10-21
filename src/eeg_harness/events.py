@@ -6,6 +6,8 @@ from uuid import uuid4
 
 import numpy as np
 
+from .provenance import source_reference
+
 
 class EventError(ValueError):
     pass
@@ -58,7 +60,7 @@ class EventSet:
             "time_reference": self.time_reference,
             "first_onset_seconds": self.events[0].onset_seconds if self.events else None,
             "last_onset_seconds": self.events[-1].onset_seconds if self.events else None,
-            "source": self.source,
+            "source": source_reference(self.source),
         }
 
 
@@ -111,7 +113,7 @@ class EpochSet:
             "event_labels": list(self.event_labels),
             "event_onsets_seconds": list(self.event_onsets_seconds),
             "rejected": [item.to_dict() for item in self.rejected],
-            "source": self.source,
+            "source": source_reference(self.source),
             "parameters": dict(self.parameters),
         }
 
@@ -151,6 +153,8 @@ def create_epoch_set(record, labels, tmin, tmax, baseline=None):
             raise EpochError("Baseline must contain exactly two values")
         baseline_start = tmin if baseline[0] is None else float(baseline[0])
         baseline_end = tmax if baseline[1] is None else float(baseline[1])
+        if not np.isfinite(baseline_start) or not np.isfinite(baseline_end):
+            raise EpochError("Baseline bounds must be finite")
         if baseline_start < tmin or baseline_end > tmax or baseline_start >= baseline_end:
             raise EpochError("Baseline must be a non-empty interval inside the Epoch window")
         resolved_baseline = (baseline[0], baseline[1])
@@ -203,6 +207,7 @@ def create_epoch_set(record, labels, tmin, tmax, baseline=None):
             "selected_labels": [labels] if isinstance(labels, str) else list(labels),
             "window_semantics": "[event_onset+tmin, event_onset+tmax)",
             "sampling_alignment": "round(seconds * sfreq)",
+            "event_source": record.events.source,
         },
     )
 

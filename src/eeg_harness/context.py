@@ -6,6 +6,7 @@ import json
 from typing import Any
 from uuid import uuid4
 
+from .provenance import source_reference
 from .tooling import ToolRequest
 
 
@@ -52,7 +53,7 @@ class TraceEvent:
 class ExecutionTrace:
     task_id: str
     profile_id: str
-    source: str
+    source: Any
     started_at_utc: str = field(default_factory=_utc_now)
     events: list[TraceEvent] = field(default_factory=list)
     ended_at_utc: str = None
@@ -82,9 +83,10 @@ class ExecutionContext:
         self.task_id = task_id or str(uuid4())
         self.results = {}
         self.artifacts = {}
-        self.executor.resources["artifact_store"] = self.artifacts
         self.history = []
-        self.trace = ExecutionTrace(self.task_id, profile.profile_id, record.source)
+        self.trace = ExecutionTrace(
+            self.task_id, profile.profile_id, source_reference(record.source)
+        )
 
     def _resolve_reference(self, value):
         if isinstance(value, list):
@@ -106,7 +108,12 @@ class ExecutionContext:
                 for name, value in dict(request.arguments).items()
             }
             resolved = ToolRequest(request.name, arguments, request.request_id)
-            result = self.executor.execute(self.record, self.profile, resolved)
+            result = self.executor.execute(
+                self.record,
+                self.profile,
+                resolved,
+                session_resources={"artifact_store": self.artifacts},
+            )
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             from .tooling import ToolResult
 
@@ -152,7 +159,7 @@ class ExecutionContext:
         bundle = {
             "schema_version": "1.0",
             "record": {
-                "source": self.record.source,
+                "source": source_reference(self.record.source),
                 "profile_id": self.profile.profile_id,
                 "sfreq": self.record.sfreq,
                 "channel_names": list(self.record.channel_names),

@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime, timezone
 
 import mne
 import numpy as np
@@ -43,6 +44,19 @@ class EventEpochTest(unittest.TestCase):
         self.assertEqual(record.events.labels, ("edge", "other", "target"))
         self.assertEqual([event.onset_seconds for event in record.events.events], [0.2, 2.0, 5.0, 9.8])
 
+    def test_annotation_times_survive_crop_first_sample_and_resample(self):
+        info = mne.create_info(["C1"], 100.0, "eeg")
+        raw = mne.io.RawArray(np.zeros((1, 1000)), info, first_samp=500, verbose=False)
+        raw.set_meas_date(datetime(2024, 1, 2, tzinfo=timezone.utc))
+        raw.set_annotations(mne.Annotations([6.0, 8.0], [0, 0], ["A", "B"], orig_time=raw.info["meas_date"]))
+        raw.crop(tmin=1.0, tmax=4.0, include_tmax=False).resample(50.0)
+        event_set = events_from_mne_raw(raw, "memory://timing")
+        self.assertEqual(raw.first_samp, 300)
+        self.assertEqual([event.label for event in event_set.events], ["A", "B"])
+        self.assertEqual([event.onset_seconds for event in event_set.events], [0.0, 2.0])
+        sample = int(round(event_set.events[1].onset_seconds * raw.info["sfreq"]))
+        self.assertEqual(sample, 100)
+
     def test_epoch_alignment_shape_and_boundary_rejection(self):
         epochs = create_epoch_set(synthetic_record(), "target", -0.5, 1.0)
         self.assertEqual(epochs.data.shape, (1, 2, 15))
@@ -66,6 +80,8 @@ class EventEpochTest(unittest.TestCase):
             create_epoch_set(synthetic_record(), "target", -0.5, 1, baseline=(-1, 0))
         with self.assertRaisesRegex(EpochError, "No valid Epochs"):
             create_epoch_set(synthetic_record(), "edge", -1, -0.5)
+        with self.assertRaisesRegex(EpochError, "finite"):
+            create_epoch_set(synthetic_record(), "target", -0.5, 1, baseline=(float("nan"), 0))
 
     def test_profile_adaptation_keeps_events_without_embedding_waveforms(self):
         raw = mne.io.RawArray(

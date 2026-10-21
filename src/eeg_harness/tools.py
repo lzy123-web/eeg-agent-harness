@@ -6,6 +6,7 @@ from scipy.signal import welch
 from .events import create_epoch_set
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
+from .provenance import source_reference
 from .tooling import ToolRegistry, ToolSpec
 
 
@@ -30,7 +31,7 @@ def _record_info(record, arguments, config, resources):
         "channel_names": list(record.channel_names),
         "reference": record.reference,
         "montage": record.montage,
-        "source": record.source,
+        "source": source_reference(record.source),
         "processing": list(record.processing_metadata),
     }
 
@@ -66,7 +67,7 @@ def _list_events(record, arguments, config, resources):
             "time_reference": "seconds_from_record_start",
             "first_onset_seconds": None,
             "last_onset_seconds": None,
-            "source": record.source,
+            "source": source_reference(record.source),
         }
     return record.events.summary()
 
@@ -97,6 +98,12 @@ def _epoch_summary(record, arguments, config, resources):
 
 def _event_bandpower(record, arguments, config, resources):
     epochs = _get_epoch_artifact(arguments, resources)
+    epoch_samples = epochs.data.shape[-1]
+    if epoch_samples < int(round(epochs.sfreq)):
+        raise ValueError(
+            "Epoch duration is too short for 1 Hz Welch resolution; "
+            "event_bandpower requires at least one second"
+        )
     freq_bands = config["freq_bands"]
     output = {}
     for label in sorted(set(epochs.event_labels)):
@@ -129,7 +136,9 @@ def _event_bandpower(record, arguments, config, resources):
         }
     return {
         "artifact_id": epochs.artifact_id,
-        "method": "Welch PSD followed by arithmetic mean across Epochs",
+        "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+        "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+        "frequency_resolution_hz": float(epochs.sfreq / min(epoch_samples, int(round(epochs.sfreq)))),
         "conditions": output,
     }
 

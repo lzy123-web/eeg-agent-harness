@@ -19,6 +19,16 @@ def make_record(value, source):
 
 
 class EEGRecordSliceTest(unittest.TestCase):
+    def test_nonfinite_eeg_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "finite samples"):
+            EEGRecord(
+                data=np.array([[0.0, np.nan]], dtype=np.float32),
+                sfreq=1.0,
+                channel_names=("C1",),
+                reference="native",
+                montage="native",
+                source="memory://nonfinite",
+            )
     def setUp(self):
         self.record = EEGRecord(
             data=np.arange(40, dtype=np.float32).reshape(2, 20),
