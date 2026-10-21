@@ -155,7 +155,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 ## 7. 明确不在第一阶段的内容
 
 - 不训练或引入新模型。
-- 不实现 ASD/TD/R3 专有逻辑。
+- 通用层不实现 ASD/TD/R3 专有逻辑；已验证的数据集专有规则只能放入独立应用适配层。
 - 不在最初阶段实现 ERP/诱发电位流水线；后续 Milestone 2 仅增加通用 Epoch 和事件频带特征，仍不宣称完整 ERP 已实现。
 - 不实现候选论文创新机制。
 - 不恢复或下载缺失的 RAG 大模型权重。
@@ -171,5 +171,14 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 2026-10-21 的第二次阶段 1 实施已新增通用 `EEGRecord`，由正式 pipeline 显式传入幅值、PSD 和癫痫推理工具；统一切片负责通道、时间顺序、空窗和记录长度校验。`legacy/register_data.py` 只作为迁移来源保留，正式链路和测试不再导入它。
 - `EEGRecord`、两个 `TaskProfile`、统一 Registry/Executor、ExecutionTrace 和结构化 Tool Calling Agent Loop 已实现，构成基础运行时 MVP；完整的 Profile 插件机制、事件评估和多数据集验证仍未实现。
 - Milestone 2 在同一运行时上新增 `EventSet/EpochSet`、四个事件工具、会话 artifact 和合成数据验证；原癫痫工作流保持不变。真实带事件 EDF 与多数据集泛化仍未验证。
+- Milestone 3 新增 `applications/r3`，以通用 configurable-native Profile 复用同一 Registry/Executor/Context 事件链。真实 R3 文件已验证结构和链路，但任务语义、分组依据和科学假设未确认，不能据此声称多数据集泛化或 ASD 评估已经实现。
+
+## 9. Milestone 3 实施补充
+
+- 通用 `TaskProfile` 增加可配置选导、滤波、陷波、平均参考和采样率适配；核心层没有标签 9、ASD、TD 或 R3 分组判断。
+- R3 应用层显式声明 21 个已观察 EEG 通道与 300 Hz 契约。`1–40 Hz`、`50 Hz` 陷波、平均参考、`[-0.2, 0.8)` Epoch 及 `[-0.2, 0)` baseline 是当前可复现配置，不是从 EDF 头推导的实验真值。
+- 标签 9 仅在 `R3DatasetRules` 中作为 Boundary 候选排除，状态为“科学含义未验证”；标签 1–8 的动作/条件含义也未确认。
+- 受试者聚合强制使用显式 `record_key → participant_id → group` 映射，先对同一参与者的记录求均值，再进行可选组描述；没有映射时拒绝组间分析。
+- 当前事件频带功率定义为 whole-Epoch Welch PSD 后按条件算术平均，属于绝对事件窗频带功率，不是 ERD/ERS。
 
 当前确定性入口为 `python -m eeg_harness.cli`，自动化入口为 `python -m unittest discover -s tests -v`。真实样例已验证 22 导、256 Hz、幅值、PSD、模型二分类输出和 JSON 序列化；缺失权重会抛出明确的 `ModelResourceError`。

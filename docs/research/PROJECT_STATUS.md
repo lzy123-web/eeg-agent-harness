@@ -2,9 +2,9 @@
 
 ## 当前阶段
 
-Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用的 Harness 基线。
+Milestone 3：真实事件 EEG 验证、R3 适配及受试者级分析基线已完成。
 
-当前工作目录 `D:\Profession\Programs\CANKAO\eeg-agent-harness` 已成为可独立维护的 Python 项目；审计和复用源仍为相邻的 `D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main`。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
+正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
 ## 已完成工作
 
@@ -33,6 +33,10 @@ Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用�
 - 新增 `EventSet`、`EpochSet`、MNE annotation 映射、边界试次拒绝和可选 baseline 校正。
 - 新增 `list_events`、`create_epochs`、`epoch_summary`、`event_bandpower`，Epoch 数组只保存在任务 artifact store。
 - 新增确定性事件工作流、合成事件 CLI 与 Fake LLM 四工具链；未引入 ASD/TD/R3 标签语义。
+- 修复共享 Executor 的 artifact 会话隔离，新增 MNE 绝对时间/crop/重采样样本级回归及非有限值、短 Welch 窗口失败行为。
+- 通用 EDF 适配支持显式选导、滤波、陷波、平均参考和可选重采样；R3 专有配置位于 `applications/r3`。
+- 新增 R3 资源诊断、单文件事件工作流、外部事件表适配、去标识公开摘要和显式受试者聚合。
+- 受试者聚合先在 participant 内合并记录，再进行可选 group 描述；无显式映射时拒绝组间描述。
 
 ## 实际验证结果
 
@@ -72,6 +76,11 @@ Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用�
 | 事件工具链 | `list_events → create_epochs → epoch_summary → event_bandpower` 经确定性 Workflow 与 Fake LLM 均成功。 |
 | 真实带事件 EDF | 本地 `gped_049_a_6.edf` 实测 0 个 annotation；因此真实 EDF+事件集成未验证。 |
 | CI | GitHub Actions 执行 compileall 和无资源 unittest，不下载私有 EDF、权重或大型数据。 |
+| R3 资源诊断 | 只读检查 69 个 EDF；统一 21 个 EEG 通道、300 Hz、数字 annotation 1–9；单文件事件数范围 40–116、时长范围 108–406 秒。 |
+| R3 单文件链路 | 两个目录各取 1 个匿名文件均完成加载→预处理→事件→Epoch→频带功率；事件数分别 96/81，有效 Epoch 60/72，均为工程链路计数。 |
+| R3 科学语义 | 标签 1–8、标签 9 Boundary 规则、细动作范式和目录所指人群均无权威实验说明确认，状态为未验证。 |
+| 受试者/组分析 | 未发现可采用的显式参与者映射与权威分组表，未执行真实受试者聚合或组间比较。 |
+| Milestone 3 测试 | `compileall` 通过；提供 EEGAgent EDF/权重和 R3 样例时 59 项通过；无私有资源时 48 项通过、11 项按设计跳过。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -103,6 +112,8 @@ Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用�
 9. 已有 CI、四类 CLI、46 项测试和资源型 smoke test，但尚无跨平台锁文件、完整资源 manifest 或多样本回归集。
 11. 本地真实 EDF 没有 annotation；事件能力仅在合成 MNE 数据上验证，未验证 EDF+ 或外部注释文件配对。
 10. 原始项目没有发现许可证文件；源码和权重许可需在公开分发前确认。
+11. R3 预处理与 Epoch 参数已配置化且可复现，但其科学适用性尚需实验方案确认。
+12. 当前未包含坏道、伪迹剔除、ICA、evoked/ERP 峰值或统计推断；不得将频带结果解释为诊断证据。
 
 ## 下一步候选任务
 
@@ -132,3 +143,6 @@ Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用�
 - Issue #1 阶段 B Commit：`b33ec14`（`阶段B 实现通用事件与Epoch数据层`）。
 - Issue #1 阶段 C Commit：`cbcc2ed`（`阶段C 接入事件工具与多步执行`）。
 - Issue #1 阶段 D Commit：`524946e`（`阶段D 完成多任务验收与事件Demo`）。
+- Issue #2 阶段 A Commit：`f7f95da`（`阶段A 修复会话隔离与事件时间校验`）。
+- Issue #2 阶段 B Commit：`812a899`（`阶段B 增加通用预处理与R3适配器`）。
+- Issue #2 阶段 C Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。

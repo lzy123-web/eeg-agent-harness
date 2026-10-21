@@ -56,8 +56,8 @@ class R3AdapterTest(unittest.TestCase):
 
     def test_r3_like_synthetic_edf_adapter(self):
         sfreq = 300.0
-        data = np.zeros((len(R3_EEG_CHANNELS), 600), dtype=np.float64)
-        data[0] = np.sin(2 * np.pi * 10 * np.arange(600) / sfreq) * 1e-6
+        data = np.zeros((len(R3_EEG_CHANNELS), 3600), dtype=np.float64)
+        data[0] = np.sin(2 * np.pi * 10 * np.arange(3600) / sfreq) * 1e-6
         raw = mne.io.RawArray(data, mne.create_info(R3_EEG_CHANNELS, sfreq, "eeg"), verbose=False)
         raw.set_annotations(mne.Annotations([0.5, 1.5], [0, 0], ["1", "9"]))
         loaded = LoadedEDF(
@@ -67,7 +67,7 @@ class R3AdapterTest(unittest.TestCase):
             events=events_from_mne_raw(raw, "synthetic://r3-like"),
         )
         record = adapt_edf(loaded, R3_PROFILE, selected_channels=R3_EEG_CHANNELS)
-        self.assertEqual(record.data.shape, (21, 600))
+        self.assertEqual(record.data.shape, (21, 3600))
         self.assertEqual(record.sfreq, 300.0)
         self.assertEqual(record.events.labels, ("1", "9"))
         self.assertEqual([step["operation"] for step in record.processing_metadata], [

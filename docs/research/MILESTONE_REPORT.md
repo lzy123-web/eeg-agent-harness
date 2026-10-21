@@ -109,3 +109,38 @@ Commit：`524946e`（`阶段D 完成多任务验收与事件Demo`）。
 | Native EDF 基础特征 | 是 | 是 | 未验证 | 未验证 |
 | 事件→Epoch→频带功率 | 是，合成注释数据 | 是 | 未验证 | 未验证 |
 
+## Milestone 3：真实事件验证与 R3 适配（Issue #2）
+
+### 阶段 A：稳定化
+
+- 修复共享 Executor 被后建 Context 覆写 artifact store 的问题，改为每次请求注入会话资源；交错执行和跨任务非法访问均有回归测试。
+- 用含 `meas_date/orig_time`、非零 `first_samp`、crop 和 resample 的 MNE RawArray 验证 annotation 转换，继续采用 `[tmin, tmax)` 与 `round(seconds * sfreq)`。
+- 非有限 EEG、非有限 baseline、空条件、缺 annotation 和小于 1 秒的 Welch 分析均明确失败。
+- Trace 和 bundle 保存 Profile、配置、事件来源摘要、Epoch 参数与拒绝信息，不保存数组和原始路径。
+
+Commit：`f7f95da`（`阶段A 修复会话隔离与事件时间校验`）。
+
+### 阶段 B：R3 应用适配
+
+- 通用 EDF 层新增 configurable-native 预处理，R3 通道与标签规则只存在于 `applications/r3`。
+- 本地 69 个 EDF 只读诊断确认统一 21 EEG 通道、300 Hz 和注释 1–9；未从文件确认任务标签含义、分组或标签 9 的科学语义。
+- 支持显式外部事件 CSV 及偏移量，保存内容哈希作为来源；不从文件名推断参与者或组别。
+
+Commit：`812a899`（`阶段B 增加通用预处理与R3适配器`）。
+
+### 阶段 C：共用工作流与受试者聚合
+
+- R3 复用 Registry→Executor→ExecutionContext→事件工具链，生成版本、配置、输入哈希与 Trace。
+- `event_bandpower` 明确为整段 Epoch Welch 绝对频带功率，不是 ERD/ERS。
+- 新增显式映射的受试者聚合，强制“记录→参与者均值→组描述”，避免把 Epoch/记录当作独立受试者。
+- 缺少权威参与者映射，真实组间比较未执行。
+
+Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。
+
+### 阶段 D：验收与文档
+
+- 合成测试覆盖时间语义、artifact 隔离、Boundary 规则、baseline、事件和频带特征。
+- 两个本地目录各选一个匿名 EDF 跑通完整流程，仅报告去标识计数；没有据目录名宣称临床分组。
+- 原癫痫模型、Fake Agent、确定性 workflow 持续回归通过。
+- 最终测试数量、CI 和提交状态见 `PROJECT_STATUS.md`；科学边界详见 `R3_INTEGRATION_REPORT.md`。
+

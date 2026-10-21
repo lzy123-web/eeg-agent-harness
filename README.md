@@ -2,7 +2,7 @@
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
-它不包含状态感知约束规划、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练。“具有多个工具”不等于“已在多个 EEG 数据集上验证”：当前真实资源验证仍只有原 EEGAgent 的一个 EDF 样例和一个已有权重。
+它不包含状态感知约束规划、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
 
@@ -22,6 +22,7 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `context.py`、`workflow.py`、`event_workflow.py`：任务隔离、会话 artifact、执行轨迹和两类确定性工作流。
 - `llm.py`、`agent.py`：OpenAI 兼容客户端、Fake LLM 和有界 Agent Loop。
 - `legacy/`：从原 EEGAgent 迁移的数值算法及模型结构；全局 `register_data` 不在正式链路中使用。
+- `applications/r3/`：R3 专有 Profile、资源诊断、事件工作流与显式受试者聚合；不污染通用层。
 
 ## Profile
 
@@ -43,6 +44,7 @@ EEG_HARNESS_LLM_BASE_URL
 EEG_HARNESS_LLM_API_KEY
 EEG_HARNESS_LLM_MODEL
 EEG_HARNESS_LLM_TIMEOUT（可选）
+EEG_HARNESS_R3_DATA_ROOT（可选，仅本地 R3 资源诊断）
 ```
 
 已验证环境为 Python 3.10.17、MNE 1.6.1、NumPy 1.24.4、SciPy 1.10.1、PyTorch 2.14.1+cpu。来源及许可边界见 `THIRD_PARTY_NOTICE.md`；原始 EEGAgent 未发现许可证文件，本项目不声明相关迁移代码或权重可自由再许可。
@@ -87,6 +89,18 @@ Fake LLM Agent：
 
 对合法的带注释 EDF，可使用 `--edf`、`--native-channel` 和 `--label`；没有 annotation 或指定标签时会明确失败。
 
+R3 本地资源只通过显式路径使用，输出目录须保持 Git 忽略：
+
+```powershell
+& $python -m eeg_harness.applications.r3.cli --data-root '<本地 R3 根目录>'
+& $python -m eeg_harness.applications.r3.analysis_cli --edf '<单个 EDF>' `
+  --output artifacts\r3_local.json
+& $python -m eeg_harness.applications.r3.analysis_cli --edf '<单个 EDF>' `
+  --public-summary --output artifacts\r3_public.json
+```
+
+R3 默认配置为 21 个已观察 EEG 通道、300 Hz、1–40 Hz、50 Hz 陷波、平均参考、`[-0.2, 0.8)` Epoch 和 `[-0.2, 0)` baseline。只有通道、采样率和数字注释 1–9 已从本地文件核验；预处理参数是本里程碑的显式分析配置，标签 9 的 Boundary 含义与标签 1–8 的实验语义尚未得到权威说明确认。
+
 真实 OpenAI 兼容服务需先设置三个 `EEG_HARNESS_LLM_*` 必需变量，再移除 `--fake`。客户端使用原生 `tool_calls`，不采用原项目的正则文本协议。
 
 ## 测试
@@ -97,7 +111,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-21 使用现有真实 EDF 与权重运行：46 项全部通过。未配置资源时，37 项通过、9 项资源测试明确跳过。GitHub Actions 只运行无私有资源测试，不下载 EDF 或权重。
+2026-10-21 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：59 项全部通过。无私有资源模式 48 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
 
 ## 当前边界
 
@@ -105,4 +119,6 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 - 当前事件能力是通用 Epoch 与频带特征，不等同于完整 ERP/evoked 分析；Sleep、MDD、ASD 等任务尚未迁移。
 - 真实外部 LLM 尚未验证；当前环境没有所需配置。
 - 已有无私有资源 CI；尚无完整资源 manifest、TaskProfile 插件机制和真实事件评估集。
+- R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
+- 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
