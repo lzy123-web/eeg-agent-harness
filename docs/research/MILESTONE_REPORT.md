@@ -99,7 +99,7 @@ Commit：`d51de85`（`接入结构化工具调用 Agent Loop`）。
 - 本地真实 EDF annotation 数量为 0，因此“真实带事件 EDF 集成验证”为未验证；事件链验证来自合成 MNE 数据。
 - 真实 LLM、多数据集泛化、完整 ERP/evoked、临床结论均未验证。
 
-Commit：将在阶段 D 提交后回填。
+Commit：`524946e`（`阶段D 完成多任务验收与事件Demo`）。
 
 ### 多任务能力矩阵
 

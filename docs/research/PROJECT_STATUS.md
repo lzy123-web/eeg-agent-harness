@@ -131,3 +131,4 @@ Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用�
 - Issue #1 阶段 A Commit：`ec65168`（`阶段A 加固测试基线与参数校验`）。
 - Issue #1 阶段 B Commit：`b33ec14`（`阶段B 实现通用事件与Epoch数据层`）。
 - Issue #1 阶段 C Commit：`cbcc2ed`（`阶段C 接入事件工具与多步执行`）。
+- Issue #1 阶段 D Commit：`524946e`（`阶段D 完成多任务验收与事件Demo`）。
