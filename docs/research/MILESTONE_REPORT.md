@@ -181,3 +181,38 @@ Commit：`ac75f7d`（`阶段C 建立冻结任务集与公平规划对照`）。
 
 Commit：`04e2022`（`阶段D 完成规划演示评估与研究结论`）。
 
+## Milestone 5：约束规划强基线复核（Issue #4）
+
+### 阶段 A：评测有效性复核
+
+- 识别 v1 Expert 缺少恢复预算的公平性问题，保留为 `expert_dag_no_recovery` 消融。
+- 统一调用、状态检查和一次恢复预算，新增完成/恢复/预检拒绝/Executor 拒绝/失败分类。
+- 在方法扩展前提交并锁定 v2 开发/留出清单。
+
+Commit：`f449a0a`。
+
+### 阶段 B：声明式约束与动态故障
+
+- Artifact 生产/消费、事件需求、状态观察和分析前置条件进入 `ToolSpec`，删除 `build_operation_contracts` 的工具名映射。
+- `epoch_summary` 作为新增 consumer 复用通用依赖规划路径。
+- 五类确定性故障统一在初始决策后、首次受影响调用前注入；并非所有故障都被强行恢复。
+
+Commit：`8d126dd`。
+
+### 阶段 C：自然语言结构化目标桥
+
+- 新增可选 Natural Language→TaskSpec→Planner→Executor 闭环，保留原生 Tool Calling Agent。
+- 意图解析和执行结果分别记录；外部 Prompt 不含数组、路径、Artifact ID 或派生特征。
+- Fake 覆盖窗口、事件、模型不兼容、无 annotation、缺资源、组合、非法输出与不支持诊断。真实 LLM 配置缺失，未验证。
+
+Commit：`569d288`。
+
+### 阶段 D：锁定对照与结论
+
+- 22 项冻结合成任务中，强 Expert 和 Planner 均达到 100% 有效完成、100% 正确拒绝、2 次恢复、0 失败；Planner 为 27 次调用，Expert 为 20 次。
+- 9 条人工 Fake 自然语言模板验证软件闭环，但协议覆盖不同，不用于证明真实 LLM 或 Planner 优势。
+- 现有 EEGAgent EDF/权重与匿名 R3 样例 smoke 均通过；全资源 98 项测试通过。
+- 性能优势结论为 **No-Go**；声明式可维护性研究为 **Conditional Go**，论文创新点仍未成立。
+
+Commit：`c39e847`、`be0522c`。完整限制与逐例结果见 `PLANNING_V2_EVALUATION.md`。
+

@@ -32,6 +32,8 @@ resources/data/
 resources/models/
 artifacts/
 results/
+!docs/research/results/
+!docs/research/results/*.json
 r3_outputs/
 
 # Editors and OS

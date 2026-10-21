@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照已完成。
+Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言桥验证已完成。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -40,6 +40,9 @@ Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照�
 - 新增结构化任务、EEG 状态快照、工具操作契约、Plan、规划轨迹和有限动态重规划；没有修改 EEG 数值算法。
 - Planner 复用原 Registry/Executor/ExecutionContext，能执行前拒绝静态非法目标并构造事件 artifact 依赖链。
 - 冻结 16 项开发/保留任务，公平比较 Execution-only、强 Expert DAG、候选 Planner 及三项消融。
+- v2 将旧 Expert 保留为无恢复消融，并为强 Expert 与 Planner 配置相同的状态观察、一次恢复和调用预算。
+- ToolSpec 新增 Artifact 生产/消费、事件前置条件、状态观察与科学前置条件声明；新增 `epoch_summary` 路径无需 Planner 工具名专用分支。
+- 增加五类确定性故障注入、22 项冻结任务集、逐例 JSON 结果和自然语言结构化目标桥；原生 Agent 保持可用。
 
 ## 实际验证结果
 
@@ -90,6 +93,11 @@ Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照�
 | Planner 真实资源 smoke | 现有 EEGAgent EDF/权重的一秒模型任务 1 调用完成；匿名 R3 标签 1 事件任务 3 调用完成。 |
 | 真实 LLM | 三个必需环境变量均未配置，未执行、未验证。 |
 | Milestone 4 全量测试 | `compileall` 通过；提供 EEGAgent EDF/权重和匿名 R3 样例时 76 项通过；无私有资源时 65 项通过、11 项按设计跳过。 |
+| v2 公平对照 | 强 Expert 与 Planner 均为有效任务完成率 100%、正确拒绝率 100%、2 次瞬态恢复、0 失败；工具调用分别 20/27，未观察到 Planner 结果优势。 |
+| v2 消融 | 无恢复 Expert 与无重规划 Planner 的有效完成率均为 77.8%；无状态 Planner 为 66.7%。 |
+| Fake 自然语言对照 | 9 条人工模板；结构化目标桥下 Expert/Planner 为 100%，原生 Fake 为 55.6%。这是模板覆盖差异，不是实际 LLM 性能结论。 |
+| Milestone 5 全量测试 | `compileall` 通过；提供 EEGAgent EDF/权重和匿名 R3 样例时 98 项全部通过；无私有资源时 87 项通过、11 项按设计跳过。 |
+| 真实 LLM | 三个必需环境变量仍未配置，未执行；token/API 成本和自然语言质量均未验证。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -125,6 +133,8 @@ Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照�
 12. 当前未包含坏道、伪迹剔除、ICA、evoked/ERP 峰值或统计推断；不得将频带结果解释为诊断证据。
 13. 规划先导任务规模小，且 Expert 与 Planner 在所有静态任务上持平；当前证据不足以确认研究创新性。
 14. 动态重规划优势只在一个人工状态变化案例出现，真实发生率、自然语言规划质量和更复杂任务扩展性未知。
+15. v2 强 Expert 与 Planner 结果持平，当前不能把状态约束规划作为已成立的性能型创新点。
+16. 冻结 v2 的 Profile 变化案例在注入前已静态不兼容；动态注入仅由独立回归测试覆盖，这是锁定留出集的已知缺陷。
 
 ## 下一步候选任务
 
@@ -137,6 +147,7 @@ Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照�
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
 6. “状态感知与约束规划”已实现最小先导原型，但创新性未证实；“证据驱动自适应分析”仍未实施。
 7. 若继续研究点一，应先扩展独立冻结任务集和真实任务日志，并与外部 scientific-contract/preflight 方法进行可复现比较；研究点二仍未实施。
+8. 研究点一若继续，应优先量化新工具接入工时、规则数量、跨任务一致性缺陷，而不是重复验证当前已与强 Expert 持平的成功率。
 
 ## Git Commit 信息
 
@@ -165,3 +176,8 @@ Milestone 4：EEG 状态感知与约束规划最小原型及公平先导对照�
 - Issue #3 阶段 B Commit：`a274e5c`（`阶段B 实现状态感知约束规划与有限重规划`）。
 - Issue #3 阶段 C Commit：`ac75f7d`（`阶段C 建立冻结任务集与公平规划对照`）。
 - Issue #3 阶段 D Commit：`04e2022`（`阶段D 完成规划演示评估与研究结论`）。
+- Issue #4 阶段 A Commit：`f449a0a`（`research: establish fair planning evaluation protocol`）。
+- Issue #4 阶段 B Commit：`8d126dd`（`feat: declare planning capabilities and evaluation faults`）。
+- Issue #4 阶段 C Commit：`569d288`（`feat: bridge natural language goals to constrained plans`）。
+- Issue #4 阶段 D Commit：`c39e847`（`eval: run locked planning and fake language comparisons`）。
+- Issue #4 契约复核 Commit：`be0522c`（`refactor: apply artifact contract in expert preflight`）。

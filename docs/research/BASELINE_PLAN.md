@@ -182,3 +182,10 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 当前事件频带功率定义为 whole-Epoch Welch PSD 后按条件算术平均，属于绝对事件窗频带功率，不是 ERD/ERS。
 
 当前确定性入口为 `python -m eeg_harness.cli`，自动化入口为 `python -m unittest discover -s tests -v`。真实样例已验证 22 导、256 Hz、幅值、PSD、模型二分类输出和 JSON 序列化；缺失权重会抛出明确的 `ModelResourceError`。
+
+## 10. Milestone 5 实施补充
+
+- `ToolSpec` 已能声明 Artifact 依赖、状态观察与前置条件；Planner 从声明发现 Epoch 生产者和 consumer，不再在契约构建器中维护工具名映射。
+- 自然语言结构化目标桥是可选层；Executor 仍是最终安全边界，原生 Tool Calling Agent 没有被替换。
+- v2 强 Expert 与 Planner 结果持平，禁止在论文中写成 Planner 已优于规则基线。当前 No-Go 只否定已证实的性能优势，不否定继续研究可维护性问题。
+- 后续实验必须修正动态 Profile 留出案例，使用真实任务日志或独立开发者扩展试验，并将意图解析与计划/执行误差分开。真实 LLM 未验证前不得报告自然语言 Agent 性能。

@@ -1,0 +1,358 @@
+{
+  "suite_version": "fake-nl-1.0",
+  "case_count": 9,
+  "backend": "deterministic human-authored template simulator",
+  "real_llm": "not tested by this function",
+  "summary": {
+    "native_tool_calling": {
+      "intent_accuracy": 0.5555555555555556,
+      "outcome_accuracy": 0.5555555555555556,
+      "tool_calls": 14,
+      "llm_calls": 23
+    },
+    "strong_expert": {
+      "intent_accuracy": 1.0,
+      "outcome_accuracy": 1.0,
+      "tool_calls": 8,
+      "llm_calls": 9
+    },
+    "constrained_planner": {
+      "intent_accuracy": 1.0,
+      "outcome_accuracy": 1.0,
+      "tool_calls": 10,
+      "llm_calls": 9
+    }
+  },
+  "outcomes": [
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "basic_info",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "window",
+      "input_kind": "human_authored_template",
+      "intent_correct": false,
+      "status": "intent_failed",
+      "expected": "complete",
+      "outcome_correct": false,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "bandpower",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "event",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 4,
+      "llm_calls": 5,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "no_annotations",
+      "input_kind": "human_authored_template",
+      "intent_correct": false,
+      "status": "intent_failed",
+      "expected": "reject",
+      "outcome_correct": false,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "model_incompatible",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "model_resource_missing",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "multiple",
+      "input_kind": "human_authored_template",
+      "intent_correct": false,
+      "status": "intent_failed",
+      "expected": "complete",
+      "outcome_correct": false,
+      "tool_calls": 4,
+      "llm_calls": 5,
+      "error_codes": []
+    },
+    {
+      "strategy": "native_tool_calling",
+      "case_id": "unsupported_diagnosis",
+      "input_kind": "human_authored_template",
+      "intent_correct": false,
+      "status": "intent_failed",
+      "expected": "reject",
+      "outcome_correct": false,
+      "tool_calls": 1,
+      "llm_calls": 2,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "basic_info",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "window",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "bandpower",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "event",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 2,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "no_annotations",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "model_incompatible",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "model_resource_missing",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "multiple",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 3,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "strong_expert",
+      "case_id": "unsupported_diagnosis",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "basic_info",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "window",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "bandpower",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 1,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "event",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 3,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "no_annotations",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "model_incompatible",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "model_resource_missing",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "multiple",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "completed",
+      "expected": "complete",
+      "outcome_correct": true,
+      "tool_calls": 4,
+      "llm_calls": 1,
+      "error_codes": []
+    },
+    {
+      "strategy": "constrained_planner",
+      "case_id": "unsupported_diagnosis",
+      "input_kind": "human_authored_template",
+      "intent_correct": true,
+      "status": "rejected",
+      "expected": "reject",
+      "outcome_correct": true,
+      "tool_calls": 0,
+      "llm_calls": 1,
+      "error_codes": []
+    }
+  ],
+  "limits": [
+    "Fake templates are software tests, not evidence of natural-language model quality",
+    "Native and structured-goal modes use strategy-specific output prompts"
+  ]
+}

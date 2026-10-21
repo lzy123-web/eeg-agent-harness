@@ -1,0 +1,4029 @@
+{
+  "suite_version": "2.0",
+  "case_count": 22,
+  "policies": [
+    "execution_only",
+    "expert_dag_no_recovery",
+    "expert_dag",
+    "constrained_planner",
+    "ablation_no_state",
+    "ablation_no_replanning",
+    "ablation_parameter_validation_only"
+  ],
+  "summary": {
+    "execution_only": {
+      "valid_task_completion_rate": 0.2222222222222222,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.8695652173913043,
+      "runtime_errors": 20,
+      "tool_calls": 23,
+      "mean_duration_ms": 0.06572727272727273,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "recovered_transient": 0,
+      "rejected_preflight": 0,
+      "rejected_executor": 13,
+      "failures": 7
+    },
+    "expert_dag_no_recovery": {
+      "valid_task_completion_rate": 0.7777777777777778,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.23529411764705882,
+      "runtime_errors": 4,
+      "tool_calls": 17,
+      "mean_duration_ms": 0.14118181818181819,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "recovered_transient": 0,
+      "rejected_preflight": 11,
+      "rejected_executor": 2,
+      "failures": 2
+    },
+    "expert_dag": {
+      "valid_task_completion_rate": 1.0,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.2,
+      "runtime_errors": 4,
+      "tool_calls": 20,
+      "mean_duration_ms": 0.17463636363636367,
+      "redundant_calls": 0,
+      "replans": 4,
+      "state_checks": 26,
+      "recovered_transient": 2,
+      "rejected_preflight": 11,
+      "rejected_executor": 2,
+      "failures": 0
+    },
+    "constrained_planner": {
+      "valid_task_completion_rate": 1.0,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.14814814814814814,
+      "runtime_errors": 4,
+      "tool_calls": 27,
+      "mean_duration_ms": 0.18145454545454542,
+      "redundant_calls": 0,
+      "replans": 4,
+      "state_checks": 26,
+      "recovered_transient": 2,
+      "rejected_preflight": 11,
+      "rejected_executor": 2,
+      "failures": 0
+    },
+    "ablation_no_state": {
+      "valid_task_completion_rate": 0.6666666666666666,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.5714285714285714,
+      "runtime_errors": 16,
+      "tool_calls": 28,
+      "mean_duration_ms": 0.12436363636363636,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "recovered_transient": 0,
+      "rejected_preflight": 0,
+      "rejected_executor": 13,
+      "failures": 3
+    },
+    "ablation_no_replanning": {
+      "valid_task_completion_rate": 0.7777777777777778,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.17391304347826086,
+      "runtime_errors": 4,
+      "tool_calls": 23,
+      "mean_duration_ms": 0.14999999999999997,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 22,
+      "recovered_transient": 0,
+      "rejected_preflight": 11,
+      "rejected_executor": 2,
+      "failures": 2
+    },
+    "ablation_parameter_validation_only": {
+      "valid_task_completion_rate": 0.2222222222222222,
+      "correct_rejection_rate": 1.0,
+      "pre_execution_invalid_call_rate": 0.8695652173913043,
+      "runtime_errors": 20,
+      "tool_calls": 23,
+      "mean_duration_ms": 0.05709090909090908,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "recovered_transient": 0,
+      "rejected_preflight": 0,
+      "rejected_executor": 13,
+      "failures": 7
+    }
+  },
+  "summary_by_split": {
+    "development": {
+      "execution_only": {
+        "valid_task_completion_rate": 0.3333333333333333,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.9,
+        "runtime_errors": 9,
+        "tool_calls": 10,
+        "mean_duration_ms": 0.06060000000000002,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 7,
+        "failures": 2
+      },
+      "expert_dag_no_recovery": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.0,
+        "runtime_errors": 0,
+        "tool_calls": 5,
+        "mean_duration_ms": 0.0984,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 7,
+        "rejected_executor": 0,
+        "failures": 0
+      },
+      "expert_dag": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.0,
+        "runtime_errors": 0,
+        "tool_calls": 5,
+        "mean_duration_ms": 0.09030000000000002,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 10,
+        "recovered_transient": 0,
+        "rejected_preflight": 7,
+        "rejected_executor": 0,
+        "failures": 0
+      },
+      "constrained_planner": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.0,
+        "runtime_errors": 0,
+        "tool_calls": 7,
+        "mean_duration_ms": 0.0998,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 10,
+        "recovered_transient": 0,
+        "rejected_preflight": 7,
+        "rejected_executor": 0,
+        "failures": 0
+      },
+      "ablation_no_state": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.5833333333333334,
+        "runtime_errors": 7,
+        "tool_calls": 12,
+        "mean_duration_ms": 0.11270000000000002,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 7,
+        "failures": 0
+      },
+      "ablation_no_replanning": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.0,
+        "runtime_errors": 0,
+        "tool_calls": 7,
+        "mean_duration_ms": 0.11099999999999999,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 10,
+        "recovered_transient": 0,
+        "rejected_preflight": 7,
+        "rejected_executor": 0,
+        "failures": 0
+      },
+      "ablation_parameter_validation_only": {
+        "valid_task_completion_rate": 0.3333333333333333,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.9,
+        "runtime_errors": 9,
+        "tool_calls": 10,
+        "mean_duration_ms": 0.0543,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 7,
+        "failures": 2
+      }
+    },
+    "holdout": {
+      "execution_only": {
+        "valid_task_completion_rate": 0.16666666666666666,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.8461538461538461,
+        "runtime_errors": 11,
+        "tool_calls": 13,
+        "mean_duration_ms": 0.07000000000000002,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 6,
+        "failures": 5
+      },
+      "expert_dag_no_recovery": {
+        "valid_task_completion_rate": 0.6666666666666666,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.3333333333333333,
+        "runtime_errors": 4,
+        "tool_calls": 12,
+        "mean_duration_ms": 0.17683333333333331,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 4,
+        "rejected_executor": 2,
+        "failures": 2
+      },
+      "expert_dag": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.26666666666666666,
+        "runtime_errors": 4,
+        "tool_calls": 15,
+        "mean_duration_ms": 0.24491666666666667,
+        "redundant_calls": 0,
+        "replans": 4,
+        "state_checks": 16,
+        "recovered_transient": 2,
+        "rejected_preflight": 4,
+        "rejected_executor": 2,
+        "failures": 0
+      },
+      "constrained_planner": {
+        "valid_task_completion_rate": 1.0,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.2,
+        "runtime_errors": 4,
+        "tool_calls": 20,
+        "mean_duration_ms": 0.24949999999999994,
+        "redundant_calls": 0,
+        "replans": 4,
+        "state_checks": 16,
+        "recovered_transient": 2,
+        "rejected_preflight": 4,
+        "rejected_executor": 2,
+        "failures": 0
+      },
+      "ablation_no_state": {
+        "valid_task_completion_rate": 0.5,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.5625,
+        "runtime_errors": 9,
+        "tool_calls": 16,
+        "mean_duration_ms": 0.13408333333333333,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 6,
+        "failures": 3
+      },
+      "ablation_no_replanning": {
+        "valid_task_completion_rate": 0.6666666666666666,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.25,
+        "runtime_errors": 4,
+        "tool_calls": 16,
+        "mean_duration_ms": 0.18249999999999997,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 12,
+        "recovered_transient": 0,
+        "rejected_preflight": 4,
+        "rejected_executor": 2,
+        "failures": 2
+      },
+      "ablation_parameter_validation_only": {
+        "valid_task_completion_rate": 0.16666666666666666,
+        "correct_rejection_rate": 1.0,
+        "pre_execution_invalid_call_rate": 0.8461538461538461,
+        "runtime_errors": 11,
+        "tool_calls": 13,
+        "mean_duration_ms": 0.059416666666666694,
+        "redundant_calls": 0,
+        "replans": 0,
+        "state_checks": 0,
+        "recovered_transient": 0,
+        "rejected_preflight": 0,
+        "rejected_executor": 6,
+        "failures": 5
+      }
+    }
+  },
+  "outcomes": [
+    {
+      "policy": "execution_only",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.231,
+      "error_codes": []
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.105,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "INVALID_ARGUMENT"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "INVALID_CHANNEL"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.033,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.046,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "INVALID_WINDOW"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.026,
+      "error_codes": [
+        "TOOL_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.376,
+      "error_codes": []
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.031,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "INVALID_ARGUMENT"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.163,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.027,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.032,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.026,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.024,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.032,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.031,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "execution_only",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "PROFILE_VALIDATION_FAILED"
+      ]
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.119,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.584,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.207,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.018,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.007,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.004,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.004,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.022,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.002,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.339,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.622,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.176,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.673,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.034,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.035,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.167,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.004,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.048,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.009,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.007,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag_no_recovery",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.008,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.116,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.549,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.173,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.007,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.003,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.004,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.003,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.257,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.536,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.169,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.862,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "recovered_transient",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.749,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "rejected",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.043000000000000003,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "rejected",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.161,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.003,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "recovered_transient",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.137,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.009,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.006,
+      "error_codes": []
+    },
+    {
+      "policy": "expert_dag",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.007,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.097,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.575,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.214,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.015,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.018,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.015,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.275,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.603,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.224,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 4,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.702,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "recovered_transient",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 4,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.677,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "rejected_after_replan",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.136,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "rejected_after_replan",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.129,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "recovered_transient",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 1,
+      "state_checks": 2,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.178,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.018,
+      "error_codes": []
+    },
+    {
+      "policy": "constrained_planner",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.018,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.102,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.535,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.17,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "INVALID_CHANNEL"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.032,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.028,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.129,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.04,
+      "error_codes": [
+        "INVALID_WINDOW"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.022,
+      "error_codes": [
+        "TOOL_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.301,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.566,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.171,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.126,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.103,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.042,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.047,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.023,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.033,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.135,
+      "error_codes": [
+        "TOOL_EXECUTION_FAILED"
+      ]
+    },
+    {
+      "policy": "ablation_no_state",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.032,
+      "error_codes": [
+        "PROFILE_VALIDATION_FAILED"
+      ]
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.119,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.655,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.216,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.022,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.274,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.705,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 3,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.239,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 4,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.691,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.037,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.095,
+      "error_codes": [
+        "EVENT_DATA_ERROR"
+      ]
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.047,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.018,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.021,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.016,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_no_replanning",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_preflight",
+      "status": "rejected",
+      "preflight_rejected": true,
+      "tool_calls": 0,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 1,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.017,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_amplitude",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.105,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_event_power",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.033,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_epoch_summary",
+      "split": "development",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "INVALID_ARGUMENT"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_invalid_channel",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "INVALID_CHANNEL"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_missing_label",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.031,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_no_events",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.031,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_model_profile_mismatch",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.177,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_model_resource_missing",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.038,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_window_oob",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.038,
+      "error_codes": [
+        "INVALID_WINDOW"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "dev_unsupported_diagnosis",
+      "split": "development",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.021,
+      "error_codes": [
+        "TOOL_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_psd",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "completed",
+      "status": "completed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 0,
+      "pre_execution_invalid_calls": 0,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.261,
+      "error_codes": []
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_event_power",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.032,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_epoch_summary",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "INVALID_ARGUMENT"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_multitool",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": null,
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 2,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.122,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_artifact_expiry",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "artifact_expired",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.059,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_event_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "events_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.033,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_resource_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "model_resource_removed",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.039,
+      "error_codes": [
+        "MODEL_RESOURCE_MISSING"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_profile_change",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": "profile_mismatch",
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.027,
+      "error_codes": [
+        "INCOMPATIBLE_PROFILE"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_transient_tool_failure",
+      "split": "holdout",
+      "expected": "complete",
+      "fault": "transient_tool_failure",
+      "outcome_class": "failed",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.022,
+      "error_codes": [
+        "INJECTED_TRANSIENT_FAILURE"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_foreign_artifact",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_short_epoch",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.03,
+      "error_codes": [
+        "ARTIFACT_NOT_FOUND"
+      ]
+    },
+    {
+      "policy": "ablation_parameter_validation_only",
+      "case_id": "holdout_wrong_sfreq",
+      "split": "holdout",
+      "expected": "reject",
+      "fault": null,
+      "outcome_class": "rejected_executor",
+      "status": "execution_failed",
+      "preflight_rejected": false,
+      "tool_calls": 1,
+      "runtime_errors": 1,
+      "pre_execution_invalid_calls": 1,
+      "redundant_calls": 0,
+      "replans": 0,
+      "state_checks": 0,
+      "budget": {
+        "max_tool_calls": 8,
+        "max_state_checks": 8,
+        "max_recoveries": 1
+      },
+      "duration_ms": 0.029,
+      "error_codes": [
+        "PROFILE_VALIDATION_FAILED"
+      ]
+    }
+  ],
+  "interpretation_limits": [
+    "synthetic deterministic pilot, not clinical evidence",
+    "event bandpower is whole-Epoch Welch power, not ERD/ERS",
+    "latency is descriptive and environment-dependent"
+  ]
+}
