@@ -66,5 +66,46 @@ Commit：`d51de85`（`接入结构化工具调用 Agent Loop`）。
 
 ## 能力表述边界
 
-当前系统具有两个数据适配 Profile、四个工具、统一 Executor、执行 Trace 和可测试 Agent Loop。这表示“一个 Harness 中存在多个 EEG 工具”，不表示已经在多个 EEG 数据集或多种临床任务上完成泛化验证。当前真实数据验证仍只有原仓库提供的单个 EDF 样例；模型训练来源和许可证仍为源码未提供。
+上一里程碑结束时，系统具有两个数据适配 Profile、四个工具、统一 Executor、执行 Trace 和可测试 Agent Loop。这表示“一个 Harness 中存在多个 EEG 工具”，不表示已经在多个 EEG 数据集或多种临床任务上完成泛化验证。当前真实数据验证仍只有原仓库提供的单个 EDF 样例；模型训练来源和许可证仍为源码未提供。
+
+## Milestone 2：事件相关 EEG 多任务扩展（Issue #1）
+
+### 阶段 A：稳定化与测试基线
+
+- 基线复测 32 项通过；新增 GitHub Actions，无私有资源运行 compileall 与 unittest。
+- 增加数组元素类型、NaN、空窗、额外参数和 Profile 不匹配边界校验。
+- Commit：`ec65168`（`阶段A 加固测试基线与参数校验`）。
+
+### 阶段 B：通用事件与 Epoch
+
+- `EventSet` 保存 annotation 标签、相对记录起点时刻、持续时间和来源索引。
+- `EpochSet` 保存 `[n_epochs, n_channels, n_times]` 数组、时间窗、采样率、baseline、接受/拒绝试次和参数来源。
+- 时间窗定义为 `[event_onset+tmin, event_onset+tmax)`；索引使用 `round(seconds * sfreq)`，越界试次明确拒绝。
+- 合成 MNE RawArray 验证事件时刻、shape、baseline、缺失条件、越界和零有效试次。
+- Commit：`b33ec14`（`阶段B 实现通用事件与Epoch数据层`）。
+
+### 阶段 C：事件工具与多步执行
+
+- Registry 增至 8 个工具，新增 `list_events`、`create_epochs`、`epoch_summary`、`event_bandpower`。
+- Epoch 波形只保存在每任务 `artifact_store`；ToolResult、Trace 与 LLM 只包含 artifact ID、shape、拒绝原因和派生特征。
+- 确定性 Workflow 与 Fake LLM 均完成四步事件工具链，非法 artifact 和无事件记录返回结构化错误。
+- Commit：`cbcc2ed`（`阶段C 接入事件工具与多步执行`）。
+
+### 阶段 D：多任务验收
+
+- 新增 `eeg_harness.event_cli`，支持明确标记的合成数据确定性/Fake Agent Demo，也允许用户显式提供合法带 annotation EDF。
+- 现有癫痫 Workflow、Fake Agent、真实 EDF 和现有权重回归继续通过。
+- 全量 46 项测试通过；无资源环境 37 项通过、9 项按设计跳过。
+- 本地真实 EDF annotation 数量为 0，因此“真实带事件 EDF 集成验证”为未验证；事件链验证来自合成 MNE 数据。
+- 真实 LLM、多数据集泛化、完整 ERP/evoked、临床结论均未验证。
+
+Commit：将在阶段 D 提交后回填。
+
+### 多任务能力矩阵
+
+| 能力 | 工具可执行 | Fake LLM 可调度 | 真实 LLM | 多数据集泛化 |
+|---|---|---|---|---|
+| 22 导癫痫窗口推理 | 是，真实 EDF/权重 smoke | 是 | 未验证 | 未验证 |
+| Native EDF 基础特征 | 是 | 是 | 未验证 | 未验证 |
+| 事件→Epoch→频带功率 | 是，合成注释数据 | 是 | 未验证 | 未验证 |
 

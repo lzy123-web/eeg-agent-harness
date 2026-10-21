@@ -103,7 +103,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 首个模型工具为癫痫/非癫痫逐秒概率，复用 `seiz&normal.pth`。
 - 在契约测试完成后，再逐项启用背景/伪迹/癫痫、眼动/肌电和慢波/癫痫/背景工具。
 - 事件输出统一为通道、开始时间、结束时间、类别概率、阈值及模型标识。
-- ERP/诱发电位需要事件标记读取、epoch、基线校正和 evoked 数据链，列入后续候选，不与本阶段事件检测混称。
+- Milestone 2 已实现通用 annotation→Epoch→事件频带功率链及 baseline 校正；尚未实现 evoked/ERP 平均、峰值和统计推断，因此不得将当前能力表述为完整 ERP 分析。
 
 ### 所需资源
 
@@ -144,7 +144,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 
 - Sleep：完成 2 导 Profile、确认实际工具权重与模型结构、用 Sleep-EDF 验证后启用。
 - MDD：完成 19 导 `-LE` Profile、受试者级聚合与数据划分审计后启用。
-- ERP、ASD 综合应用、状态感知规划和证据驱动自适应分析均在稳定基线之后单独立项。
+- 完整 ERP/evoked、ASD 综合应用、状态感知规划和证据驱动自适应分析仍需在稳定基线之后单独立项。
 
 ## 6. 最优先的三个问题
 
@@ -156,7 +156,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 
 - 不训练或引入新模型。
 - 不实现 ASD/TD/R3 专有逻辑。
-- 不实现 ERP/诱发电位流水线。
+- 不在最初阶段实现 ERP/诱发电位流水线；后续 Milestone 2 仅增加通用 Epoch 和事件频带特征，仍不宣称完整 ERP 已实现。
 - 不实现候选论文创新机制。
 - 不恢复或下载缺失的 RAG 大模型权重。
 - 不把研究模型输出包装成临床诊断结论。
@@ -170,5 +170,6 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 模型权重和测试 EDF 没有复制到正式项目；通过命令行参数或环境变量引用原始项目资源。
 - 2026-10-21 的第二次阶段 1 实施已新增通用 `EEGRecord`，由正式 pipeline 显式传入幅值、PSD 和癫痫推理工具；统一切片负责通道、时间顺序、空窗和记录长度校验。`legacy/register_data.py` 只作为迁移来源保留，正式链路和测试不再导入它。
 - `EEGRecord`、两个 `TaskProfile`、统一 Registry/Executor、ExecutionTrace 和结构化 Tool Calling Agent Loop 已实现，构成基础运行时 MVP；完整的 Profile 插件机制、事件评估和多数据集验证仍未实现。
+- Milestone 2 在同一运行时上新增 `EventSet/EpochSet`、四个事件工具、会话 artifact 和合成数据验证；原癫痫工作流保持不变。真实带事件 EDF 与多数据集泛化仍未验证。
 
 当前确定性入口为 `python -m eeg_harness.cli`，自动化入口为 `python -m unittest discover -s tests -v`。真实样例已验证 22 导、256 Hz、幅值、PSD、模型二分类输出和 JSON 序列化；缺失权重会抛出明确的 `ModelResourceError`。

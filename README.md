@@ -1,6 +1,6 @@
 # EEG Agent Harness
 
-本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基础运行时 MVP。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop。
+本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
 它不包含状态感知约束规划、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练。“具有多个工具”不等于“已在多个 EEG 数据集上验证”：当前真实资源验证仍只有原 EEGAgent 的一个 EDF 样例和一个已有权重。
 
@@ -16,10 +16,10 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 
 主要模块：
 
-- `record.py`：通用 `EEGRecord` 与严格时间/通道切片。
+- `record.py`、`events.py`：通用 `EEGRecord`、`EventSet`、`EpochSet` 与严格时间语义。
 - `edf.py`、`profiles.py`：数据集无关读取和 Profile 适配。
 - `tooling.py`、`tools.py`、`executor.py`：工具契约、注册、校验与结构化错误。
-- `context.py`、`workflow.py`：任务隔离、结果复用、执行轨迹和确定性工作流。
+- `context.py`、`workflow.py`、`event_workflow.py`：任务隔离、会话 artifact、执行轨迹和两类确定性工作流。
 - `llm.py`、`agent.py`：OpenAI 兼容客户端、Fake LLM 和有界 Agent Loop。
 - `legacy/`：从原 EEGAgent 迁移的数值算法及模型结构；全局 `register_data` 不在正式链路中使用。
 
@@ -27,8 +27,8 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 
 | Profile | 数据处理 | 工具 | 验证范围 |
 |---|---|---|---|
-| `tuev_bipolar_22` | 0.5–70 Hz、60 Hz 陷波、256 Hz、22 导双极派生 | 基础信息、幅值、PSD、癫痫推理 | 单个现有 EDF 与现有权重 |
-| `edf_native` | 保留选定 EDF EEG 通道、原始采样率和参考结构 | 基础信息、幅值、PSD | 同一 EDF 的原生通道适配 |
+| `tuev_bipolar_22` | 0.5–70 Hz、60 Hz 陷波、256 Hz、22 导双极派生 | 基础信息、幅值、PSD、癫痫推理、事件工具 | 单个现有 EDF 与现有权重；该 EDF 无 annotation |
+| `edf_native` | 保留选定 EDF EEG 通道、原始采样率、参考结构和 annotation 时间 | 基础信息、幅值、PSD、事件→Epoch→频带功率 | 合成注释数据；真实带事件 EDF 未验证 |
 
 癫痫模型只允许在 `tuev_bipolar_22` 下运行；系统不会仅凭“有 22 个通道”推断模型适用。
 
@@ -76,6 +76,17 @@ Fake LLM Agent：
   --request '检查癫痫活动' --output artifacts\fake_agent.json
 ```
 
+可复现的事件分析 Demo 使用明确标记的合成 MNE RawArray，不伪装成真实 EDF 或 ASD 数据：
+
+```powershell
+& $python -m eeg_harness.event_cli --demo-synthetic `
+  --output artifacts\event_workflow.json
+& $python -m eeg_harness.event_cli --demo-synthetic --fake-agent `
+  --output artifacts\event_fake_agent.json
+```
+
+对合法的带注释 EDF，可使用 `--edf`、`--native-channel` 和 `--label`；没有 annotation 或指定标签时会明确失败。
+
 真实 OpenAI 兼容服务需先设置三个 `EEG_HARNESS_LLM_*` 必需变量，再移除 `--fake`。客户端使用原生 `tool_calls`，不采用原项目的正则文本协议。
 
 ## 测试
@@ -86,12 +97,12 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-21 使用现有真实 EDF 与权重运行：32 项全部通过。未配置资源时，纯单元测试仍运行，资源型集成测试会明确跳过。
+2026-10-21 使用现有真实 EDF 与权重运行：46 项全部通过。未配置资源时，37 项通过、9 项资源测试明确跳过。GitHub Actions 只运行无私有资源测试，不下载 EDF 或权重。
 
 ## 当前边界
 
-- 未验证多数据集泛化、事件级性能或临床有效性。
-- Sleep、MDD、ERP、ASD 和其他原 EEGAgent 模型尚未迁移到运行时。
+- 未验证多数据集泛化、真实带事件 EDF、事件级模型性能或临床有效性。
+- 当前事件能力是通用 Epoch 与频带特征，不等同于完整 ERP/evoked 分析；Sleep、MDD、ASD 等任务尚未迁移。
 - 真实外部 LLM 尚未验证；当前环境没有所需配置。
-- 尚无 CI、完整资源 manifest、TaskProfile 插件机制和事件级评估集。
+- 已有无私有资源 CI；尚无完整资源 manifest、TaskProfile 插件机制和真实事件评估集。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。

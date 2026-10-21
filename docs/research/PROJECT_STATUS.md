@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-基础运行时 MVP：阶段 A–D 已完成，进入多任务扩展前的稳定化阶段。
+Milestone 2：事件相关 EEG 分析扩展已完成，形成两类任务共用的 Harness 基线。
 
 当前工作目录 `D:\Profession\Programs\CANKAO\eeg-agent-harness` 已成为可独立维护的 Python 项目；审计和复用源仍为相邻的 `D:\Profession\Programs\CANKAO\EEGAgent-main\EEGAgent-main`。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -25,10 +25,14 @@
 - 将幅值、PSD、`seizureNormalModel_OneSecond` 及 `pipeline.py` 改为显式接收/传递 `EEGRecord`；正式执行链不再导入或调用 `legacy.register_data`。
 - 保留原始预处理、幅值、Welch PSD、模型结构和权重加载算法，未修改相邻原始 EEGAgent 项目。
 - 实现 `TaskProfile`，提供 `tuev_bipolar_22` 与 `edf_native` 两种数据适配；加载器与 Profile 分离。
-- 实现四个标准工具、惰性 `ToolRegistry` 和结构化 `Executor`，统一返回 JSON 安全的 `ToolResult` 与错误码。
+- 初始实现四个标准工具，Milestone 2 扩展至八个；惰性 `ToolRegistry` 和结构化 `Executor` 统一返回 JSON 安全的 `ToolResult` 与错误码。
 - 实现任务隔离的 `ExecutionContext`、`ExecutionTrace`、结果引用和确定性多工具 Workflow。
 - 实现 OpenAI 兼容原生 Tool Calling Agent Loop、环境变量配置和 `DemoFakeLLM`。
 - 新增 Workflow CLI 与 Agent CLI；没有实现候选论文创新机制、ASD、RAG 或新模型训练。
+- 增加无私有资源 GitHub Actions，并加固数组元素、非有限数值、空/越界窗口、额外参数及 Profile 不匹配测试。
+- 新增 `EventSet`、`EpochSet`、MNE annotation 映射、边界试次拒绝和可选 baseline 校正。
+- 新增 `list_events`、`create_epochs`、`epoch_summary`、`event_bandpower`，Epoch 数组只保存在任务 artifact store。
+- 新增确定性事件工作流、合成事件 CLI 与 Fake LLM 四工具链；未引入 ASD/TD/R3 标签语义。
 
 ## 实际验证结果
 
@@ -59,10 +63,15 @@
 | 改造前后回归 | 使用同一 EDF、权重、`FP1-F7` 0–1 秒窗口比较；输出 shape、256 Hz 采样率、幅值与五频带 PSD 结果、模型概率、EDF 与模型 SHA-256 全部一致，确定性字段无差异。 |
 | MVP 完整测试 | `compileall` 通过；`unittest discover` 共 32 项通过、0 失败、0 跳过（已提供真实资源）。 |
 | Profile | `tuev_bipolar_22` 输出 `(22, 61696)`/256 Hz；`edf_native` 保留所选 EDF 通道与原始 250 Hz。 |
-| Registry/Executor | 4 个工具注册；Native 暴露 3 个，双极 Profile 暴露 4 个；列表查询不加载权重。 |
+| Registry/Executor | 当前 8 个工具注册；Native 暴露 7 个，双极 Profile 暴露 8 个；列表查询不加载权重。 |
 | Workflow | 基础信息→PSD→癫痫推理三步成功，结果与 Trace 可 JSON 序列化。 |
 | Fake LLM | 基础信息、频带功率、真实癫痫权重调用闭环均通过；工具调用上限测试通过。 |
 | 真实 LLM | 环境未配置 Base URL、API Key、模型名，故未执行、未验证。 |
+| Milestone 2 全量测试 | 46 项通过、0 失败、0 跳过（提供现有 EDF/权重）；无资源环境 37 项通过、9 项跳过。 |
+| 合成事件验证 | 128 Hz 合成信号及独立测试信号验证 annotation 时刻、Epoch shape、边界拒绝、baseline 和频带功率可复现。 |
+| 事件工具链 | `list_events → create_epochs → epoch_summary → event_bandpower` 经确定性 Workflow 与 Fake LLM 均成功。 |
+| 真实带事件 EDF | 本地 `gped_049_a_6.edf` 实测 0 个 annotation；因此真实 EDF+事件集成未验证。 |
+| CI | GitHub Actions 执行 compileall 和无资源 unittest，不下载私有 EDF、权重或大型数据。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -83,7 +92,7 @@
 
 ## 未解决问题
 
-1. 当前仅有 `tuev_bipolar_22` 与 `edf_native`；Sleep 2 导、MDD 19 导和 ERP 尚无已验证 Profile。
+1. 当前仅有 `tuev_bipolar_22` 与 `edf_native`；Sleep 2 导、MDD 19 导及完整 ERP/evoked 尚无已验证 Profile/工具。
 2. `legacy/register_data.py` 文件仍为迁移来源保留，但正式 pipeline、工具和测试已不再依赖；尚未执行物理删除。
 3. 当前 Registry 已避免枚举时加载权重，但尚无插件发现、资源 manifest 和跨进程模型生命周期管理。
 4. 已使用 JSON Schema 风格声明和结构化 Tool Calling，但本地 schema 校验器仅覆盖当前 MVP 所需子集。
@@ -91,17 +100,18 @@
 6. RAG 主模型权重缺失，报告模板也没有进入当前生效 Prompt。
 7. MDD、Sleep、TUEV Agent 评估脚本与默认路径或返回结构不一致，不能直接作为回归测试。
 8. 多数本地权重的训练数据、版本、许可证和指标来源在源码中未提供。
-9. 已有三类 CLI、32 项测试和资源型 smoke test，但尚无 CI、跨平台锁文件、完整资源 manifest 或多样本回归集。
+9. 已有 CI、四类 CLI、46 项测试和资源型 smoke test，但尚无跨平台锁文件、完整资源 manifest 或多样本回归集。
+11. 本地真实 EDF 没有 annotation；事件能力仅在合成 MNE 数据上验证，未验证 EDF+ 或外部注释文件配对。
 10. 原始项目没有发现许可证文件；源码和权重许可需在公开分发前确认。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并增加 CI 的无资源测试矩阵。
+1. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
 2. 稳定 `TaskProfile` 与 Tool Schema，增加更完整的 JSON Schema 校验、错误码测试和版本兼容策略。
 3. 在确认没有兼容调用方后移除 `legacy/register_data.py`，逐步将已验证算法移出 `legacy` 命名空间。
-4. 获取合法的多样本数据后建立事件级回归与性能评估，严格分离工具能力和 Agent 规划质量。
+4. 获取合法的带事件 EDF/外部注释数据后建立真实事件回归，严格分离数据适配、工具能力和 Agent 调度质量。
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
 6. 候选研究机制“状态感知与约束规划”和“证据驱动自适应分析”仍为拟研究功能，本阶段没有实施。
 
@@ -118,3 +128,6 @@
 - 阶段 C Commit：`1450179`（`实现可追踪多工具执行上下文`）。
 - 阶段 D Commit：`d51de85`（`接入结构化工具调用 Agent Loop`）。
 - 里程碑文档 Commit：`35cfa3e`（`完善基础运行时里程碑文档`）。
+- Issue #1 阶段 A Commit：`ec65168`（`阶段A 加固测试基线与参数校验`）。
+- Issue #1 阶段 B Commit：`b33ec14`（`阶段B 实现通用事件与Epoch数据层`）。
+- Issue #1 阶段 C Commit：`cbcc2ed`（`阶段C 接入事件工具与多步执行`）。
