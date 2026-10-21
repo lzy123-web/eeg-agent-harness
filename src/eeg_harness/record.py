@@ -23,6 +23,7 @@ class EEGRecord:
     source: str
     processing_metadata: tuple[Mapping[str, Any], ...] = field(default_factory=tuple)
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    events: Any = None
 
     def __post_init__(self):
         data = np.asarray(self.data)

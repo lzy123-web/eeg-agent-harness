@@ -6,6 +6,7 @@ from pathlib import Path
 import mne
 import numpy as np
 
+from .events import EventSet, events_from_mne_raw
 from .legacy.data_load import get_data
 from .legacy.preprocessing import preprocessing
 from .record import EEGRecord
@@ -18,6 +19,7 @@ class LoadedEDF:
     raw: object
     source: str
     metadata: dict
+    events: EventSet
 
 
 def read_edf(file_path):
@@ -32,7 +34,12 @@ def read_edf(file_path):
         "original_duration_seconds": float(raw.n_times / raw.info["sfreq"]),
         "original_channel_names": list(raw.ch_names),
     }
-    return LoadedEDF(raw=raw, source=str(path), metadata=metadata)
+    return LoadedEDF(
+        raw=raw,
+        source=str(path),
+        metadata=metadata,
+        events=events_from_mne_raw(raw, path),
+    )
 
 
 def adapt_edf(loaded, profile, selected_channels=None):
@@ -80,6 +87,7 @@ def adapt_edf(loaded, profile, selected_channels=None):
         source=loaded.source,
         processing_metadata=processing,
         metadata={"source_edf": loaded.metadata, "profile_id": profile.profile_id},
+        events=loaded.events,
     )
     profile.validate_record(record)
     return record
