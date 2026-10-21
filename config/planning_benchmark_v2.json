@@ -1,0 +1,36 @@
+{
+  "suite_version": "2.0",
+  "frozen_before_strategy_results": true,
+  "protocol": {
+    "max_tool_calls": 8,
+    "max_state_checks": 8,
+    "max_recoveries": 1,
+    "fault_timing": "after_initial_decision_before_first_affected_call",
+    "splits": ["development", "holdout"],
+    "holdout_locked": true
+  },
+  "cases": [
+    {"case_id":"dev_amplitude","split":"development","variant":"native_events","expected":"complete","task":{"goal":"tool","arguments":{"tool_name":"amplitude","parameters":{"channels":["C1"],"start":0,"end":1}}}},
+    {"case_id":"dev_event_power","split":"development","variant":"native_events","expected":"complete","task":{"goal":"event_bandpower","arguments":{"labels":["A"],"tmin":-0.25,"tmax":0.75}}},
+    {"case_id":"dev_epoch_summary","split":"development","variant":"native_events","expected":"complete","task":{"goal":"epoch_summary","arguments":{"labels":["A"],"tmin":-0.25,"tmax":0.75}}},
+    {"case_id":"dev_invalid_channel","split":"development","variant":"native_events","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"psd","parameters":{"channels":["missing"],"start":0,"end":1}}}},
+    {"case_id":"dev_missing_label","split":"development","variant":"native_events","expected":"reject","task":{"goal":"event_bandpower","arguments":{"labels":["missing"],"tmin":0,"tmax":1}}},
+    {"case_id":"dev_no_events","split":"development","variant":"native_no_events","expected":"reject","task":{"goal":"event_bandpower","arguments":{"labels":["A"],"tmin":0,"tmax":1}}},
+    {"case_id":"dev_model_profile_mismatch","split":"development","variant":"native_events","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"seizure_detection","parameters":{"channels":["C1"],"start":0,"end":1}}}},
+    {"case_id":"dev_model_resource_missing","split":"development","variant":"tuev","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"seizure_detection","parameters":{"channels":["FP1-F7"],"start":0,"end":1}}}},
+    {"case_id":"dev_window_oob","split":"development","variant":"native_events","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"amplitude","parameters":{"channels":["C1"],"start":3.5,"end":5}}}},
+    {"case_id":"dev_unsupported_diagnosis","split":"development","variant":"native_events","expected":"reject","task":{"goal":"clinical_diagnosis","arguments":{}}},
+    {"case_id":"holdout_psd","split":"holdout","variant":"native_events","expected":"complete","task":{"goal":"tool","arguments":{"tool_name":"psd","parameters":{"channels":["C2"],"start":1,"end":2}}}},
+    {"case_id":"holdout_event_power","split":"holdout","variant":"native_events","expected":"complete","task":{"goal":"event_bandpower","arguments":{"labels":["B"],"tmin":-0.5,"tmax":0.5}}},
+    {"case_id":"holdout_epoch_summary","split":"holdout","variant":"native_events","expected":"complete","task":{"goal":"epoch_summary","arguments":{"labels":["B"],"tmin":-0.5,"tmax":0.5}}},
+    {"case_id":"holdout_multitool","split":"holdout","variant":"native_events","expected":"complete","task":{"goal":"sequence","subtasks":[{"goal":"tool","arguments":{"tool_name":"amplitude","parameters":{"channels":["C1"],"start":0,"end":1}}},{"goal":"event_bandpower","arguments":{"labels":["B"],"tmin":-0.5,"tmax":0.5}}]}},
+    {"case_id":"holdout_artifact_expiry","split":"holdout","variant":"native_events","expected":"complete","setup":"existing_artifact_then_drop","fault":"artifact_expired","task":{"goal":"event_bandpower","arguments":{"labels":["A"],"tmin":-0.25,"tmax":0.75}}},
+    {"case_id":"holdout_event_change","split":"holdout","variant":"native_events","expected":"reject","fault":"events_removed","task":{"goal":"event_bandpower","arguments":{"labels":["A"],"tmin":-0.25,"tmax":0.75}}},
+    {"case_id":"holdout_resource_change","split":"holdout","variant":"tuev","expected":"reject","fault":"model_resource_removed","task":{"goal":"tool","arguments":{"tool_name":"seizure_detection","parameters":{"channels":["FP1-F7"],"start":0,"end":1}}}},
+    {"case_id":"holdout_profile_change","split":"holdout","variant":"native_events","expected":"reject","fault":"profile_mismatch","task":{"goal":"tool","arguments":{"tool_name":"seizure_detection","parameters":{"channels":["C1"],"start":0,"end":1}}}},
+    {"case_id":"holdout_transient_tool_failure","split":"holdout","variant":"native_events","expected":"complete","fault":"transient_tool_failure","task":{"goal":"tool","arguments":{"tool_name":"amplitude","parameters":{"channels":["C1"],"start":0,"end":1}}}},
+    {"case_id":"holdout_foreign_artifact","split":"holdout","variant":"native_events","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"event_bandpower","parameters":{"artifact_id":"foreign-epoch"}}}},
+    {"case_id":"holdout_short_epoch","split":"holdout","variant":"native_events","expected":"reject","task":{"goal":"event_bandpower","arguments":{"labels":["A"],"tmin":-0.1,"tmax":0.1}}},
+    {"case_id":"holdout_wrong_sfreq","split":"holdout","variant":"tuev_wrong_sfreq","expected":"reject","task":{"goal":"tool","arguments":{"tool_name":"seizure_detection","parameters":{"channels":["FP1-F7"],"start":0,"end":1}}}}
+  ]
+}

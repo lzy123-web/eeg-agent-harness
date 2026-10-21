@@ -9,6 +9,7 @@ import mne
 import numpy as np
 
 from .context import ExecutionContext
+from .evaluation_protocol import DEFAULT_BUDGET, classify_outcome
 from .events import events_from_mne_raw
 from .executor import Executor, _validate_schema
 from .pipeline import load_config
@@ -90,7 +91,9 @@ def _prepare(case, context):
     return TaskSpec(task.goal, arguments, task.subtasks, task.task_id), True
 
 
-def _policy_payload(status, results, preflight_rejected, duration_ms, replans=0):
+def _policy_payload(
+    status, results, preflight_rejected, duration_ms, replans=0, state_checks=0
+):
     failures = [item for item in results if not item["success"]]
     signatures = [json.dumps([item["tool_name"], item.get("data")], sort_keys=True) for item in results]
     return {
@@ -102,6 +105,12 @@ def _policy_payload(status, results, preflight_rejected, duration_ms, replans=0)
         "pre_execution_invalid_calls": 0 if preflight_rejected else len(failures),
         "redundant_calls": len(signatures) - len(set(signatures)),
         "replans": replans,
+        "state_checks": state_checks,
+        "budget": {
+            "max_tool_calls": DEFAULT_BUDGET.max_tool_calls,
+            "max_state_checks": DEFAULT_BUDGET.max_state_checks,
+            "max_recoveries": DEFAULT_BUDGET.max_recoveries,
+        },
         "duration_ms": duration_ms,
     }
 
@@ -231,6 +240,32 @@ def _expert(task, context, drop_artifact=False):
     return reject()
 
 
+def _expert_with_recovery(task, context, drop_artifact=False):
+    """Strong expert baseline with the same single recovery budget as the planner."""
+
+    first = _expert(task, context, drop_artifact)
+    first["state_checks"] = 1
+    if first["status"] != "execution_failed" or DEFAULT_BUDGET.max_recoveries < 1:
+        return first
+    if task.goal != "event_bandpower" or not task.arguments.get("artifact_id"):
+        return first
+    fallback = dict(task.arguments)
+    fallback.pop("artifact_id", None)
+    required = ("labels", "tmin", "tmax")
+    if any(key not in fallback for key in required):
+        return first
+    retry_task = TaskSpec(task.goal, fallback, task.subtasks, task.task_id)
+    retry = _expert(retry_task, context, False)
+    combined = list(first["tool_results"]) + list(retry["tool_results"])
+    payload = _policy_payload(
+        retry["status"], combined, retry["preflight_rejected"],
+        first["duration_ms"] + retry["duration_ms"], replans=1, state_checks=2,
+    )
+    if payload["tool_calls"] > DEFAULT_BUDGET.max_tool_calls:
+        payload["status"] = "budget_exhausted"
+    return payload
+
+
 def _planner(task, context, drop_artifact=False, max_replans=1):
     runner = ConstrainedPlanRunner(context, max_replans=max_replans)
     plan = runner.planner.plan(task)
@@ -244,6 +279,7 @@ def _planner(task, context, drop_artifact=False, max_replans=1):
         result.status == "rejected",
         result.duration_ms,
         result.replans,
+        state_checks=1 + result.replans,
     )
 
 
@@ -272,7 +308,8 @@ def _blind_dependency(task, context, drop_artifact=False):
 
 POLICIES = {
     "execution_only": _execution_only,
-    "expert_dag": _expert,
+    "expert_dag_no_recovery": _expert,
+    "expert_dag": _expert_with_recovery,
     "constrained_planner": _planner,
     "ablation_no_state": _blind_dependency,
     "ablation_no_replanning": lambda task, context, drop=False: _planner(task, context, drop, 0),
@@ -292,6 +329,7 @@ def _summarize_rows(rows):
         "mean_duration_ms": sum(row["duration_ms"] for row in rows) / len(rows),
         "redundant_calls": sum(row["redundant_calls"] for row in rows),
         "replans": sum(row["replans"] for row in rows),
+        "state_checks": sum(row["state_checks"] for row in rows),
     }
 
 
@@ -312,11 +350,18 @@ def run_benchmark(suite_path, config_path="config/baseline.json"):
             context = make_synthetic_context(case.variant, f"{policy_name}-{case.case_id}", config)
             task, drop = _prepare(case, context)
             outcome = policy(task, context, drop)
+            outcome_class = classify_outcome(
+                case.expected,
+                outcome["status"],
+                preflight_rejected=outcome["preflight_rejected"],
+                recoveries=outcome["replans"],
+            )
             outcomes.append({
                 "policy": policy_name,
                 "case_id": case.case_id,
                 "split": case.split,
                 "expected": case.expected,
+                "outcome_class": outcome_class,
                 **{key: value for key, value in outcome.items() if key != "tool_results"},
                 "error_codes": [
                     item["error"]["code"] for item in outcome["tool_results"] if item["error"]
