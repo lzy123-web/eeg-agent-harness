@@ -147,3 +147,5 @@ Milestone 3：真实事件 EEG 验证、R3 适配及受试者级分析基线已�
 - Issue #2 阶段 B Commit：`812a899`（`阶段B 增加通用预处理与R3适配器`）。
 - Issue #2 阶段 C Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。
 - Issue #2 阶段 D Commit：`c9af7aa`（`阶段D 完成R3真实事件验收与研究文档`）。
+- Issue #2 状态汇总 Commit：`a154941`（`记录Issue 2阶段提交与验收结果`）。
+- GitHub Actions run `39606303155` 对 `a154941` 执行无私有资源 compileall/unittest，结论为 `success`。
