@@ -40,5 +40,22 @@ Commit：`a27b16c`（`建立工具注册与安全执行器`）。
 - Reproducibility bundle 保存 Profile、采样率、通道、shape、处理步骤、配置、请求、结果和 Trace，不保存原始 EEG 数组。
 - `compileall` 通过；27 项测试通过，包含上下文隔离、结果引用、非法工具后恢复、轨迹序列化和真实多工具工作流。
 
+Commit：`1450179`（`实现可追踪多工具执行上下文`）。
+
+## 阶段 D：LLM Agent Loop
+
+状态：已完成 Fake LLM 与客户端实现；真实外部 LLM 取决于本地环境配置。
+
+- 新增有界 `EEGAgent` 循环，使用 OpenAI 兼容 Chat Completions 的原生 `tool_calls` 结构，不使用文本正则协议。
+- Agent 只发送 Profile、采样率、时长、通道、参考、montage、shape、工具定义和工具结果，不发送 EEG 原始数组。
+- 支持最大轮数和最大工具调用数；工具错误回注模型后可继续，LLM 异常和调用上限具有明确停止原因。
+- API Base URL、API Key、模型名和超时均从 `EEG_HARNESS_LLM_*` 环境变量读取，无硬编码凭据或模型名。
+- 内置 `DemoFakeLLM` 完成基础信息、频带功率和符合条件的真实癫痫模型三类闭环；Native Profile 会拒绝癫痫工具。
+- `compileall` 通过；32 项测试通过，包括 Fake LLM 闭环、真实权重推理和工具调用上限。
+
 Commit：将在阶段提交完成后回填。
+
+## 能力表述边界
+
+当前系统具有两个数据适配 Profile、四个工具、统一 Executor、执行 Trace 和可测试 Agent Loop。这表示“一个 Harness 中存在多个 EEG 工具”，不表示已经在多个 EEG 数据集或多种临床任务上完成泛化验证。当前真实数据验证仍只有原仓库提供的单个 EDF 样例；模型训练来源和许可证仍为源码未提供。
 
