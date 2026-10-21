@@ -103,6 +103,30 @@ class FakeAgentLoopTest(unittest.TestCase):
         self.assertTrue(all(item["success"] for item in result.tool_results))
         self.assertNotIn("data", result.tool_results[1]["data"])
 
+    def test_openai_client_omits_tool_fields_for_goal_interpretation(self):
+        from unittest.mock import patch
+        from eeg_harness.llm import OpenAICompatibleClient
+
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return b'{"choices":[{"message":{"content":"{}"}}]}'
+
+        captured = {}
+        def fake_urlopen(http_request, timeout):
+            captured.update(json.loads(http_request.data.decode("utf-8")))
+            return Response()
+
+        with patch("eeg_harness.llm.request.urlopen", fake_urlopen):
+            OpenAICompatibleClient("https://example.invalid", "secret", "model").complete(
+                [{"role": "user", "content": "x"}], []
+            )
+        self.assertNotIn("tools", captured)
+        self.assertNotIn("tool_choice", captured)
+
 
 @unittest.skipUnless(
     os.environ.get("EEG_HARNESS_TEST_EDF") and os.environ.get("EEG_HARNESS_MODEL_PATH"),

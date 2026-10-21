@@ -9,7 +9,8 @@ from .agent import EEGAgent
 from .context import ExecutionContext
 from .edf import load_edf
 from .executor import Executor
-from .llm import DemoFakeLLM, OpenAICompatibleClient
+from .llm import DemoFakeLLM, DeterministicGoalFakeLLM, OpenAICompatibleClient
+from .planning_agent import NaturalLanguagePlanningAgent
 from .pipeline import load_config
 from .profiles import get_profile
 from .tools import build_default_registry
@@ -25,6 +26,10 @@ def build_parser():
     parser.add_argument("--native-channel", action="append", dest="native_channels")
     parser.add_argument("--request", required=True)
     parser.add_argument("--fake", action="store_true", help="Use deterministic Fake LLM")
+    parser.add_argument(
+        "--planning", action="store_true",
+        help="Interpret a structured goal and run the constrained Planner",
+    )
     parser.add_argument("--output")
     return parser
 
@@ -42,8 +47,15 @@ def main(argv=None):
         profile,
         Executor(build_default_registry(), load_config(args.config), resources),
     )
-    client = DemoFakeLLM() if args.fake else OpenAICompatibleClient.from_env()
-    result = EEGAgent(client, context).run(args.request).to_dict()
+    if args.fake:
+        client = DeterministicGoalFakeLLM() if args.planning else DemoFakeLLM()
+    else:
+        client = OpenAICompatibleClient.from_env()
+    agent = (
+        NaturalLanguagePlanningAgent(client, context)
+        if args.planning else EEGAgent(client, context)
+    )
+    result = agent.run(args.request).to_dict()
     rendered = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)
     if args.output:
         output = Path(args.output).expanduser().resolve()

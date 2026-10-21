@@ -28,10 +28,10 @@ class OpenAICompatibleClient:
         )
 
     def complete(self, messages, tools):
-        payload = json.dumps(
-            {"model": self.model, "messages": messages, "tools": tools, "tool_choice": "auto"},
-            ensure_ascii=False,
-        ).encode("utf-8")
+        body = {"model": self.model, "messages": messages}
+        if tools:
+            body.update({"tools": tools, "tool_choice": "auto"})
+        payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
         endpoint = self.base_url
         if not endpoint.endswith("/chat/completions"):
             endpoint += "/chat/completions"
@@ -123,4 +123,66 @@ class DemoFakeLLM:
                 }
             ],
         }
+
+
+class DeterministicGoalFakeLLM:
+    """Human-authored language templates for bridge tests, not an LLM result."""
+
+    def __init__(self):
+        self.calls = []
+
+    def complete(self, messages, tools):
+        self.calls.append({"messages": messages, "tools": tools})
+        user_text = next(item["content"] for item in messages if item["role"] == "user")
+        if "__INVALID__" in user_text:
+            return {"role": "assistant", "content": "not-json"}
+        state = json.loads(messages[0]["content"].split("STATE=", 1)[1])
+        channel = state["channel_names"][0]
+        label = next(iter(state.get("event_labels", {})), "A")
+        lower = user_text.lower()
+        if any(word in lower for word in ("诊断", "diagnos")):
+            task = {"goal": "clinical_diagnosis", "arguments": {}}
+        elif any(word in lower for word in ("组合", "multiple", "先幅值")):
+            task = {
+                "goal": "sequence",
+                "subtasks": [
+                    {"goal": "tool", "arguments": {"tool_name": "amplitude", "parameters": {
+                        "channels": [channel], "start": 0, "end": 1,
+                    }}},
+                    {"goal": "event_bandpower", "arguments": {
+                        "labels": [label], "tmin": -0.2, "tmax": 0.8,
+                    }},
+                ],
+            }
+        elif any(word in lower for word in ("epoch 摘要", "epoch summary")):
+            task = {"goal": "epoch_summary", "arguments": {
+                "labels": [label], "tmin": -0.2, "tmax": 0.2,
+            }}
+        elif any(word in lower for word in ("事件", "event", "erp")):
+            task = {"goal": "event_bandpower", "arguments": {
+                "labels": [label], "tmin": -0.2, "tmax": 0.8,
+            }}
+        elif any(word in lower for word in ("癫痫", "seizure", "模型")):
+            task = {"goal": "tool", "arguments": {
+                "tool_name": "seizure_detection", "parameters": {
+                    "channels": [channel], "start": 0, "end": 1,
+                },
+            }}
+        elif any(word in lower for word in ("频带", "功率", "psd")):
+            task = {"goal": "tool", "arguments": {
+                "tool_name": "psd", "parameters": {
+                    "channels": [channel], "start": 0, "end": 1,
+                },
+            }}
+        elif any(word in lower for word in ("幅值", "window", "窗口")):
+            task = {"goal": "tool", "arguments": {
+                "tool_name": "amplitude", "parameters": {
+                    "channels": [channel], "start": 0, "end": 1,
+                },
+            }}
+        else:
+            task = {"goal": "tool", "arguments": {
+                "tool_name": "record_info", "parameters": {},
+            }}
+        return {"role": "assistant", "content": json.dumps(task, ensure_ascii=False)}
 
