@@ -2,7 +2,9 @@
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
-它不包含状态感知约束规划、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
+Milestone 4 增加了“状态感知与约束规划”的最小研究原型：它以结构化状态和工具契约在执行前构造合法依赖或安全拒绝，并保留原 Executor 作为最终安全边界。先导实验不证明该方法优于强 Expert DAG，完整结论见 `docs/research/CONSTRAINED_PLANNING_EVALUATION.md`。
+
+它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
 
@@ -23,6 +25,7 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `llm.py`、`agent.py`：OpenAI 兼容客户端、Fake LLM 和有界 Agent Loop。
 - `legacy/`：从原 EEGAgent 迁移的数值算法及模型结构；全局 `register_data` 不在正式链路中使用。
 - `applications/r3/`：R3 专有 Profile、资源诊断、事件工作流与显式受试者聚合；不污染通用层。
+- `planning.py`、`planning_evaluation.py`：研究用状态/契约 Planner、有限重规划与冻结公平对照；不替代 Executor。
 
 ## Profile
 
@@ -101,6 +104,16 @@ R3 本地资源只通过显式路径使用，输出目录须保持 Git 忽略：
 
 R3 默认配置为 21 个已观察 EEG 通道、300 Hz、1–40 Hz、50 Hz 陷波、平均参考、`[-0.2, 0.8)` Epoch 和 `[-0.2, 0)` baseline。只有通道、采样率和数字注释 1–9 已从本地文件核验；预处理参数是本里程碑的显式分析配置，标签 9 的 Boundary 含义与标签 1–8 的实验语义尚未得到权威说明确认。
 
+规划 Demo 与冻结对照：
+
+```powershell
+& $python -m eeg_harness.plan_cli --demo window --output artifacts\plan_window.json
+& $python -m eeg_harness.plan_cli --demo event --output artifacts\plan_event.json
+& $python -m eeg_harness.plan_cli --benchmark --output artifacts\planning_benchmark.json
+```
+
+也可用 `--task <task.json>` 提供结构化 TaskSpec。该入口使用确定性合成 EEG，不需要 LLM；不支持临床诊断目标，也不会解释 R3 标签。
+
 真实 OpenAI 兼容服务需先设置三个 `EEG_HARNESS_LLM_*` 必需变量，再移除 `--fake`。客户端使用原生 `tool_calls`，不采用原项目的正则文本协议。
 
 ## 测试
@@ -111,7 +124,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-21 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：59 项全部通过。无私有资源模式 48 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
+2026-10-21 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：76 项全部通过。无私有资源模式 65 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
 
 ## 当前边界
 

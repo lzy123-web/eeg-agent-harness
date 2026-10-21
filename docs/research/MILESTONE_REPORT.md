@@ -146,3 +146,36 @@ Commit：`33244ed`（`阶段C 建立R3事件工作流与受试者聚合`）。
 
 Commit：`c9af7aa`（`阶段D 完成R3真实事件验收与研究文档`）。
 
+## Milestone 4：状态感知与约束规划先导研究（Issue #3）
+
+### 阶段 A：方法边界与状态模型
+
+- 定义 `TaskSpec`、`EEGStateSnapshot`、`ArtifactSnapshot`、`OperationContract`、`PlanStep/Plan`。
+- 状态仅包含当前 Context 已验证事实；artifact 绑定 Context/Profile/记录来源，不包含原始波形或推断质量。
+- 设计文档明确区分 Executor 执行时 Validator 与规划时跨工具约束，并预注册公平比较口径。
+
+Commit：`c6a168e`（`阶段A 定义EEG状态与操作契约模型`）。
+
+### 阶段 B：规划与执行联动
+
+- 在原 Registry/Executor/Context 上实现执行前规划、结构化拒绝、事件 artifact 依赖链和最多一次动态重规划。
+- 覆盖缺标签、无事件、非法通道/窗口、Profile/采样率不兼容、缺模型资源和跨 Context artifact。
+- 原 Workflow、Agent Loop 和工具调用保持向后兼容。
+
+Commit：`a274e5c`（`阶段B 实现状态感知约束规划与有限重规划`）。
+
+### 阶段 C：冻结公平对照
+
+- 冻结 16 项任务（开发/保留各 8），比较 Execution-only、强 Expert DAG、候选 Planner 与三项消融。
+- Planner 与 Expert 在静态任务上持平；Planner 只在单个动态 artifact 丢失案例通过重规划取得完成率差异，但总调用更多。
+- 结果支持工程可行性，不足以证明创新性或普遍优越性。
+
+Commit：`ac75f7d`（`阶段C 建立冻结任务集与公平规划对照`）。
+
+### 阶段 D：演示、回归与结论
+
+- 新增结构化 JSON/合成 Demo/benchmark CLI，结果包含 Plan、ToolResult、规划轨迹与 ExecutionTrace。
+- 真实 EEGAgent 模型窗口与匿名 R3 事件链均经 Planner 跑通；未提交真实数据或特征。
+- 真实 LLM 环境未配置，状态为未验证。
+- 评估报告结论为“有条件继续，但目前不足以作为已成立的论文创新点”。
+
