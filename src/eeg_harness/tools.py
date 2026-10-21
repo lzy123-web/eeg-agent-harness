@@ -145,7 +145,7 @@ def _event_bandpower(record, arguments, config, resources):
 
 def build_default_registry():
     registry = ToolRegistry()
-    common_profiles = ("tuev_bipolar_22", "edf_native")
+    common_profiles = ("*",)
     registry.register(
         ToolSpec(
             name="record_info",
@@ -194,7 +194,7 @@ def build_default_registry():
             required_resources=("seizure_model",),
         )
     )
-    event_profiles = ("tuev_bipolar_22", "edf_native")
+    event_profiles = ("*",)
     registry.register(
         ToolSpec(
             name="list_events",

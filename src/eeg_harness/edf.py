@@ -43,7 +43,7 @@ def read_edf(file_path):
 
 
 def adapt_edf(loaded, profile, selected_channels=None):
-    if profile.adapter == "native":
+    if profile.adapter in ("native", "configured_native"):
         eeg_channels = [
             name
             for name, channel_type in zip(loaded.raw.ch_names, loaded.raw.get_channel_types())
@@ -55,9 +55,24 @@ def adapt_edf(loaded, profile, selected_channels=None):
         missing = [name for name in channels if name not in eeg_channels]
         if missing:
             raise ValueError(f"Selected EDF EEG channel(s) not found: {', '.join(missing)}")
-        data = loaded.raw.get_data(picks=list(channels)).astype(np.float32, copy=False)
-        processing = ({"operation": "select_native_eeg_channels", "channels": list(channels)},)
-        sfreq = float(loaded.raw.info["sfreq"])
+        processed = loaded.raw.copy().pick(list(channels))
+        steps = [{"operation": "select_native_eeg_channels", "channels": list(channels)}]
+        if profile.adapter == "configured_native":
+            if profile.l_freq is not None or profile.h_freq is not None:
+                processed.filter(profile.l_freq, profile.h_freq, verbose=False)
+                steps.append({"operation": "bandpass_filter", "l_freq": profile.l_freq, "h_freq": profile.h_freq})
+            if profile.notch_freq is not None:
+                processed.notch_filter(profile.notch_freq, verbose=False)
+                steps.append({"operation": "notch_filter", "frequency": profile.notch_freq})
+            if profile.average_reference:
+                processed.set_eeg_reference("average", projection=False, verbose=False)
+                steps.append({"operation": "average_reference"})
+            if profile.target_sfreq is not None and processed.info["sfreq"] != profile.target_sfreq:
+                processed.resample(profile.target_sfreq, verbose=False)
+                steps.append({"operation": "resample", "sfreq": profile.target_sfreq})
+        data = processed.get_data().astype(np.float32, copy=False)
+        processing = tuple(steps)
+        sfreq = float(processed.info["sfreq"])
     elif profile.adapter == "bipolar_22":
         config = {
             "fs": int(profile.target_sfreq),
@@ -87,7 +102,8 @@ def adapt_edf(loaded, profile, selected_channels=None):
         source=loaded.source,
         processing_metadata=processing,
         metadata={"source_edf": loaded.metadata, "profile_id": profile.profile_id},
-        events=loaded.events,
+        events=(events_from_mne_raw(processed, loaded.source)
+                if profile.adapter in ("native", "configured_native") else loaded.events),
     )
     profile.validate_record(record)
     return record

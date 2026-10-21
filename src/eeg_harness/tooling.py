@@ -75,7 +75,10 @@ class ToolRegistry:
         specs = tuple(self._tools.values())
         if profile_id is None:
             return specs
-        return tuple(spec for spec in specs if profile_id in spec.compatible_profiles)
+        return tuple(
+            spec for spec in specs
+            if "*" in spec.compatible_profiles or profile_id in spec.compatible_profiles
+        )
 
     def public_definitions(self, profile_id=None):
         return [spec.public_definition() for spec in self.list_specs(profile_id)]

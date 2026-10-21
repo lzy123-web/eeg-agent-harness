@@ -24,6 +24,8 @@ class TaskProfile:
     l_freq: Optional[float] = None
     h_freq: Optional[float] = None
     notch_freq: Optional[float] = None
+    average_reference: bool = False
+    channel_types: tuple[str, ...] = ("eeg",)
 
     def supports_tool(self, tool_name):
         return tool_name in self.compatible_tools

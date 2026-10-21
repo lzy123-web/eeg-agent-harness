@@ -67,7 +67,10 @@ class Executor:
         spec = self.registry.get(request.name)
         if spec is None:
             return fail("TOOL_NOT_FOUND", f"Unknown tool: {request.name}")
-        if profile.profile_id not in spec.compatible_profiles or not profile.supports_tool(spec.name):
+        if (
+            "*" not in spec.compatible_profiles
+            and profile.profile_id not in spec.compatible_profiles
+        ) or not profile.supports_tool(spec.name):
             return fail(
                 "INCOMPATIBLE_PROFILE",
                 f"Tool {spec.name} is not compatible with profile {profile.profile_id}",
