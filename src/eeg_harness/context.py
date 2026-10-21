@@ -156,8 +156,11 @@ class ExecutionContext:
         return outputs
 
     def reproducibility_bundle(self):
+        from . import __version__
+
         bundle = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
+            "harness_version": __version__,
             "record": {
                 "source": source_reference(self.record.source),
                 "profile_id": self.profile.profile_id,
