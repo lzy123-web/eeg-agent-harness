@@ -27,6 +27,7 @@ eeg-harness-evidence = "eeg_harness.evidence_cli:main"
 eeg-harness-llm-smoke = "eeg_harness.llm_smoke:main"
 eeg-harness-real-llm = "eeg_harness.real_llm_evaluation:main"
 eeg-harness-baseline-v1 = "eeg_harness.baseline_v1:main"
+eeg-harness-semantic-pilot = "eeg_harness.research.semantic_planning.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

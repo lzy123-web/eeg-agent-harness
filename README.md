@@ -8,6 +8,8 @@ Milestone 5 完成了约束规划强基线复核：在同等观察与恢复预�
 
 Milestone 6 增加了显式 EEG 质量证据与自适应分析 Pilot。受控合成指标通过，但真实阈值明显敏感；Candidate 与同证据、同预算的强 Expert 完全持平，因此研究点二为 No-Go。质量工具作为工程能力保留，详见 `docs/research/EVIDENCE_ADAPTIVE_EVALUATION.md`。
 
+Issue #8 对收缩后的研究点一完成了独立 research spike：18 个冻结科学语义任务上，强 Expert DAG、通用语义 Planner 与候选 EEG Planner 的合法完成、正确拒绝和 holdout 均完全持平，调用数也相同；候选没有显示独立增益，结论为 **No-Go**。这不否定显式科学状态/lineage 的工程价值，但禁止把当前实现写成已成立的论文创新。详见 `docs/research/POINT1_PILOT_EVALUATION.md`。
+
 它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
@@ -125,6 +127,13 @@ R3 默认配置为 21 个已观察 EEG 通道、300 Hz、1–40 Hz、50 Hz 陷�
   --output artifacts\nl_agent_fake_comparison.json
 & $python -m eeg_harness.evidence_cli `
   --output artifacts\evidence_benchmark_v1.json
+
+# Issue #8 冻结科学语义对照（只用确定性合成 EEG）
+& $python -m eeg_harness.research.semantic_planning.cli `
+  --suite config\point1_semantic_planning_v1.json `
+  --output artifacts\point1_semantic_planning.json
+& $python -m eeg_harness.research.semantic_planning.cli --demo branch
+& $python -m eeg_harness.research.semantic_planning.cli --demo events
 ```
 
 也可用 `--task <task.json>` 提供结构化 TaskSpec。该入口使用确定性合成 EEG，不需要 LLM；不支持临床诊断目标，也不会解释 R3 标签。

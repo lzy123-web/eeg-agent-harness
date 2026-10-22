@@ -325,3 +325,30 @@ Commit：`750eb04`。
 
 Commit：`ac36b45`。
 
+## Milestone 9：研究点一科学语义规划 Spike（Issue #8）
+
+### A：文献与协议冻结
+
+- 核实 CogEEGAgent、NeuroWeaver、WINGS/PROV-O 与 MNE 官方数据语义依据。
+- 在结果产生前冻结 18 个任务、三类独立 oracle、三类公平方法和统一预算；配置 hash 为 `1e2de202…b5d47`。
+- Commit：`f14d20a`。
+
+### B：隔离语义原型
+
+- 在 `research/semantic_planning` 增加不可变 artifact/effect/requirement/plan、8 个共享操作契约及会话 payload。
+- 原始/低通分支、MNE events 联合重采样、Epoch 授权选择与试次数约束通过既有 Registry/Executor/Context 执行。
+- Commit：`c2870eb`。
+
+### C：公平对照
+
+- Strong Expert、Generic Semantic 与 Candidate EEG Planner 在完全相同的规则、数据、工具、oracle 和预算上运行 18×3 案例。
+- 三者合法完成、正确拒绝、总体与 holdout 均为 100%，工具调用均为 25，成功语义非法执行均为 0。
+- 最大事件对齐误差 0.002625 秒；扩展观察不支持 Candidate 相对 Generic 的维护优势。
+- Commit：`93516be`。
+
+### D：验收与研究决策
+
+- 两个 synthetic demo、完整 JSON、设计/评估文档及项目状态可复现。
+- `pip check`/`compileall` 通过；有 EDF/权重时 137 项中 134 通过、3 跳过；无资源 125 通过、12 跳过。
+- 对当前 EEG 专属规划策略给出 **NO-GO**；科学语义契约保留为工程机制，不包装为已成立创新。
+

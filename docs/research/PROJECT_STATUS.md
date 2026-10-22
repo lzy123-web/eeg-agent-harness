@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完成。
+Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当前具体候选策略结论为 **NO-GO**；Baseline v1.0 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -56,6 +56,11 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 - Fake/Mock 30 项全部跑通协议链；真实 DeepSeek 初始严格 3/15，12 项失败均保留并分类。
 - 通用最小工具 Prompt 修复后只复测 5 个 development 案例，5/5 通过；holdout 未复测且不再声称未见。
 - 本地真实 EDF+权重工作流以及两份匿名 R3 的事件、特征和质量链均复现；真实数据没有进入外部 LLM。
+- 核实 CogEEGAgent、NeuroWeaver、WINGS/PROV-O 和 MNE 重采样/Epoch 官方文档，明确 semantic workflow、typed contract、DAG 与 provenance 本身不是新颖性证据。
+- 在原型结果前冻结 Issue #8 的 18 个 development/holdout 科学语义任务、独立 oracle、三种公平对照与统一预算。
+- 新增隔离 `research/semantic_planning` 原型：不可变 Artifact/Effect/Requirement/Plan、raw/processed 分支、events 联合重采样、Epoch 筛选 lineage 与 8 个操作契约。
+- 所有研究操作复用现有 Registry、Executor、ExecutionContext、EEGRecord 与 EpochSet；没有侵入 Baseline v1 执行链。
+- Strong Expert、Generic Semantic 与 Candidate 在 18×3 案例上完全持平；Candidate 没有正确性、调用成本或相对 Generic 的扩展维护优势。
 
 ## 实际验证结果
 
@@ -131,6 +136,13 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 | 两份匿名 R3 | 21 通道/300 Hz；事件 81/96、有效 Epoch 72/60；事件频带、记录质量与 Epoch 质量均成功；未解释组别或标签。 |
 | Baseline v1 全量测试 | `pip check`/`compileall` 通过；有资源 124 项中 123 通过、1 项联网跳过；无资源 112 通过、12 跳过。 |
 | Baseline v1 GitHub Actions | run `39787839835` 对提交 `7c852da` 执行无私有资源测试，结论 `success`。 |
+| Issue #8 冻结集 | 18 项（development 12、holdout 6），规范化 SHA-256 `1e2de202eb91b76e3df32e133ad4bf37578be74d506f15b302b1a39d4ffb5d47`。 |
+| 科学语义公平对照 | Strong Expert、Generic Semantic、Candidate 均为合法完成率/正确拒绝率/总体/holdout 100%，误拒与成功语义非法执行均为 0。 |
+| Issue #8 成本 | 三种方法均 25 次工具调用、19 次状态查询；Candidate 未显示调用优势。 |
+| 事件独立 oracle | 最大对齐误差 0.002625 秒，小于冻结容差 0.00390625 秒；只适用于当前合成条件。 |
+| 扩展模拟 | 新 `epoch_variance` consumer 的方法特定修改点 Expert/Generic/Candidate 为 2/0/1；单开发者弱证据，不支持 H2 相对 Generic。 |
+| Issue #8 全量测试 | `pip check`/`compileall` 通过；有 EDF/权重时 137 项中 134 通过、3 跳过；无私有资源 125 通过、12 跳过。 |
+| Issue #8 决策 | 当前 EEG 专属规划排序为 NO-GO；显式科学语义契约只保留为工程机制，不宣称创新点一成立。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -175,17 +187,21 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 21. 本次没有通过真实 LLM 调用本地癫痫权重；已验证的是合成 Native 基础/事件工具与不兼容拒绝，不得外推为模型调度性能。
 22. Baseline v1 已用合成 22 导输入让真实 DeepSeek 调度本地权重，但输出仅是协议 smoke；真实 LLM+真实 EEG 仍未授权、未验证。
 23. 初始严格自然语言结果 3/15，说明多余工具调用仍是明确基线缺陷；5/5 修复结果只来自 development 复测。
+24. Issue #8 三种强方法在全部冻结合成案例完全持平；当前无法证明 EEG 专属规划策略的独立贡献。
+25. 18 个合成案例、单开发者扩展修改点和一次本地耗时不足以代表真实 workflow、团队维护成本或统计显著性。
+26. 原型只覆盖 low-pass、联合重采样、Epoch/显式索引筛选等最小语义；未验证真实触发漂移、复杂参考、ICA、坏段传播或 BIDS derivative lineage。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 停止无边界扩充 Harness，转入 EEG Agent、scientific workflow、Agent Harness 与 EEG 方法文献梳理，重新筛选可证伪研究问题。
+1. 按 Issue #8 的 NO-GO 停止扩展当前 EEG 专属搜索排序；先回到文献与真实科学 workflow 需求，不继续为制造优势增加规则。
 2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复与不同措辞，不把本轮 development 复测或已暴露 holdout 当作泛化证据。
 3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
 4. 获取合法的带事件公开数据后建立真实事件回归；实验室真实数据外发必须先获得明确治理授权。
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
 6. 两个候选研究点当前均未成立；后续必须基于文献、独立数据和强基线重新论证，不因工程便利编造贡献。
+7. 若重新评估研究点一，先获得独立开发者与真实复杂任务，在新冻结 holdout 上证明通用 semantic planner 无法表达的具体 EEG 差异。
 
 ## Git Commit 信息
 
@@ -234,3 +250,6 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 - Issue #7 阶段 D Commit：`9ffb7fd`（`eval: run frozen real DeepSeek Baseline v1 subset`）。
 - Issue #7 阶段 E Commit：`ac36b45`（`release: accept EEG Agent Baseline v1.0`）。
 - Issue #7 状态补记 Commit：`7c852da`（`docs: record Baseline v1 stage commits`）；GitHub Actions run `39787839835` 成功。
+- Issue #8 阶段 A Commit：`f14d20a`（`research: freeze EEG semantic planning protocol`）。
+- Issue #8 阶段 B Commit：`c2870eb`（`feat: prototype EEG scientific semantic planning`）。
+- Issue #8 阶段 C Commit：`93516be`（`eval: compare semantic planner with fair strong baselines`）。
