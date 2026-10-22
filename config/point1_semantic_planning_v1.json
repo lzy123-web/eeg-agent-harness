@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "description": "Issue #8 EEG semantic planning pilot frozen before prototype results",
+  "budgets": {"max_tool_calls": 8, "max_state_queries": 8, "max_recoveries": 1},
+  "methods": ["expert_dag", "generic_semantic", "candidate_eeg_semantic"],
+  "cases": [
+    {"id":"dev_line_raw_noise","split":"development","scenario":"frequency_branch","initial":"raw","request":{"goals":[{"kind":"line_noise","frequency_hz":50.0}]},"expected":{"status":"completed","lineage_stage":"raw"}},
+    {"id":"dev_line_filtered_unobservable","split":"development","scenario":"frequency_branch","initial":"lowpass40","request":{"goals":[{"kind":"line_noise","frequency_hz":50.0}]},"expected":{"status":"rejected","reason":"RAW_SOURCE_UNAVAILABLE"}},
+    {"id":"dev_line_make_bandpower","split":"development","scenario":"frequency_branch","initial":"raw","request":{"goals":[{"kind":"bandpower","low_hz":1.0,"high_hz":40.0,"require_lowpass_hz":40.0}]},"expected":{"status":"completed","lineage_stage":"lowpass"}},
+    {"id":"dev_line_two_branches","split":"development","scenario":"frequency_branch","initial":"raw","request":{"goals":[{"kind":"line_noise","frequency_hz":50.0},{"kind":"bandpower","low_hz":1.0,"high_hz":40.0,"require_lowpass_hz":40.0}]},"expected":{"status":"completed","distinct_source_branches":true}},
+    {"id":"holdout_line_existing_filtered","split":"holdout","scenario":"frequency_branch","initial":"raw_and_lowpass40","request":{"goals":[{"kind":"bandpower","low_hz":8.0,"high_hz":13.0,"require_lowpass_hz":40.0}]},"expected":{"status":"completed","lineage_stage":"lowpass"}},
+    {"id":"holdout_line_filtered_noise","split":"holdout","scenario":"frequency_branch","initial":"lowpass40","request":{"goals":[{"kind":"line_noise","frequency_hz":50.0},{"kind":"bandpower","low_hz":8.0,"high_hz":13.0,"require_lowpass_hz":40.0}]},"expected":{"status":"rejected","reason":"RAW_SOURCE_UNAVAILABLE"}},
+
+    {"id":"dev_event_resample_epochs","split":"development","scenario":"event_alignment","initial":"raw_events_256","request":{"goals":[{"kind":"epochs","target_sfreq":128.0,"labels":["A"],"tmin":-0.1,"tmax":0.4}]},"expected":{"status":"completed","max_alignment_error_seconds":0.00390625}},
+    {"id":"dev_event_already_128","split":"development","scenario":"event_alignment","initial":"raw_events_128","request":{"goals":[{"kind":"epochs","target_sfreq":128.0,"labels":["A"],"tmin":-0.1,"tmax":0.4}]},"expected":{"status":"completed","max_alignment_error_seconds":0.00390625}},
+    {"id":"dev_event_missing","split":"development","scenario":"event_alignment","initial":"raw_no_events","request":{"goals":[{"kind":"epochs","target_sfreq":128.0,"labels":["A"],"tmin":-0.1,"tmax":0.4}]},"expected":{"status":"rejected","reason":"EVENTS_UNAVAILABLE"}},
+    {"id":"dev_event_feature_chain","split":"development","scenario":"event_alignment","initial":"raw_events_256","request":{"goals":[{"kind":"condition_feature","target_sfreq":128.0,"labels":["A","B"],"tmin":-0.1,"tmax":0.5,"min_trials_per_label":2}]},"expected":{"status":"completed","max_alignment_error_seconds":0.00390625}},
+    {"id":"holdout_event_fractional_grid","split":"holdout","scenario":"event_alignment","initial":"raw_fractional_events_250","request":{"goals":[{"kind":"epochs","target_sfreq":128.0,"labels":["A"],"tmin":-0.1,"tmax":0.4}]},"expected":{"status":"completed","max_alignment_error_seconds":0.00390625}},
+    {"id":"holdout_event_invalid_rate","split":"holdout","scenario":"event_alignment","initial":"raw_events_256","request":{"goals":[{"kind":"epochs","target_sfreq":0.0,"labels":["A"],"tmin":-0.1,"tmax":0.4}]},"expected":{"status":"rejected","reason":"INVALID_REQUIREMENT"}},
+
+    {"id":"dev_epoch_unselected","split":"development","scenario":"epoch_lineage","initial":"epochs_clean","request":{"goals":[{"kind":"condition_feature","labels":["A","B"],"min_trials_per_label":2}]},"expected":{"status":"completed","selection":"unselected"}},
+    {"id":"dev_epoch_authorized_selection","split":"development","scenario":"epoch_lineage","initial":"epochs_with_bad","request":{"goals":[{"kind":"condition_feature","labels":["A","B"],"min_trials_per_label":2,"selection":{"authorized":true,"exclude_indices":[1]}}]},"expected":{"status":"completed","selection":"selected"}},
+    {"id":"dev_epoch_unauthorized_selection","split":"development","scenario":"epoch_lineage","initial":"epochs_with_bad","request":{"goals":[{"kind":"condition_feature","labels":["A","B"],"min_trials_per_label":2,"selection":{"authorized":false,"exclude_indices":[1]}}]},"expected":{"status":"rejected","reason":"SELECTION_NOT_AUTHORIZED"}},
+    {"id":"dev_epoch_insufficient_after_selection","split":"development","scenario":"epoch_lineage","initial":"epochs_with_bad","request":{"goals":[{"kind":"condition_feature","labels":["A","B"],"min_trials_per_label":3,"selection":{"authorized":true,"exclude_indices":[1,3]}}]},"expected":{"status":"rejected","reason":"INSUFFICIENT_TRIALS"}},
+    {"id":"holdout_combo_filter_resample_epochs","split":"holdout","scenario":"combined","initial":"raw_events_256","request":{"goals":[{"kind":"condition_feature","target_sfreq":128.0,"require_lowpass_hz":40.0,"labels":["A","B"],"tmin":-0.1,"tmax":0.5,"min_trials_per_label":2}]},"expected":{"status":"completed","max_alignment_error_seconds":0.00390625}},
+    {"id":"holdout_new_epoch_variance","split":"holdout","scenario":"extension","initial":"raw_events_256","request":{"goals":[{"kind":"epoch_variance","target_sfreq":128.0,"labels":["A"],"tmin":-0.1,"tmax":0.4,"min_trials_per_label":2}]},"expected":{"status":"completed","extension_contract":"epoch_variance"}}
+  ]
+}
