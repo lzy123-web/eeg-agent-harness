@@ -35,6 +35,8 @@ def build_parser():
         "--planning", action="store_true",
         help="Interpret a structured goal and run the constrained Planner",
     )
+    parser.add_argument("--max-rounds", type=int, default=6)
+    parser.add_argument("--max-tool-calls", type=int, default=8)
     parser.add_argument("--output")
     return parser
 
@@ -62,9 +64,8 @@ def main(argv=None):
         client = DeterministicGoalFakeLLM() if args.planning else DemoFakeLLM()
     else:
         client = OpenAICompatibleClient.from_env()
-    agent = (
-        NaturalLanguagePlanningAgent(client, context)
-        if args.planning else EEGAgent(client, context)
+    agent = NaturalLanguagePlanningAgent(client, context) if args.planning else EEGAgent(
+        client, context, max_rounds=args.max_rounds, max_tool_calls=args.max_tool_calls
     )
     result = agent.run(args.request).to_dict()
     rendered = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)

@@ -1,6 +1,6 @@
 # EEG Agent Harness
 
-本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及可由 Fake LLM 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
+本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
 Milestone 5 完成了约束规划强基线复核：在同等观察与恢复预算下，强 Expert DAG 与 Planner 的完成/拒绝结果持平，Planner 调用更多，因此当前“性能优势”为 No-Go；声明式扩展价值仅作 Conditional Go。详见 `docs/research/PLANNING_V2_EVALUATION.md`。
 
@@ -51,6 +51,9 @@ EEG_HARNESS_LLM_BASE_URL
 EEG_HARNESS_LLM_API_KEY
 EEG_HARNESS_LLM_MODEL
 EEG_HARNESS_LLM_TIMEOUT（可选）
+EEG_HARNESS_LLM_MAX_TOKENS（可选，默认 1024）
+EEG_HARNESS_LLM_MAX_RETRIES（可选，默认 1）
+EEG_HARNESS_LLM_THINKING（可选，enabled/disabled）
 EEG_HARNESS_R3_DATA_ROOT（可选，仅本地 R3 资源诊断）
 ```
 
@@ -124,7 +127,30 @@ R3 默认配置为 21 个已观察 EEG 通道、300 Hz、1–40 Hz、50 Hz 陷�
 
 也可用 `--task <task.json>` 提供结构化 TaskSpec。该入口使用确定性合成 EEG，不需要 LLM；不支持临床诊断目标，也不会解释 R3 标签。
 
-真实 OpenAI 兼容服务需先设置三个 `EEG_HARNESS_LLM_*` 必需变量，再移除 `--fake`。客户端使用原生 `tool_calls`，不采用原项目的正则文本协议。
+真实 OpenAI 兼容服务需先设置三个必需变量。密钥只应临时进入当前进程环境，不应写入命令历史、仓库配置或输出文件。以下是通用 PowerShell 示例，不包含任何个人路径或真实凭据：
+
+```powershell
+$env:EEG_HARNESS_LLM_BASE_URL = 'https://api.deepseek.com'
+$env:EEG_HARNESS_LLM_API_KEY = '<临时 API Key>'
+$env:EEG_HARNESS_LLM_MODEL = 'deepseek-flash'
+$env:EEG_HARNESS_LLM_THINKING = 'disabled'
+$env:EEG_HARNESS_LLM_MAX_TOKENS = '768'
+
+# 分别检查配置、网络/认证、结构化工具调用与 tool_result 回传
+& $python -m eeg_harness.llm_smoke
+
+# 仅使用明确标记的合成 EEG，不读取 EDF 或模型权重
+& $python -m eeg_harness.agent_cli --demo-synthetic `
+  --request '分析 SYNTH-C1 从 0 到 2 秒的频带功率'
+
+# 四项有界真实 LLM 验收，输出目录被 Git 忽略
+& $python -m eeg_harness.real_llm_evaluation `
+  --output artifacts\real_llm_acceptance.json
+
+Remove-Item Env:EEG_HARNESS_LLM_API_KEY
+```
+
+客户端使用原生 `tool_calls`，不采用原项目的正则文本协议；默认只对网络错误、限流和临时服务端错误进行一次有限重试。联网测试必须显式设置 `EEG_HARNESS_RUN_REAL_LLM_TEST=1`，CI 不需要也不接收密钥。
 
 ## 测试
 
@@ -134,13 +160,15 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：108 项全部通过。无私有资源模式 97 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
+2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：116 项通过、1 项真实联网测试按设计跳过。无私有资源模式 105 项通过、12 项按设计跳过；GitHub Actions 不下载 EDF、权重或使用 API 密钥。
+
+真实 DeepSeek 合成验收另行执行：4/4 案例通过，其中 3 个完成真实 Tool Calling 闭环，1 个正确拒绝临床诊断；共 9 次模型请求、5 次工具调用、16,041 tokens。逐例脱敏结果见 `docs/research/results/real_llm_baseline_v1.json`，解释边界见 `docs/research/REAL_LLM_BASELINE_REPORT.md`。
 
 ## 当前边界
 
 - 未验证多数据集泛化、真实带事件 EDF、事件级模型性能或临床有效性。
 - 当前事件能力是通用 Epoch 与频带特征，不等同于完整 ERP/evoked 分析；Sleep、MDD、ASD 等任务尚未迁移。
-- 真实外部 LLM 尚未验证；当前环境没有所需配置。
+- 真实 DeepSeek API 已在一次有界合成验收中验证；这只证明协议与当前四类请求的工程闭环，不证明 LLM 选择工具的总体可靠性、临床有效性或多数据集泛化。
 - 冻结 v2 中强 Expert 与 Planner 均为 100% 完成/正确拒绝，未观察到 Planner 结果优势；Fake 自然语言差异不作为真实模型证据。
 - 质量阈值仅为未校准经验规则；Candidate 与强 Expert 在冻结合成案例中完全持平，研究点二未显示独立价值。
 - 已有无私有资源 CI；尚无完整资源 manifest、TaskProfile 插件机制和真实事件评估集。

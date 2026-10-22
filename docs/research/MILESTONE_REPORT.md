@@ -251,3 +251,39 @@ Commit：`79c869f`、`4131914`。
 
 完整报告见 `EVIDENCE_ADAPTIVE_EVALUATION.md`。
 
+## Milestone 7：真实 DeepSeek Tool Calling 基线（Issue #6）
+
+### 阶段 A：客户端与协议加固
+
+- 根据 DeepSeek 当前官方协议使用 `deepseek-flash` 非思考模式和原生 `tool_calls`。
+- 增加超时、单请求 Token 上限、仅对瞬态失败的有限重试、usage/finish reason 统计和脱敏错误。
+- 真实探针完成配置、网络/认证、强制工具调用及 tool result 回传；3 请求、619 tokens。
+
+Commit：`f554d68`。
+
+### 阶段 B：合成 EEG 真实 Agent 入口
+
+- `agent_cli --demo-synthetic` 无需 EDF 或权重，复用现有 Record/Profile/Registry/Executor。
+- Prompt 强制事件链从实际工具结果传播标签与 artifact ID，不允许临床诊断、伪造转换或将绝对功率称为 ERD/ERS。
+- Agent 结果记录模型、请求数、usage、finish reasons 和脱敏错误；不将 EEG 数组发给 LLM。
+
+Commit：`e155fc5`。
+
+### 阶段 C：真实四案例验收
+
+- `record_info`、指定窗 `psd` 和 `list_events → create_epochs → event_bandpower` 三个真实工具闭环成功。
+- 事件链精确复用工具返回 artifact ID；临床诊断负例无工具调用并明确拒绝。
+- 合计 9 次请求、5 次工具调用、16,041 tokens；四案例均满足工程验收条件。
+- 逐例脱敏结果保存在 `results/real_llm_baseline_v1.json`；只使用确定性合成 EEG。
+
+Commit：`06c8cbe`。
+
+### 阶段 D：完整回归、文档与边界
+
+- 新增默认跳过的真实联网测试；GitHub Actions 不需要 API 密钥。
+- `compileall`、`pip check` 通过；本地资源模式 117 项中 116 项通过、1 项联网测试跳过；无私有资源模式 105 项通过、12 项跳过。
+- 更新 README、BASELINE_PLAN、PROJECT_STATUS，并新增 `REAL_LLM_BASELINE_REPORT.md`。
+- 当前只能证明一次有界合成协议闭环；不能声称自然语言总体准确率、真实 EEG/临床验证或多数据集泛化。
+
+Commit：由本阶段提交记录。
+

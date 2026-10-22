@@ -110,7 +110,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 开发冒烟测试使用仓库现存 `data/gped_049_a_6.edf`，不得把它视为完整评估集。
 - 模型推理使用现存 `tools/localModels/seiz&normal.pth`，记录 SHA-256；训练来源标记“源码未提供”。
 - 事件级正式验证需要用户合法取得的 TUEV EDF/REC 测试数据，数据路径由配置提供；本阶段不下载。
-- LLM 测试需要通过环境变量提供 OpenAI 兼容服务凭据；无凭据时仍必须能运行确定性的工具层测试。
+  - LLM 测试需要通过环境变量提供 OpenAI 兼容服务凭据；无凭据时仍必须能运行确定性的工具层测试。2026-10-22 已以 `deepseek-flash` 非思考模式完成合成数据真实 Tool Calling 验收，未发送真实 EEG。
 
 ## 5. 分阶段实施与验收
 
@@ -169,7 +169,7 @@ execute(context: EEGContext, request: ToolRequest) -> ToolResult
 - 已增加无 LLM CLI、外部资源路径、SHA-256、运行环境和 JSON 结果记录。
 - 模型权重和测试 EDF 没有复制到正式项目；通过命令行参数或环境变量引用原始项目资源。
 - 2026-10-21 的第二次阶段 1 实施已新增通用 `EEGRecord`，由正式 pipeline 显式传入幅值、PSD 和癫痫推理工具；统一切片负责通道、时间顺序、空窗和记录长度校验。`legacy/register_data.py` 只作为迁移来源保留，正式链路和测试不再导入它。
-- `EEGRecord`、两个 `TaskProfile`、统一 Registry/Executor、ExecutionTrace 和结构化 Tool Calling Agent Loop 已实现，构成基础运行时 MVP；完整的 Profile 插件机制、事件评估和多数据集验证仍未实现。
+- `EEGRecord`、两个 `TaskProfile`、统一 Registry/Executor、ExecutionTrace 和结构化 Tool Calling Agent Loop 已实现，构成基础运行时 MVP；真实 DeepSeek 已完成基础信息、PSD、事件 artifact 链和安全拒绝四项合成验收。完整的 Profile 插件机制、真实事件评估和多数据集验证仍未实现。
 - Milestone 2 在同一运行时上新增 `EventSet/EpochSet`、四个事件工具、会话 artifact 和合成数据验证；原癫痫工作流保持不变。真实带事件 EDF 与多数据集泛化仍未验证。
 - Milestone 3 新增 `applications/r3`，以通用 configurable-native Profile 复用同一 Registry/Executor/Context 事件链。真实 R3 文件已验证结构和链路，但任务语义、分组依据和科学假设未确认，不能据此声称多数据集泛化或 ASD 评估已经实现。
 

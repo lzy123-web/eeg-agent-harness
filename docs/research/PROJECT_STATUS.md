@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估已完成。
+Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -46,10 +46,15 @@ Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估�
 - 新增 `record_quality`、`epoch_quality` 和 `select_quality_epochs`，输出来源阶段、单位、validity、经验阈值及数据影响，不生成质量总分。
 - 新增 EvidenceGoal/Requirement、固定流程、强 Expert 和 Candidate 三策略公平对照；合法替代必须由目标显式授权。
 - 冻结并执行 16 个合成质量/覆盖案例；Candidate 与强 Expert 结果和调用数完全持平。
+- 加固 `OpenAICompatibleClient`：非思考模式、输出上限、有限重试、usage/finish reason、空 content、多 tool call 和脱敏错误。
+- 新增 `llm_smoke`，分别检查配置、网络/认证、结构化工具调用和带 `tool_call_id` 的结果回传。
+- 新增无需 EDF/权重的 `agent_cli --demo-synthetic` 真实 LLM 入口；外部服务只接收合成记录元数据、工具 schema 和派生结果。
+- 新增四项有界真实 LLM 验收套件与默认跳过的联网测试；CI 不需要密钥。
+- 真实 `deepseek-flash` 完成基础信息、指定窗 PSD、事件 artifact 三步链和临床诊断拒绝；脱敏逐例结果已固化。
 
 ## 实际验证结果
 
-验证日期：2026-10-21。验证未调用外部 LLM、未下载数据、未训练模型。
+最新验证日期：2026-10-22。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
 
 | 检查项 | 结果 |
 |---|---|
@@ -106,6 +111,12 @@ Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估�
 | 固定流程对照 | 目标成功率 30%、正确拒绝率 100%、总体正确率 56.25%、25 次调用；仅说明质量门控有用。 |
 | 两个匿名 R3 质量 smoke | 前 10 秒均无 flatline 标记；默认 200 µV 下幅值标记 3/0 通道，100/500 µV 下为 6/0 和 5/0，显示阈值敏感；50 Hz 均不可观测。 |
 | Milestone 6 全量测试 | `compileall`/`pip check` 通过；有资源 108 项全部通过；无资源 97 项通过、11 项跳过。 |
+| DeepSeek 协议探针 | 配置、网络/认证、强制 tool call、tool result 回传全部通过；3 请求、619 tokens。 |
+| 真实 LLM 分析闭环 | 3 个真实工具闭环全部成功：`record_info`、`psd`、`list_events → create_epochs → event_bandpower`。 |
+| 真实 LLM 安全负例 | 临床诊断请求被明确拒绝；未调用 Native Profile 不支持的癫痫模型，未编造结果。 |
+| 事件 artifact 传递 | `event_bandpower` 使用与 `create_epochs` 返回值完全相同的 artifact ID；2 个有效 Epoch、1 个越界拒绝。 |
+| DeepSeek 调用成本 | 四案例 9 次请求、5 次工具调用、16,041 tokens；非思考模式，单请求上限 768 tokens。 |
+| Issue #6 全量测试 | `compileall`/`pip check` 通过；有 EDF/权重/R3 资源时 116 项通过、真实联网测试 1 项默认跳过；无私有资源时 105 项通过、12 项跳过。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -146,20 +157,21 @@ Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估�
 17. 质量阈值未做跨设备、跨 Profile 或人工质控校准；真实文件结果对 100/200/500 µV 阈值敏感。
 18. Evidence benchmark 在 Pilot 策略实现后、首次结果前冻结，不属于方法实现前预注册。
 19. 强 Expert 与 Candidate 完全持平，研究点二当前为 No-Go；研究点一也尚未成立。
+20. 真实 LLM 仅完成一次 4 案例合成验收；尚无多措辞重复试验、不同模型比较、长上下文、并发或故障率统计。
+21. 本次没有通过真实 LLM 调用本地癫痫权重；已验证的是合成 Native 基础/事件工具与不兼容拒绝，不得外推为模型调度性能。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
-2. 稳定 `TaskProfile` 与 Tool Schema，增加更完整的 JSON Schema 校验、错误码测试和版本兼容策略。
-3. 在确认没有兼容调用方后移除 `legacy/register_data.py`，逐步将已验证算法移出 `legacy` 命名空间。
-4. 获取合法的带事件 EDF/外部注释数据后建立真实事件回归，严格分离数据适配、工具能力和 Agent 调度质量。
-5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
-6. “状态感知与约束规划”已实现最小先导原型，但创新性未证实；“证据驱动自适应分析”仍未实施。
-7. 若继续研究点一，应先扩展独立冻结任务集和真实任务日志，并与外部 scientific-contract/preflight 方法进行可复现比较；研究点二仍未实施。
-8. 研究点一若继续，应优先量化新工具接入工时、规则数量、跨任务一致性缺陷，而不是重复验证当前已与强 Expert 持平的成功率。
-9. 优先考虑“跨 Profile/处理阶段的质量证据校准与不确定性传播”，使用独立人工标注或跨设备受控伪迹验证，不再预设 Agent 策略优越。
+1. 冻结多措辞和错误诱导的真实 LLM 小型测试集，分别报告工具选择、参数、Executor 拒绝、回答忠实度和成本，避免把 4/4 外推为总体准确率。
+2. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
+3. 稳定 `TaskProfile` 与 Tool Schema，增加更完整的 JSON Schema 校验、错误码测试和版本兼容策略。
+4. 在确认没有兼容调用方后移除 `legacy/register_data.py`，逐步将已验证算法移出 `legacy` 命名空间。
+5. 获取合法的带事件 EDF/外部注释数据后建立真实事件回归，严格分离数据适配、工具能力和 Agent 调度质量。
+6. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
+7. 两个候选研究点的当前结论均为 No-Go；如继续研究，应使用独立冻结任务、真实任务日志和强基线，不预设优越性。
+8. 优先考虑“跨 Profile/处理阶段的质量证据校准与不确定性传播”，使用独立人工标注或跨设备受控伪迹验证。
 
 ## Git Commit 信息
 
@@ -198,3 +210,7 @@ Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估�
 - Issue #5 评测冻结 Commit：`79c869f`（`research: freeze evidence benchmark before evaluation`）。
 - Issue #5 阶段 C Commit：`4131914`（`eval: compare adaptive evidence policy with strong baselines`）。
 - Issue #5 阶段 D Commit：`06a0362`（`docs: conclude evidence adaptive pilot with No-Go`）。
+- Issue #6 阶段 A Commit：`f554d68`（`feat: harden real LLM protocol client`）。
+- Issue #6 阶段 B Commit：`e155fc5`（`feat: add synthetic real-agent execution path`）。
+- Issue #6 阶段 C Commit：`06c8cbe`（`test: validate real DeepSeek EEG tool loops`）。
+- Issue #6 阶段 D Commit：由本轮文档与完整回归提交记录。
