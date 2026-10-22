@@ -351,4 +351,5 @@ Commit：`ac36b45`。
 - 两个 synthetic demo、完整 JSON、设计/评估文档及项目状态可复现。
 - `pip check`/`compileall` 通过；有 EDF/权重时 137 项中 134 通过、3 跳过；无资源 125 通过、12 跳过。
 - 对当前 EEG 专属规划策略给出 **NO-GO**；科学语义契约保留为工程机制，不包装为已成立创新。
+- Commit：`0be719a`。
 

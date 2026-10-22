@@ -253,3 +253,4 @@ Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当
 - Issue #8 阶段 A Commit：`f14d20a`（`research: freeze EEG semantic planning protocol`）。
 - Issue #8 阶段 B Commit：`c2870eb`（`feat: prototype EEG scientific semantic planning`）。
 - Issue #8 阶段 C Commit：`93516be`（`eval: compare semantic planner with fair strong baselines`）。
+- Issue #8 阶段 D Commit：`0be719a`（`docs: conclude semantic planning spike with No-Go`）。
