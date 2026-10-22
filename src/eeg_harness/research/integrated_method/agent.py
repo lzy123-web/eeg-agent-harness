@@ -110,7 +110,8 @@ class ConstraintCarryingEEGAgent:
                 llm=self._llm_summary(),
             )
         execution = ConstrainedPlanRunner(
-            self.context, max_replans=self.max_replans
+            self.context, max_replans=self.max_replans,
+            plan_validator=lambda candidate: validate_plan_against_ledger(candidate, ledger),
         ).execute_plan(task, plan)
         evidence = close_ledger(ledger, execution)
         answer = self._answer(user_request, interpretation, ledger, execution, evidence)

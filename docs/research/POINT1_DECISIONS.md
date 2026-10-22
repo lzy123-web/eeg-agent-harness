@@ -36,3 +36,14 @@
 - 决策：LLM 输出的每个关键 slot 必须携带用户请求中的精确连续片段；string label/channel 的归一值必须实际出现在该片段中。关键 slot 无有效证据则 clarify。
 - 原因：只让 LLM 声明 `explicit=true` 无法阻止其把 record 中的 `stimulus` 当成用户给定值。原文证据不是离线 gold，可在运行时确定性验证。
 - 限制：中文数值表达、同义词和指代的稳健解析仍依赖 LLM；初版只要求数值有限且有精确原文片段，正式实验需要更严格的 span/value normalizer。
+
+## D5：筛选必须先形成质量证据
+
+- 决策：`quality_selection` 是 Planner 中一个声明式复合目标，固定复用单个 Epoch artifact，先执行 `epoch_quality`，再把同一 artifact 交给 `select_quality_epochs`。
+- 原因：仅有用户授权仍不足以科学地筛选；选择动作必须由当前 artifact 的实际质量证据先行。
+- 边界：经验阈值未校准，输出仍是派生 artifact，不把筛选解释为临床质量真值。
+
+## D6：有限恢复必须重新验证 obligation
+
+- 决策：为通用 `ConstrainedPlanRunner` 增加可选 `plan_validator` hook；CCEP 在初始计划和每次重规划后检查 ledger。默认旧 Planner 不传 hook，行为不变。
+- 原因：只在第一次 preflight 检查约束，无法保证恢复计划没有改写显式 label/window/禁止操作。

@@ -399,8 +399,39 @@ class StateAwareConstrainedPlanner:
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
+    def _plan_quality_selection(self, task, state):
+        """Plan measure-before-select while reusing one real Epoch artifact."""
+        arguments = dict(task.arguments)
+        if arguments.pop("selection_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch selection requires explicit user authorization",
+            )
+        failure = self._validate_epoch_goal(task, arguments, state, "epoch_quality")
+        if failure:
+            return _reject(task, state, failure[0], failure[1])
+        epoch_args = {
+            "labels": list(arguments["labels"]),
+            "tmin": arguments["tmin"], "tmax": arguments["tmax"],
+        }
+        if "baseline" in arguments:
+            epoch_args["baseline"] = list(arguments["baseline"])
+        reference = {"$result": "produce-artifact", "path": ["artifact_id"]}
+        steps = (
+            PlanStep("observe-events", "list_events", {}, purpose="record visible event state"),
+            PlanStep("produce-artifact", "create_epochs", epoch_args, ("observe-events",), "produce one declared Epoch artifact"),
+            PlanStep("measure-quality", "epoch_quality", {"artifact_id": reference}, ("produce-artifact",), "measure quality before any selection"),
+            PlanStep("select-quality", "select_quality_epochs", {"artifact_id": reference}, ("measure-quality",), "apply explicitly authorized empirical selection"),
+        )
+        return Plan(
+            task.task_id, "ready", steps,
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
     def plan(self, task, state=None):
         state = state or EEGStateSnapshot.from_context(self.context)
+        if task.goal == "quality_selection":
+            return self._plan_quality_selection(task, state)
         if task.goal == "tool":
             return self._plan_tool(task, state)
         if task.goal in self.contracts and self.contracts[task.goal].consumes_artifact:
@@ -454,10 +485,11 @@ class PlanningRunResult:
 
 
 class ConstrainedPlanRunner:
-    def __init__(self, context, max_replans=1):
+    def __init__(self, context, max_replans=1, plan_validator=None):
         self.context = context
         self.planner = StateAwareConstrainedPlanner(context)
         self.max_replans = max_replans
+        self.plan_validator = plan_validator
 
     def run(self, task):
         return self.execute_plan(task, self.planner.plan(task))
@@ -467,6 +499,16 @@ class ConstrainedPlanRunner:
 
         started = time.perf_counter()
         planning_trace = [{"event": "plan_created", "status": plan.status, "reason": plan.reason_code}]
+        validation = self.plan_validator(plan) if self.plan_validator and plan.status == "ready" else None
+        if validation is not None:
+            planning_trace.append({"event": "obligations_checked", **dict(validation)})
+        if validation is not None and not validation.get("valid", False):
+            self.context.trace.finish("constraint_rejected")
+            return PlanningRunResult(
+                "rejected", plan.to_dict(), (), tuple(planning_trace),
+                self.context.trace.to_dict(), 0,
+                round((time.perf_counter() - started) * 1000, 3),
+            )
         if plan.status != "ready":
             self.context.trace.finish("preflight_rejected")
             return PlanningRunResult(
@@ -503,13 +545,20 @@ class ConstrainedPlanRunner:
                 break
             replans += 1
             current_plan = self.planner.plan(task, EEGStateSnapshot.from_context(self.context))
+            validation = (
+                self.plan_validator(current_plan)
+                if self.plan_validator and current_plan.status == "ready" else None
+            )
             planning_trace.append({
                 "event": "replanned",
                 "attempt": replans,
                 "status": current_plan.status,
                 "reason": current_plan.reason_code,
+                "obligations_valid": None if validation is None else validation.get("valid", False),
             })
-            if current_plan.status != "ready":
+            if current_plan.status != "ready" or (
+                validation is not None and not validation.get("valid", False)
+            ):
                 self.context.trace.finish("replan_rejected")
                 status = "rejected_after_replan"
                 break

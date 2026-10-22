@@ -56,8 +56,12 @@ class Point1FakeLLM:
                 evidence.update({"tmin": quote, "tmax": quote})
             else:
                 unknown.extend(("tmin", "tmax"))
+            selection = any(term in text for term in ("筛选", "筛除"))
+            if selection and any(term in text for term in ("允许", "请筛", "生成筛选")):
+                parameters["selection_authorized"] = True
+                evidence["selection_authorized"] = text
             return self._call({
-                "analysis_type": "event_bandpower", "parameters": parameters,
+                "analysis_type": "quality_selection" if selection else "event_bandpower", "parameters": parameters,
                 "explicit_evidence": evidence, "unknown_slots": unknown,
                 "forbidden_operations": ["selection"] if "不要筛" in text else [],
                 "source_stage": "current", "output_boundary": "absolute_bandpower_only",

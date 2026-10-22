@@ -1,0 +1,406 @@
+{
+  "method": "constraint_carrying_eeg_plan_v0",
+  "stop_reason": "completed",
+  "interpretation": {
+    "success": true,
+    "disposition": "execute",
+    "intent": {
+      "analysis_type": "event_bandpower",
+      "parameters": {
+        "labels": [
+          "stimulus"
+        ],
+        "tmin": -0.2,
+        "tmax": 0.8
+      },
+      "explicit_evidence": {
+        "analysis_type": "事件",
+        "labels": "stimulus",
+        "tmin": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率",
+        "tmax": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率"
+      },
+      "unknown_slots": [],
+      "forbidden_operations": [],
+      "source_stage": "current",
+      "output_boundary": "absolute_bandpower_only",
+      "rationale": "event request"
+    },
+    "missing_slots": [],
+    "error": null
+  },
+  "ledger": {
+    "context_id": "365427de-174e-46af-8711-0f26cf71433e",
+    "analysis_type": "event_bandpower",
+    "obligations": [
+      {
+        "obligation_id": "analysis",
+        "kind": "analysis_type",
+        "expected": "event_bandpower",
+        "source_quote": "事件"
+      },
+      {
+        "obligation_id": "source",
+        "kind": "source_stage",
+        "expected": "current",
+        "source_quote": ""
+      },
+      {
+        "obligation_id": "parameter:labels",
+        "kind": "parameter",
+        "expected": {
+          "name": "labels",
+          "value": [
+            "stimulus"
+          ]
+        },
+        "source_quote": "stimulus"
+      },
+      {
+        "obligation_id": "parameter:tmin",
+        "kind": "parameter",
+        "expected": {
+          "name": "tmin",
+          "value": -0.2
+        },
+        "source_quote": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率"
+      },
+      {
+        "obligation_id": "parameter:tmax",
+        "kind": "parameter",
+        "expected": {
+          "name": "tmax",
+          "value": 0.8
+        },
+        "source_quote": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率"
+      },
+      {
+        "obligation_id": "evidence",
+        "kind": "successful_tools",
+        "expected": [
+          "list_events",
+          "create_epochs",
+          "event_bandpower"
+        ],
+        "source_quote": ""
+      }
+    ],
+    "forbidden_tools": []
+  },
+  "plan_check": {
+    "valid": true,
+    "code": null,
+    "violations": [],
+    "planned_tools": [
+      "list_events",
+      "create_epochs",
+      "event_bandpower"
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "plan": {
+      "task_id": "point1-task",
+      "status": "ready",
+      "steps": [
+        {
+          "step_id": "observe-events",
+          "tool_name": "list_events",
+          "arguments": {},
+          "depends_on": [],
+          "purpose": "record visible event state"
+        },
+        {
+          "step_id": "produce-artifact",
+          "tool_name": "create_epochs",
+          "arguments": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": -0.2,
+            "tmax": 0.8
+          },
+          "depends_on": [
+            "observe-events"
+          ],
+          "purpose": "produce declared session artifact"
+        },
+        {
+          "step_id": "consume-artifact",
+          "tool_name": "event_bandpower",
+          "arguments": {
+            "artifact_id": {
+              "$result": "produce-artifact",
+              "path": [
+                "artifact_id"
+              ]
+            }
+          },
+          "depends_on": [
+            "produce-artifact"
+          ],
+          "purpose": "consume the newly produced declared artifact"
+        }
+      ],
+      "reason": null,
+      "state_summary": {
+        "context_id": "365427de-174e-46af-8711-0f26cf71433e",
+        "profile_id": "edf_native"
+      }
+    },
+    "tool_results": [
+      {
+        "request_id": "observe-events",
+        "tool_name": "list_events",
+        "success": true,
+        "data": {
+          "event_count": 4,
+          "labels": {
+            "control": 1,
+            "stimulus": 3
+          },
+          "time_reference": "seconds_from_record_start",
+          "first_onset_seconds": 1.0,
+          "last_onset_seconds": 7.8,
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          }
+        },
+        "error": null,
+        "duration_ms": 0.058
+      },
+      {
+        "request_id": "produce-artifact",
+        "tool_name": "create_epochs",
+        "success": true,
+        "data": {
+          "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93",
+          "valid_epoch_count": 2,
+          "rejected_epoch_count": 1,
+          "shape": [
+            2,
+            2,
+            128
+          ],
+          "channel_names": [
+            "SYNTH-C1",
+            "SYNTH-C2"
+          ],
+          "sfreq": 128.0,
+          "tmin": -0.2,
+          "tmax": 0.8,
+          "baseline": null,
+          "event_labels": [
+            "stimulus",
+            "stimulus"
+          ],
+          "event_onsets_seconds": [
+            1.0,
+            3.0
+          ],
+          "rejected": [
+            {
+              "label": "stimulus",
+              "onset_seconds": 7.8,
+              "reason": "OUT_OF_RECORD_BOUNDS"
+            }
+          ],
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "parameters": {
+            "selected_labels": [
+              "stimulus"
+            ],
+            "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+            "sampling_alignment": "round(seconds * sfreq)",
+            "event_source": "synthetic://mne-rawarray-event-demo"
+          }
+        },
+        "error": null,
+        "duration_ms": 0.125
+      },
+      {
+        "request_id": "consume-artifact",
+        "tool_name": "event_bandpower",
+        "success": true,
+        "data": {
+          "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93",
+          "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+          "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+          "frequency_resolution_hz": 1.0,
+          "conditions": {
+            "stimulus": {
+              "epoch_count": 2,
+              "channels": {
+                "SYNTH-C1": {
+                  "delta": 4.7471438308624334e-26,
+                  "theta": 4.458218054684196e-26,
+                  "alpha": 2.000000165480742e-10,
+                  "beta": 1.9577995455499657e-25,
+                  "gamma": 6.742657810955585e-25
+                },
+                "SYNTH-C2": {
+                  "delta": 1.3514762331944452e-26,
+                  "theta": 1.1250000063467436e-10,
+                  "alpha": 6.027858297152881e-26,
+                  "beta": 1.017941684865734e-25,
+                  "gamma": 2.3946635686983034e-25
+                }
+              }
+            }
+          }
+        },
+        "error": null,
+        "duration_ms": 0.871
+      }
+    ],
+    "planning_trace": [
+      {
+        "event": "plan_created",
+        "status": "ready",
+        "reason": null
+      },
+      {
+        "event": "obligations_checked",
+        "valid": true,
+        "code": null,
+        "violations": [],
+        "planned_tools": [
+          "list_events",
+          "create_epochs",
+          "event_bandpower"
+        ]
+      },
+      {
+        "event": "step_executed",
+        "step_id": "observe-events",
+        "success": true,
+        "error_code": null
+      },
+      {
+        "event": "step_executed",
+        "step_id": "produce-artifact",
+        "success": true,
+        "error_code": null
+      },
+      {
+        "event": "step_executed",
+        "step_id": "consume-artifact",
+        "success": true,
+        "error_code": null
+      }
+    ],
+    "execution_trace": {
+      "task_id": "365427de-174e-46af-8711-0f26cf71433e",
+      "profile_id": "edf_native",
+      "source": {
+        "kind": "synthetic",
+        "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+      },
+      "started_at_utc": "2026-10-22T16:09:07.719673+00:00",
+      "ended_at_utc": "2026-10-22T16:09:07.721680+00:00",
+      "termination_reason": "completed",
+      "events": [
+        {
+          "sequence": 1,
+          "request_id": "observe-events",
+          "tool_name": "list_events",
+          "arguments": {},
+          "validation_passed": true,
+          "output_summary": {
+            "type": "object",
+            "keys": [
+              "event_count",
+              "labels",
+              "time_reference",
+              "first_onset_seconds",
+              "last_onset_seconds",
+              "source"
+            ]
+          },
+          "duration_ms": 0.058,
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "request_id": "produce-artifact",
+          "tool_name": "create_epochs",
+          "arguments": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": -0.2,
+            "tmax": 0.8
+          },
+          "validation_passed": true,
+          "output_summary": {
+            "type": "object",
+            "keys": [
+              "artifact_id",
+              "valid_epoch_count",
+              "rejected_epoch_count",
+              "shape",
+              "channel_names",
+              "sfreq",
+              "tmin",
+              "tmax",
+              "baseline",
+              "event_labels",
+              "event_onsets_seconds",
+              "rejected",
+              "source",
+              "parameters"
+            ]
+          },
+          "duration_ms": 0.125,
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "request_id": "consume-artifact",
+          "tool_name": "event_bandpower",
+          "arguments": {
+            "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93"
+          },
+          "validation_passed": true,
+          "output_summary": {
+            "type": "object",
+            "keys": [
+              "artifact_id",
+              "method",
+              "interpretation",
+              "frequency_resolution_hz",
+              "conditions"
+            ]
+          },
+          "duration_ms": 0.871,
+          "error": null
+        }
+      ]
+    },
+    "replans": 0,
+    "duration_ms": 1.142
+  },
+  "evidence_check": {
+    "closed": true,
+    "violations": [],
+    "successful_tools": [
+      "list_events",
+      "create_epochs",
+      "event_bandpower"
+    ],
+    "termination_status": "completed"
+  },
+  "final_answer": "已依据成功工具结果完成研究用途的 EEG 分析；不构成临床诊断。",
+  "llm": {
+    "provider_model": "point1-protocol-double",
+    "request_count": 2,
+    "usage": {},
+    "finish_reasons": [
+      "tool_calls",
+      "stop"
+    ]
+  }
+}

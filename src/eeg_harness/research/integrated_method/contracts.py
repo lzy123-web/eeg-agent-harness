@@ -59,7 +59,7 @@ def compile_intent(intent, context):
     elif analysis in {"event_bandpower", "epoch_quality", "select_quality_epochs"}:
         task = TaskSpec(analysis, params, task_id="point1-task")
     elif analysis == "quality_selection":
-        task = TaskSpec("select_quality_epochs", params, task_id="point1-task")
+        task = TaskSpec("quality_selection", params, task_id="point1-task")
     else:
         task = TaskSpec("unsupported", params, task_id="point1-task")
     obligations = [
@@ -74,7 +74,7 @@ def compile_intent(intent, context):
     expected_tools = {
         "event_bandpower": ["list_events", "create_epochs", "event_bandpower"],
         "epoch_quality": ["list_events", "create_epochs", "epoch_quality"],
-        "quality_selection": ["list_events", "create_epochs", "select_quality_epochs"],
+        "quality_selection": ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs"],
     }.get(analysis, [analysis])
     obligations.append(Obligation("evidence", "successful_tools", expected_tools))
     forbidden = tuple(dict.fromkeys(
