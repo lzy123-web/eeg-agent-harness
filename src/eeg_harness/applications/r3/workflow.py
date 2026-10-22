@@ -7,7 +7,7 @@ from ...tools import build_default_registry
 from .adapter import R3DatasetRules, R3_PROFILE, load_r3_edf
 
 
-def run_r3_event_workflow(edf_path, config, rules=None):
+def run_r3_event_workflow(edf_path, config, rules=None, include_quality=False):
     rules = rules or R3DatasetRules()
     record = load_r3_edf(edf_path)
     context = ExecutionContext(
@@ -30,12 +30,23 @@ def run_r3_event_workflow(edf_path, config, rules=None):
             {"artifact_id": {"$result": "create-epochs", "path": ["artifact_id"]}},
             "epoch-summary",
         ),
+    ]
+    if include_quality:
+        requests.extend([
+            ToolRequest("record_quality", {}, "record-quality"),
+            ToolRequest(
+                "epoch_quality",
+                {"artifact_id": {"$result": "create-epochs", "path": ["artifact_id"]}},
+                "epoch-quality",
+            ),
+        ])
+    requests.append(
         ToolRequest(
             "event_bandpower",
             {"artifact_id": {"$result": "create-epochs", "path": ["artifact_id"]}},
             "event-bandpower",
-        ),
-    ]
+        )
+    )
     context.execute_many(requests, continue_on_error=False)
     bundle = context.reproducibility_bundle()
     bundle["application"] = {
@@ -69,4 +80,11 @@ def public_workflow_summary(bundle):
         "rejected_epoch_count": create_result["data"]["rejected_epoch_count"],
         "termination_reason": bundle["trace"]["termination_reason"],
         "contains_record_level_features": False,
+        "quality_tools_succeeded": all(
+            item["success"] for item in bundle["results"]
+            if item["tool_name"] in {"record_quality", "epoch_quality"}
+        ) if any(
+            item["tool_name"] in {"record_quality", "epoch_quality"}
+            for item in bundle["results"]
+        ) else None,
     }

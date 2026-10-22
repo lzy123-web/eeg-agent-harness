@@ -18,8 +18,14 @@ def main(argv=None):
         action="store_true",
         help="Write only de-identified counts instead of record-level features",
     )
+    parser.add_argument(
+        "--include-quality", action="store_true",
+        help="Also run record and Epoch quality evidence tools locally",
+    )
     args = parser.parse_args(argv)
-    bundle = run_r3_event_workflow(args.edf, load_config(args.config))
+    bundle = run_r3_event_workflow(
+        args.edf, load_config(args.config), include_quality=args.include_quality
+    )
     payload = public_workflow_summary(bundle) if args.public_summary else bundle
     destination = Path(args.output)
     destination.parent.mkdir(parents=True, exist_ok=True)

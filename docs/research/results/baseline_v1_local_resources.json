@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "validation_date": "2026-10-22",
+  "execution_scope": "local_offline_only",
+  "external_llm_used": false,
+  "contains_private_paths_or_subject_identifiers": false,
+  "eegagent_model_workflow": {
+    "profile_id": "tuev_bipolar_22",
+    "record_shape": [22, 61696],
+    "sfreq": 256.0,
+    "window": {"channel": "FP1-F7", "start": 0.0, "end": 1.0},
+    "tools": ["record_info", "psd", "seizure_detection"],
+    "all_tools_succeeded": true,
+    "termination_reason": "completed",
+    "psd_as_returned": {
+      "delta": "1.86e-10",
+      "theta": "1.24e-10",
+      "alpha": "2.03e-11",
+      "beta": "1.56e-12",
+      "gamma": "6.96e-13"
+    },
+    "model_output_as_returned": {"Non-seiz": 0.0, "seiz": 1.0},
+    "interpretation": "single engineering output from an existing research weight; not performance evidence or diagnosis"
+  },
+  "r3_offline_workflows": [
+    {
+      "anonymous_record": "A",
+      "profile_id": "r3_fine_motor",
+      "sfreq": 300.0,
+      "channel_count": 21,
+      "event_count": 81,
+      "valid_epoch_count": 72,
+      "rejected_epoch_count": 0,
+      "quality_tools_succeeded": true,
+      "event_bandpower_succeeded": true,
+      "termination_reason": "completed"
+    },
+    {
+      "anonymous_record": "B",
+      "profile_id": "r3_fine_motor",
+      "sfreq": 300.0,
+      "channel_count": 21,
+      "event_count": 96,
+      "valid_epoch_count": 60,
+      "rejected_epoch_count": 0,
+      "quality_tools_succeeded": true,
+      "event_bandpower_succeeded": true,
+      "termination_reason": "completed"
+    }
+  ],
+  "scientific_boundaries": {
+    "r3_label_meanings_verified": false,
+    "r3_group_semantics_verified": false,
+    "asd_td_inference_performed": false,
+    "real_eeg_sent_to_external_llm": false,
+    "real_llm_real_model_cross_validation": "not verified; data-transfer authorization not established"
+  }
+}

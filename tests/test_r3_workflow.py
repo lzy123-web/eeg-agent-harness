@@ -51,7 +51,9 @@ class ParticipantAggregationTest(unittest.TestCase):
 @unittest.skipUnless(os.environ.get("EEG_HARNESS_R3_SAMPLE"), "Set EEG_HARNESS_R3_SAMPLE")
 class RealR3WorkflowTest(unittest.TestCase):
     def test_real_file_uses_shared_runtime_and_public_summary_is_deidentified(self):
-        bundle = run_r3_event_workflow(os.environ["EEG_HARNESS_R3_SAMPLE"], CONFIG)
+        bundle = run_r3_event_workflow(
+            os.environ["EEG_HARNESS_R3_SAMPLE"], CONFIG, include_quality=True
+        )
         self.assertTrue(all(item["success"] for item in bundle["results"]))
         self.assertEqual(bundle["trace"]["termination_reason"], "completed")
         bandpower = next(
@@ -59,8 +61,17 @@ class RealR3WorkflowTest(unittest.TestCase):
             if item["tool_name"] == "event_bandpower"
         )
         self.assertIn("not baseline-normalized ERD/ERS", bandpower["interpretation"])
+        self.assertTrue(next(
+            item["success"] for item in bundle["results"]
+            if item["tool_name"] == "record_quality"
+        ))
+        self.assertTrue(next(
+            item["success"] for item in bundle["results"]
+            if item["tool_name"] == "epoch_quality"
+        ))
         public = public_workflow_summary(bundle)
         self.assertFalse(public["contains_record_level_features"])
+        self.assertTrue(public["quality_tools_succeeded"])
         self.assertNotIn(str(Path(os.environ["EEG_HARNESS_R3_SAMPLE"])), json.dumps(public))
         json.dumps(bundle, ensure_ascii=False, allow_nan=False)
 
