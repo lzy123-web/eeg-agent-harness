@@ -95,6 +95,30 @@ class FakeAgentLoopTest(unittest.TestCase):
         self.assertEqual(result.stop_reason, "tool_call_limit")
         self.assertEqual(result.tool_calls, 2)
 
+    def test_multiple_independent_tool_calls_in_one_assistant_message(self):
+        class ParallelFake:
+            def complete(self, messages, tools):
+                if messages[-1]["role"] == "tool":
+                    return {"role": "assistant", "content": "两项分析均已完成。"}
+                return {
+                    "role": "assistant", "content": None,
+                    "tool_calls": [
+                        {"id": "multi-a", "type": "function", "function": {
+                            "name": "amplitude",
+                            "arguments": '{"channels":["C1"],"start":0,"end":1}',
+                        }},
+                        {"id": "multi-b", "type": "function", "function": {
+                            "name": "psd",
+                            "arguments": '{"channels":["C1"],"start":0,"end":1}',
+                        }},
+                    ],
+                }
+
+        result = EEGAgent(ParallelFake(), native_context()).run("同时分析两类基础特征")
+        self.assertEqual(result.stop_reason, "completed")
+        self.assertEqual([item["tool_name"] for item in result.tool_results], ["amplitude", "psd"])
+        self.assertTrue(all(item["success"] for item in result.tool_results))
+
     def test_event_request_runs_four_tool_chain(self):
         result = EEGAgent(DemoFakeLLM(), event_context()).run("执行事件 Epoch 分析")
         self.assertEqual(result.stop_reason, "completed")

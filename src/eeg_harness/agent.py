@@ -52,9 +52,10 @@ class EEGAgent:
         return (
             "你是 EEG 分析执行助手。分析请求必须使用提供的工具取得证据；不得编造数据、转换、"
             "artifact_id、模型结果或临床诊断。只依据当前 Profile 和成功的工具结果回答，"
-            "并明确说明失败或不兼容。事件条件频带功率必须依次执行 list_events、create_epochs、"
-            "event_bandpower；必须从前一步结果原样复制真实标签和 artifact_id。"
-            "不要把 event_bandpower 解释为 ERD/ERS。工具不可用时不得自行模拟结果。"
+            "并明确说明失败或不兼容。需要通道、时间窗、事件条件或科学假设而用户没有提供时，"
+            "先使用只读元数据工具确认已有事实；仍不足则请求补充，不得静默猜测。"
+            "任何 artifact 参数必须来自本会话中成功工具的实际返回，不得虚构。"
+            "绝对事件窗频带功率不得解释为 ERD/ERS。工具不可用时不得自行模拟结果。"
             "RECORD_METADATA="
             + json.dumps(metadata, ensure_ascii=False, allow_nan=False)
         )

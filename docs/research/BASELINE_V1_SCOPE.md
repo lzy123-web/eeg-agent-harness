@@ -4,7 +4,7 @@
 
 本文件冻结 Issue #7 的 Baseline v1.0 能力边界与验收协议。目标是验证已有多任务 EEG Harness，而不是新增论文创新机制。任务集位于 `config/agent_baseline_v1_cases.json`，包含 development 18 项、holdout 12 项。冻结后不得为了提高真实 LLM 分数放宽 holdout 判据；若 Prompt 或工具描述修复后复测，必须同时保留初始结果和复测结果，并将 holdout 标记为已暴露。
 
-冻结清单 SHA-256：`fd76e59c5127cac272d8fba0eaacc97a9dde9a7de1cdde4455c8f01e0ecdc075`。
+冻结 Git blob 内容 SHA-256：`fd76e59c5127cac272d8fba0eaacc97a9dde9a7de1cdde4455c8f01e0ecdc075`。跨平台规范化 JSON SHA-256：`e1713cda4c90c073d3b1290dc9af8df8cfa6788b88c969a310b3660884654ae1`。
 
 自然语言请求不得直接写工具函数名、artifact 调用顺序或 JSON 参数。验收规则与请求文本分离，由确定性规则核验工具、参数、错误、artifact 传播和回答忠实度。
 

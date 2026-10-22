@@ -250,7 +250,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="list_events",
-            description="First step for event analysis: list actual event labels, counts and onset-time range without returning EEG arrays.",
+            description="Inspect actual event labels, counts and onset-time range without returning EEG arrays. Use it when event availability or labels are not yet established.",
             parameters={"type": "object", "properties": {}, "additionalProperties": False},
             return_type="object",
             compatible_profiles=event_profiles,
@@ -261,7 +261,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="create_epochs",
-            description="Second event-analysis step: create an in-session Epoch artifact using labels returned by list_events. Returns the artifact_id required by later Epoch tools.",
+            description="Create an in-session Epoch artifact for confirmed event labels and a relative window. Returns an artifact_id; labels must exist in the current record.",
             parameters={
                 "type": "object",
                 "properties": {
@@ -301,7 +301,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="event_bandpower",
-            description="Final event-bandpower step: compute mean Welch absolute band power per event condition and channel. Pass the exact artifact_id returned by create_epochs; this is not ERD/ERS.",
+            description="Compute mean Welch absolute band power per event condition and channel from an existing Epoch artifact. Requires its exact artifact_id; this is not ERD/ERS.",
             parameters=artifact_schema,
             return_type="object",
             compatible_profiles=event_profiles,
