@@ -16,6 +16,18 @@ FORBIDDEN_TOOL_MAP = {
 }
 
 
+def _forbidden_tools(values):
+    tools = []
+    for value in values:
+        normalized = value.casefold().replace("-", "_").replace(" ", "_")
+        direct = FORBIDDEN_TOOL_MAP.get(normalized)
+        if direct:
+            tools.append(direct)
+        if "selection" in normalized or "筛" in normalized:
+            tools.append("select_quality_epochs")
+    return tuple(dict.fromkeys(tools))
+
+
 @dataclass(frozen=True)
 class Obligation:
     obligation_id: str
@@ -77,10 +89,7 @@ def compile_intent(intent, context):
         "quality_selection": ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs"],
     }.get(analysis, [analysis])
     obligations.append(Obligation("evidence", "successful_tools", expected_tools))
-    forbidden = tuple(dict.fromkeys(
-        FORBIDDEN_TOOL_MAP[item] for item in intent.forbidden_operations
-        if item in FORBIDDEN_TOOL_MAP
-    ))
+    forbidden = _forbidden_tools(intent.forbidden_operations)
     return task, ObligationLedger(context.task_id, analysis, tuple(obligations), forbidden)
 
 
@@ -97,7 +106,9 @@ def validate_plan_against_ledger(plan, ledger):
         if key == "selection_authorized":
             continue
         relevant = [step for step in plan.steps if key in step.arguments]
-        if relevant and any(step.arguments[key] != expected for step in relevant):
+        if not relevant:
+            violations.append(f"parameter_missing_from_plan:{key}")
+        elif any(step.arguments[key] != expected for step in relevant):
             violations.append(f"parameter_changed:{key}")
     return {
         "valid": not violations,
@@ -129,7 +140,9 @@ def close_ledger(ledger, execution):
         if key == "selection_authorized":
             continue
         seen = [event["arguments"][key] for event in events if key in event.get("arguments", {})]
-        if seen and any(value != expected for value in seen):
+        if not seen:
+            violations.append(f"executed_parameter_missing:{key}")
+        elif any(value != expected for value in seen):
             violations.append(f"executed_parameter_changed:{key}")
     producers = [item for item in results if item["success"] and item["tool_name"] == "create_epochs"]
     consumers = [event for event in events if event["tool_name"] in {"event_bandpower", "epoch_quality", "select_quality_epochs"}]

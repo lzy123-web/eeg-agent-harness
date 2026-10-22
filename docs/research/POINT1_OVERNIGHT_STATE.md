@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-阶段 3：合成 EEG 的真实 DeepSeek 验证已完成，进入阶段 4 审查与完整回归。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
+阶段 4：方法、安全性与代码审查及完整本地资源回归已完成，进入阶段 5 文档与 Draft PR 交付。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
 
 ## 已确认状态
 
@@ -25,22 +25,26 @@
 - 首轮真实 DeepSeek 暴露了参数 schema 过松：模型产生 `channel/event_label/window_*` 别名，并把普通 PSD 误判为事件分析；该轮 3/3 均安全澄清、没有误执行。
 - 将 tool schema 收紧为七个 canonical slot 并补充分析类型边界后，第二轮真实验证中 PSD 单步与事件多步均完成，缺事件条件请求保持澄清。
 - 两轮共 8 次 provider 请求、总计 11,677 tokens，低于 36 请求/90k tokens 预算；只使用确定性合成 EEG，未发送真实受试者数据或原始数组。
+- 审查修复了四类假阳性边界：数值必须真实出现在证据 span、未显式暴露 raw 分支时拒绝 raw 请求、计划/执行不得丢失 obligation 参数、最终回答失败不得报告完整成功。
+- `trial_selection_or_rejection` 等模型生成的选择禁令现可归一到实际选择工具，避免命名变化绕过禁止操作。
+- 提供本地 EDF、既有 seizure 权重与匿名 R3 样例后，全量 161 项中 160 通过、1 项联网 opt-in 测试按设计跳过；`compileall` 和 `pip check` 通过。
 
 ## 上次成功验证
 
-阶段 3 集成测试 11/11 通过；Fake 与真实 DeepSeek 的脱敏 trace 已保存到 `docs/research/results/point1_integrated_*.json`。最终真实结果为 PSD `completed`（1 工具）、事件分析 `completed`（3 工具）、缺参请求 `clarification_required`（0 工具）。阶段 0 基线无资源模式 146 项通过、12 项跳过。
+阶段 4 集成+规划针对性测试 24/24 通过；Fake 与真实 DeepSeek 的脱敏 trace 已保存到 `docs/research/results/point1_integrated_*.json`。最终真实结果为 PSD `completed`（1 工具）、事件分析 `completed`（3 工具）、缺参请求 `clarification_required`（0 工具）。本地资源全回归 160 通过、1 跳过。
 
 ## 下一步
 
-1. 审查来源可观测性、数值 span/value 一致性、Evidence Gate 与最终回答失败语义。
-2. 运行带本地 EDF/既有权重的完整回归；资源仅本机引用，不写入仓库。
-3. 完成验收报告、后续公平对照/消融设计与 Draft PR。
+1. 完成验收报告、后续公平对照/消融设计与 README/项目状态更新。
+2. 运行无私有资源回归并确认 Git diff 不含密钥、私人路径、真实 EEG 或权重。
+3. 阶段提交、推送、创建 Draft PR 并在 Issue #10 留下脱敏结果。
 
 ## 阻塞与未验证问题
 
 - 方法新颖性尚未成立；当前目标是可运行的 method candidate。
 - `deepseek-flash` 的中文文本在当前服务响应中存在历史已知的乱码现象；结构化参数与执行可验证，但中文自然语言可读性不能据此宣称通过。
 - 真实原始/处理后多分支不是当前生产 Context 的通用能力，不能虚构。
+- 当前数值 span normalizer 只覆盖阿拉伯数字和 Unicode 负号，不支持中文数字、单位换算和共指消解。
 - 不得把 TaskSpec/validator/Prompt 的简单拼接包装为已证明创新。
 
 ## 本轮 Commit
@@ -48,4 +52,5 @@
 - 阶段 0：`cb91166`。
 - 阶段 1：`9f55415`。
 - 阶段 2：`fbf20e6`。
-- 阶段 3：待提交。
+- 阶段 3：`c35b541`。
+- 阶段 4：待提交。

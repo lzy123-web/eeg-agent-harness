@@ -53,6 +53,14 @@ class ScriptedIntentLLM:
         }
 
 
+class AnswerFailingLLM(ScriptedIntentLLM):
+    def complete(self, messages, tools, tool_choice="auto"):
+        if not tools:
+            self.request_count += 1
+            raise RuntimeError("provider unavailable")
+        return super().complete(messages, tools, tool_choice)
+
+
 class Point1IntentSchemaTest(unittest.TestCase):
     def test_schema_exposes_only_canonical_scientific_slots(self):
         schema = INTENT_TOOL[0]["function"]["parameters"]["properties"]["parameters"]
@@ -75,6 +83,48 @@ def intent_payload(analysis, parameters, evidence, **overrides):
 
 
 class Point1IntegratedAgentTest(unittest.TestCase):
+    def test_numeric_slot_must_match_number_in_evidence_span(self):
+        request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        payload = intent_payload(
+            "psd", {"channels": ["SYNTH-C1"], "start": 2.0, "end": 3.0},
+            {"analysis_type": "频带功率", "channels": "SYNTH-C1", "start": "1 秒", "end": "3 秒"},
+        )
+        result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
+        self.assertEqual("clarification_required", result.stop_reason)
+        self.assertIn("start", result.interpretation["missing_slots"])
+
+    def test_raw_request_requires_explicit_raw_branch(self):
+        request = "检查原始信号的质量证据"
+        payload = intent_payload(
+            "record_quality", {}, {"analysis_type": "质量证据", "source_stage": "原始信号"},
+            source_stage="raw",
+        )
+        result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
+        self.assertEqual("unsupported_or_unobservable", result.stop_reason)
+
+    def test_answer_failure_preserves_results_without_claiming_full_completion(self):
+        request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        payload = intent_payload(
+            "psd", {"channels": ["SYNTH-C1"], "start": 1.0, "end": 3.0},
+            {"analysis_type": "频带功率", "channels": "SYNTH-C1", "start": request, "end": request},
+        )
+        result = ConstraintCarryingEEGAgent(AnswerFailingLLM(payload), make_context()).run(request)
+        self.assertEqual("completed_without_llm_answer", result.stop_reason)
+        self.assertTrue(result.evidence_check["closed"])
+
+    def test_verbose_selection_forbid_is_enforced(self):
+        request = "请对 stimulus 事件前 -0.2 秒到后 0.8 秒检查质量并允许筛选，但不要执行试次选择"
+        payload = intent_payload(
+            "quality_selection",
+            {"labels": ["stimulus"], "tmin": -0.2, "tmax": 0.8, "selection_authorized": True},
+            {"analysis_type": "检查质量", "labels": "stimulus", "tmin": request, "tmax": request,
+             "selection_authorized": "允许筛选"},
+            forbidden_operations=["trial_selection_or_rejection"],
+        )
+        result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
+        self.assertEqual("plan_rejected", result.stop_reason)
+        self.assertIn("forbidden_tool:select_quality_epochs", result.plan_check["violations"])
+
     def test_explicit_psd_runs_planner_executor_and_closes_evidence(self):
         context = make_context()
         result = ConstraintCarryingEEGAgent(Point1FakeLLM(), context).run(

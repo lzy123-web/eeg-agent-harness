@@ -76,9 +76,10 @@ class ConstraintCarryingEEGAgent:
                  {"role": "user", "content": "请给出简洁、证据受限的最终回答。"}],
                 [],
             )
-            return response.get("content") or ""
+            content = response.get("content") or ""
+            return content, bool(content)
         except Exception:
-            return "工具执行已记录，但最终回答模型调用失败；请查阅结构化 ToolResult。"
+            return "工具执行已记录，但最终回答模型调用失败；请查阅结构化 ToolResult。", False
 
     def run(self, user_request):
         interpretation = self.interpreter.interpret(user_request, self.context)
@@ -114,8 +115,13 @@ class ConstraintCarryingEEGAgent:
             plan_validator=lambda candidate: validate_plan_against_ledger(candidate, ledger),
         ).execute_plan(task, plan)
         evidence = close_ledger(ledger, execution)
-        answer = self._answer(user_request, interpretation, ledger, execution, evidence)
-        reason = "completed" if evidence["closed"] else "safe_stop_without_evidence"
+        answer, answer_ok = self._answer(user_request, interpretation, ledger, execution, evidence)
+        if not evidence["closed"]:
+            reason = "safe_stop_without_evidence"
+        elif not answer_ok:
+            reason = "completed_without_llm_answer"
+        else:
+            reason = "completed"
         return Point1RunResult(
             reason, interpretation.to_dict(), ledger.to_dict(), plan_check,
             execution.to_dict(), evidence, answer, self._llm_summary(),

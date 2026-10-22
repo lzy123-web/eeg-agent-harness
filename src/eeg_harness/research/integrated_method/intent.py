@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 import json
 import math
+import re
 from typing import Any, Mapping, Optional
 
 
@@ -182,7 +183,11 @@ def _value_supported_by_quote(value, quote):
     if isinstance(value, bool):
         return True
     if isinstance(value, (int, float)) and not isinstance(value, bool):
-        return math.isfinite(float(value))
+        if not math.isfinite(float(value)):
+            return False
+        numbers = re.findall(r"[-+−]?\d+(?:\.\d+)?", quote)
+        normalized = [float(item.replace("−", "-")) for item in numbers]
+        return any(math.isclose(float(value), item, rel_tol=0.0, abs_tol=1e-9) for item in normalized)
     return value is not None
 
 
@@ -224,10 +229,13 @@ def validate_intent(intent, user_request, context):
                 "UNGROUNDED_SOURCE_STAGE", "Requested source stage lacks user-language evidence.",
             )
     actual_stage = context.record.metadata.get("source_stage", "current")
-    if intent.source_stage == "raw" and actual_stage == "processed_only":
+    if intent.source_stage == "raw" and actual_stage != "raw":
         return IntentInterpretation(
             True, intent, "reject", error_code="SOURCE_STAGE_UNOBSERVABLE",
-            error_message="Only processed data are available; raw-source evidence is unobservable.",
+            error_message=(
+                "The current EEGRecord does not explicitly expose a raw signal branch; "
+                "raw-source evidence is unobservable."
+            ),
         )
     return IntentInterpretation(True, intent, "execute")
 

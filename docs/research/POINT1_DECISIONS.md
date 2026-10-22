@@ -54,3 +54,14 @@
 - 证据：首轮真实 DeepSeek 把三类请求全部安全停在澄清，其中普通 PSD 被分类为事件分析，且使用了 `channel/event_label/window_*` 等非 canonical key；收紧后 PSD 和事件链完成，真正缺 label 的请求仍然澄清。
 - 原因：这是协议契约缺失，不是通过修改 gold 或容错别名掩盖模型错误。严格 schema 让 Planner、gate 与模型共享同一科学 slot 词汇。
 - 限制：一次三案例验证只证明链路可运行，不证明泛化或方法优势。
+
+## D8：来源与证据检查采取 fail-closed
+
+- 决策：只有 `EEGRecord.metadata.source_stage == raw` 才允许履行 raw-source obligation；默认 `current` 不再被等同为 raw。数值 obligation 必须能从对应原文 span 提取到相同数值。
+- 原因：当前 `EEGRecord` 通常只保存适配/预处理后的单一分支。仅依据没有标注的 `current` 或有限数值就声称原始来源/精确窗口，都会产生科学证据假阳性。
+- 限制：本轮没有新增 raw/processed 双分支数据系统；这是安全拒绝，不是自动数据恢复。
+
+## D9：闭合证据要求参数不能消失
+
+- 决策：除纯授权标志外，每个参数 obligation 必须至少出现在计划步骤和实际执行事件一次；不存在与被改写同样视为违约。最终回答调用失败时返回 `completed_without_llm_answer`，保留工具结果但不宣称闭环完整。
+- 原因：原实现只检查“若出现则必须相等”，计划静默丢参数时可能错误闭合；工具成功和自然语言回答成功也必须分开记录。
