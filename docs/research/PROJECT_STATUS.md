@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言桥验证已完成。
+Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估已完成。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -43,6 +43,9 @@ Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言
 - v2 将旧 Expert 保留为无恢复消融，并为强 Expert 与 Planner 配置相同的状态观察、一次恢复和调用预算。
 - ToolSpec 新增 Artifact 生产/消费、事件前置条件、状态观察与科学前置条件声明；新增 `epoch_summary` 路径无需 Planner 工具名专用分支。
 - 增加五类确定性故障注入、22 项冻结任务集、逐例 JSON 结果和自然语言结构化目标桥；原生 Agent 保持可用。
+- 新增 `record_quality`、`epoch_quality` 和 `select_quality_epochs`，输出来源阶段、单位、validity、经验阈值及数据影响，不生成质量总分。
+- 新增 EvidenceGoal/Requirement、固定流程、强 Expert 和 Candidate 三策略公平对照；合法替代必须由目标显式授权。
+- 冻结并执行 16 个合成质量/覆盖案例；Candidate 与强 Expert 结果和调用数完全持平。
 
 ## 实际验证结果
 
@@ -98,6 +101,11 @@ Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言
 | Fake 自然语言对照 | 9 条人工模板；结构化目标桥下 Expert/Planner 为 100%，原生 Fake 为 55.6%。这是模板覆盖差异，不是实际 LLM 性能结论。 |
 | Milestone 5 全量测试 | `compileall` 通过；提供 EEGAgent EDF/权重和匿名 R3 样例时 98 项全部通过；无私有资源时 87 项通过、11 项按设计跳过。 |
 | 真实 LLM | 三个必需环境变量仍未配置，未执行；token/API 成本和自然语言质量均未验证。 |
+| 合成质量检出 | 通道注入 TP=7、FP=0、FN=0、TN=9；4 个可测 Epoch 案例的标记数均与注入真值一致。只适用于合成真值。 |
+| 证据策略公平对照 | 强 Expert 与 Candidate 均为目标成功率 100%、正确拒绝率 100%、总体正确率 100%、32 次调用；Candidate 无额外价值。 |
+| 固定流程对照 | 目标成功率 30%、正确拒绝率 100%、总体正确率 56.25%、25 次调用；仅说明质量门控有用。 |
+| 两个匿名 R3 质量 smoke | 前 10 秒均无 flatline 标记；默认 200 µV 下幅值标记 3/0 通道，100/500 µV 下为 6/0 和 5/0，显示阈值敏感；50 Hz 均不可观测。 |
+| Milestone 6 全量测试 | `compileall`/`pip check` 通过；有资源 108 项全部通过；无资源 97 项通过、11 项跳过。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -135,6 +143,9 @@ Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言
 14. 动态重规划优势只在一个人工状态变化案例出现，真实发生率、自然语言规划质量和更复杂任务扩展性未知。
 15. v2 强 Expert 与 Planner 结果持平，当前不能把状态约束规划作为已成立的性能型创新点。
 16. 冻结 v2 的 Profile 变化案例在注入前已静态不兼容；动态注入仅由独立回归测试覆盖，这是锁定留出集的已知缺陷。
+17. 质量阈值未做跨设备、跨 Profile 或人工质控校准；真实文件结果对 100/200/500 µV 阈值敏感。
+18. Evidence benchmark 在 Pilot 策略实现后、首次结果前冻结，不属于方法实现前预注册。
+19. 强 Expert 与 Candidate 完全持平，研究点二当前为 No-Go；研究点一也尚未成立。
 
 ## 下一步候选任务
 
@@ -148,6 +159,7 @@ Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言
 6. “状态感知与约束规划”已实现最小先导原型，但创新性未证实；“证据驱动自适应分析”仍未实施。
 7. 若继续研究点一，应先扩展独立冻结任务集和真实任务日志，并与外部 scientific-contract/preflight 方法进行可复现比较；研究点二仍未实施。
 8. 研究点一若继续，应优先量化新工具接入工时、规则数量、跨任务一致性缺陷，而不是重复验证当前已与强 Expert 持平的成功率。
+9. 优先考虑“跨 Profile/处理阶段的质量证据校准与不确定性传播”，使用独立人工标注或跨设备受控伪迹验证，不再预设 Agent 策略优越。
 
 ## Git Commit 信息
 
@@ -181,3 +193,7 @@ Milestone 5：约束规划强基线复核、声明式依赖扩展与自然语言
 - Issue #4 阶段 C Commit：`569d288`（`feat: bridge natural language goals to constrained plans`）。
 - Issue #4 阶段 D Commit：`c39e847`（`eval: run locked planning and fake language comparisons`）。
 - Issue #4 契约复核 Commit：`be0522c`（`refactor: apply artifact contract in expert preflight`）。
+- Issue #5 阶段 A Commit：`90569f1`（`feat: establish measurable EEG quality evidence`）。
+- Issue #5 阶段 B Commit：`82ea91a`（`feat: add evidence-driven adaptive analysis pilot`）。
+- Issue #5 评测冻结 Commit：`79c869f`（`research: freeze evidence benchmark before evaluation`）。
+- Issue #5 阶段 C Commit：`4131914`（`eval: compare adaptive evidence policy with strong baselines`）。

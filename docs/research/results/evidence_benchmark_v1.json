@@ -1,0 +1,2001 @@
+{
+  "suite_version": "1.0",
+  "case_count": 16,
+  "policies": [
+    "fixed",
+    "expert",
+    "candidate"
+  ],
+  "summary": {
+    "fixed": {
+      "evidence_goal_success_rate": 0.3,
+      "correct_insufficient_evidence_rate": 1.0,
+      "overall_case_accuracy": 0.5625,
+      "tool_calls": 25,
+      "mean_duration_ms": 0.6698125000000001,
+      "channel_detection": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "tn": 9
+      },
+      "epoch_flag_count_exact": 4,
+      "epoch_cases_measured": 4
+    },
+    "expert": {
+      "evidence_goal_success_rate": 1.0,
+      "correct_insufficient_evidence_rate": 1.0,
+      "overall_case_accuracy": 1.0,
+      "tool_calls": 32,
+      "mean_duration_ms": 0.7166874999999999,
+      "channel_detection": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "tn": 9
+      },
+      "epoch_flag_count_exact": 4,
+      "epoch_cases_measured": 4
+    },
+    "candidate": {
+      "evidence_goal_success_rate": 1.0,
+      "correct_insufficient_evidence_rate": 1.0,
+      "overall_case_accuracy": 1.0,
+      "tool_calls": 32,
+      "mean_duration_ms": 0.7761250000000002,
+      "channel_detection": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "tn": 9
+      },
+      "epoch_flag_count_exact": 4,
+      "epoch_cases_measured": 4
+    }
+  },
+  "outcomes": [
+    {
+      "policy": "fixed",
+      "case_id": "dev_clean_window",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.853,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_clean_window",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_flat_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.497,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_flat_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_spike_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "complete",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.477,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_spike_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_flat_no_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.296,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_flat_no_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_clean_events",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 3,
+      "duration_ms": 1.45,
+      "detection": {
+        "expected_flagged_epochs": 0,
+        "observed_flagged_epochs": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_clean_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-3265215e7f0a08f6",
+          "usable_counts": {
+            "A": 3
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_one_bad_epoch",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "QUALITY_REQUIREMENT_NOT_MET",
+      "tool_calls": 3,
+      "duration_ms": 1.84,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-b966c8188690ed20",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": "QUALITY_REQUIREMENT_NOT_MET"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_insufficient_epochs",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_two",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 2,
+      "duration_ms": 0.423,
+      "detection": {
+        "expected_flagged_epochs": 2,
+        "observed_flagged_epochs": 2
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_insufficient_epochs",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-b2b4181968509d03",
+          "usable_counts": {
+            "A": 1
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "dev_budget_one",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "budget_exhausted",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "BUDGET_EXHAUSTED",
+      "tool_calls": 1,
+      "duration_ms": 0.323,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "dev_budget_one",
+          "max_tool_calls": 1
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "budget_exhausted",
+          "reason_code": "BUDGET_EXHAUSTED"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_line_with_alternative",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "line50_c1",
+      "expected": "complete",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.464,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_line_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_partial_multichannel",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.495,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_partial_multichannel",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_fixed_target_polluted",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.307,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_fixed_target_polluted",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_unknown_line_validity",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "REQUIRED_EVIDENCE_UNKNOWN",
+      "tool_calls": 1,
+      "duration_ms": 0.152,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_unknown_line_validity",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "reject_unknown_required_evidence",
+          "required_metric": "line_noise_ratio"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "REQUIRED_EVIDENCE_UNKNOWN"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_tuev_flat_alternative",
+      "split": "holdout",
+      "profile": "tuev",
+      "injection_truth": "flat_first",
+      "expected": "complete",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.52,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_tuev_flat_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-ed7812637a5464fa",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_boundary_events",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "boundary_events",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVENT_COVERAGE",
+      "tool_calls": 1,
+      "duration_ms": 0.054,
+      "detection": null,
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_boundary_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVENT_COVERAGE"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_one_bad_epoch",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": false,
+      "outcome_correct": false,
+      "reason_code": "QUALITY_REQUIREMENT_NOT_MET",
+      "tool_calls": 3,
+      "duration_ms": 1.849,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-d020d43e17a156a0",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": "QUALITY_REQUIREMENT_NOT_MET"
+        }
+      ]
+    },
+    {
+      "policy": "fixed",
+      "case_id": "holdout_clean_r3_profile",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.717,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "fixed",
+          "goal_id": "holdout_clean_r3_profile",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-f6d8433cf8478bde",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_clean_window",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.668,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_clean_window",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_flat_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.739,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_flat_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_spike_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.721,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_spike_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_flat_no_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.307,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_flat_no_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_clean_events",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 3,
+      "duration_ms": 1.415,
+      "detection": {
+        "expected_flagged_epochs": 0,
+        "observed_flagged_epochs": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_clean_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-f62da8b80cbebfdf",
+          "usable_counts": {
+            "A": 3
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_one_bad_epoch",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 4,
+      "duration_ms": 1.375,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-8dc853fab853e883",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_insufficient_epochs",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_two",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 2,
+      "duration_ms": 0.399,
+      "detection": {
+        "expected_flagged_epochs": 2,
+        "observed_flagged_epochs": 2
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_insufficient_epochs",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-ec2e97a373bae6ed",
+          "usable_counts": {
+            "A": 1
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "dev_budget_one",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "budget_exhausted",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "BUDGET_EXHAUSTED",
+      "tool_calls": 1,
+      "duration_ms": 0.313,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "dev_budget_one",
+          "max_tool_calls": 1
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "budget_exhausted",
+          "reason_code": "BUDGET_EXHAUSTED"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_line_with_alternative",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "line50_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.756,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_line_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_partial_multichannel",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.979,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_partial_multichannel",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_fixed_target_polluted",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.792,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_fixed_target_polluted",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_unknown_line_validity",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "REQUIRED_EVIDENCE_UNKNOWN",
+      "tool_calls": 1,
+      "duration_ms": 0.16,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_unknown_line_validity",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "reject_unknown_required_evidence",
+          "required_metric": "line_noise_ratio"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "REQUIRED_EVIDENCE_UNKNOWN"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_tuev_flat_alternative",
+      "split": "holdout",
+      "profile": "tuev",
+      "injection_truth": "flat_first",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.757,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_tuev_flat_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-ed7812637a5464fa",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_boundary_events",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "boundary_events",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVENT_COVERAGE",
+      "tool_calls": 1,
+      "duration_ms": 0.049,
+      "detection": null,
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_boundary_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVENT_COVERAGE"
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_one_bad_epoch",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 4,
+      "duration_ms": 1.622,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-2442d50c0499261f",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "expert",
+      "case_id": "holdout_clean_r3_profile",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.415,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "expert",
+          "goal_id": "holdout_clean_r3_profile",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-f6d8433cf8478bde",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_clean_window",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.576,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_clean_window",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_flat_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.706,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_flat_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_spike_with_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.849,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_spike_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_flat_no_alternative",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.318,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_flat_no_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_clean_events",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 3,
+      "duration_ms": 2.539,
+      "detection": {
+        "expected_flagged_epochs": 0,
+        "observed_flagged_epochs": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_clean_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-165edf66d78600d1",
+          "usable_counts": {
+            "A": 3
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_one_bad_epoch",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 4,
+      "duration_ms": 1.424,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-e5ad65be15e62fa0",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_insufficient_epochs",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "bad_epoch_two",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 2,
+      "duration_ms": 0.344,
+      "detection": {
+        "expected_flagged_epochs": 2,
+        "observed_flagged_epochs": 2
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_insufficient_epochs",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-ddc8f8cc483fe8da",
+          "usable_counts": {
+            "A": 1
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "dev_budget_one",
+      "split": "development",
+      "profile": "native",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "budget_exhausted",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "BUDGET_EXHAUSTED",
+      "tool_calls": 1,
+      "duration_ms": 0.328,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "dev_budget_one",
+          "max_tool_calls": 1
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "budget_exhausted",
+          "reason_code": "BUDGET_EXHAUSTED"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_line_with_alternative",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "line50_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.814,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_line_with_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_partial_multichannel",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "flat_c1",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.754,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_partial_multichannel",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-3583726d8cdc7cfe",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_fixed_target_polluted",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "spike_c1",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVIDENCE",
+      "tool_calls": 1,
+      "duration_ms": 0.313,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_fixed_target_polluted",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-0ed46aaeb05e3e9d",
+          "candidate_flag_counts": [
+            1
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_unknown_line_validity",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "REQUIRED_EVIDENCE_UNKNOWN",
+      "tool_calls": 1,
+      "duration_ms": 0.166,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_unknown_line_validity",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "reject_unknown_required_evidence",
+          "required_metric": "line_noise_ratio"
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "REQUIRED_EVIDENCE_UNKNOWN"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_tuev_flat_alternative",
+      "split": "holdout",
+      "profile": "tuev",
+      "injection_truth": "flat_first",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 1.4,
+      "detection": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_tuev_flat_alternative",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-ed7812637a5464fa",
+          "candidate_flag_counts": [
+            1,
+            0
+          ],
+          "selected_candidate_index": 1,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_boundary_events",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "boundary_events",
+      "expected": "reject",
+      "status": "insufficient_evidence",
+      "evidence_satisfied": false,
+      "outcome_correct": true,
+      "reason_code": "INSUFFICIENT_EVENT_COVERAGE",
+      "tool_calls": 1,
+      "duration_ms": 0.069,
+      "detection": null,
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_boundary_events",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "stop",
+          "status": "insufficient_evidence",
+          "reason_code": "INSUFFICIENT_EVENT_COVERAGE"
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_one_bad_epoch",
+      "split": "holdout",
+      "profile": "native",
+      "injection_truth": "bad_epoch_one",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 4,
+      "duration_ms": 1.384,
+      "detection": {
+        "expected_flagged_epochs": 1,
+        "observed_flagged_epochs": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_one_bad_epoch",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "evaluate_epoch_coverage",
+          "evidence_id": "evidence-7792ddb79a4c6e7c",
+          "usable_counts": {
+            "A": 2
+          },
+          "required_per_condition": 2
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    },
+    {
+      "policy": "candidate",
+      "case_id": "holdout_clean_r3_profile",
+      "split": "holdout",
+      "profile": "r3",
+      "injection_truth": "clean",
+      "expected": "complete",
+      "status": "completed",
+      "evidence_satisfied": true,
+      "outcome_correct": true,
+      "reason_code": null,
+      "tool_calls": 2,
+      "duration_ms": 0.434,
+      "detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1
+      },
+      "decision_trace": [
+        {
+          "decision": "start",
+          "mode": "candidate",
+          "goal_id": "holdout_clean_r3_profile",
+          "max_tool_calls": 6
+        },
+        {
+          "decision": "select_window_or_channels",
+          "evidence_id": "evidence-f6d8433cf8478bde",
+          "candidate_flag_counts": [
+            0
+          ],
+          "selected_candidate_index": 0,
+          "selection_basis": "quality flags then declared order; never feature value"
+        },
+        {
+          "decision": "stop",
+          "status": "completed",
+          "reason_code": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "synthetic injection truth only; no clinical ground truth",
+    "thresholds are empirical and not device-calibrated",
+    "suite was frozen after pilot policy code, before result execution"
+  ]
+}

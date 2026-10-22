@@ -216,3 +216,38 @@ Commit：`569d288`。
 
 Commit：`c39e847`、`be0522c`。完整限制与逐例结果见 `PLANNING_V2_EVALUATION.md`。
 
+## Milestone 6：EEG 质量证据与自适应分析 Pilot（Issue #5）
+
+### 阶段 A：质量证据科学边界
+
+- 实现记录/Epoch flatline、异常幅值、工频可观测性和覆盖证据；阈值明确为未校准经验规则。
+- 受控合成 clean、flatline、尖峰、50 Hz 注入和预处理不可观测性测试通过。
+- 不返回总分、不自动删除、不向 ToolResult/LLM 复制波形。
+
+Commit：`90569f1`。
+
+### 阶段 B：受限证据驱动策略
+
+- EvidenceGoal/Requirement 只允许用户声明的替代窗口/通道及同目标 Epoch 质量筛选。
+- 证据不足、unknown、预算不足时安全停止；选择不读取下游特征值。
+- Trace 记录证据 ID、选择理由、受影响样本和调用成本。
+
+Commit：`82ea91a`。
+
+### 阶段 C：强基线公平对照
+
+- 16 个开发/留出合成案例覆盖质量异常、部分通道污染、事件覆盖、unknown、预算与 Native/TUEV/R3 Profile。
+- 固定、强 Expert、Candidate 获得同一质量工具和 Executor；Expert 与 Candidate 结果及 32 次调用完全持平。
+- 清单在策略实现后、首次结果前冻结，不声称为方法实现前预注册。
+
+Commit：`79c869f`、`4131914`。
+
+### 阶段 D：真实 smoke 与结论
+
+- 两个匿名 R3 文件本地检查显示工频不可观测和显著幅值阈值敏感性，未公开身份、路径或通道特征。
+- 旧癫痫、R3、planning v2、Executor/Fake Agent 回归保持通过；有资源 108 项测试通过。
+- 真实 LLM 未配置。Candidate 相对强 Expert 为 **No-Go**；质量证据工具为 **Conditional Go**。
+- 两个候选研究点均未成立，建议转向可独立验证的质量证据校准与不确定性传播。
+
+完整报告见 `EVIDENCE_ADAPTIVE_EVALUATION.md`。
+

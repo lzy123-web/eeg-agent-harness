@@ -4,6 +4,8 @@
 
 Milestone 5 完成了约束规划强基线复核：在同等观察与恢复预算下，强 Expert DAG 与 Planner 的完成/拒绝结果持平，Planner 调用更多，因此当前“性能优势”为 No-Go；声明式扩展价值仅作 Conditional Go。详见 `docs/research/PLANNING_V2_EVALUATION.md`。
 
+Milestone 6 增加了显式 EEG 质量证据与自适应分析 Pilot。受控合成指标通过，但真实阈值明显敏感；Candidate 与同证据、同预算的强 Expert 完全持平，因此研究点二为 No-Go。质量工具作为工程能力保留，详见 `docs/research/EVIDENCE_ADAPTIVE_EVALUATION.md`。
+
 它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
@@ -27,6 +29,7 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `applications/r3/`：R3 专有 Profile、资源诊断、事件工作流与显式受试者聚合；不污染通用层。
 - `planning.py`、`planning_evaluation.py`：研究用状态/声明式工具契约、有限重规划与冻结公平对照；不替代 Executor。
 - `planning_agent.py`、`nl_evaluation.py`：可选自然语言结构化目标桥与明确标记的人工 Fake 对照。
+- `quality.py`、`adaptive.py`：不生成总分的质量测量、证据要求和受限自适应 Pilot。
 
 ## Profile
 
@@ -115,6 +118,8 @@ R3 默认配置为 21 个已观察 EEG 通道、300 Hz、1–40 Hz、50 Hz 陷�
   --output artifacts\planning_benchmark_v2.json
 & $python -m eeg_harness.plan_cli --nl-benchmark `
   --output artifacts\nl_agent_fake_comparison.json
+& $python -m eeg_harness.evidence_cli `
+  --output artifacts\evidence_benchmark_v1.json
 ```
 
 也可用 `--task <task.json>` 提供结构化 TaskSpec。该入口使用确定性合成 EEG，不需要 LLM；不支持临床诊断目标，也不会解释 R3 标签。
@@ -129,7 +134,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-21 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：98 项全部通过。无私有资源模式 87 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
+2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：108 项全部通过。无私有资源模式 97 项通过、11 项按设计跳过；GitHub Actions 不下载 EDF 或权重。
 
 ## 当前边界
 
@@ -137,6 +142,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 - 当前事件能力是通用 Epoch 与频带特征，不等同于完整 ERP/evoked 分析；Sleep、MDD、ASD 等任务尚未迁移。
 - 真实外部 LLM 尚未验证；当前环境没有所需配置。
 - 冻结 v2 中强 Expert 与 Planner 均为 100% 完成/正确拒绝，未观察到 Planner 结果优势；Fake 自然语言差异不作为真实模型证据。
+- 质量阈值仅为未校准经验规则；Candidate 与强 Expert 在冻结合成案例中完全持平，研究点二未显示独立价值。
 - 已有无私有资源 CI；尚无完整资源 manifest、TaskProfile 插件机制和真实事件评估集。
 - R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
 - 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
