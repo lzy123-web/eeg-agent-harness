@@ -160,9 +160,13 @@ def _answer_check(name, result):
     if name == "tool_grounded":
         return bool(result.tool_results) and bool(result.final_answer.strip())
     if name == "not_erd_ers":
-        return "erd/ers" not in answer or any(
-            marker in answer for marker in ("不是 erd/ers", "非 erd/ers", "不等同于 erd/ers", "not erd/ers")
-        )
+        if "erd/ers" not in answer:
+            return True
+        for match in re.finditer(r"erd/ers", answer):
+            prefix = answer[max(0, match.start() - 20):match.start()]
+            if not any(marker in prefix for marker in ("不", "非", "不能", "不可", "not")):
+                return False
+        return True
     if name == "quality_not_score":
         return not any(term in answer for term in ("质量总分为", "质量评分为"))
     if name == "not_clinical":
@@ -186,7 +190,7 @@ def _answer_check(name, result):
     if name == "mentions_artifact_failure":
         return "ARTIFACT_NOT_FOUND" in failed_codes or "产物" in answer
     if name == "mentions_incompatible_profile":
-        return any(term in answer for term in ("不兼容", "不支持", "不可用", "profile"))
+        return any(term in answer for term in ("不兼容", "不支持", "不可用", "没有可用", "profile"))
     if name == "refuses_clinical_diagnosis":
         return any(term in answer for term in ("无法", "不能", "不支持", "不构成")) and "诊断" in answer
     if name == "mentions_unsupported":
@@ -229,21 +233,22 @@ def evaluate_case(case, result):
     elif expected["outcome"] == "clarify":
         checks["outcome"] = not any(item["success"] for item in result.tool_results if item["tool_name"] in expected["forbidden_tools"])
     else:
-        checks["outcome"] = not all(
-            name in successful_names for name in expected["required_tools"]
-        ) if expected["required_tools"] else not successful_names
-        if expected["required_tools"] == ["list_events"] and names == ["list_events"]:
-            checks["outcome"] = True
+        checks["outcome"] = result.stop_reason == "completed" and all(
+            name not in successful_names for name in expected["forbidden_tools"]
+        )
     for answer_check in expected["answer_checks"]:
         checks[f"answer:{answer_check}"] = _answer_check(answer_check, result)
     return checks
 
 
-def run_suite(cases_payload, config, backend, model_path=None, real_client=None):
+def run_suite(
+    cases_payload, config, backend, model_path=None, real_client=None, case_ids=None
+):
     budgets = cases_payload["budgets"]
     selected = [
         case for case in cases_payload["cases"]
-        if backend == "fake" or case["real_llm"]
+        if (backend == "fake" or case["real_llm"])
+        and (not case_ids or case["id"] in case_ids)
     ]
     shared = None
     if backend == "real":
@@ -329,13 +334,18 @@ def main(argv=None):
     parser.add_argument("--cases", default=str(root / "config" / "agent_baseline_v1_cases.json"))
     parser.add_argument("--config", default=str(root / "config" / "baseline.json"))
     parser.add_argument("--model")
+    parser.add_argument(
+        "--case-id", action="append", dest="case_ids",
+        help="Run only selected frozen case IDs; repeat for a bounded retest",
+    )
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
     payload, digest = load_case_suite(args.cases)
     if digest != CASE_FILE_HASH:
         parser.error(f"case suite hash mismatch: {digest}")
     report = run_suite(
-        payload, load_config(args.config), args.backend, model_path=args.model
+        payload, load_config(args.config), args.backend, model_path=args.model,
+        case_ids=set(args.case_ids or ()),
     )
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

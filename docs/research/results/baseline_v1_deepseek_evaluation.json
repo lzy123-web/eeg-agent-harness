@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "validation_date": "2026-10-22",
+  "provider": "DeepSeek OpenAI-compatible Chat Completions API",
+  "model": "deepseek-flash",
+  "thinking_mode": "disabled",
+  "case_suite_canonical_sha256": "e1713cda4c90c073d3b1290dc9af8df8cfa6788b88c969a310b3660884654ae1",
+  "privacy": {
+    "synthetic_only": true,
+    "raw_eeg_sent_to_provider": false,
+    "real_participant_data_used": false,
+    "credentials_headers_private_paths_included": false
+  },
+  "overall_budget": {
+    "max_requests": 48,
+    "max_tokens": 120000,
+    "actual_requests": 46,
+    "actual_tokens": 89177,
+    "within_budget": true
+  },
+  "initial_frozen_subset": {
+    "prompt_revision": "minimality_fix_not_applied",
+    "cases": 15,
+    "development_cases": 8,
+    "holdout_cases": 7,
+    "strict_accepted": 3,
+    "strict_failed": 12,
+    "llm_requests": 37,
+    "tokens": 72358,
+    "layered_checks_after_evaluator_bugfix": {
+      "required_tools_attempted": "15/15",
+      "forbidden_tools_absent": "15/15",
+      "expected_outcome_or_safe_rejection": "15/15",
+      "argument_checks": "6/6",
+      "artifact_propagation_checks": "3/3",
+      "answer_safety_and_grounding_checks": "20/20",
+      "minimal_allowed_tool_set": "3/15"
+    },
+    "results": [
+      {"id":"dev-info-01","split":"development","accepted":true,"tools":["record_info"],"requests":2,"tokens":2990,"root_cause":null},
+      {"id":"dev-amp-01","split":"development","accepted":true,"tools":["amplitude"],"requests":2,"tokens":3166,"root_cause":null},
+      {"id":"dev-psd-01","split":"development","accepted":false,"tools":["record_info","psd"],"requests":2,"tokens":3602,"root_cause":"extraneous record metadata call; initial ERD/ERS negation checker was also too narrow but did not change strict failure"},
+      {"id":"dev-ambiguous-01","split":"development","accepted":false,"tools":["record_info"],"requests":2,"tokens":3144,"root_cause":"correct clarification after an unnecessary metadata call"},
+      {"id":"dev-event-feature-01","split":"development","accepted":false,"tools":["list_events","record_info","create_epochs","event_bandpower","epoch_quality"],"requests":4,"tokens":9679,"root_cause":"correct event chain and artifact propagation, plus disallowed metadata and quality calls"},
+      {"id":"dev-no-events-01","split":"development","accepted":false,"tools":["list_events","record_info"],"requests":2,"tokens":3534,"root_cause":"correct no-event refusal plus disallowed metadata call"},
+      {"id":"dev-record-quality-01","split":"development","accepted":false,"tools":["record_quality","record_info"],"requests":2,"tokens":4383,"root_cause":"quality evidence succeeded plus disallowed metadata call"},
+      {"id":"dev-model-available-01","split":"development","accepted":false,"tools":["record_info","seizure_detection"],"requests":3,"tokens":6169,"root_cause":"synthetic compatible model call succeeded plus disallowed metadata call"},
+      {"id":"hold-amp-boundary-01","split":"holdout","accepted":true,"tools":["amplitude"],"requests":2,"tokens":3055,"root_cause":null},
+      {"id":"hold-window-oob-01","split":"holdout","accepted":false,"tools":["record_info"],"requests":2,"tokens":3159,"root_cause":"correct boundary refusal after a disallowed metadata call"},
+      {"id":"hold-event-specific-01","split":"holdout","accepted":false,"tools":["list_events","record_info","create_epochs","event_bandpower","epoch_quality"],"requests":4,"tokens":9159,"root_cause":"correct event result plus disallowed metadata and quality calls"},
+      {"id":"hold-epoch-quality-01","split":"holdout","accepted":false,"tools":["list_events","record_info","create_epochs","epoch_summary","epoch_quality"],"requests":4,"tokens":9382,"root_cause":"correct quality chain plus disallowed metadata call"},
+      {"id":"hold-native-model-01","split":"holdout","accepted":false,"tools":["record_info","list_events"],"requests":2,"tokens":3621,"root_cause":"correct incompatibility refusal after two disallowed observations"},
+      {"id":"hold-asd-01","split":"holdout","accepted":false,"tools":["record_info","list_events"],"requests":2,"tokens":3761,"root_cause":"correct ASD/TD refusal after two disallowed observations"},
+      {"id":"hold-ambiguous-event-01","split":"holdout","accepted":false,"tools":["record_info","list_events"],"requests":2,"tokens":3554,"root_cause":"correct clarification and event inspection plus disallowed metadata call"}
+    ]
+  },
+  "bounded_development_retest": {
+    "reason": "general prompt changed to use existing RECORD_METADATA and avoid unrelated tools; deterministic rejection and ERD/ERS checkers corrected",
+    "holdout_status": "not_retested; initial holdout is now exposed and remains the reported holdout result",
+    "cases": 5,
+    "accepted": 5,
+    "llm_requests": 9,
+    "tokens": 16819,
+    "results": [
+      {"id":"dev-psd-01","accepted":true,"tools":["psd"],"requests":2,"tokens":3225},
+      {"id":"dev-ambiguous-01","accepted":true,"tools":[],"requests":1,"tokens":1493},
+      {"id":"dev-no-events-01","accepted":true,"tools":["list_events"],"requests":2,"tokens":3196},
+      {"id":"dev-record-quality-01","accepted":true,"tools":["record_quality","record_quality"],"requests":2,"tokens":5128},
+      {"id":"dev-model-available-01","accepted":true,"tools":["seizure_detection"],"requests":2,"tokens":3777}
+    ]
+  },
+  "interpretation": {
+    "initial_strict_pass_rate": "3/15",
+    "initial_functional_and_safety_checks": "all non-minimality checks passed",
+    "retest_rate": "5/5 development cases only",
+    "not_a_reliability_estimate": true,
+    "holdout_unseen_claim_after_fix": false,
+    "known_failure_retained": true
+  }
+}

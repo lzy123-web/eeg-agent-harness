@@ -9,6 +9,7 @@ from eeg_harness.baseline_v1 import (
     build_case_context,
     load_case_suite,
     run_suite,
+    evaluate_case,
 )
 from eeg_harness.pipeline import load_config
 
@@ -49,6 +50,21 @@ class BaselineV1RunnerTest(unittest.TestCase):
         self.assertEqual(report["summary"]["case_count"], 30)
         self.assertEqual(report["summary"]["accepted_count"], 30)
         json.dumps(report, ensure_ascii=False, allow_nan=False)
+
+    def test_answer_checker_accepts_explicit_erd_ers_negation(self):
+        class Result:
+            final_answer = "这是绝对功率，不能解释为 ERD/ERS。"
+            stop_reason = "completed"
+            tool_results = [{"tool_name": "psd", "success": True, "data": {}}]
+            execution_trace = {"events": [{
+                "tool_name": "psd",
+                "arguments": {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+            }]}
+
+        payload, _ = load_case_suite(CASE_PATH)
+        case = next(item for item in payload["cases"] if item["id"] == "dev-psd-01")
+        checks = evaluate_case(case, Result())
+        self.assertTrue(checks["answer:not_erd_ers"])
 
 
 if __name__ == "__main__":
