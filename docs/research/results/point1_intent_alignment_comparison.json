@@ -1,0 +1,267 @@
+{
+  "schema_version": "1.0",
+  "runtime_received_gold": false,
+  "privacy": {
+    "synthetic_metadata_only": true,
+    "raw_eeg_sent_to_llm": false,
+    "credentials_recorded": false
+  },
+  "design": {
+    "holdout_cases": 2,
+    "methods": [
+      "native_routing",
+      "strong_preflight",
+      "intent_contract"
+    ],
+    "provider_requests_per_method_case": 1,
+    "eeg_tools_executed": false
+  },
+  "results": [
+    {
+      "case_id": "hold-channel-distractor-01",
+      "split": "holdout",
+      "method": "native_routing",
+      "decision": {
+        "action": "execute",
+        "analysis_type": "psd",
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "window": [
+          4,
+          6
+        ],
+        "event_labels": [
+          "control",
+          "stimulus"
+        ],
+        "source_stage": "current",
+        "reason": "用户明确只针对 SYNTH-C2 在 4–6 秒窗口计算绝对频带功率，故执行 psd（绝对功率谱/频带功率）分析，仅选该通道与指定时间窗。"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": true,
+        "checks": {
+          "valid_decision": true,
+          "action": true,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 791,
+        "latency_ms": 1322.758,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "hold-channel-distractor-01",
+      "split": "holdout",
+      "method": "strong_preflight",
+      "decision": {
+        "analysis_type": "bandpower",
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "window": [
+          4,
+          6
+        ],
+        "event_labels": [],
+        "source_stage": "current",
+        "reason": "请求为绝对（非事件相关）频带功率，通道明确为 SYNTH-C2，时间窗 4–6 秒，来源阶段为 current，未指定事件条件故不使用事件标签。",
+        "action": "clarify"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": false,
+        "checks": {
+          "valid_decision": true,
+          "action": false,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 808,
+        "latency_ms": 1293.532,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "hold-channel-distractor-01",
+      "split": "holdout",
+      "method": "intent_contract",
+      "decision": {
+        "action": "execute",
+        "analysis_type": "bandpower",
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "window": [
+          4.0,
+          6.0
+        ],
+        "event_labels": [],
+        "source_stage": "current",
+        "reason": "用户明确指定只对 SYNTH-C2、4–6 秒做绝对频带功率计算，不涉及事件条件筛选。SYNTH-C2 在元数据通道列表内，4–6 秒落在 0–8 秒记录范围内，bandpower 属于受支持分析，故直接执行并保持通道与时间窗边界不变。"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": true,
+        "checks": {
+          "valid_decision": true,
+          "action": true,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 862,
+        "latency_ms": 1820.037,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "hold-missing-channel-01",
+      "split": "holdout",
+      "method": "native_routing",
+      "decision": {
+        "action": "clarify",
+        "analysis_type": "amplitude",
+        "channels": [],
+        "window": [
+          1,
+          2
+        ],
+        "event_labels": [],
+        "source_stage": "current",
+        "reason": "用户指定了 1–2 秒时间窗和幅值分析，但未指明具体通道（记录中可选 SYNTH-C1 或 SYNTH-C2），需澄清后再执行。"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": true,
+        "checks": {
+          "valid_decision": true,
+          "action": true,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true,
+          "unknown_preserved:channels": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 757,
+        "latency_ms": 1145.274,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "hold-missing-channel-01",
+      "split": "holdout",
+      "method": "strong_preflight",
+      "decision": {
+        "action": "clarify",
+        "analysis_type": "amplitude",
+        "channels": [],
+        "window": [
+          1,
+          2
+        ],
+        "event_labels": [],
+        "source_stage": "current",
+        "reason": "请求为幅值分析，时间窗明确为 1–2 s，来源阶段为 current。但\"某个通道\"未指定具体通道，而记录中存在两个可选通道（SYNTH-C1、SYNTH-C2），无默认值可用，需澄清通道选择。"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": true,
+        "checks": {
+          "valid_decision": true,
+          "action": true,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true,
+          "unknown_preserved:channels": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 802,
+        "latency_ms": 1337.919,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "hold-missing-channel-01",
+      "split": "holdout",
+      "method": "intent_contract",
+      "decision": {
+        "action": "clarify",
+        "analysis_type": "amplitude",
+        "channels": [],
+        "window": [
+          1.0,
+          2.0
+        ],
+        "event_labels": [],
+        "source_stage": "current",
+        "reason": "用户请求第1至第2秒的幅值分析（窗口明确、分析类型受支持），但通道未指定（\"某个通道\"无法确定），且可用通道为 SYNTH-C1、SYNTH-C2，必须由用户指定而不能代为猜测；同时未说明幅值指标（如峰峰值、RMS 或均值绝对幅值），如需精确需澄清。因此请求确认通道（及可选的幅值度量）。"
+      },
+      "parse_error": null,
+      "score": {
+        "accepted": true,
+        "checks": {
+          "valid_decision": true,
+          "action": true,
+          "analysis_type": true,
+          "channels": true,
+          "source_stage": true,
+          "window": true,
+          "unknown_preserved:channels": true
+        },
+        "error": null
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 857,
+        "latency_ms": 1432.071,
+        "cost": null
+      }
+    }
+  ],
+  "summary": {
+    "provider_requests": 6,
+    "total_tokens": 4877,
+    "by_method": {
+      "native_routing": {
+        "cases": 2,
+        "accepted": 2
+      },
+      "strong_preflight": {
+        "cases": 2,
+        "accepted": 1
+      },
+      "intent_contract": {
+        "cases": 2,
+        "accepted": 2
+      }
+    }
+  }
+}

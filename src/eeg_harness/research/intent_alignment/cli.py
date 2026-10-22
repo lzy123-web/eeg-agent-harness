@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 from ...pipeline import load_config
+from ...llm import OpenAICompatibleClient
+from .comparison import rescore_comparison, run_comparison
 from .evaluation import load_suite, rescore_report, run_controlled_injections, run_real_evaluation
 
 
@@ -13,7 +15,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Run frozen EEG intent-alignment evaluation")
     parser.add_argument("--cases", default=str(root / "config" / "point1_intent_alignment_cases.json"))
     parser.add_argument("--config", default=str(root / "config" / "baseline.json"))
-    parser.add_argument("--mode", choices=("injections", "real", "rescore"), required=True)
+    parser.add_argument("--mode", choices=("injections", "real", "rescore", "comparison", "comparison-rescore"), required=True)
     parser.add_argument("--input", help="Existing real report; required for rescore")
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
@@ -26,8 +28,14 @@ def main(argv=None):
         if not args.input:
             parser.error("--input is required for rescore")
         report = rescore_report(payload, json.loads(Path(args.input).read_text(encoding="utf-8")))
-    else:
+    elif args.mode == "real":
         report = run_real_evaluation(payload, config)
+    elif args.mode == "comparison":
+        report = run_comparison(payload, OpenAICompatibleClient.from_env())
+    else:
+        if not args.input:
+            parser.error("--input is required for comparison-rescore")
+        report = rescore_comparison(payload, json.loads(Path(args.input).read_text(encoding="utf-8")))
     output = Path(args.output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
