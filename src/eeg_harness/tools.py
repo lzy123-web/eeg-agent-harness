@@ -201,7 +201,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="record_info",
-            description="Return sampling rate, duration, channels, reference and processing metadata.",
+            description="Inspect this EEG record: sampling rate, duration, channels, reference and processing metadata. Use this for record-information requests.",
             parameters={"type": "object", "properties": {}, "additionalProperties": False},
             return_type="object",
             compatible_profiles=common_profiles,
@@ -223,7 +223,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="psd",
-            description="Compute Welch band power for configured EEG frequency bands.",
+            description="Compute Welch absolute band power for explicitly named EEG channels and a valid [start,end) window in seconds.",
             parameters=WINDOW_SCHEMA,
             return_type="object",
             compatible_profiles=common_profiles,
@@ -235,7 +235,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="seizure_detection",
-            description="Run the migrated one-second single-channel seizure/non-seizure model.",
+            description="Run the research-only migrated seizure/non-seizure model. Valid only for the verified tuev_bipolar_22 Profile at 256 Hz with a model resource; it is not a clinical diagnosis.",
             parameters=WINDOW_SCHEMA,
             return_type="array",
             compatible_profiles=("tuev_bipolar_22",),
@@ -250,7 +250,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="list_events",
-            description="List event labels, counts and onset-time range without returning EEG arrays.",
+            description="First step for event analysis: list actual event labels, counts and onset-time range without returning EEG arrays.",
             parameters={"type": "object", "properties": {}, "additionalProperties": False},
             return_type="object",
             compatible_profiles=event_profiles,
@@ -261,7 +261,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="create_epochs",
-            description="Create an in-session Epoch artifact for selected event labels and a relative window.",
+            description="Second event-analysis step: create an in-session Epoch artifact using labels returned by list_events. Returns the artifact_id required by later Epoch tools.",
             parameters={
                 "type": "object",
                 "properties": {
@@ -301,7 +301,7 @@ def build_default_registry():
     registry.register(
         ToolSpec(
             name="event_bandpower",
-            description="Compute reproducible mean Welch band power per event condition and channel.",
+            description="Final event-bandpower step: compute mean Welch absolute band power per event condition and channel. Pass the exact artifact_id returned by create_epochs; this is not ERD/ERS.",
             parameters=artifact_schema,
             return_type="object",
             compatible_profiles=event_profiles,

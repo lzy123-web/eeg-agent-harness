@@ -2,11 +2,13 @@ import json
 import os
 from pathlib import Path
 import unittest
+import tempfile
 
 import numpy as np
 import mne
 
 from eeg_harness.agent import EEGAgent
+from eeg_harness.agent_cli import main as agent_cli_main
 from eeg_harness.context import ExecutionContext
 from eeg_harness.edf import load_edf
 from eeg_harness.executor import Executor
@@ -102,6 +104,18 @@ class FakeAgentLoopTest(unittest.TestCase):
         )
         self.assertTrue(all(item["success"] for item in result.tool_results))
         self.assertNotIn("data", result.tool_results[1]["data"])
+
+    def test_synthetic_agent_cli_needs_no_edf(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "agent.json"
+            self.assertEqual(agent_cli_main([
+                "--demo-synthetic", "--fake", "--request", "分析频带功率",
+                "--output", str(output),
+            ]), 0)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["tool_results"][0]["tool_name"], "psd")
+            self.assertTrue(payload["tool_results"][0]["success"])
+            self.assertEqual(payload["execution_trace"]["profile_id"], "edf_native")
 
     def test_openai_client_omits_tool_fields_for_goal_interpretation(self):
         from unittest.mock import patch

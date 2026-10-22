@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import json
 
+from .llm import LLMServiceError
 from .tooling import ToolRequest
 
 
@@ -14,6 +15,7 @@ class AgentRunResult:
     tool_calls: int
     tool_results: tuple[dict, ...]
     execution_trace: dict
+    llm: dict
 
     def to_dict(self):
         return {
@@ -23,6 +25,7 @@ class AgentRunResult:
             "tool_calls": self.tool_calls,
             "tool_results": list(self.tool_results),
             "execution_trace": self.execution_trace,
+            "llm": self.llm,
         }
 
 
@@ -47,10 +50,23 @@ class EEGAgent:
             "shape": list(record.data.shape),
         }
         return (
-            "你是 EEG 分析执行助手。只能调用提供的工具，不得编造数据、转换、模型结果或临床诊断。"
-            "仅依据当前 Profile 和工具结果回答。RECORD_METADATA="
+            "你是 EEG 分析执行助手。分析请求必须使用提供的工具取得证据；不得编造数据、转换、"
+            "artifact_id、模型结果或临床诊断。只依据当前 Profile 和成功的工具结果回答，"
+            "并明确说明失败或不兼容。事件条件频带功率必须依次执行 list_events、create_epochs、"
+            "event_bandpower；必须从前一步结果原样复制真实标签和 artifact_id。"
+            "不要把 event_bandpower 解释为 ERD/ERS。工具不可用时不得自行模拟结果。"
+            "RECORD_METADATA="
             + json.dumps(metadata, ensure_ascii=False, allow_nan=False)
         )
+
+    def _llm_summary(self, error=None):
+        return {
+            "provider_model": getattr(self.llm_client, "model", None),
+            "request_count": getattr(self.llm_client, "request_count", None),
+            "usage": dict(getattr(self.llm_client, "total_usage", {})),
+            "finish_reasons": list(getattr(self.llm_client, "finish_reasons", [])),
+            "error": error,
+        }
 
     def run(self, user_request):
         messages = [
@@ -68,13 +84,18 @@ class EEGAgent:
                 assistant = self.llm_client.complete(messages, tools)
             except Exception as exc:
                 self.context.trace.finish("llm_error")
+                error = (
+                    exc.to_dict() if isinstance(exc, LLMServiceError)
+                    else {"code": "LLM_ERROR", "message": "LLM call failed."}
+                )
                 return AgentRunResult(
-                    final_answer="LLM 调用失败。",
+                    final_answer=f"LLM 调用失败（{error['code']}）。",
                     stop_reason="llm_error",
                     rounds=round_number,
                     tool_calls=total_calls,
                     tool_results=tuple(collected),
                     execution_trace=self.context.trace.to_dict(),
+                    llm=self._llm_summary(error),
                 )
             tool_calls = assistant.get("tool_calls") or []
             if not tool_calls:
@@ -86,6 +107,7 @@ class EEGAgent:
                     tool_calls=total_calls,
                     tool_results=tuple(collected),
                     execution_trace=self.context.trace.to_dict(),
+                    llm=self._llm_summary(),
                 )
                 json.dumps(result.to_dict(), ensure_ascii=False, allow_nan=False)
                 return result
@@ -107,6 +129,7 @@ class EEGAgent:
                         tool_calls=total_calls,
                         tool_results=tuple(collected),
                         execution_trace=self.context.trace.to_dict(),
+                        llm=self._llm_summary(),
                     )
                 function = call.get("function", {})
                 try:
@@ -149,5 +172,6 @@ class EEGAgent:
             tool_calls=total_calls,
             tool_results=tuple(collected),
             execution_trace=self.context.trace.to_dict(),
+            llm=self._llm_summary(),
         )
 
