@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成。
+Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完成。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -51,6 +51,11 @@ Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成�
 - 新增无需 EDF/权重的 `agent_cli --demo-synthetic` 真实 LLM 入口；外部服务只接收合成记录元数据、工具 schema 和派生结果。
 - 新增四项有界真实 LLM 验收套件与默认跳过的联网测试；CI 不需要密钥。
 - 真实 `deepseek-flash` 完成基础信息、指定窗 PSD、事件 artifact 三步链和临床诊断拒绝；脱敏逐例结果已固化。
+- 冻结 Baseline v1 的 30 项自然语言任务集、18/12 development/holdout、15 项真实 DeepSeek 子集及独立判定规则。
+- 新增统一 Baseline Runner、三种合成场景、总请求/Token 预算、逐例脱敏 Trace 与分层判定；请求不暴露工具名和调用顺序。
+- Fake/Mock 30 项全部跑通协议链；真实 DeepSeek 初始严格 3/15，12 项失败均保留并分类。
+- 通用最小工具 Prompt 修复后只复测 5 个 development 案例，5/5 通过；holdout 未复测且不再声称未见。
+- 本地真实 EDF+权重工作流以及两份匿名 R3 的事件、特征和质量链均复现；真实数据没有进入外部 LLM。
 
 ## 实际验证结果
 
@@ -117,6 +122,14 @@ Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成�
 | 事件 artifact 传递 | `event_bandpower` 使用与 `create_epochs` 返回值完全相同的 artifact ID；2 个有效 Epoch、1 个越界拒绝。 |
 | DeepSeek 调用成本 | 四案例 9 次请求、5 次工具调用、16,041 tokens；非思考模式，单请求上限 768 tokens。 |
 | Issue #6 全量测试 | `compileall`/`pip check` 通过；有 EDF/权重/R3 资源时 116 项通过、真实联网测试 1 项默认跳过；无私有资源时 105 项通过、12 项跳过。 |
+| Baseline v1 冻结集 | 30 项：development 18、holdout 12；真实 DeepSeek 固定子集 15；规范化 SHA-256 `e1713cda…4654ae1`。 |
+| Fake/Mock Runner | 30/30 协议案例完成；59 次本地 Fake 请求。该结果不作为语言模型性能。 |
+| DeepSeek 首次固定子集 | 严格 3/15；37 请求、72,358 tokens。必需工具/禁止动作/结果/参数/artifact/回答检查均通过，12 项因额外工具调用不满足最小集合。 |
+| DeepSeek 有界复测 | 通用最小调用 Prompt 修复后，5 个 development 案例 5/5；9 请求、16,819 tokens。holdout 未复测。 |
+| DeepSeek 总预算 | 46 请求、89,177 tokens，低于 48 请求/120k tokens 限制；cost 未取得可靠 API 金额，记录为 null。 |
+| 本地 EEGAgent 资源 | `[22,61696]`/256 Hz；信息、PSD、癫痫模型全部成功，单窗模型原始输出仍为 `Non-seiz=0.0, seiz=1.0`。 |
+| 两份匿名 R3 | 21 通道/300 Hz；事件 81/96、有效 Epoch 72/60；事件频带、记录质量与 Epoch 质量均成功；未解释组别或标签。 |
+| Baseline v1 全量测试 | `pip check`/`compileall` 通过；有资源 124 项中 123 通过、1 项联网跳过；无资源 112 通过、12 跳过。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -159,19 +172,19 @@ Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成�
 19. 强 Expert 与 Candidate 完全持平，研究点二当前为 No-Go；研究点一也尚未成立。
 20. 真实 LLM 仅完成一次 4 案例合成验收；尚无多措辞重复试验、不同模型比较、长上下文、并发或故障率统计。
 21. 本次没有通过真实 LLM 调用本地癫痫权重；已验证的是合成 Native 基础/事件工具与不兼容拒绝，不得外推为模型调度性能。
+22. Baseline v1 已用合成 22 导输入让真实 DeepSeek 调度本地权重，但输出仅是协议 smoke；真实 LLM+真实 EEG 仍未授权、未验证。
+23. 初始严格自然语言结果 3/15，说明多余工具调用仍是明确基线缺陷；5/5 修复结果只来自 development 复测。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 冻结多措辞和错误诱导的真实 LLM 小型测试集，分别报告工具选择、参数、Executor 拒绝、回答忠实度和成本，避免把 4/4 外推为总体准确率。
-2. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
-3. 稳定 `TaskProfile` 与 Tool Schema，增加更完整的 JSON Schema 校验、错误码测试和版本兼容策略。
-4. 在确认没有兼容调用方后移除 `legacy/register_data.py`，逐步将已验证算法移出 `legacy` 命名空间。
-5. 获取合法的带事件 EDF/外部注释数据后建立真实事件回归，严格分离数据适配、工具能力和 Agent 调度质量。
-6. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
-7. 两个候选研究点的当前结论均为 No-Go；如继续研究，应使用独立冻结任务、真实任务日志和强基线，不预设优越性。
-8. 优先考虑“跨 Profile/处理阶段的质量证据校准与不确定性传播”，使用独立人工标注或跨设备受控伪迹验证。
+1. 停止无边界扩充 Harness，转入 EEG Agent、scientific workflow、Agent Harness 与 EEG 方法文献梳理，重新筛选可证伪研究问题。
+2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复与不同措辞，不把本轮 development 复测或已暴露 holdout 当作泛化证据。
+3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
+4. 获取合法的带事件公开数据后建立真实事件回归；实验室真实数据外发必须先获得明确治理授权。
+5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
+6. 两个候选研究点当前均未成立；后续必须基于文献、独立数据和强基线重新论证，不因工程便利编造贡献。
 
 ## Git Commit 信息
 
@@ -214,3 +227,8 @@ Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成�
 - Issue #6 阶段 B Commit：`e155fc5`（`feat: add synthetic real-agent execution path`）。
 - Issue #6 阶段 C Commit：`06c8cbe`（`test: validate real DeepSeek EEG tool loops`）。
 - Issue #6 阶段 D Commit：`750eb04`（`docs: complete real DeepSeek baseline acceptance`）。
+- Issue #7 阶段 A Commit：`e320d3c`（`research: freeze Baseline v1 acceptance scope`）。
+- Issue #7 阶段 B Commit：`a8eefd7`（`feat: add frozen Baseline v1 Agent runner`）。
+- Issue #7 阶段 C Commit：`44ab04a`（`test: verify Baseline v1 local EEG resource chains`）。
+- Issue #7 阶段 D Commit：`9ffb7fd`（`eval: run frozen real DeepSeek Baseline v1 subset`）。
+- Issue #7 阶段 E Commit：由本轮版本与验收文档提交记录。

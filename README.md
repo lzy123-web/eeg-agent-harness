@@ -2,6 +2,8 @@
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
+Baseline v1.0 已完成冻结任务集、真实 DeepSeek 自主工具选择、本地 EDF+模型、两份匿名 R3 离线链和完整回归验收。首次严格真实 LLM 子集为 3/15；主要失败是安全但不必要的额外工具调用。通用最小调用修复后的 5 个 development 复测为 5/5，holdout 未复测，因此不得表述为总体可靠率。详见 `docs/research/BASELINE_V1_ACCEPTANCE.md`。
+
 Milestone 5 完成了约束规划强基线复核：在同等观察与恢复预算下，强 Expert DAG 与 Planner 的完成/拒绝结果持平，Planner 调用更多，因此当前“性能优势”为 No-Go；声明式扩展价值仅作 Conditional Go。详见 `docs/research/PLANNING_V2_EVALUATION.md`。
 
 Milestone 6 增加了显式 EEG 质量证据与自适应分析 Pilot。受控合成指标通过，但真实阈值明显敏感；Candidate 与同证据、同预算的强 Expert 完全持平，因此研究点二为 No-Go。质量工具作为工程能力保留，详见 `docs/research/EVIDENCE_ADAPTIVE_EVALUATION.md`。
@@ -147,6 +149,14 @@ $env:EEG_HARNESS_LLM_MAX_TOKENS = '768'
 & $python -m eeg_harness.real_llm_evaluation `
   --output artifacts\real_llm_acceptance.json
 
+# Baseline v1 冻结任务：全部 Fake/Mock（模型资源仅本地引用）
+& $python -m eeg_harness.baseline_v1 --backend fake `
+  --model '<现有权重路径>' --output artifacts\baseline_v1_fake.json
+
+# Baseline v1 固定真实 DeepSeek 子集；输入均为合成 EEG
+& $python -m eeg_harness.baseline_v1 --backend real `
+  --model '<现有权重路径>' --output artifacts\baseline_v1_real.json
+
 Remove-Item Env:EEG_HARNESS_LLM_API_KEY
 ```
 
@@ -160,15 +170,45 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：116 项通过、1 项真实联网测试按设计跳过。无私有资源模式 105 项通过、12 项按设计跳过；GitHub Actions 不下载 EDF、权重或使用 API 密钥。
+2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：123 项通过、1 项真实联网测试按设计跳过。无私有资源模式 112 项通过、12 项按设计跳过；GitHub Actions 不下载 EDF、权重或使用 API 密钥。
 
 真实 DeepSeek 合成验收另行执行：4/4 案例通过，其中 3 个完成真实 Tool Calling 闭环，1 个正确拒绝临床诊断；共 9 次模型请求、5 次工具调用、16,041 tokens。逐例脱敏结果见 `docs/research/results/real_llm_baseline_v1.json`，解释边界见 `docs/research/REAL_LLM_BASELINE_REPORT.md`。
+
+Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30/30；真实 DeepSeek 首次固定子集严格通过 3/15，修复后的 5 项 development 有界复测为 5/5。完整失败与成本保留在 `docs/research/results/baseline_v1_deepseek_evaluation.json`。
+
+## Baseline v1.0：四条 PowerShell 入口
+
+以下命令中的路径均由使用者显式提供，真实数据只做本地离线计算。
+
+```powershell
+# 1. 合成 EEG + 真实 DeepSeek 自然语言分析
+& $python -m eeg_harness.agent_cli --demo-synthetic `
+  --request '给出 SYNTH-C1 开始后两秒内各频带的绝对功率'
+
+# 2. 本地 EDF + 现有模型，完全离线
+& $python -m eeg_harness.workflow_cli --edf '<本地 EDF>' `
+  --profile tuev_bipolar_22 --model '<本地权重>' `
+  --channel FP1-F7 --start 0 --end 1 --output artifacts\local_model.json
+
+# 3. 本地 R3 事件、特征和质量，完全离线且输出去标识摘要
+& $python -m eeg_harness.applications.r3.analysis_cli --edf '<本地 R3 EDF>' `
+  --include-quality --public-summary --output artifacts\r3_public.json
+
+# 4a. 冻结任务 Fake/Mock
+& $python -m eeg_harness.baseline_v1 --backend fake `
+  --model '<本地权重>' --output artifacts\baseline_v1_fake.json
+
+# 4b. 可选真实 DeepSeek，只使用 Runner 内置合成记录
+& $python -m eeg_harness.baseline_v1 --backend real `
+  --model '<本地权重>' --output artifacts\baseline_v1_real.json
+```
 
 ## 当前边界
 
 - 未验证多数据集泛化、真实带事件 EDF、事件级模型性能或临床有效性。
 - 当前事件能力是通用 Epoch 与频带特征，不等同于完整 ERP/evoked 分析；Sleep、MDD、ASD 等任务尚未迁移。
 - 真实 DeepSeek API 已在一次有界合成验收中验证；这只证明协议与当前四类请求的工程闭环，不证明 LLM 选择工具的总体可靠性、临床有效性或多数据集泛化。
+- Baseline v1 冻结子集暴露了明显的工具最小性问题；尽管功能与安全检查通过，初始严格结果只有 3/15。不能用后续 development 复测替代未复测的 holdout 指标。
 - 冻结 v2 中强 Expert 与 Planner 均为 100% 完成/正确拒绝，未观察到 Planner 结果优势；Fake 自然语言差异不作为真实模型证据。
 - 质量阈值仅为未校准经验规则；Candidate 与强 Expert 在冻结合成案例中完全持平，研究点二未显示独立价值。
 - 已有无私有资源 CI；尚无完整资源 manifest、TaskProfile 插件机制和真实事件评估集。

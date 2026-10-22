@@ -287,3 +287,41 @@ Commit：`06c8cbe`。
 
 Commit：`750eb04`。
 
+## Milestone 8：多任务 EEG Agent Baseline v1.0（Issue #7）
+
+### A：冻结范围
+
+- 30 项无工具名/步骤提示的任务，development 18、holdout 12，真实子集 15。
+- 独立声明工具、参数、artifact、安全和回答判据；规范化清单 hash 已锁定。
+- Commit：`e320d3c`。
+
+### B：统一 Runner
+
+- 复用默认 EEGAgent/Registry/Executor/Context，增加合成有事件、无事件与 22 导模型协议场景。
+- Fake 30/30 只证明协议；真实 Runner 有 48 请求/120k tokens 总预算和逐例结果。
+- Prompt 不再告诉固定事件步骤，要求最小必要工具与缺参澄清。
+- Commit：`a8eefd7`。
+
+### C：真实资源离线链
+
+- 原 EEGAgent EDF+权重三工具完成，shape `[22,61696]`、256 Hz。
+- 两份匿名 R3 完成事件、Epoch、绝对频带功率及记录/Epoch 质量；事件 81/96、有效 Epoch 72/60。
+- 不解释 ASD/TD 与标签语义，不向外部 LLM 发送真实数据。
+- Commit：`44ab04a`。
+
+### D：真实 DeepSeek
+
+- 初始固定子集严格 3/15；12 项失败全部保留，主因为额外安全工具违反最小允许集合。
+- 其他分层检查全部通过：必需/禁止工具、结果、参数、artifact 和回答安全。
+- 通用最小调用修复后 5 个 development 复测 5/5；holdout 未复测且已暴露。
+- 总计 46 请求、89,177 tokens，未超过预算。
+- Commit：`9ffb7fd`。
+
+### E：v1.0 交付
+
+- 版本提升为 1.0.0，补充四条 PowerShell 入口、能力矩阵、Known Limitations 和完整验收报告。
+- 有资源 124 项中 123 通过/1 联网跳过；无资源 112 通过/12 跳过。
+- Baseline 已可供论文后续实验复用；下一步应停止扩框架，进入文献与研究问题筛选。
+
+Commit：由本阶段提交记录。
+

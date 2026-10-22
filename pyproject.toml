@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eeg-agent-harness"
-version = "0.9.0"
+version = "1.0.0"
 description = "Minimal deterministic EEG analysis baseline migrated from EEGAgent"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -26,6 +26,7 @@ eeg-harness-plan = "eeg_harness.plan_cli:main"
 eeg-harness-evidence = "eeg_harness.evidence_cli:main"
 eeg-harness-llm-smoke = "eeg_harness.llm_smoke:main"
 eeg-harness-real-llm = "eeg_harness.real_llm_evaluation:main"
+eeg-harness-baseline-v1 = "eeg_harness.baseline_v1:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
