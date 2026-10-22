@@ -30,3 +30,9 @@
 
 - 决策：IntentSpec 由 LLM 根据自然语言和脱敏状态生成；不读取 Issue #9 case contract 或 scorer gold。确定性 gate 只验证 IntentSpec 自身与当前 Context。
 - 原因：防止数据泄漏并保持真实 Agent 条件。
+
+## D4：用原文证据绑定意图 slot
+
+- 决策：LLM 输出的每个关键 slot 必须携带用户请求中的精确连续片段；string label/channel 的归一值必须实际出现在该片段中。关键 slot 无有效证据则 clarify。
+- 原因：只让 LLM 声明 `explicit=true` 无法阻止其把 record 中的 `stimulus` 当成用户给定值。原文证据不是离线 gold，可在运行时确定性验证。
+- 限制：中文数值表达、同义词和指代的稳健解析仍依赖 LLM；初版只要求数值有限且有精确原文片段，正式实验需要更严格的 span/value normalizer。
