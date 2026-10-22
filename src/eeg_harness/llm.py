@@ -2,21 +2,93 @@
 
 import json
 import os
-from urllib import request
+import socket
+import time
+from urllib import error, request
 
 
 class LLMConfigurationError(RuntimeError):
-    pass
+    """Raised when required LLM configuration is absent or invalid."""
+
+
+class LLMServiceError(RuntimeError):
+    """Sanitized provider error safe to show in local reports."""
+
+    def __init__(self, code, message, *, status=None, retryable=False):
+        super().__init__(message)
+        self.code = code
+        self.status = status
+        self.retryable = retryable
+
+    def to_dict(self):
+        return {
+            "code": self.code,
+            "message": str(self),
+            "status": self.status,
+            "retryable": self.retryable,
+        }
+
+
+def _positive_int(value, name, minimum=1):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise LLMConfigurationError(f"{name} must be an integer") from exc
+    if parsed < minimum:
+        raise LLMConfigurationError(f"{name} must be at least {minimum}")
+    return parsed
+
+
+def _nonnegative_int(value, name):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise LLMConfigurationError(f"{name} must be an integer") from exc
+    if parsed < 0:
+        raise LLMConfigurationError(f"{name} must be non-negative")
+    return parsed
 
 
 class OpenAICompatibleClient:
-    def __init__(self, base_url, api_key, model, timeout=60):
+    """Small non-streaming client retaining OpenAI tool-call message semantics."""
+
+    RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+
+    def __init__(
+        self,
+        base_url,
+        api_key,
+        model,
+        timeout=60,
+        max_tokens=1024,
+        max_retries=1,
+        retry_backoff=0.5,
+        thinking="disabled",
+    ):
         if not base_url or not api_key or not model:
             raise LLMConfigurationError("LLM base URL, API key and model are required")
+        try:
+            timeout = float(timeout)
+            retry_backoff = float(retry_backoff)
+        except (TypeError, ValueError) as exc:
+            raise LLMConfigurationError("LLM timeout and retry backoff must be numeric") from exc
+        if timeout <= 0 or retry_backoff < 0:
+            raise LLMConfigurationError("LLM timeout must be positive and backoff non-negative")
+        if thinking not in {"enabled", "disabled"}:
+            raise LLMConfigurationError("LLM thinking must be enabled or disabled")
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
         self.timeout = timeout
+        self.max_tokens = _positive_int(max_tokens, "LLM max tokens")
+        self.max_retries = _nonnegative_int(max_retries, "LLM max retries")
+        self.retry_backoff = retry_backoff
+        self.thinking = thinking
+        self.last_usage = {}
+        self.total_usage = {}
+        self.last_finish_reason = None
+        self.finish_reasons = []
+        self.request_count = 0
 
     @classmethod
     def from_env(cls):
@@ -24,19 +96,72 @@ class OpenAICompatibleClient:
             os.environ.get("EEG_HARNESS_LLM_BASE_URL"),
             os.environ.get("EEG_HARNESS_LLM_API_KEY"),
             os.environ.get("EEG_HARNESS_LLM_MODEL"),
-            timeout=float(os.environ.get("EEG_HARNESS_LLM_TIMEOUT", "60")),
+            timeout=os.environ.get("EEG_HARNESS_LLM_TIMEOUT", "60"),
+            max_tokens=os.environ.get("EEG_HARNESS_LLM_MAX_TOKENS", "1024"),
+            max_retries=os.environ.get("EEG_HARNESS_LLM_MAX_RETRIES", "1"),
+            retry_backoff=os.environ.get("EEG_HARNESS_LLM_RETRY_BACKOFF", "0.5"),
+            thinking=os.environ.get("EEG_HARNESS_LLM_THINKING", "disabled"),
         )
 
-    def complete(self, messages, tools):
-        body = {"model": self.model, "messages": messages}
-        if tools:
-            body.update({"tools": tools, "tool_choice": "auto"})
-        payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    @property
+    def endpoint(self):
         endpoint = self.base_url
         if not endpoint.endswith("/chat/completions"):
             endpoint += "/chat/completions"
+        return endpoint
+
+    @staticmethod
+    def _sanitized_http_error(status):
+        if status in {401, 403}:
+            return LLMServiceError(
+                "AUTHENTICATION_ERROR", "LLM authentication or authorization failed.",
+                status=status,
+            )
+        if status == 429:
+            return LLMServiceError(
+                "RATE_LIMITED", "LLM service rate limit was reached.",
+                status=status, retryable=True,
+            )
+        if status in {500, 502, 503, 504}:
+            return LLMServiceError(
+                "SERVICE_UNAVAILABLE", "LLM service is temporarily unavailable.",
+                status=status, retryable=True,
+            )
+        return LLMServiceError(
+            "HTTP_ERROR", f"LLM service returned HTTP status {status}.", status=status,
+        )
+
+    def _record_metadata(self, response_body):
+        choices = response_body.get("choices")
+        if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+            raise LLMServiceError("INVALID_RESPONSE", "LLM response has no valid choice.")
+        message = choices[0].get("message")
+        if not isinstance(message, dict):
+            raise LLMServiceError("INVALID_RESPONSE", "LLM response has no valid message.")
+        usage = response_body.get("usage") or {}
+        self.last_usage = {
+            key: int(value) for key, value in usage.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        for key, value in self.last_usage.items():
+            self.total_usage[key] = self.total_usage.get(key, 0) + value
+        self.last_finish_reason = choices[0].get("finish_reason")
+        self.finish_reasons.append(self.last_finish_reason)
+        return message
+
+    def complete(self, messages, tools, tool_choice="auto"):
+        body = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+            "stream": False,
+            "thinking": {"type": self.thinking},
+        }
+        if tools:
+            body.update({"tools": tools, "tool_choice": tool_choice})
+        payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
         http_request = request.Request(
-            endpoint,
+            self.endpoint,
             data=payload,
             headers={
                 "Authorization": f"Bearer {self.api_key}",
@@ -44,9 +169,31 @@ class OpenAICompatibleClient:
             },
             method="POST",
         )
-        with request.urlopen(http_request, timeout=self.timeout) as response:
-            body = json.loads(response.read().decode("utf-8"))
-        return body["choices"][0]["message"]
+        attempts = self.max_retries + 1
+        for attempt in range(attempts):
+            self.request_count += 1
+            try:
+                with request.urlopen(http_request, timeout=self.timeout) as response:
+                    response_body = json.loads(response.read().decode("utf-8"))
+                return self._record_metadata(response_body)
+            except error.HTTPError as exc:
+                sanitized = self._sanitized_http_error(exc.code)
+                if not sanitized.retryable or attempt + 1 >= attempts:
+                    raise sanitized from None
+            except (error.URLError, TimeoutError, socket.timeout):
+                sanitized = LLMServiceError(
+                    "NETWORK_ERROR", "LLM service could not be reached before timeout.",
+                    retryable=True,
+                )
+                if attempt + 1 >= attempts:
+                    raise sanitized from None
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                raise LLMServiceError(
+                    "INVALID_RESPONSE", "LLM service returned invalid JSON."
+                ) from None
+            if self.retry_backoff:
+                time.sleep(self.retry_backoff * (attempt + 1))
+        raise LLMServiceError("UNKNOWN_ERROR", "LLM request failed.")
 
 
 class DemoFakeLLM:
