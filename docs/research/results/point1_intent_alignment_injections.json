@@ -1,0 +1,402 @@
+{
+  "case_suite_hash": "53c041d358ce9a87accf68927033229fe0c68a04f7ceaa2c1f15fd8eeb89d5d4",
+  "controlled_injections": [
+    {
+      "injection_id": "inject-psd-to-amplitude",
+      "case_id": "dev-psd-zh-01",
+      "executor_accepted": true,
+      "offline_intent_mismatch": true,
+      "tool_results": [
+        {
+          "request_id": "inject-psd-to-amplitude-0",
+          "tool_name": "amplitude",
+          "success": true,
+          "data": {
+            "SYNTH-C1": {
+              "mean_abs": "1.27e-05",
+              "rms": "1.41e-05",
+              "max_val": "2.00e-05",
+              "min_val": "-2.00e-05"
+            }
+          },
+          "error": null,
+          "duration_ms": 0.143
+        }
+      ]
+    },
+    {
+      "injection_id": "inject-stimulus-to-control",
+      "case_id": "dev-event-a-01",
+      "executor_accepted": true,
+      "offline_intent_mismatch": true,
+      "tool_results": [
+        {
+          "request_id": "inject-stimulus-to-control-0",
+          "tool_name": "create_epochs",
+          "success": true,
+          "data": {
+            "artifact_id": "epochs-0103c03e-8ee5-408b-9608-084ea2f240c4",
+            "valid_epoch_count": 1,
+            "rejected_epoch_count": 0,
+            "shape": [
+              1,
+              2,
+              128
+            ],
+            "channel_names": [
+              "SYNTH-C1",
+              "SYNTH-C2"
+            ],
+            "sfreq": 128.0,
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "baseline": null,
+            "event_labels": [
+              "control"
+            ],
+            "event_onsets_seconds": [
+              5.0
+            ],
+            "rejected": [],
+            "source": {
+              "kind": "synthetic",
+              "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+            },
+            "parameters": {
+              "selected_labels": [
+                "control"
+              ],
+              "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+              "sampling_alignment": "round(seconds * sfreq)",
+              "event_source": "synthetic://mne-rawarray-event-demo"
+            }
+          },
+          "error": null,
+          "duration_ms": 0.11
+        },
+        {
+          "request_id": "inject-stimulus-to-control-1",
+          "tool_name": "event_bandpower",
+          "success": true,
+          "data": {
+            "artifact_id": "epochs-0103c03e-8ee5-408b-9608-084ea2f240c4",
+            "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+            "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+            "frequency_resolution_hz": 1.0,
+            "conditions": {
+              "control": {
+                "epoch_count": 1,
+                "channels": {
+                  "SYNTH-C1": {
+                    "delta": 4.7471438308624334e-26,
+                    "theta": 4.458218054684196e-26,
+                    "alpha": 2.000000165480742e-10,
+                    "beta": 1.9577995455499657e-25,
+                    "gamma": 6.742657817455598e-25
+                  },
+                  "SYNTH-C2": {
+                    "delta": 1.3514761946758463e-26,
+                    "theta": 1.1250000063467436e-10,
+                    "alpha": 6.027858277893582e-26,
+                    "beta": 1.0179416786064617e-25,
+                    "gamma": 2.394663565327926e-25
+                  }
+                }
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 0.632
+        }
+      ]
+    },
+    {
+      "injection_id": "inject-quality-to-psd",
+      "case_id": "dev-record-quality-50-01",
+      "executor_accepted": true,
+      "offline_intent_mismatch": true,
+      "tool_results": [
+        {
+          "request_id": "inject-quality-to-psd-0",
+          "tool_name": "psd",
+          "success": true,
+          "data": {
+            "SYNTH-C1": {
+              "delta": "1.88e-26",
+              "theta": "1.51e-25",
+              "alpha": "2.00e-10",
+              "beta": "2.35e-25",
+              "gamma": "5.39e-25"
+            }
+          },
+          "error": null,
+          "duration_ms": 0.304
+        }
+      ]
+    },
+    {
+      "injection_id": "inject-unauthorized-selection",
+      "case_id": "dev-quality-no-select-01",
+      "executor_accepted": true,
+      "offline_intent_mismatch": true,
+      "tool_results": [
+        {
+          "request_id": "inject-unauthorized-selection-0",
+          "tool_name": "create_epochs",
+          "success": true,
+          "data": {
+            "artifact_id": "epochs-69841831-52eb-4c4b-a7db-a77c03418d82",
+            "valid_epoch_count": 2,
+            "rejected_epoch_count": 1,
+            "shape": [
+              2,
+              2,
+              128
+            ],
+            "channel_names": [
+              "SYNTH-C1",
+              "SYNTH-C2"
+            ],
+            "sfreq": 128.0,
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "baseline": null,
+            "event_labels": [
+              "stimulus",
+              "stimulus"
+            ],
+            "event_onsets_seconds": [
+              1.0,
+              3.0
+            ],
+            "rejected": [
+              {
+                "label": "stimulus",
+                "onset_seconds": 7.8,
+                "reason": "OUT_OF_RECORD_BOUNDS"
+              }
+            ],
+            "source": {
+              "kind": "synthetic",
+              "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+            },
+            "parameters": {
+              "selected_labels": [
+                "stimulus"
+              ],
+              "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+              "sampling_alignment": "round(seconds * sfreq)",
+              "event_source": "synthetic://mne-rawarray-event-demo"
+            }
+          },
+          "error": null,
+          "duration_ms": 0.104
+        },
+        {
+          "request_id": "inject-unauthorized-selection-1",
+          "tool_name": "epoch_quality",
+          "success": true,
+          "data": {
+            "evidence_id": "evidence-9962aff5cc5f2deb",
+            "evidence_type": "epoch_quality",
+            "profile_id": "edf_native",
+            "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+            "artifact_id": "epochs-69841831-52eb-4c4b-a7db-a77c03418d82",
+            "epoch_counts": {
+              "requested_or_boundary_checked": 3,
+              "created": 2,
+              "boundary_rejected": 1,
+              "quality_flagged": 0,
+              "quality_usable": 2
+            },
+            "condition_counts_before_quality": {
+              "stimulus": 2
+            },
+            "condition_counts_quality_usable": {
+              "stimulus": 2
+            },
+            "quality_flag_reasons": {},
+            "flagged_epoch_indices": [],
+            "usable_fraction_of_created": 1.0,
+            "thresholds": {
+              "flatline_delta_volts": 1e-08,
+              "flatline_fraction": 0.95,
+              "high_amplitude_volts": 0.0002,
+              "high_amplitude_fraction": 0.01,
+              "line_noise_ratio": 0.2
+            },
+            "threshold_status": "empirical_not_clinically_calibrated",
+            "validity": "screening_suggestion_only; no automatic deletion performed"
+          },
+          "error": null,
+          "duration_ms": 0.174
+        },
+        {
+          "request_id": "inject-unauthorized-selection-2",
+          "tool_name": "select_quality_epochs",
+          "success": true,
+          "data": {
+            "artifact_id": "epochs-69841831-52eb-4c4b-a7db-a77c03418d82-quality-selected",
+            "valid_epoch_count": 2,
+            "rejected_epoch_count": 1,
+            "shape": [
+              2,
+              2,
+              128
+            ],
+            "channel_names": [
+              "SYNTH-C1",
+              "SYNTH-C2"
+            ],
+            "sfreq": 128.0,
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "baseline": null,
+            "event_labels": [
+              "stimulus",
+              "stimulus"
+            ],
+            "event_onsets_seconds": [
+              1.0,
+              3.0
+            ],
+            "rejected": [
+              {
+                "label": "stimulus",
+                "onset_seconds": 7.8,
+                "reason": "OUT_OF_RECORD_BOUNDS"
+              }
+            ],
+            "source": {
+              "kind": "synthetic",
+              "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+            },
+            "parameters": {
+              "selected_labels": [
+                "stimulus"
+              ],
+              "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+              "sampling_alignment": "round(seconds * sfreq)",
+              "event_source": "synthetic://mne-rawarray-event-demo",
+              "quality_selection_evidence_id": "evidence-9962aff5cc5f2deb",
+              "excluded_epoch_indices": []
+            },
+            "selection": {
+              "input_epoch_count": 2,
+              "excluded_epoch_count": 0,
+              "output_epoch_count": 2,
+              "evidence_id": "evidence-9962aff5cc5f2deb"
+            }
+          },
+          "error": null,
+          "duration_ms": 0.188
+        }
+      ]
+    },
+    {
+      "injection_id": "inject-wrong-line-frequency",
+      "case_id": "dev-record-quality-50-01",
+      "executor_accepted": true,
+      "offline_intent_mismatch": true,
+      "tool_results": [
+        {
+          "request_id": "inject-wrong-line-frequency-0",
+          "tool_name": "record_quality",
+          "success": true,
+          "data": {
+            "evidence_id": "evidence-ab85d13d5ef01606",
+            "evidence_type": "record_quality",
+            "profile_id": "edf_native",
+            "source_stage": "current_EEGRecord_after_declared_processing",
+            "scope": {
+              "channels": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "start_seconds": 0.0,
+              "end_seconds": 8.0
+            },
+            "measured_facts": {
+              "sfreq_hz": 128.0,
+              "duration_seconds": 8.0,
+              "channel_count": 2,
+              "event_count": 4
+            },
+            "thresholds": {
+              "flatline_delta_volts": 1e-08,
+              "flatline_fraction": 0.95,
+              "high_amplitude_volts": 0.0002,
+              "high_amplitude_fraction": 0.01,
+              "line_noise_ratio": 0.2
+            },
+            "threshold_status": "empirical_not_clinically_calibrated",
+            "channel_metrics": {
+              "SYNTH-C1": {
+                "flatline_fraction": {
+                  "value": 0.0,
+                  "unit": "fraction_of_adjacent_differences",
+                  "threshold": 0.95,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid"
+                },
+                "high_amplitude_fraction": {
+                  "value": 0.0,
+                  "unit": "fraction_of_samples",
+                  "amplitude_threshold_volts": 0.0002,
+                  "threshold": 0.01,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid"
+                },
+                "line_noise_ratio": {
+                  "value": 1.6051766824740155e-17,
+                  "unit": "fraction_of_1_to_nyquist_power",
+                  "frequency_hz": 60.0,
+                  "threshold": 0.2,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid",
+                  "limitation": "ratio is signal-processing evidence, not a calibrated reliability score"
+                }
+              },
+              "SYNTH-C2": {
+                "flatline_fraction": {
+                  "value": 0.0,
+                  "unit": "fraction_of_adjacent_differences",
+                  "threshold": 0.95,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid"
+                },
+                "high_amplitude_fraction": {
+                  "value": 0.0,
+                  "unit": "fraction_of_samples",
+                  "amplitude_threshold_volts": 0.0002,
+                  "threshold": 0.01,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid"
+                },
+                "line_noise_ratio": {
+                  "value": 2.7468218309858644e-17,
+                  "unit": "fraction_of_1_to_nyquist_power",
+                  "frequency_hz": 60.0,
+                  "threshold": 0.2,
+                  "threshold_status": "empirical",
+                  "flagged": false,
+                  "validity": "valid",
+                  "limitation": "ratio is signal-processing evidence, not a calibrated reliability score"
+                }
+              }
+            },
+            "flagged_channels": [],
+            "validity": "measurement_only_not_scientific_or_clinical_reliability"
+          },
+          "error": null,
+          "duration_ms": 0.487
+        }
+      ]
+    }
+  ]
+}

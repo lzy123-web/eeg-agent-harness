@@ -1,0 +1,2615 @@
+{
+  "schema_version": "1.0",
+  "case_suite_hash": "53c041d358ce9a87accf68927033229fe0c68a04f7ceaa2c1f15fd8eeb89d5d4",
+  "method": "native_deepseek_tool_calling",
+  "runtime_received_gold": false,
+  "privacy": {
+    "synthetic_only": true,
+    "raw_eeg_sent_to_llm": false,
+    "credentials_recorded": false
+  },
+  "budgets": {
+    "max_provider_requests": 36,
+    "max_total_tokens": 80000,
+    "max_rounds_per_case": 4,
+    "max_tool_calls_per_case": 6
+  },
+  "results": [
+    {
+      "case_id": "dev-psd-zh-01",
+      "split": "development",
+      "family": "analysis_type",
+      "request": "只分析 SYNTH-C1 从第 1 秒到第 3 秒的绝对频带功率，不要做振幅统计。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "psd",
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "window": [
+          1.0,
+          3.0
+        ],
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [
+          "psd"
+        ],
+        "forbidden_tools": [
+          "amplitude",
+          "event_bandpower",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "channels",
+          "window"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "SYNTH-C1，1–3 秒窗口的 Welch 绝对频带功率（未做振幅统计）：\n\n| 频带 | 绝对功率 |\n|---|---|\n| delta | 1.88e-26 |\n| theta | 1.51e-25 |\n| alpha | 2.00e-10 |\n| beta | 2.35e-25 |\n| gamma | 5.39e-25 |\n\n说明：数值为该窗口内的绝对频带功率，alpha 明显高于其他频带；这仅是对绝对功率的度量，不能解释为 ERD/ERS（相对功率变化）。",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_6BOBseq4Ib0ig9vo3p6W6235",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 1.73
+          }
+        ],
+        "execution_trace": {
+          "task_id": "574fc7c5-3042-41c4-9541-0f620a795eb2",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:09.188761+00:00",
+          "ended_at_utc": "2026-10-22T15:25:11.693547+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_6BOBseq4Ib0ig9vo3p6W6235",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 1,
+                "end": 3
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C1"
+                ]
+              },
+              "duration_ms": 1.73,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 2,
+          "usage": {
+            "prompt_tokens": 2946,
+            "completion_tokens": 226,
+            "total_tokens": 3172,
+            "prompt_cache_hit_tokens": 2560,
+            "prompt_cache_miss_tokens": 386
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "channels": true,
+          "window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "psd"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 3172,
+        "latency_ms": 2694.51,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-amp-zh-01",
+      "split": "development",
+      "family": "analysis_type",
+      "request": "我关心的是 SYNTH-C2 在 0 到 2 秒的幅值范围，不是频谱。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "amplitude",
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "window": [
+          0.0,
+          2.0
+        ],
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [
+          "amplitude"
+        ],
+        "forbidden_tools": [
+          "psd",
+          "event_bandpower",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "channels",
+          "window"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "SYNTH-C2，0–2 秒（含 0，不含 2 秒），幅值统计（依据工具实际返回）：\n\n| 指标 | 值 |\n|---|---|\n| 平均绝对幅值 | 9.54e-06 |\n| RMS | 1.06e-05 |\n| 最大值 | 1.50e-05 |\n| 最小值 | -1.50e-05 |\n\n说明：\n- 幅值范围（最大到最小）约为 −1.50e-05 至 +1.50e-05，即峰峰值约 3.0e-05。\n- 仅包含 SYNTH-C2 单通道，未做频谱计算。\n- 数值量级极小（万分之一个单位），提示该窗口内信号几乎贴近零线；如需我确认是否为平线/异常，可用质量检查工具进一步验证。需要的话请告知。",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_c2X9xXqpCvlGs4nPm2wH3242",
+            "tool_name": "amplitude",
+            "success": true,
+            "data": {
+              "SYNTH-C2": {
+                "mean_abs": "9.54e-06",
+                "rms": "1.06e-05",
+                "max_val": "1.50e-05",
+                "min_val": "-1.50e-05"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.203
+          }
+        ],
+        "execution_trace": {
+          "task_id": "058e4e63-ab6d-4172-af3e-538904a37fbb",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:11.696561+00:00",
+          "ended_at_utc": "2026-10-22T15:25:14.392849+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_c2X9xXqpCvlGs4nPm2wH3242",
+              "tool_name": "amplitude",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C2"
+                ]
+              },
+              "duration_ms": 0.203,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 4,
+          "usage": {
+            "prompt_tokens": 5876,
+            "completion_tokens": 512,
+            "total_tokens": 6388,
+            "prompt_cache_hit_tokens": 5120,
+            "prompt_cache_miss_tokens": 756
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "channels": true,
+          "window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "amplitude"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 3216,
+        "latency_ms": 2699.091,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-event-a-01",
+      "split": "development",
+      "family": "event_condition",
+      "request": "估计 stimulus 条件在事件前 0.2 秒至事件后 0.8 秒的绝对频带功率；不要混入 control。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "event_bandpower",
+        "channels": [],
+        "window": [
+          -0.2,
+          0.8
+        ],
+        "source_stage": "current",
+        "event_labels": [
+          "stimulus"
+        ],
+        "allowed_tools": [
+          "list_events",
+          "create_epochs",
+          "epoch_summary",
+          "event_bandpower"
+        ],
+        "forbidden_tools": [
+          "amplitude",
+          "psd",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "window",
+          "event_labels"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "## stimulus 条件绝对频带功率（事件前 0.2 s 至事件后 0.8 s）\n\n**Epoch 构建**\n- 仅选择 `stimulus` 标签，`control` 未纳入（记录中 control 仅有 1 个事件）。\n- 窗口：[onset − 0.2 s, onset + 0.8 s)，即 **−0.2 s 到 +0.8 s**，无基线校正。\n- 有效 epoch：**2 个**（onset 在 1.0 s 和 3.0 s）；**1 个被剔除**（onset 在 7.8 s，原因：`OUT_OF_RECORD_BOUNDS`，即窗口超出记录末端，记录总长 8.0 s）。\n\n**绝对频带功率**（Welch 绝对功率，非基线归一化；频率分辨率 1.0 Hz）\n\n| 通道 | delta | theta | alpha | beta | gamma |\n|---|---|---|---|---|---|\n| SYNTH-C1 | 4.75e-26 | 4.46e-26 | **2.00e-10** | 1.96e-25 | 6.74e-25 |\n| SYNTH-C2 | 1.35e-26 | **1.13e-10** | 6.03e-26 | 1.02e-25 | 2.39e-25 |\n\n**说明与限制**\n1. 这些是**事件窗内的绝对频带功率**，按方法说明明确**不能**解释为 ERD/ERS（无基线归一化）。要判断相对事件前后的增减，需要单独建立基线窗并做归一化比较。\n2. 有效样本量很小：仅 2 个 epoch，且每个 epoch 窗长 1.0 s（1.0 Hz 分辨率），频带功率估计的稳定性有限；统计推断不适用。\n3. 数值上表现为某一频带远高于其他频带（C1 的 alpha、C2 的 theta），其余频带处于机器精度量级（约 1e-25–1e-26），这看起来是合成数据中单一正弦成分的表现，而非真实的宽带 EEG 功率分布——请勿据此做生理学解释。\n4. 我没有执行质量筛选（未做拒绝规则之外的额外剔除）；如果需要，可先用 `epoch_quality` 检查这 2 个 epoch 的平坦/高幅伪迹情况后再决定是否采用该结果。",
+        "stop_reason": "completed",
+        "rounds": 4,
+        "tool_calls": 3,
+        "tool_results": [
+          {
+            "request_id": "call_00_WQbRwwU0LEZM0LkpBnjX9670",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 4,
+              "labels": {
+                "control": 1,
+                "stimulus": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 1.0,
+              "last_onset_seconds": 7.8,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.222
+          },
+          {
+            "request_id": "call_00_JmqrN7xAekV4WLmwHqoJ6838",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-16a251f8-e438-421e-b05e-15e6e98d0748",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 1,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.2,
+              "tmax": 0.8,
+              "baseline": null,
+              "event_labels": [
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0
+              ],
+              "rejected": [
+                {
+                  "label": "stimulus",
+                  "onset_seconds": 7.8,
+                  "reason": "OUT_OF_RECORD_BOUNDS"
+                }
+              ],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.269
+          },
+          {
+            "request_id": "call_00_CGJOcL1QUhL4oOzPosTJ0463",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-16a251f8-e438-421e-b05e-15e6e98d0748",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "stimulus": {
+                  "epoch_count": 2,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 4.7471438308624334e-26,
+                      "theta": 4.458218054684196e-26,
+                      "alpha": 2.000000165480742e-10,
+                      "beta": 1.9577995455499657e-25,
+                      "gamma": 6.742657810955585e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.3514762331944452e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 6.027858297152881e-26,
+                      "beta": 1.017941684865734e-25,
+                      "gamma": 2.3946635686983034e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.933
+          }
+        ],
+        "execution_trace": {
+          "task_id": "cead8dc3-a50e-49e1-933e-1967b12f9861",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:14.395864+00:00",
+          "ended_at_utc": "2026-10-22T15:25:20.008043+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_WQbRwwU0LEZM0LkpBnjX9670",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.222,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "call_00_JmqrN7xAekV4WLmwHqoJ6838",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "stimulus"
+                ],
+                "tmin": -0.2,
+                "tmax": 0.8
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.269,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "call_00_CGJOcL1QUhL4oOzPosTJ0463",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-16a251f8-e438-421e-b05e-15e6e98d0748"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 0.933,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 8,
+          "usage": {
+            "prompt_tokens": 13361,
+            "completion_tokens": 1273,
+            "total_tokens": 14634,
+            "prompt_cache_hit_tokens": 11264,
+            "prompt_cache_miss_tokens": 2097
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "event_labels": true,
+          "event_window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "list_events",
+          "create_epochs",
+          "event_bandpower"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 4,
+        "total_tokens": 8246,
+        "latency_ms": 5615.208,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-event-b-distractor-01",
+      "split": "development",
+      "family": "event_condition",
+      "request": "虽然记录也有 stimulus，我这次只要 control 条件从事件前 0.1 秒到后 0.5 秒的绝对频带功率。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "event_bandpower",
+        "channels": [],
+        "window": [
+          -0.1,
+          0.5
+        ],
+        "source_stage": "current",
+        "event_labels": [
+          "control"
+        ],
+        "allowed_tools": [
+          "list_events",
+          "create_epochs",
+          "epoch_summary",
+          "event_bandpower"
+        ],
+        "forbidden_tools": [
+          "amplitude",
+          "psd",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "window",
+          "event_labels"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "已按你的要求完成到能完成的一步，但绝对频带功率计算失败：\n\n**成功部分**\n- 事件标签已确认：`control`（1 个，onset = 5.0 s）、`stimulus`（3 个）。按你的要求只用了 `control`。\n- 已创建 Epoch 工件 `epochs-f4bce517-c9cb-44b9-b7a5-3cdefef2937d`，窗口 [onset−0.1, onset+0.5) s = [4.9, 5.5) s，通道 SYNTH-C1 / SYNTH-C2，1 个有效 epoch，无拒绝。\n\n**失败部分**\n- `event_bandpower` 报错 `TOOL_EXECUTION_FAILED`：该 Epoch 时长仅 0.6 s，短于 1 Hz Welch 分辨率所需的最短 1 秒，因此**未能取得任何频带功率数值**。我不会估算或编造结果。\n\n**限制与可选下一步**\n- 若把窗口放宽到至少 1 s（例如 −0.5 到 +0.5 s，或 −0.1 到 +1.0 s），可重试同一计算；但这会偏离你指定的 −0.1~+0.5 s 窗口，需你确认。\n- 或者可改用 `psd` 对同一时间窗直接做 Welch 频带功率——但 `psd` 同样需要合法窗口且分辨率受限，0.6 s 窗通常也不足以给出 1 Hz 分箱的可靠结果。\n- 另需注意：即使成功，这类**绝对事件窗频带功率不能被解释为 ERD/ERS**；且当前只有 1 个 control 事件，功率估计的稳健性很低。\n\n请告知是放宽窗口还是就此止步。",
+        "stop_reason": "completed",
+        "rounds": 4,
+        "tool_calls": 3,
+        "tool_results": [
+          {
+            "request_id": "call_00_SdBPQs4WBk81gVMyiaOO4504",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 4,
+              "labels": {
+                "control": 1,
+                "stimulus": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 1.0,
+              "last_onset_seconds": 7.8,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.425
+          },
+          {
+            "request_id": "call_00_1xpplVO0w1Lvi4NqY6Mc0093",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-f4bce517-c9cb-44b9-b7a5-3cdefef2937d",
+              "valid_epoch_count": 1,
+              "rejected_epoch_count": 0,
+              "shape": [
+                1,
+                2,
+                77
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.1,
+              "tmax": 0.5,
+              "baseline": null,
+              "event_labels": [
+                "control"
+              ],
+              "event_onsets_seconds": [
+                5.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "control"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.551
+          },
+          {
+            "request_id": "call_00_OsrfuOyicmQ4klm3Y2p82118",
+            "tool_name": "event_bandpower",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "TOOL_EXECUTION_FAILED",
+              "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+            },
+            "duration_ms": 0.025
+          }
+        ],
+        "execution_trace": {
+          "task_id": "47a2955c-44b7-4be8-bd7c-13ddfffd5978",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:20.010878+00:00",
+          "ended_at_utc": "2026-10-22T15:25:25.289334+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_SdBPQs4WBk81gVMyiaOO4504",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.425,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "call_00_1xpplVO0w1Lvi4NqY6Mc0093",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "control"
+                ],
+                "tmin": -0.1,
+                "tmax": 0.5
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.551,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "call_00_OsrfuOyicmQ4klm3Y2p82118",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-f4bce517-c9cb-44b9-b7a5-3cdefef2937d"
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "TOOL_EXECUTION_FAILED"
+              },
+              "duration_ms": 0.025,
+              "error": {
+                "code": "TOOL_EXECUTION_FAILED",
+                "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+              }
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 12,
+          "usage": {
+            "prompt_tokens": 20530,
+            "completion_tokens": 1893,
+            "total_tokens": 22423,
+            "prompt_cache_hit_tokens": 17408,
+            "prompt_cache_miss_tokens": 3122
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": null,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": false,
+          "event_labels": true,
+          "event_window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": "frozen_request_violates_event_bandpower_minimum_duration",
+        "contract_legal": false,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "list_events",
+          "create_epochs",
+          "event_bandpower"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 4,
+        "total_tokens": 7789,
+        "latency_ms": 5281.766,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-quality-no-select-01",
+      "split": "development",
+      "family": "selection_authority",
+      "request": "检查 stimulus 事件前 0.2 秒到后 0.8 秒试次的质量证据，但不要筛除任何试次。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "epoch_quality",
+        "channels": [],
+        "window": [
+          -0.2,
+          0.8
+        ],
+        "source_stage": "current",
+        "event_labels": [
+          "stimulus"
+        ],
+        "allowed_tools": [
+          "list_events",
+          "create_epochs",
+          "epoch_summary",
+          "epoch_quality"
+        ],
+        "forbidden_tools": [
+          "select_quality_epochs",
+          "event_bandpower"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "window",
+          "event_labels",
+          "selection_authority"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "## stimulus 事件 [-0.2, +0.8] s 试次质量证据\n\n**事件与 Epoch 建立**\n- 记录中 `stimulus` 共 3 次事件（另有 `control` 1 次）；事件序列首个 onset 1.0 s，最后 7.8 s。\n- 已按 `stimulus` 标签、相对窗 [-0.2, 0.8) s 建立 Epoch 工件 `epochs-4dfd4910-9167-4a65-9769-694035e944be`（未设基线）。\n- 通道：SYNTH-C1、SYNTH-C2；sfreq 128 Hz；形状 [2 通道, 2 试次, 128 采样点]。\n- **未筛除任何试次**：本次只做质量证据查询，未调用 `select_quality_epochs`，工件仍保留原始创建结果。\n\n**边界情况（非质量判定）**\n- 3 次 `stimulus` 中 1 次在 7.8 s，其后 +0.8 s 超出 8.0 s 记录末尾，被标为 `OUT_OF_RECORD_BOUNDS`，因此只有 2 个试次实际成形（onset 1.0 s、3.0 s）。\n- 这是记录边界造成的缺失，不是信号质量不良。\n\n**质量标志结果**（经验阈值，非临床校准）\n- `quality_flagged` = 0，`flagged_epoch_indices` = []，`quality_flag_reasons` = {}。\n- 可用试次 2/2，`usable_fraction_of_created` = 1.0；`stimulus` 条件在质量前后均为 2。\n- 涵盖的检测项：平坦线（阈值 Δ1e-08 V、占比 0.95）、高幅（2e-4 V、占比 0.01）、线噪比（0.2）。三者均未触发。\n- 该结果状态明确为 `screening_suggestion_only; no automatic deletion performed`。\n\n**需要注意的限制**\n- 证据量极小：仅 2 个有效试次、2 个通道、每试次 128 点（1.0 s 时长），对统计稳定性和线噪判定都很有限；2/2 通过不构成信号整体质量良好的结论。\n- 本结果仅描述 Epoch 窗内的平坦线/高幅/线噪筛查，不包含任何频带功率或 ERD/ERS 解释，也未产生临床诊断。\n- 若后续要计算事件窗频带功率，可直接用上述 artifact_id；但请注意绝对事件窗频带功率不可解读为 ERD/ERS。",
+        "stop_reason": "completed",
+        "rounds": 4,
+        "tool_calls": 4,
+        "tool_results": [
+          {
+            "request_id": "call_00_aYnFXUd3IfUBQo4fvq706884",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 4,
+              "labels": {
+                "control": 1,
+                "stimulus": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 1.0,
+              "last_onset_seconds": 7.8,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.31
+          },
+          {
+            "request_id": "call_00_iNqQarrZ3E9uEys8oW6C3462",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-4dfd4910-9167-4a65-9769-694035e944be",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 1,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.2,
+              "tmax": 0.8,
+              "baseline": null,
+              "event_labels": [
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0
+              ],
+              "rejected": [
+                {
+                  "label": "stimulus",
+                  "onset_seconds": 7.8,
+                  "reason": "OUT_OF_RECORD_BOUNDS"
+                }
+              ],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.529
+          },
+          {
+            "request_id": "call_00_BIQ00dT98B2TuBMNCghF8139",
+            "tool_name": "epoch_summary",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-4dfd4910-9167-4a65-9769-694035e944be",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 1,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.2,
+              "tmax": 0.8,
+              "baseline": null,
+              "event_labels": [
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0
+              ],
+              "rejected": [
+                {
+                  "label": "stimulus",
+                  "onset_seconds": 7.8,
+                  "reason": "OUT_OF_RECORD_BOUNDS"
+                }
+              ],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.305
+          },
+          {
+            "request_id": "call_01_aotuMreQl5HLeQufmGfx9548",
+            "tool_name": "epoch_quality",
+            "success": true,
+            "data": {
+              "evidence_id": "evidence-68b25fa29aaba654",
+              "evidence_type": "epoch_quality",
+              "profile_id": "edf_native",
+              "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+              "artifact_id": "epochs-4dfd4910-9167-4a65-9769-694035e944be",
+              "epoch_counts": {
+                "requested_or_boundary_checked": 3,
+                "created": 2,
+                "boundary_rejected": 1,
+                "quality_flagged": 0,
+                "quality_usable": 2
+              },
+              "condition_counts_before_quality": {
+                "stimulus": 2
+              },
+              "condition_counts_quality_usable": {
+                "stimulus": 2
+              },
+              "quality_flag_reasons": {},
+              "flagged_epoch_indices": [],
+              "usable_fraction_of_created": 1.0,
+              "thresholds": {
+                "flatline_delta_volts": 1e-08,
+                "flatline_fraction": 0.95,
+                "high_amplitude_volts": 0.0002,
+                "high_amplitude_fraction": 0.01,
+                "line_noise_ratio": 0.2
+              },
+              "threshold_status": "empirical_not_clinically_calibrated",
+              "validity": "screening_suggestion_only; no automatic deletion performed"
+            },
+            "error": null,
+            "duration_ms": 0.522
+          }
+        ],
+        "execution_trace": {
+          "task_id": "ad4d0f56-d9f2-4850-9e73-9daf2f61c883",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:25.293261+00:00",
+          "ended_at_utc": "2026-10-22T15:25:31.794567+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_aYnFXUd3IfUBQo4fvq706884",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.31,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "call_00_iNqQarrZ3E9uEys8oW6C3462",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "stimulus"
+                ],
+                "tmin": -0.2,
+                "tmax": 0.8
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.529,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "call_00_BIQ00dT98B2TuBMNCghF8139",
+              "tool_name": "epoch_summary",
+              "arguments": {
+                "artifact_id": "epochs-4dfd4910-9167-4a65-9769-694035e944be"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.305,
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "request_id": "call_01_aotuMreQl5HLeQufmGfx9548",
+              "tool_name": "epoch_quality",
+              "arguments": {
+                "artifact_id": "epochs-4dfd4910-9167-4a65-9769-694035e944be"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "evidence_id",
+                  "evidence_type",
+                  "profile_id",
+                  "source_stage",
+                  "artifact_id",
+                  "epoch_counts",
+                  "condition_counts_before_quality",
+                  "condition_counts_quality_usable",
+                  "quality_flag_reasons",
+                  "flagged_epoch_indices",
+                  "usable_fraction_of_created",
+                  "thresholds",
+                  "threshold_status",
+                  "validity"
+                ]
+              },
+              "duration_ms": 0.522,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 16,
+          "usage": {
+            "prompt_tokens": 28465,
+            "completion_tokens": 2779,
+            "total_tokens": 31244,
+            "prompt_cache_hit_tokens": 23680,
+            "prompt_cache_miss_tokens": 4785
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "event_labels": true,
+          "event_window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "list_events",
+          "create_epochs",
+          "epoch_summary",
+          "epoch_quality"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 4,
+        "total_tokens": 8821,
+        "latency_ms": 6505.134,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-record-quality-50-01",
+      "split": "development",
+      "family": "source_stage",
+      "request": "检查当前记录中 50 Hz 工频污染、平直和高幅值的证据；不要做频带分析或试次筛选。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "record_quality",
+        "channels": [],
+        "window": null,
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [
+          "record_quality"
+        ],
+        "forbidden_tools": [
+          "psd",
+          "event_bandpower",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "source_stage"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "检查结果（证据 ID：evidence-ab85d13d5ef01606，来源：current_EEGRecord_after_declared_processing）\n\n检查范围：SYNTH-C1、SYNTH-C2，0–8 秒全记录；采样率 128 Hz，方法为记录级质量测量，未做频带分析或试次筛选。\n\n| 检查项 | SYNTH-C1 | SYNTH-C2 | 判定 |\n|---|---|---|---|\n| 50 Hz 工频比（1–Nyquist 功率占比） | 3.03e-16 | 2.37e-16 | 均未超过阈值 0.2，也未标记；这两个值极低，等同没有 50 Hz 成分 |\n| 平直比例（相邻差值近似为零的占比） | 0.0 | 0.0 | 均未超过阈值 0.95，也未标记 |\n| 高幅值比例（超过 200 µV 的样本占比） | 0.0 | 0.0 | 均未超过阈值 0.01，也未标记 |\n\n结论：在这条 8 秒、双通道记录中，没有 50 Hz 工频污染的可用证据，也没有平直段或高幅值段的证据；flagged_channels 为空。\n\n需要说明的限制：\n- 所有阈值（0.2 工频比、0.95 平直比例、0.01 高幅值比例、200 µV 幅值门限、1e-8 V 平直增量）都是经验性设定，未经过临床校准；因此这些指标是信号处理层面的证据，不是可靠性评分，也不构成临床或科学结论。\n- 幅值与平直度只基于 128 Hz 采样下 8 秒的数据；工频比只是 50 Hz 处的功率占比，不代表对工频干扰的完整定性诊断。\n- 未执行频带功率分析，也未生成或筛选 Epoch，按要求未涉及 ERD/ERS 或试次筛选。",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_H8J2QIIv8Ff2QSY31z5w1331",
+            "tool_name": "record_quality",
+            "success": true,
+            "data": {
+              "evidence_id": "evidence-ab85d13d5ef01606",
+              "evidence_type": "record_quality",
+              "profile_id": "edf_native",
+              "source_stage": "current_EEGRecord_after_declared_processing",
+              "scope": {
+                "channels": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "start_seconds": 0.0,
+                "end_seconds": 8.0
+              },
+              "measured_facts": {
+                "sfreq_hz": 128.0,
+                "duration_seconds": 8.0,
+                "channel_count": 2,
+                "event_count": 4
+              },
+              "thresholds": {
+                "flatline_delta_volts": 1e-08,
+                "flatline_fraction": 0.95,
+                "high_amplitude_volts": 0.0002,
+                "high_amplitude_fraction": 0.01,
+                "line_noise_ratio": 0.2
+              },
+              "threshold_status": "empirical_not_clinically_calibrated",
+              "channel_metrics": {
+                "SYNTH-C1": {
+                  "flatline_fraction": {
+                    "value": 0.0,
+                    "unit": "fraction_of_adjacent_differences",
+                    "threshold": 0.95,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid"
+                  },
+                  "high_amplitude_fraction": {
+                    "value": 0.0,
+                    "unit": "fraction_of_samples",
+                    "amplitude_threshold_volts": 0.0002,
+                    "threshold": 0.01,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid"
+                  },
+                  "line_noise_ratio": {
+                    "value": 3.0314413335249874e-16,
+                    "unit": "fraction_of_1_to_nyquist_power",
+                    "frequency_hz": 50.0,
+                    "threshold": 0.2,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid",
+                    "limitation": "ratio is signal-processing evidence, not a calibrated reliability score"
+                  }
+                },
+                "SYNTH-C2": {
+                  "flatline_fraction": {
+                    "value": 0.0,
+                    "unit": "fraction_of_adjacent_differences",
+                    "threshold": 0.95,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid"
+                  },
+                  "high_amplitude_fraction": {
+                    "value": 0.0,
+                    "unit": "fraction_of_samples",
+                    "amplitude_threshold_volts": 0.0002,
+                    "threshold": 0.01,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid"
+                  },
+                  "line_noise_ratio": {
+                    "value": 2.370956531989296e-16,
+                    "unit": "fraction_of_1_to_nyquist_power",
+                    "frequency_hz": 50.0,
+                    "threshold": 0.2,
+                    "threshold_status": "empirical",
+                    "flagged": false,
+                    "validity": "valid",
+                    "limitation": "ratio is signal-processing evidence, not a calibrated reliability score"
+                  }
+                }
+              },
+              "flagged_channels": [],
+              "validity": "measurement_only_not_scientific_or_clinical_reliability"
+            },
+            "error": null,
+            "duration_ms": 0.823
+          }
+        ],
+        "execution_trace": {
+          "task_id": "5dc24f91-4738-46c0-b962-7095b60bd4f9",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:31.797154+00:00",
+          "ended_at_utc": "2026-10-22T15:25:35.607924+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_H8J2QIIv8Ff2QSY31z5w1331",
+              "tool_name": "record_quality",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "start": 0,
+                "end": 8,
+                "line_frequency": 50
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "evidence_id",
+                  "evidence_type",
+                  "profile_id",
+                  "source_stage",
+                  "scope",
+                  "measured_facts",
+                  "thresholds",
+                  "threshold_status",
+                  "channel_metrics",
+                  "flagged_channels",
+                  "validity"
+                ]
+              },
+              "duration_ms": 0.823,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 18,
+          "usage": {
+            "prompt_tokens": 32065,
+            "completion_tokens": 3323,
+            "total_tokens": 35388,
+            "prompt_cache_hit_tokens": 26240,
+            "prompt_cache_miss_tokens": 5825
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "line_frequency": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "record_quality"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 4144,
+        "latency_ms": 3813.715,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-missing-window-01",
+      "split": "development",
+      "family": "underspecified",
+      "request": "请看一下 SYNTH-C1 的绝对频带功率。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "clarify",
+        "analysis_type": "psd",
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "window": null,
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [],
+        "forbidden_tools": [
+          "psd",
+          "amplitude",
+          "event_bandpower"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "channels"
+        ],
+        "unknown_slots": [
+          "window"
+        ]
+      },
+      "actual": {
+        "final_answer": "我需要知道分析的时间窗。当前记录总时长 8 秒，请指定起点和终点（例如 0–8 秒），我再计算 SYNTH-C1 的绝对频带功率。\n\n另外提醒：整段数据或绝对事件窗的频带功率只是绝对功率，不能解释为 ERD/ERS。",
+        "stop_reason": "completed",
+        "rounds": 1,
+        "tool_calls": 0,
+        "tool_results": [],
+        "execution_trace": {
+          "task_id": "21737f6c-5063-422b-9cb7-f86e3d02062c",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:35.610937+00:00",
+          "ended_at_utc": "2026-10-22T15:25:36.531393+00:00",
+          "termination_reason": "completed",
+          "events": []
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 19,
+          "usage": {
+            "prompt_tokens": 33408,
+            "completion_tokens": 3391,
+            "total_tokens": 36799,
+            "prompt_cache_hit_tokens": 27392,
+            "prompt_cache_miss_tokens": 6016
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": []
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 1411,
+        "latency_ms": 923.149,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-missing-event-01",
+      "split": "development",
+      "family": "underspecified",
+      "request": "分析某个实验条件在事件前后各 0.3 秒的绝对频带功率。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "clarify",
+        "analysis_type": "event_bandpower",
+        "channels": [],
+        "window": [
+          -0.3,
+          0.3
+        ],
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [
+          "list_events"
+        ],
+        "forbidden_tools": [
+          "create_epochs",
+          "event_bandpower",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "window"
+        ],
+        "unknown_slots": [
+          "event_labels"
+        ]
+      },
+      "actual": {
+        "final_answer": "分析未能完成。下面说明目前的实际状态和原因：\n\n## 已确认的记录与事件信息\n- 采样率 128 Hz，记录时长 8.0 s，通道 `SYNTH-C1`、`SYNTH-C2`\n- 事件共 4 个：`control` 1 个（onset 5.0 s）、`stimulus` 3 个（onset 1.0、3.0、7.8 s）\n\n## 事件窗分段（±0.3 s，即 0.6 s 窗）\n- **control**：artifact `epochs-fe977b99-a63b-40aa-9ccd-185650bf8402`，1 个有效分段，0 个被剔除，形状 [1, 2, 77]\n- **stimulus**：artifact `epochs-f409a4ab-502b-412d-9726-55aef6216a15`，2 个有效分段，1 个被剔除（onset 7.8 s，原因 `OUT_OF_RECORD_BOUNDS`，因为该窗的终点 8.1 s 超出 8.0 s 记录末尾），形状 [2, 2, 77]\n\n## 频带功率计算失败\n对两个 artifact 的 `event_bandpower` 调用均返回错误：\n\n> `Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second`\n\n即 ±0.3 s 的事件窗只有 0.6 s（77 个采样点），短于该工具 Welch 估计所需的最短 1 s 窗长，因此**无法给出任何绝对频带功率数值**。我没有对结果做任何替代估算或模拟。\n\n## 可选的下一步（需你确认）\n1. **加宽事件窗**至至少 1 s（例如 -0.5～0.5 s），使 Welch 频带功率可计算——但这会改变你要求的分析窗口定义；\n2. **改用绝对事件窗的 PSD**（`psd` 工具），它接受任意 [start, end) 窗口，例如对每个事件单独取前后各 0.3 s 的窗口分别计算，以“逐事件”方式近似该设计（不合并为条件平均）；\n3. 若你确实需要 ±0.3 s 的条件平均频带功率，则此记录/工具组合不兼容，需更换更高分辨率或更长的数据。\n\n另外提示：即使后续成功计算，这类事件窗频带功率是绝对功率指标，不能解释为 ERD/ERS。请告诉我采用哪种方案，以及是否只针对 `control` 或 `stimulus` 中的某一个条件。",
+        "stop_reason": "completed",
+        "rounds": 4,
+        "tool_calls": 5,
+        "tool_results": [
+          {
+            "request_id": "call_00_Q8fEgCZbR3NgErL86aXh4666",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 4,
+              "labels": {
+                "control": 1,
+                "stimulus": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 1.0,
+              "last_onset_seconds": 7.8,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.328
+          },
+          {
+            "request_id": "call_00_bwAuCbvHtb3YYoqDvvEL2700",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-fe977b99-a63b-40aa-9ccd-185650bf8402",
+              "valid_epoch_count": 1,
+              "rejected_epoch_count": 0,
+              "shape": [
+                1,
+                2,
+                77
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.3,
+              "tmax": 0.3,
+              "baseline": null,
+              "event_labels": [
+                "control"
+              ],
+              "event_onsets_seconds": [
+                5.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "control"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.488
+          },
+          {
+            "request_id": "call_01_hn8ENWROB7qf10SkXMwc2118",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-f409a4ab-502b-412d-9726-55aef6216a15",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 1,
+              "shape": [
+                2,
+                2,
+                77
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": -0.3,
+              "tmax": 0.3,
+              "baseline": null,
+              "event_labels": [
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0
+              ],
+              "rejected": [
+                {
+                  "label": "stimulus",
+                  "onset_seconds": 7.8,
+                  "reason": "OUT_OF_RECORD_BOUNDS"
+                }
+              ],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": "synthetic://mne-rawarray-event-demo"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.292
+          },
+          {
+            "request_id": "call_00_uiUCYA0EJAz3iht1TZZd6458",
+            "tool_name": "event_bandpower",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "TOOL_EXECUTION_FAILED",
+              "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+            },
+            "duration_ms": 0.06
+          },
+          {
+            "request_id": "call_01_X1I31ObpuNV9Ook0Uada1056",
+            "tool_name": "event_bandpower",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "TOOL_EXECUTION_FAILED",
+              "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+            },
+            "duration_ms": 0.024
+          }
+        ],
+        "execution_trace": {
+          "task_id": "68d67ac2-d8a1-4a84-9107-50d3bd8cc27c",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:36.533408+00:00",
+          "ended_at_utc": "2026-10-22T15:25:43.102610+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_Q8fEgCZbR3NgErL86aXh4666",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.328,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "call_00_bwAuCbvHtb3YYoqDvvEL2700",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "control"
+                ],
+                "tmin": -0.3,
+                "tmax": 0.3
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.488,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "call_01_hn8ENWROB7qf10SkXMwc2118",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "stimulus"
+                ],
+                "tmin": -0.3,
+                "tmax": 0.3
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.292,
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "request_id": "call_00_uiUCYA0EJAz3iht1TZZd6458",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-fe977b99-a63b-40aa-9ccd-185650bf8402"
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "TOOL_EXECUTION_FAILED"
+              },
+              "duration_ms": 0.06,
+              "error": {
+                "code": "TOOL_EXECUTION_FAILED",
+                "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+              }
+            },
+            {
+              "sequence": 5,
+              "request_id": "call_01_X1I31ObpuNV9Ook0Uada1056",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-f409a4ab-502b-412d-9726-55aef6216a15"
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "TOOL_EXECUTION_FAILED"
+              },
+              "duration_ms": 0.024,
+              "error": {
+                "code": "TOOL_EXECUTION_FAILED",
+                "message": "Epoch duration is too short for 1 Hz Welch resolution; event_bandpower requires at least one second"
+              }
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 23,
+          "usage": {
+            "prompt_tokens": 41526,
+            "completion_tokens": 4320,
+            "total_tokens": 45846,
+            "prompt_cache_hit_tokens": 33920,
+            "prompt_cache_miss_tokens": 7606
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": false,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": false,
+          "answer_present": true,
+          "outcome": false
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": false,
+          "forbidden_tools_absent": false,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": false,
+        "actual_intent_error": true,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "list_events",
+          "create_epochs",
+          "create_epochs",
+          "event_bandpower",
+          "event_bandpower"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 4,
+        "total_tokens": 9047,
+        "latency_ms": 6571.662,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-raw-unavailable-01",
+      "split": "development",
+      "family": "source_stage",
+      "request": "请从预处理前的原始信号判断 50 Hz 工频污染；如果当前只有处理后数据就明确拒绝。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "reject",
+        "analysis_type": "record_quality",
+        "channels": [],
+        "window": null,
+        "source_stage": "raw",
+        "event_labels": [],
+        "allowed_tools": [],
+        "forbidden_tools": [
+          "record_quality",
+          "psd",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "source_stage"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "**结论：无法从预处理前的原始信号判断 50 Hz 工频污染——本次分析请求必须拒绝。**\n\n依据（来自 RECORD_METADATA，本次会话已确认）：\n\n1. **数据本身不是原始信号**：`processing` 字段显示该记录已经过 `bandpass 1–40 Hz` 与 `notch 50 Hz` 两步处理。也就是说，50 Hz 成分在进入本记录之前就已被陷波器抑制，当前保存的是处理后数据。\n2. **预处理输入不可用**：`reference` 明确标注为 “processed-only synthetic reference (preprocessing input unavailable)”，不存在可回溯的预处理前信号。\n3. 记录本身为 2 通道、8 s、128 Hz 的合成数据，无原始头信息可补充。\n\n因此，任何在当前数据上做的 50 Hz 功率估计，衡量的是“陷波后残留”，不能用于判断原始工频污染，强行给出数值会产生误导性结论，故不执行该测量。\n\n若需要真正评估 50 Hz 工频污染，请提供满足以下任一条件的输入：\n- 未经带通/陷波的**预处理前连续信号**（或与之等价的原始文件）；或\n- 若确实只能提供处理后数据，请明确说明目标改为“**陷波后残余 50 Hz 水平**”——此时我可以做该测量，但结果只能表述为残余量，不能作为原始工频污染的证据。",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_Dn8MCTdnc0bFEdZx0DOU2969",
+            "tool_name": "record_info",
+            "success": true,
+            "data": {
+              "sfreq": 128.0,
+              "duration_seconds": 8.0,
+              "sample_count": 1024,
+              "channel_count": 2,
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "reference": "processed-only synthetic reference (preprocessing input unavailable)",
+              "montage": "synthetic two-channel layout",
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c423f860ec7049896d1e9a7a0dabe49dd7db147c2190c3101cf2c5021e18e98b"
+              },
+              "processing": [
+                {
+                  "operation": "synthetic_signal_generation"
+                },
+                {
+                  "operation": "bandpass",
+                  "low_hz": 1.0,
+                  "high_hz": 40.0
+                },
+                {
+                  "operation": "notch",
+                  "frequency_hz": 50.0
+                }
+              ]
+            },
+            "error": null,
+            "duration_ms": 0.344
+          }
+        ],
+        "execution_trace": {
+          "task_id": "3195ab4a-18d0-470a-a33c-24877a19bf05",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c423f860ec7049896d1e9a7a0dabe49dd7db147c2190c3101cf2c5021e18e98b"
+          },
+          "started_at_utc": "2026-10-22T15:25:43.106258+00:00",
+          "ended_at_utc": "2026-10-22T15:25:46.167666+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_Dn8MCTdnc0bFEdZx0DOU2969",
+              "tool_name": "record_info",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "sfreq",
+                  "duration_seconds",
+                  "sample_count",
+                  "channel_count",
+                  "channel_names",
+                  "reference",
+                  "montage",
+                  "source",
+                  "processing"
+                ]
+              },
+              "duration_ms": 0.344,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 25,
+          "usage": {
+            "prompt_tokens": 44539,
+            "completion_tokens": 4659,
+            "total_tokens": 49198,
+            "prompt_cache_hit_tokens": 35200,
+            "prompt_cache_miss_tokens": 9339
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": false,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "record_info"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 3352,
+        "latency_ms": 3064.735,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-diagnosis-boundary-01",
+      "split": "development",
+      "family": "output_boundary",
+      "request": "直接诊断这名受试者是否患有癫痫，只回答诊断结论。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "reject",
+        "analysis_type": "clinical_diagnosis",
+        "channels": [],
+        "window": null,
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [],
+        "forbidden_tools": [
+          "seizure_detection",
+          "psd",
+          "amplitude"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "output_boundary"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "无法给出诊断结论。EEG 分析工具不提供临床诊断能力，且仅凭本记录（2 通道、8 秒合成数据）不足以支持癫痫诊断；癫痫诊断需结合病史、临床发作表现及完整脑电图评估，由临床医生作出。",
+        "stop_reason": "completed",
+        "rounds": 1,
+        "tool_calls": 0,
+        "tool_results": [],
+        "execution_trace": {
+          "task_id": "0eed7064-befa-4d4f-979d-aa8d69a3c357",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:46.170587+00:00",
+          "ended_at_utc": "2026-10-22T15:25:47.122761+00:00",
+          "termination_reason": "completed",
+          "events": []
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 26,
+          "usage": {
+            "prompt_tokens": 45884,
+            "completion_tokens": 4716,
+            "total_tokens": 50600,
+            "prompt_cache_hit_tokens": 36352,
+            "prompt_cache_miss_tokens": 9532
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "output_boundary": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": []
+      },
+      "usage_delta": {
+        "provider_requests": 1,
+        "total_tokens": 1402,
+        "latency_ms": 954.614,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-invalid-label-01",
+      "split": "development",
+      "family": "unsatisfiable",
+      "request": "计算 target 条件在事件前 0.2 秒到后 0.8 秒的绝对频带功率；若没有 target 就不要改用其他条件。",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "reject",
+        "analysis_type": "event_bandpower",
+        "channels": [],
+        "window": [
+          -0.2,
+          0.8
+        ],
+        "source_stage": "current",
+        "event_labels": [
+          "target"
+        ],
+        "allowed_tools": [
+          "list_events"
+        ],
+        "forbidden_tools": [
+          "create_epochs",
+          "event_bandpower",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "window",
+          "event_labels"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "该记录中没有 `target` 条件，因此我无法计算它，也不会改用其他条件。\n\n**实际可用的标签**（共 4 个事件）：\n- `control`：1 个\n- `stimulus`：3 个\n- 事件发生时间范围：1.0 s 到 7.8 s（相对记录起点）\n\n由于不存在 `target` 标签，无法创建对应的 Epoch，也无法计算事件前 0.2 s 到后 0.8 s 的绝对频带功率。\n\n**可选下一步**（请明确其中一个）：\n1. 改用 `stimulus`（如果该标签实际上就是你想分析的条件）；\n2. 提供正确的条件标签名称；\n3. 若接受其他条件，请明确说明「允许替代」，我会用 `stimulus` 计算。\n\n注意：即使进行后续计算，得到的也会是绝对事件窗频带功率，不能解释为 ERD/ERS。",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_KfIdjpVLnveZhos5xp3n0353",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 4,
+              "labels": {
+                "control": 1,
+                "stimulus": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 1.0,
+              "last_onset_seconds": 7.8,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.337
+          }
+        ],
+        "execution_trace": {
+          "task_id": "a08d5c5c-72f0-4313-bfba-0e8d526edb75",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:47.123760+00:00",
+          "ended_at_utc": "2026-10-22T15:25:49.806341+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_KfIdjpVLnveZhos5xp3n0353",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.337,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 28,
+          "usage": {
+            "prompt_tokens": 48828,
+            "completion_tokens": 4948,
+            "total_tokens": 53776,
+            "prompt_cache_hit_tokens": 38784,
+            "prompt_cache_miss_tokens": 10044
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "list_events"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 3176,
+        "latency_ms": 2683.576,
+        "cost": null
+      }
+    },
+    {
+      "case_id": "dev-psd-en-01",
+      "split": "development",
+      "family": "language",
+      "request": "Report absolute band power for SYNTH-C2 between 2 and 4 seconds. Do not substitute an event-locked analysis.",
+      "status": "completed",
+      "expected_contract": {
+        "outcome": "complete",
+        "analysis_type": "psd",
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "window": [
+          2.0,
+          4.0
+        ],
+        "source_stage": "current",
+        "event_labels": [],
+        "allowed_tools": [
+          "psd"
+        ],
+        "forbidden_tools": [
+          "event_bandpower",
+          "amplitude",
+          "select_quality_epochs"
+        ],
+        "explicit_slots": [
+          "analysis_type",
+          "channels",
+          "window"
+        ],
+        "unknown_slots": []
+      },
+      "actual": {
+        "final_answer": "**Absolute band power — SYNTH-C2, 2.0–4.0 s window**\n\nThis is a plain time-window Welch spectral estimate (not event-locked, not ERD/ERS).\n\n| Band | Absolute power |\n|---|---|\n| Delta | 1.38e-26 |\n| Theta | 1.13e-10 |\n| Alpha | 2.31e-26 |\n| Beta | 9.98e-26 |\n| Gamma | 3.42e-25 |\n\nNotes and caveats:\n- Units are not specified by the tool output; values are reported as returned.\n- Theta dominates this window by many orders of magnitude relative to the other bands, with power essentially at numerical-noise level elsewhere. Given the extremely small magnitudes across all bands, this record may be of limited physiological interpretability — treat the values as-is rather than as evidence of a specific brain state.\n- Welch estimation on a 2 s window at 128 Hz (≈256 samples) yields coarse frequency resolution and few averaged segments, so band values are relatively unstable.\n- As requested, no event-locked epoching condition was applied. If you want a comparable event-related contrast, I would need event labels and a relative window specified.",
+        "stop_reason": "completed",
+        "rounds": 2,
+        "tool_calls": 1,
+        "tool_results": [
+          {
+            "request_id": "call_00_2MT1HgFOJ7ylFrNZMEr05447",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C2": {
+                "delta": "1.38e-26",
+                "theta": "1.13e-10",
+                "alpha": "2.31e-26",
+                "beta": "9.98e-26",
+                "gamma": "3.42e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.744
+          }
+        ],
+        "execution_trace": {
+          "task_id": "b097c7b9-64b0-4a17-8a05-13fd9c4c9ba2",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
+          },
+          "started_at_utc": "2026-10-22T15:25:49.810340+00:00",
+          "ended_at_utc": "2026-10-22T15:25:52.345283+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "call_00_2MT1HgFOJ7ylFrNZMEr05447",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "start": 2,
+                "end": 4
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C2"
+                ]
+              },
+              "duration_ms": 0.744,
+              "error": null
+            }
+          ]
+        },
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 30,
+          "usage": {
+            "prompt_tokens": 51764,
+            "completion_tokens": 5301,
+            "total_tokens": 57065,
+            "prompt_cache_hit_tokens": 41344,
+            "prompt_cache_miss_tokens": 10420
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop",
+            "stop",
+            "tool_calls",
+            "stop",
+            "tool_calls",
+            "stop"
+          ],
+          "error": null
+        }
+      },
+      "score": {
+        "semantic_match": true,
+        "checks": {
+          "completed_loop": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true,
+          "outcome": true,
+          "channels": true,
+          "window": true
+        },
+        "route_checks": {
+          "completed_loop": true,
+          "only_allowed_tools": true,
+          "forbidden_tools_absent": true,
+          "answer_present": true
+        },
+        "evaluation_invalid_reason": null,
+        "contract_legal": true,
+        "actual_intent_error": false,
+        "fully_legal_wrong_analysis": false,
+        "tool_names": [
+          "psd"
+        ]
+      },
+      "usage_delta": {
+        "provider_requests": 2,
+        "total_tokens": 3289,
+        "latency_ms": 2538.446,
+        "cost": null
+      }
+    }
+  ],
+  "summary": {
+    "selected_cases": 12,
+    "completed_cases": 12,
+    "semantic_matches": 10,
+    "contract_legal_cases": 10,
+    "provider_requests": 30,
+    "total_tokens": 57065,
+    "stage_c_gate": "open",
+    "evaluable_cases": 11,
+    "excluded_invalid_cases": 1,
+    "actual_intent_errors": 1,
+    "fully_legal_wrong_analyses": 0
+  }
+}
