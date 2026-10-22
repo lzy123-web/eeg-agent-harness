@@ -55,4 +55,9 @@
 - 阶段 2：`fbf20e6`。
 - 阶段 3：`c35b541`。
 - 阶段 4：`e1c1b03`。
-- 阶段 5：`de6ac8e`（文档验收；最终状态补记另见后续提交）。
+- 阶段 5：本地归档提交 `de6ac8e`、`d021eb2`；因本机到 `github.com:443` 暂时不可达，最终六份文档已通过受认证 GitHub Contents API 同步到 Draft PR #11，远端产生等价内容提交而非上述本地 SHA。
+
+## Git 传输恢复入口
+
+- 阶段 0–4 的原生 Git 提交已正常推送；Draft PR #11 的代码与最终文档内容完整。
+- 本地与远端在阶段 5 后具有相同文件内容但不同提交历史。网络恢复后先执行 `git fetch origin research/point1-integrated-method-v0`，再执行非强制 `git merge --no-edit origin/research/point1-integrated-method-v0`，复核测试后普通 `git push`；禁止 force push。
