@@ -29,6 +29,7 @@
 - `trial_selection_or_rejection` 等模型生成的选择禁令现可归一到实际选择工具，避免命名变化绕过禁止操作。
 - 提供本地 EDF、既有 seizure 权重与匿名 R3 样例后，全量 161 项中 160 通过、1 项联网 opt-in 测试按设计跳过；`compileall` 和 `pip check` 通过。
 - 清除所有私有资源/LLM 环境变量后，无资源回归 149 通过、12 项按设计跳过。
+- Draft PR #11 的 GitHub Actions run `39814383931` 中安装、compileall 和无资源 unittest 步骤均完成且结论为 success。
 
 ## 上次成功验证
 
