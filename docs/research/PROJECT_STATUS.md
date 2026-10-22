@@ -231,4 +231,4 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 - Issue #7 阶段 B Commit：`a8eefd7`（`feat: add frozen Baseline v1 Agent runner`）。
 - Issue #7 阶段 C Commit：`44ab04a`（`test: verify Baseline v1 local EEG resource chains`）。
 - Issue #7 阶段 D Commit：`9ffb7fd`（`eval: run frozen real DeepSeek Baseline v1 subset`）。
-- Issue #7 阶段 E Commit：由本轮版本与验收文档提交记录。
+- Issue #7 阶段 E Commit：`ac36b45`（`release: accept EEG Agent Baseline v1.0`）。

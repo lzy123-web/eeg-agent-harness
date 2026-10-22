@@ -106,3 +106,5 @@ holdout 没有复测，并明确标记为初始运行后已暴露；不能声称
 ## 9. 下一步判断
 
 Baseline v1.0 已足够作为后续论文实验的稳定工程底座。下一阶段不应继续无边界扩充 Harness；应转向 EEG Agent、scientific workflow、Agent Harness 与 EEG 方法文献梳理，基于可验证科学问题重新筛选研究贡献，并使用独立冻结数据与强基线评估。
+
+阶段 E 提交：`ac36b45`。
