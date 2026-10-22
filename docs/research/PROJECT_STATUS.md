@@ -213,4 +213,4 @@ Milestone 7（Issue #6）：真实 DeepSeek Tool Calling 基线验收已完成�
 - Issue #6 阶段 A Commit：`f554d68`（`feat: harden real LLM protocol client`）。
 - Issue #6 阶段 B Commit：`e155fc5`（`feat: add synthetic real-agent execution path`）。
 - Issue #6 阶段 C Commit：`06c8cbe`（`test: validate real DeepSeek EEG tool loops`）。
-- Issue #6 阶段 D Commit：由本轮文档与完整回归提交记录。
+- Issue #6 阶段 D Commit：`750eb04`（`docs: complete real DeepSeek baseline acceptance`）。

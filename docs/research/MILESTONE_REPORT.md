@@ -285,5 +285,5 @@ Commit：`06c8cbe`。
 - 更新 README、BASELINE_PLAN、PROJECT_STATUS，并新增 `REAL_LLM_BASELINE_REPORT.md`。
 - 当前只能证明一次有界合成协议闭环；不能声称自然语言总体准确率、真实 EEG/临床验证或多数据集泛化。
 
-Commit：由本阶段提交记录。
+Commit：`750eb04`。
 
