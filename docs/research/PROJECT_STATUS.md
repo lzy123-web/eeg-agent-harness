@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当前具体候选策略结论为 **NO-GO**；Baseline v1.0 历史结果保持不变。
+Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存在性为 **Conditional Go**；最小意图契约相对原生方法未显示优势，方法结论为 **NO-GO / 证据不足**。Baseline v1.0 与 Issue #8 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -61,6 +61,9 @@ Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当
 - 新增隔离 `research/semantic_planning` 原型：不可变 Artifact/Effect/Requirement/Plan、raw/processed 分支、events 联合重采样、Epoch 筛选 lineage 与 8 个操作契约。
 - 所有研究操作复用现有 Registry、Executor、ExecutionContext、EEGRecord 与 EpochSet；没有侵入 Baseline v1 执行链。
 - Strong Expert、Generic Semantic 与 Candidate 在 18×3 案例上完全持平；Candidate 没有正确性、调用成本或相对 Generic 的扩展维护优势。
+- 冻结 24 项科学意图任务与独立 slot gold；真实 DeepSeek 在 11 个可评价 development 案例中出现 1 个未授权事件条件选择。
+- 将 5 个 controlled injection 与自然错误分开：5/5 合法执行且离线意图不匹配，但不计作模型错误。
+- 在剩余预算内比较两个 holdout：Native/Intent Contract 为 2/2，Strong Preflight 为 1/2；样本不足且候选未优于 Native，停止方法扩展。
 
 ## 实际验证结果
 
@@ -143,6 +146,14 @@ Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当
 | 扩展模拟 | 新 `epoch_variance` consumer 的方法特定修改点 Expert/Generic/Candidate 为 2/0/1；单开发者弱证据，不支持 H2 相对 Generic。 |
 | Issue #8 全量测试 | `pip check`/`compileall` 通过；有 EDF/权重时 137 项中 134 通过、3 跳过；无私有资源 125 通过、12 跳过。 |
 | Issue #8 决策 | 当前 EEG 专属规划排序为 NO-GO；显式科学语义契约只保留为工程机制，不宣称创新点一成立。 |
+| Issue #9 冻结集 | 24 项（development/holdout 各 12），真实子集 12；规范化 SHA-256 `53c041d3…d5d4`。 |
+| Issue #9 自然 DeepSeek | 12 项运行、11 项可评价、10/11 意图匹配；1 项真实未授权事件条件选择，0 项完整错误链全部成功；30 请求、57,065 tokens。 |
+| Issue #9 冻结缺陷 | 1 项 0.6 秒事件窗违反现有工具的最短 1 秒条件；原结果保留并排除，不修改 gold。 |
+| Issue #9 人工注入 | 5/5 被 Executor 接受且离线意图不一致；只证明边界，不计为自然模型错误。 |
+| Issue #9 最小比较 | 两个 holdout × 三方法；Native 2/2、Strong Preflight 1/2、Intent Contract 2/2；6 请求、4,877 tokens。 |
+| Issue #9 总预算 | 36 请求、61,942 tokens，未超过 36 请求/80k tokens；只传合成元数据与派生结果。 |
+| Issue #9 决策 | 问题存在性 Conditional Go；当前方法 No-Go/证据不足，不宣称优于原生 Agent。 |
+| Issue #9 全量回归 | `pip check`/`compileall` 通过；提供本地 EDF、权重和匿名 R3 样例时 146 项中 145 通过、1 项联网测试按设计跳过。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -190,13 +201,15 @@ Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当
 24. Issue #8 三种强方法在全部冻结合成案例完全持平；当前无法证明 EEG 专属规划策略的独立贡献。
 25. 18 个合成案例、单开发者扩展修改点和一次本地耗时不足以代表真实 workflow、团队维护成本或统计显著性。
 26. 原型只覆盖 low-pass、联合重采样、Epoch/显式索引筛选等最小语义；未验证真实触发漂移、复杂参考、ICA、坏段传播或 BIDS derivative lineage。
+27. Issue #9 仅观察到 1 个自然意图错误，且后续分析因窗口前提失败；没有“错误链全成功”的自然样本。
+28. Stage C 只有 2 个 holdout、单次 DeepSeek 路由决策；词汇 alias 归一在结果后修正并已披露，不能作统计或泛化结论。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 按 Issue #8 的 NO-GO 停止扩展当前 EEG 专属搜索排序；先回到文献与真实科学 workflow 需求，不继续为制造优势增加规则。
-2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复与不同措辞，不把本轮 development 复测或已暴露 holdout 当作泛化证据。
+1. 按 Issue #9 的方法 NO-GO 停止扩展当前最小意图契约；不得围绕单个错误继续添加特例规则。
+2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复、独立标注和不同模型，不把本轮 1 个 development 错误或 2 个已暴露 holdout 当作泛化证据。
 3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
 4. 获取合法的带事件公开数据后建立真实事件回归；实验室真实数据外发必须先获得明确治理授权。
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
@@ -255,3 +268,6 @@ Milestone 9（Issue #8）：研究点一科学语义规划 Spike 已完成，当
 - Issue #8 阶段 C Commit：`93516be`（`eval: compare semantic planner with fair strong baselines`）。
 - Issue #8 阶段 D Commit：`0be719a`（`docs: conclude semantic planning spike with No-Go`）。
 - Issue #8 GitHub Actions run `39801900191` 对阶段 D 提交 `0be719a` 执行无私有资源回归，结论为 `success`。
+- Issue #9 阶段 A Commit：`2cf441c`（`research: freeze intent-alignment problem and cases`）。
+- Issue #9 阶段 B Commit：`57a2b4d`（`eval: run real DeepSeek intent-alignment pilot`）。
+- Issue #9 阶段 C Commit：`631b9b5`（`research: compare minimal intent contract on holdout`）。

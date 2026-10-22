@@ -224,3 +224,15 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
 - 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
+
+## Issue #9：科学意图对齐研究验证
+
+仓库新增隔离的 `research/intent_alignment` 评测，不改变 Baseline v1.0 运行时。24 项冻结任务中的 12 项 development 使用真实 DeepSeek 与合成 EEG 运行；11 项可评价，发现 1 项自然发生的未授权事件条件选择。5 项人工合法替换单独统计，不冒充模型错误。
+
+严格预算内的两个 holdout 路由比较为 Native 2/2、Strong Preflight 1/2、Intent Contract 2/2。候选没有优于原生路由，因此当前方法结论为 No-Go/证据不足。详见 `docs/research/POINT1_INTENT_ALIGNMENT_EVALUATION.md`。
+
+```powershell
+$env:PYTHONPATH = 'src'
+& $python -m eeg_harness.research.intent_alignment.cli --mode injections `
+  --output artifacts\intent-injections.json
+```

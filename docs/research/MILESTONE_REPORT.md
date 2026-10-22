@@ -353,3 +353,33 @@ Commit：`ac36b45`。
 - 对当前 EEG 专属规划策略给出 **NO-GO**；科学语义契约保留为工程机制，不包装为已成立创新。
 - Commit：`0be719a`。
 
+## Milestone 10：科学意图对齐研究验证（Issue #9）
+
+### A：问题与任务冻结
+
+- 区分意图识别、工具合法性、科学适用性和回答证据忠实度；明确额外只读查询不等同于意图替换。
+- 冻结 24 项任务、12 项真实 development 子集、5 项人工替换及 36 请求/80k tokens 总预算。
+- CogEEGAgent 的 40/40 wrong-template 被正确标为人工边界探针，不作为自然错误率。
+- Commit：`2cf441c`。
+
+### B：真实 DeepSeek 与合成 EEG
+
+- 12 项共 30 请求/57,065 tokens；11 项可评价，10 项意图匹配。
+- 发现 1 项自然错误：缺失事件条件时自行创建两个条件的 Epoch；后续功率因短窗失败，故没有完整错误链全成功样本。
+- 1 项冻结任务自身违反最短窗口条件，保留并排除；5/5 注入仅证明 Executor 边界。
+- Commit：`57a2b4d`。
+
+### C：最小方法门槛实验
+
+- 因存在一个可复核实际错误而启动最小三段意图契约，但严格受剩余 6 请求预算限制。
+- 两个 holdout 上 Native 2/2、Strong Preflight 1/2、Intent Contract 2/2；候选与原生持平。
+- 原型只做一次路由决策，不足以支持方法优越性；透明披露结果后 alias scorer 修正。
+- Commit：`631b9b5`。
+
+### D：客观结论
+
+- 问题存在性为 Conditional Go；当前方法为 No-Go/证据不足。
+- 不修改 Baseline v1.0 或 Issue #8 历史实验，不向外部 API 发送真实 EEG、路径或密钥。
+- `pip check`/`compileall` 通过；本地资源模式 146 项中 145 通过、1 项联网测试跳过。
+- 完整报告见 `POINT1_INTENT_ALIGNMENT_EVALUATION.md`。
+
