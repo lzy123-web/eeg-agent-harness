@@ -197,3 +197,4 @@ Milestone 6：EEG 质量证据与证据驱动自适应分析公平先导评估�
 - Issue #5 阶段 B Commit：`82ea91a`（`feat: add evidence-driven adaptive analysis pilot`）。
 - Issue #5 评测冻结 Commit：`79c869f`（`research: freeze evidence benchmark before evaluation`）。
 - Issue #5 阶段 C Commit：`4131914`（`eval: compare adaptive evidence policy with strong baselines`）。
+- Issue #5 阶段 D Commit：`06a0362`（`docs: conclude evidence adaptive pilot with No-Go`）。
