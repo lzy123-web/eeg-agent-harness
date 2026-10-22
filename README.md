@@ -10,6 +10,8 @@ Milestone 6 增加了显式 EEG 质量证据与自适应分析 Pilot。受控合
 
 Issue #8 对收缩后的研究点一完成了独立 research spike：18 个冻结科学语义任务上，强 Expert DAG、通用语义 Planner 与候选 EEG Planner 的合法完成、正确拒绝和 holdout 均完全持平，调用数也相同；候选没有显示独立增益，结论为 **No-Go**。这不否定显式科学状态/lineage 的工程价值，但禁止把当前实现写成已成立的论文创新。详见 `docs/research/POINT1_PILOT_EVALUATION.md`。
 
+Issue #10 在不改写 Baseline v1 默认路径的前提下，新增 opt-in 的 Constraint-Carrying EEG Plan（CCEP）初版：意图原文证据、科学 obligation、Planner/恢复校验、实际 ToolResult 与 artifact lineage 贯穿为一个可检查闭环。它已用 Fake LLM 和真实 DeepSeek+合成 EEG 跑通单步 PSD、事件多步与缺参澄清，但仍是**创新性未证明的方法候选**。详见 `docs/research/POINT1_INTEGRATION_ACCEPTANCE.md`。
+
 它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
@@ -34,6 +36,7 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `planning.py`、`planning_evaluation.py`：研究用状态/声明式工具契约、有限重规划与冻结公平对照；不替代 Executor。
 - `planning_agent.py`、`nl_evaluation.py`：可选自然语言结构化目标桥与明确标记的人工 Fake 对照。
 - `quality.py`、`adaptive.py`：不生成总分的质量测量、证据要求和受限自适应 Pilot。
+- `research/integrated_method/`：opt-in 的 CCEP 意图契约、obligation ledger、计划/恢复验证和 Evidence Gate；复用原 Planner、Executor 与工具。
 
 ## Profile
 
@@ -154,6 +157,12 @@ $env:EEG_HARNESS_LLM_MAX_TOKENS = '768'
 & $python -m eeg_harness.agent_cli --demo-synthetic `
   --request '分析 SYNTH-C1 从 0 到 2 秒的频带功率'
 
+# 工作点一集成方法初版（opt-in，不替换 native 基线）
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1 `
+  --max-rounds 4 --max-tool-calls 8 `
+  --request '计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率' `
+  --output artifacts\point1_psd.json
+
 # 四项有界真实 LLM 验收，输出目录被 Git 忽略
 & $python -m eeg_harness.real_llm_evaluation `
   --output artifacts\real_llm_acceptance.json
@@ -179,7 +188,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：123 项通过、1 项真实联网测试按设计跳过。无私有资源模式 112 项通过、12 项按设计跳过；GitHub Actions 不下载 EDF、权重或使用 API 密钥。
+2026-10-23 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：161 项中 160 项通过、1 项真实联网测试按设计跳过；`compileall` 与 `pip check` 通过。GitHub Actions 不下载 EDF、权重或使用 API 密钥。
 
 真实 DeepSeek 合成验收另行执行：4/4 案例通过，其中 3 个完成真实 Tool Calling 闭环，1 个正确拒绝临床诊断；共 9 次模型请求、5 次工具调用、16,041 tokens。逐例脱敏结果见 `docs/research/results/real_llm_baseline_v1.json`，解释边界见 `docs/research/REAL_LLM_BASELINE_REPORT.md`。
 
@@ -224,6 +233,7 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
 - 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
+- CCEP 当前只完成三类合成真实模型验收，未与公平强基线完成新的正式比较；不得宣称方法优势或多数据集验证。
 
 ## Issue #9：科学意图对齐研究验证
 

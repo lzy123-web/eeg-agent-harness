@@ -172,6 +172,39 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 
 改造前结果保存在本地忽略目录 `artifacts/before_explicit_record.json`，改造后结果保存在 `artifacts/after_explicit_record.json`；两者仅用于本轮本地回归，没有进入 Git。比较时排除生成时间和运行耗时，确定性字段全部相同。
 
+## Issue #10：工作点一集成方法初版
+
+### 实际代码变更
+
+- 新增 opt-in `research/integrated_method`：Evidence-bound `IntentSpec`、obligation ledger、计划/恢复校验、Evidence Gate 与最终证据回答。
+- 复用 `StateAwareConstrainedPlanner`、`ConstrainedPlanRunner`、`ExecutionContext`、`Executor` 与现有工具；没有创建第二套 EEG Core 或执行器。
+- `planning.py` 增加可选 plan validator hook，并将授权质量筛选实现为同一 Epoch artifact 上的“先质量证据、后筛选”。默认 native/planning 路径保持不变。
+- CLI 新增 `--agent-mode point1`；Fake LLM 用于确定性回归，真实 OpenAI 兼容客户端用于合成 EEG 联网验收。
+
+### 验证结果
+
+| 项目 | 结果 |
+|---|---|
+| Fake 单步 | PSD 完成，1 次工具调用，ledger 与 trace 闭合。 |
+| Fake 多步 | `list_events → create_epochs → event_bandpower` 完成，artifact lineage 闭合。 |
+| 真实 DeepSeek 首轮 | 3/3 安全澄清、0 工具误执行；暴露任意参数 schema 导致的别名/任务类型漂移。 |
+| 真实 DeepSeek 修复后 | PSD 与事件链完成；缺事件 label 正确澄清且 0 工具调用。 |
+| 联网预算 | 两轮合计 8 请求、10,477 tokens；只使用合成 EEG 元数据和派生结果。 |
+| 针对性回归 | 集成+规划 24/24 通过。 |
+| 本地资源全回归 | 161 项中 160 通过、1 项联网 opt-in 测试跳过；`pip check`/`compileall` 通过。 |
+| 无私有资源回归 | 161 项中 149 通过、12 项资源/联网测试按设计跳过。 |
+
+真实 LLM 的中文回答存在服务侧历史乱码，因此只确认结构化调用、工具执行和终止语义，不宣称中文可读性通过。方法当前是可运行候选，创新性和相对优势均未证明。完整报告见 `POINT1_INTEGRATION_ACCEPTANCE.md`，后续公平对照和消融见 `POINT1_FUTURE_EXPERIMENTS.md`。
+
+### 本轮提交
+
+- `cb91166`：研究问题、文献差异与方法蓝图。
+- `9f55415`：CCEP 最小集成主干。
+- `fbf20e6`：事件链、质量证据与受约束恢复。
+- `c35b541`：真实模型 schema 失败修复与脱敏轨迹。
+- `e1c1b03`：科学来源、数值证据、参数闭合和回答失败审查修复。
+- 最终文档提交：见本节后续 Git 记录。
+
 ## 未解决问题
 
 1. 当前仅有 `tuev_bipolar_22` 与 `edf_native`；Sleep 2 导、MDD 19 导及完整 ERP/evoked 尚无已验证 Profile/工具。
@@ -203,13 +236,17 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 26. 原型只覆盖 low-pass、联合重采样、Epoch/显式索引筛选等最小语义；未验证真实触发漂移、复杂参考、ICA、坏段传播或 BIDS derivative lineage。
 27. Issue #9 仅观察到 1 个自然意图错误，且后续分析因窗口前提失败；没有“错误链全成功”的自然样本。
 28. Stage C 只有 2 个 holdout、单次 DeepSeek 路由决策；词汇 alias 归一在结果后修正并已披露，不能作统计或泛化结论。
+29. CCEP 只有单步 PSD、事件多步与缺参三类真实模型验收；没有新的冻结强基线比较，不能声称创新或优势。
+30. 当前原文数值校验不支持中文数字、单位换算、范围共指或复杂多意图。
+31. 默认 EEGRecord 没有 raw/processed 双分支；raw obligation 只能在来源未显式可观测时安全拒绝。
+32. `deepseek-flash` 当前返回的中文文本存在乱码，结构化链路成功不能替代自然语言质量验收。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 按 Issue #9 的方法 NO-GO 停止扩展当前最小意图契约；不得围绕单个错误继续添加特例规则。
-2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复、独立标注和不同模型，不把本轮 1 个 development 错误或 2 个已暴露 holdout 当作泛化证据。
+1. 按 `POINT1_FUTURE_EXPERIMENTS.md` 冻结全新任务、独立科学 oracle、强 Expert/Generic/Native 公平基线和统计计划，再评价 CCEP；不得围绕本轮三个验收请求添加特例。
+2. 将自然语言解析共享实验与端到端实验分开，使用未见 holdout、多次重复、独立标注和不同模型。
 3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
 4. 获取合法的带事件公开数据后建立真实事件回归；实验室真实数据外发必须先获得明确治理授权。
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
