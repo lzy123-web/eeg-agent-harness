@@ -1,6 +1,7 @@
 """Standard tool wrappers around the migrated and event-related EEG algorithms."""
 
 import numpy as np
+from dataclasses import replace
 from scipy.signal import welch
 
 from .events import create_epoch_set
@@ -162,6 +163,38 @@ def _epoch_quality(record, arguments, config, resources):
     )
 
 
+def _select_quality_epochs(record, arguments, config, resources):
+    epochs = _get_epoch_artifact(arguments, resources)
+    evidence = epoch_quality(
+        epochs, record.metadata.get("profile_id", "unknown")
+    )
+    excluded = set(evidence["flagged_epoch_indices"])
+    kept = [index for index in range(epochs.data.shape[0]) if index not in excluded]
+    if not kept:
+        raise ValueError("No Epochs remain after the declared quality rules")
+    selected = replace(
+        epochs,
+        data=epochs.data[kept].copy(),
+        event_labels=tuple(epochs.event_labels[index] for index in kept),
+        event_onsets_seconds=tuple(epochs.event_onsets_seconds[index] for index in kept),
+        artifact_id=f"{epochs.artifact_id}-quality-selected",
+        parameters={
+            **dict(epochs.parameters),
+            "quality_selection_evidence_id": evidence["evidence_id"],
+            "excluded_epoch_indices": sorted(excluded),
+        },
+    )
+    resources["artifact_store"][selected.artifact_id] = selected
+    output = selected.summary()
+    output["selection"] = {
+        "input_epoch_count": int(epochs.data.shape[0]),
+        "excluded_epoch_count": len(excluded),
+        "output_epoch_count": len(kept),
+        "evidence_id": evidence["evidence_id"],
+    }
+    return output
+
+
 def build_default_registry():
     registry = ToolRegistry()
     common_profiles = ("*",)
@@ -307,6 +340,19 @@ def build_default_registry():
             handler=_epoch_quality,
             consumes_artifact="epochs",
             observes_state=("epoch_quality",),
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="select_quality_epochs",
+            description="Create a derived Epoch artifact excluding only epochs flagged by declared empirical quality rules.",
+            parameters=artifact_schema,
+            return_type="object",
+            compatible_profiles=("*",),
+            handler=_select_quality_epochs,
+            consumes_artifact="epochs",
+            produces_artifact="epochs",
+            state_effect="stores_session_artifact",
         )
     )
     return registry

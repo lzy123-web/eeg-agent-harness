@@ -152,6 +152,10 @@ def epoch_quality(epochs, profile_id, *, thresholds=None):
     quality_valid = original_valid - len(bad_indices)
     total = original_valid + boundary_rejected
     label_counts = Counter(epochs.event_labels)
+    usable_label_counts = Counter(
+        label for index, label in enumerate(epochs.event_labels)
+        if index not in set(bad_indices)
+    )
     return {
         "evidence_id": _evidence_id("epoch_quality", profile_id, {
             "artifact_id": epochs.artifact_id,
@@ -169,6 +173,7 @@ def epoch_quality(epochs, profile_id, *, thresholds=None):
             "quality_usable": quality_valid,
         },
         "condition_counts_before_quality": dict(sorted(label_counts.items())),
+        "condition_counts_quality_usable": dict(sorted(usable_label_counts.items())),
         "quality_flag_reasons": dict(sorted(reasons.items())),
         "flagged_epoch_indices": bad_indices,
         "usable_fraction_of_created": 0.0 if original_valid == 0 else quality_valid / original_valid,

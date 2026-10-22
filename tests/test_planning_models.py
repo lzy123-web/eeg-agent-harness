@@ -36,10 +36,10 @@ def planning_context(task_id="planning-state"):
 
 
 class PlanningModelTest(unittest.TestCase):
-    def test_contracts_cover_current_ten_tools_without_loading_model(self):
+    def test_contracts_cover_current_eleven_tools_without_loading_model(self):
         registry = build_default_registry()
         contracts = build_operation_contracts(registry)
-        self.assertEqual(len(contracts), 10)
+        self.assertEqual(len(contracts), 11)
         self.assertEqual(contracts["create_epochs"].produces_artifact, "epochs")
         self.assertEqual(contracts["event_bandpower"].consumes_artifact, "epochs")
         self.assertEqual(contracts["epoch_summary"].consumes_artifact, "epochs")
