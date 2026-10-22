@@ -130,6 +130,7 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 | 本地 EEGAgent 资源 | `[22,61696]`/256 Hz；信息、PSD、癫痫模型全部成功，单窗模型原始输出仍为 `Non-seiz=0.0, seiz=1.0`。 |
 | 两份匿名 R3 | 21 通道/300 Hz；事件 81/96、有效 Epoch 72/60；事件频带、记录质量与 Epoch 质量均成功；未解释组别或标签。 |
 | Baseline v1 全量测试 | `pip check`/`compileall` 通过；有资源 124 项中 123 通过、1 项联网跳过；无资源 112 通过、12 跳过。 |
+| Baseline v1 GitHub Actions | run `39787839835` 对提交 `7c852da` 执行无私有资源测试，结论 `success`。 |
 
 仓库内存在历史 TUEV Agent 与 oracle 汇总文件，但本轮未重新复现。相关数字仅在 `CODE_AUDIT.md` 作为历史产物记录，不作为当前基线实验结论。
 
@@ -232,3 +233,4 @@ Milestone 8（Issue #7）：多任务 EEG Agent Baseline v1.0 完整验收已完
 - Issue #7 阶段 C Commit：`44ab04a`（`test: verify Baseline v1 local EEG resource chains`）。
 - Issue #7 阶段 D Commit：`9ffb7fd`（`eval: run frozen real DeepSeek Baseline v1 subset`）。
 - Issue #7 阶段 E Commit：`ac36b45`（`release: accept EEG Agent Baseline v1.0`）。
+- Issue #7 状态补记 Commit：`7c852da`（`docs: record Baseline v1 stage commits`）；GitHub Actions run `39787839835` 成功。
