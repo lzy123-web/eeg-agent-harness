@@ -43,9 +43,10 @@ class RegistryExecutorTest(unittest.TestCase):
         self.assertEqual(names, [
             "record_info", "amplitude", "psd", "list_events",
             "create_epochs", "epoch_summary", "event_bandpower",
+            "record_quality", "epoch_quality",
         ])
         definitions = self.registry.public_definitions("tuev_bipolar_22")
-        self.assertEqual(len(definitions), 8)
+        self.assertEqual(len(definitions), 10)
         self.assertEqual(load_seizure_model.cache_info().misses, 0)
         json.dumps(definitions, allow_nan=False)
 

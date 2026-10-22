@@ -7,6 +7,7 @@ from .events import create_epoch_set
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
 from .provenance import source_reference
+from .quality import epoch_quality, record_quality
 from .tooling import ToolRegistry, ToolSpec
 
 
@@ -143,6 +144,24 @@ def _event_bandpower(record, arguments, config, resources):
     }
 
 
+def _record_quality(record, arguments, config, resources):
+    return record_quality(
+        record,
+        record.metadata.get("profile_id", "unknown"),
+        channels=arguments.get("channels"),
+        start=arguments.get("start"),
+        end=arguments.get("end"),
+        line_frequency=arguments.get("line_frequency", 50.0),
+    )
+
+
+def _epoch_quality(record, arguments, config, resources):
+    return epoch_quality(
+        _get_epoch_artifact(arguments, resources),
+        record.metadata.get("profile_id", "unknown"),
+    )
+
+
 def build_default_registry():
     registry = ToolRegistry()
     common_profiles = ("*",)
@@ -256,6 +275,38 @@ def build_default_registry():
             handler=_event_bandpower,
             consumes_artifact="epochs",
             preconditions={"min_artifact_duration_seconds": 1.0},
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="record_quality",
+            description="Measure record/window flatline, high-amplitude and valid line-noise evidence without a composite score.",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "channels": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                    "start": {"type": "number"},
+                    "end": {"type": "number"},
+                    "line_frequency": {"type": "number"},
+                },
+                "additionalProperties": False,
+            },
+            return_type="object",
+            compatible_profiles=("*",),
+            handler=_record_quality,
+            observes_state=("record_quality",),
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="epoch_quality",
+            description="Measure Epoch coverage and empirical flatline/high-amplitude flags without returning waveforms.",
+            parameters=artifact_schema,
+            return_type="object",
+            compatible_profiles=("*",),
+            handler=_epoch_quality,
+            consumes_artifact="epochs",
+            observes_state=("epoch_quality",),
         )
     )
     return registry

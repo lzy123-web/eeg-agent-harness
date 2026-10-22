@@ -31,6 +31,7 @@ R3_PROFILE = TaskProfile(
     compatible_tools=(
         "record_info", "amplitude", "psd", "list_events", "create_epochs",
         "epoch_summary", "event_bandpower",
+        "record_quality", "epoch_quality",
     ),
     l_freq=1.0,
     h_freq=40.0,

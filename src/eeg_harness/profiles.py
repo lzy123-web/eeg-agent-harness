@@ -57,6 +57,7 @@ TUEV_BIPOLAR_22 = TaskProfile(
     compatible_tools=(
         "record_info", "amplitude", "psd", "seizure_detection",
         "list_events", "create_epochs", "epoch_summary", "event_bandpower",
+        "record_quality", "epoch_quality",
     ),
     l_freq=0.5,
     h_freq=70.0,
@@ -75,6 +76,7 @@ EDF_NATIVE = TaskProfile(
     compatible_tools=(
         "record_info", "amplitude", "psd",
         "list_events", "create_epochs", "epoch_summary", "event_bandpower",
+        "record_quality", "epoch_quality",
     ),
 )
 
