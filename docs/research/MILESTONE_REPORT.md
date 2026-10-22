@@ -383,3 +383,39 @@ Commit：`ac36b45`。
 - `pip check`/`compileall` 通过；本地资源模式 146 项中 145 通过、1 项联网测试跳过。
 - 完整报告见 `POINT1_INTENT_ALIGNMENT_EVALUATION.md`。
 
+## Milestone 11：工作点一集成方法初版（Issue #10）
+
+### A：研究与设计
+
+- 在 Issue #8 No-Go 与 Issue #9 意图错误证据之上选择 CCEP，不继续扩展 EEG 专属搜索排序。
+- 原文 evidence span、unknown、禁止操作、来源和预期证据组成不可在恢复中弱化的 obligation ledger。
+- 方法新颖性明确标记为未证明。
+- Commit：`cb91166`。
+
+### B：最小完整集成
+
+- 新增 opt-in `--agent-mode point1`，复用原 Planner、Executor、Registry、Context 和 Tools。
+- Fake LLM 跑通自然语言→IntentSpec→Planner→PSD→Evidence Gate→最终回答；默认 Baseline 不变。
+- Commit：`9f55415`。
+
+### C：EEG-specific 多步骤与恢复
+
+- 事件任务复用真实 `list_events → create_epochs → event_bandpower` 与 artifact lineage。
+- 缺参澄清、短窗/未知事件拒绝、来源不可观测拒绝、质量先证据后筛选均有测试。
+- 临时失败和 artifact 失效各允许一次受同 ledger 约束的恢复。
+- Commit：`fbf20e6`。
+
+### D：真实 DeepSeek 与审查
+
+- 首轮 3/3 安全澄清，暴露参数 schema 漂移；收紧 canonical slot 后，PSD 与事件链完成，真正缺参保持澄清。
+- 两轮共 8 Provider 请求、10,477 tokens；只用合成 EEG，未发送原始数组、真实受试者数据、路径或凭据。
+- 审查补强数值 span、raw 来源、参数不得消失、选择禁令和回答失败状态。
+- Commits：`c35b541`、`e1c1b03`。
+
+### E：验收结论
+
+- 本地 EDF、既有权重和匿名 R3 资源全回归：161 项中 160 通过、1 联网 opt-in 跳过；针对性测试 24/24。
+- 方法已成为真实接入现有 Agent 的可运行初版，但没有完成新冻结任务上的强基线比较，创新性/优势未成立。
+- 中文响应存在乱码，未把结构化闭环包装成自然语言质量成功。
+- 正式报告：`POINT1_INTEGRATION_ACCEPTANCE.md`；后续公平实验：`POINT1_FUTURE_EXPERIMENTS.md`。
+
