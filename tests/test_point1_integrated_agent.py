@@ -12,6 +12,7 @@ from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.integrated_method.agent import ConstraintCarryingEEGAgent
 from eeg_harness.research.integrated_method.fake import Point1FakeLLM
+from eeg_harness.research.integrated_method.intent import INTENT_TOOL
 from eeg_harness.tools import build_default_registry
 from eeg_harness.record import EEGRecord
 
@@ -50,6 +51,16 @@ class ScriptedIntentLLM:
                 },
             }],
         }
+
+
+class Point1IntentSchemaTest(unittest.TestCase):
+    def test_schema_exposes_only_canonical_scientific_slots(self):
+        schema = INTENT_TOOL[0]["function"]["parameters"]["properties"]["parameters"]
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(
+            set(schema["properties"]),
+            {"channels", "start", "end", "labels", "tmin", "tmax", "selection_authorized"},
+        )
 
 
 def intent_payload(analysis, parameters, evidence, **overrides):

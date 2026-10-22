@@ -47,3 +47,10 @@
 
 - 决策：为通用 `ConstrainedPlanRunner` 增加可选 `plan_validator` hook；CCEP 在初始计划和每次重规划后检查 ledger。默认旧 Planner 不传 hook，行为不变。
 - 原因：只在第一次 preflight 检查约束，无法保证恢复计划没有改写显式 label/window/禁止操作。
+
+## D7：真实模型暴露的 schema 漂移用接口约束修复
+
+- 决策：`submit_eeg_intent.parameters` 不再是任意 object，只允许 `channels/start/end/labels/tmin/tmax/selection_authorized`；Prompt 同时明确连续窗 PSD 与事件分析的边界。
+- 证据：首轮真实 DeepSeek 把三类请求全部安全停在澄清，其中普通 PSD 被分类为事件分析，且使用了 `channel/event_label/window_*` 等非 canonical key；收紧后 PSD 和事件链完成，真正缺 label 的请求仍然澄清。
+- 原因：这是协议契约缺失，不是通过修改 gold 或容错别名掩盖模型错误。严格 schema 让 Planner、gate 与模型共享同一科学 slot 词汇。
+- 限制：一次三案例验证只证明链路可运行，不证明泛化或方法优势。

@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-阶段 2：必要 EEG-specific 能力已完成，准备进入阶段 3 真实 Agent 验收。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
+阶段 3：合成 EEG 的真实 DeepSeek 验证已完成，进入阶段 4 审查与完整回归。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
 
 ## 已确认状态
 
@@ -22,21 +22,24 @@
 - 缺事件 label 会在执行前 clarify；不存在标签、短于 1 秒的事件功率窗和处理后数据上的 raw 请求会安全拒绝。
 - 明确授权的质量筛选固定为 `create_epochs → epoch_quality → select_quality_epochs`，禁止未测量先筛选。
 - 临时工具失败和 artifact 失效各允许一次恢复；每次重规划重新检查相同 obligation，不能改 label/channel/window。
+- 首轮真实 DeepSeek 暴露了参数 schema 过松：模型产生 `channel/event_label/window_*` 别名，并把普通 PSD 误判为事件分析；该轮 3/3 均安全澄清、没有误执行。
+- 将 tool schema 收紧为七个 canonical slot 并补充分析类型边界后，第二轮真实验证中 PSD 单步与事件多步均完成，缺事件条件请求保持澄清。
+- 两轮共 8 次 provider 请求、总计 11,677 tokens，低于 36 请求/90k tokens 预算；只使用确定性合成 EEG，未发送真实受试者数据或原始数组。
 
 ## 上次成功验证
 
-阶段 2 集成测试 10/10 通过；可提交 Fake 单步与多步 trace 已保存到 `docs/research/results/point1_integrated_*_fake.json`。阶段 0 基线无资源模式 146 项通过、12 项跳过。
+阶段 3 集成测试 11/11 通过；Fake 与真实 DeepSeek 的脱敏 trace 已保存到 `docs/research/results/point1_integrated_*.json`。最终真实结果为 PSD `completed`（1 工具）、事件分析 `completed`（3 工具）、缺参请求 `clarification_required`（0 工具）。阶段 0 基线无资源模式 146 项通过、12 项跳过。
 
 ## 下一步
 
-1. 用真实 DeepSeek 在合成 EEG 上运行确切 PSD、事件多步与缺参澄清；上限 36 请求/90k tokens。
-2. 根据真实失败只做有价值的 1–2 轮修复，不改测试 gold。
-3. 完整回归并保存脱敏真实 trace。
+1. 审查来源可观测性、数值 span/value 一致性、Evidence Gate 与最终回答失败语义。
+2. 运行带本地 EDF/既有权重的完整回归；资源仅本机引用，不写入仓库。
+3. 完成验收报告、后续公平对照/消融设计与 Draft PR。
 
 ## 阻塞与未验证问题
 
 - 方法新颖性尚未成立；当前目标是可运行的 method candidate。
-- 尚未验证真实 DeepSeek 集成路径；Fake 只作为协议回归。
+- `deepseek-flash` 的中文文本在当前服务响应中存在历史已知的乱码现象；结构化参数与执行可验证，但中文自然语言可读性不能据此宣称通过。
 - 真实原始/处理后多分支不是当前生产 Context 的通用能力，不能虚构。
 - 不得把 TaskSpec/validator/Prompt 的简单拼接包装为已证明创新。
 
@@ -44,4 +47,5 @@
 
 - 阶段 0：`cb91166`。
 - 阶段 1：`9f55415`。
-- 阶段 2：待提交。
+- 阶段 2：`fbf20e6`。
+- 阶段 3：待提交。

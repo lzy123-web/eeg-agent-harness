@@ -1,0 +1,59 @@
+{
+  "method": "constraint_carrying_eeg_plan_v0",
+  "stop_reason": "clarification_required",
+  "interpretation": {
+    "success": true,
+    "disposition": "clarify",
+    "intent": {
+      "analysis_type": "event_bandpower",
+      "parameters": {
+        "labels": [
+          "某个事件条件"
+        ],
+        "tmin": -0.2,
+        "tmax": 0.8
+      },
+      "explicit_evidence": {
+        "labels": "某个事件条件",
+        "tmin": "前 -0.2 秒",
+        "tmax": "后 0.8 秒"
+      },
+      "unknown_slots": [
+        "labels"
+      ],
+      "forbidden_operations": [
+        "补充或推断具体事件标签（如 control/stimulus）",
+        "将标签映射为记录中的事件代码"
+      ],
+      "source_stage": "current",
+      "output_boundary": "仅输出指定事件条件相对事件锁时 -0.2 至 0.8 秒窗口的绝对频带功率；不做临床诊断、不进行未注册分析、不替用户选择事件标签。",
+      "rationale": "用户明确提到\"事件条件\"及事件相对时间窗（-0.2 s 至 0.8 s），属于事件锁时频带功率，故 analysis_type=event_bandpower，参数仅用 labels/tmin/tmax。用户未指明具体事件名称，标签原文\"某个事件条件\"保留并记入 unknown_slots，不用记录中已有事件标签补全。绝对功率非 ERP/ERD-ERS，未涉及试次筛选授权，故不加 selection_authorized。"
+    },
+    "missing_slots": [
+      "labels"
+    ],
+    "error": {
+      "code": "MISSING_OR_UNGROUNDED_INTENT_SLOT",
+      "message": "Required EEG intent slots are unknown or lack exact user-language evidence."
+    }
+  },
+  "ledger": null,
+  "plan_check": null,
+  "execution": null,
+  "evidence_check": null,
+  "final_answer": "需要补充或明确以下科学参数：labels。在此之前不会猜测或执行分析。",
+  "llm": {
+    "provider_model": "deepseek-flash",
+    "request_count": 1,
+    "usage": {
+      "prompt_tokens": 967,
+      "completion_tokens": 395,
+      "total_tokens": 1362,
+      "prompt_cache_hit_tokens": 768,
+      "prompt_cache_miss_tokens": 199
+    },
+    "finish_reasons": [
+      "tool_calls"
+    ]
+  }
+}
