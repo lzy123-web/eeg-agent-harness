@@ -271,3 +271,4 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - Issue #9 阶段 A Commit：`2cf441c`（`research: freeze intent-alignment problem and cases`）。
 - Issue #9 阶段 B Commit：`57a2b4d`（`eval: run real DeepSeek intent-alignment pilot`）。
 - Issue #9 阶段 C Commit：`631b9b5`（`research: compare minimal intent contract on holdout`）。
+- Issue #9 阶段 D Commit：`84ed297`（`docs: conclude intent-alignment study objectively`）。
