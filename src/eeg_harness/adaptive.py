@@ -13,6 +13,7 @@ class EvidenceRequirement:
     min_usable_epochs_per_condition: int = 1
     require_unflagged_channels: bool = True
     max_tool_calls: int = 6
+    require_line_noise_valid: bool = False
 
 
 @dataclass(frozen=True)
@@ -96,6 +97,18 @@ class EvidencePolicy:
             for index, (candidate, evidence) in enumerate(zip(candidates, evidence_by_candidate))
         ]
         requested_score = scored[0][0]
+        if requirement.require_line_noise_valid:
+            line_valid = all(
+                evidence["channel_metrics"][name]["line_noise_ratio"]["validity"] == "valid"
+                for _, _, candidate, evidence in scored
+                for name in candidate["channels"]
+            )
+            if not line_valid:
+                trace.append({
+                    "decision": "reject_unknown_required_evidence",
+                    "required_metric": "line_noise_ratio",
+                })
+                return "insufficient_evidence", False, "REQUIRED_EVIDENCE_UNKNOWN"
         if self.mode == "fixed":
             selected = scored[0]
         elif self.mode == "expert":

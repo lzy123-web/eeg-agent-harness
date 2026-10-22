@@ -23,6 +23,7 @@ eeg-harness-events = "eeg_harness.event_cli:main"
 eeg-harness-r3-diagnostic = "eeg_harness.applications.r3.cli:main"
 eeg-harness-r3 = "eeg_harness.applications.r3.analysis_cli:main"
 eeg-harness-plan = "eeg_harness.plan_cli:main"
+eeg-harness-evidence = "eeg_harness.evidence_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
