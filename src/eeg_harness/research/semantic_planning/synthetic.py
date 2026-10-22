@@ -95,6 +95,7 @@ def build_scene(initial):
         payloads = [ArtifactPayload(semantic, epochs)]
     truth = {
         "event_onsets_seconds": list(truth_times),
+        "event_labels": [event.label for event in record.events.events] if record.events else [],
         "raw_line_frequency_hz": 50.0,
         "raw_line_injected": True,
         "initial": initial,

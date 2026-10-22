@@ -83,7 +83,7 @@ class GenericSemanticPlanner:
         all_steps, outputs = [], []
         queries = 0
         for requirement in requirements:
-            queries += len(available)
+            queries += 1
             output, steps, errors = self._one(requirement, available)
             if output is None:
                 return SemanticPlan(
@@ -210,7 +210,7 @@ class ExpertConditionalDAG:
         available = {item.artifact_id: item for item in initial_artifacts}
         steps, outputs, queries = [], [], 0
         for requirement in requirements:
-            queries += len(available)
+            queries += 1
             errors = set()
             if requirement.kind in ("line_noise", "bandpower"):
                 output = self._record_goal(requirement, available, steps, errors)
