@@ -270,6 +270,25 @@ $python = 'python'
 
 固定三例 Fake 与真实 DeepSeek 均为 3/3 completed；真实调用共 6 请求、18,253 tokens，仅使用合成 EEG。小型同规则强 Expert 诊断在科学输出和 6 次工具调用上持平，因此当前结论是 Conditional Keep、创新性未证实，尚未进入正式公平实验。详见 `docs/research/POINT1_V11_INTEGRATION.md` 与 `docs/research/POINT1_V11_RESEARCH_DECISION.md`。
 
+## Issue #15：CIEDG 第二状态转换泛化门槛
+
+`point1-transfer` 在不改变 Baseline v1、CCEP v0、LRSP v1/v1.1 默认行为的前提下，把 CIEDG 扩展到用户明确授权的 Epoch 重参考。当前只支持 `edf_native`、显式存在的参考通道；不默认 average reference，也不在已验证双极模型 Profile 上转换。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python'
+
+# 确定性合成校准，不联网
+& $python -m eeg_harness.research.integrated_method.transfer_evaluation `
+  --output artifacts\point1_transfer_fake.json
+
+# 单请求真实 Agent；加 --fake 可离线运行
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1-transfer --fake `
+  --request '对 target 事件后 0 秒到 1 秒的 Epoch，允许以 SYNTH-C2 作为参考通道重参考，检查转换后质量，汇总试次数并计算绝对频带功率'
+```
+
+工具实现通过独立 NumPy/MNE oracle。不同 ID、相同内容的恢复会保留历史 ToolResult，并以明确的 semantic reuse view 绑定当前谱系。正常与 artifact 丢失 calibration 中，CIEDG 与同规则强动态 Expert 科学输出及调用数持平；这证明迁移可行，不证明相对优势。正式 24 例协议已冻结但尚未执行。详见 `docs/research/POINT1_TRANSFER_DESIGN.md`、`POINT1_TRANSFER_VALIDATION.md` 和 `POINT1_FREEZE_DECISION.md`。
+
 ## Issue #12：CCEP Evidence Phase
 
 本轮将事件分析统一为 `event_workflow` 与质量、筛选、频带功率三个原子目标。以下两条链共用真实 Registry/Executor 和同一个 Epoch artifact lineage：

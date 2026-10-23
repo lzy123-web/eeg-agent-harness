@@ -448,3 +448,44 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `ea497ac`：内容寻址 evidence 恢复、反例、多条件与 strong expert 诊断。
 - 阶段 D 交付提交：`df59826`（有界 Fake/DeepSeek、完整回归与研究判断）。
 - 状态留痕提交：`53b5869`；Issue #14 与 Draft PR #11 已评论，CI run `39930738446` 成功。
+
+## Issue #15：CIEDG 第二科学状态转换与方法冻结（2026-10-23）
+
+### 实现与算法迭代
+
+- 比较显式重参考、重采样、基线校正和 CSD 后，选择“用户授权的显式 Epoch 参考通道减法”；仅开放给 `edf_native`，不默认 average reference，不触碰已验证 TUEV 双极模型链。
+- `EpochSet.reference` 进入内容 fingerprint；新增惰性、真实 Registry/Executor 工具 `rereference_epochs`，保持 shape、sfreq、通道顺序和事件，改变信号、reference、identity 与 fingerprint。
+- transfer Agent 复用 CIEDG goal/role/transition graph；质量、summary、bandpower 绑定 current effective Epoch。
+- 受控 artifact 丢失暴露“内容等价但来源身份不同”问题：修订为不可变历史 ToolResult + 当前谱系 release view；质量证据重算，纯 summary consumer 可语义复用。
+- 真实 DeepSeek 首次回答引用非标量对象，被 Evidence Gate 拒绝；新增通用 scalar evidence manifest 后一次 development case 复测通过。该项明确归为工程可靠性，不作为研究贡献。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立科学 oracle | NumPy 逐元素一致；MNE 最大绝对差约 `2.91e-11`（容差 `5e-11`） |
+| 属性变化 | shape/sfreq/events/window 保持；reference/data/fingerprint 改变；单参考通道为零 |
+| 结构化拒绝 | 缺通道、过期 fingerprint、不兼容 Profile、缺授权/缺参数均拒绝或澄清 |
+| 最小恢复 | list/create 各 1；rereference/quality/bandpower 各 2；summary 执行 1 次并安全发布到新谱系 |
+| 强动态 Expert | 正常与 artifact 丢失两例：调用序列及科学输出持平，无候选优势 |
+| Fake calibration | 2/2 completed，science signature 2/2 相同；非正式实验 |
+| 首次真实 DeepSeek | 2 例工具链成功、0/2 回答发布；4 请求、13,038 tokens；失败保留 |
+| 修订后真实 DeepSeek | 1 个 development 正常例 completed、answer valid、与 Expert 相同；2 请求、7,641 tokens |
+| 联网总预算 | 6 请求、20,679 tokens；仅 synthetic EEG，无波形外发 |
+| 完整回归 | compileall、pip check 通过；210 tests：198 passed、12 resource-gated skipped、0 failed |
+| 正式协议 | 24 例冻结（selection/rereference 各 12；development 8、holdout 16），尚未执行 |
+
+### 研究判断与遗留问题
+
+- 决策为 **Freeze / 进入正式公平实验，创新性与优势未证实**。第二 transformation family 证明机制有限迁移可行，但不证明比强 Expert 更好。
+- 候选论文机制是 EEG 科学属性/角色索引的目标—证据依赖、内容/身份分离、失效和局部恢复；重参考工具、Prompt/Schema、scalar manifest 属于工程实现。
+- 暂不支持重参考与筛选组合、转换前后双分支、自动参考选择、TUEV 重参考或真实数据泛化；经验质量阈值对参考通道 flatline 的解释仍需在正式报告中披露。
+- 下一步只执行 `config/point1_formal_eval_protocol_v1.json` 的公平比较与消融；不新增第三种状态转换来追逐优势。
+
+### 本轮提交
+
+- `a5dacf8`：候选转换比较与迁移设计。
+- `6bc4df2`：真实重参考、CIEDG transfer 与 provenance 修复。
+- `953a8b5`：同规则强动态 Expert、Fake calibration 与冻结协议。
+- `3306e94`：真实 DeepSeek 失败保留、标量 evidence 地址修复与有界复测。
+- 最终审查、冻结决策和 CI 状态提交：待本提交与 GitHub Actions 完成后补充。

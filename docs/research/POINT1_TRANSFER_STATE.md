@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #15 阶段 C：显式 Epoch 重参考、来源安全的最小恢复和同规则强动态 Expert 已实现；24 例正式协议已冻结但未执行。准备进行有界真实 DeepSeek、完整回归与方法冻结审查。
+Issue #15 阶段 E 已完成：显式 Epoch 重参考、来源安全的最小恢复、同规则强动态 Expert、冻结协议、有界真实 DeepSeek 与完整回归均已完成。方法建议冻结，下一阶段转入预注册正式比较与消融，不再增加状态转换模块。
 
 分支：`research/point1-integrated-method-v0`；Draft PR：#11。Baseline v1、CCEP v0、LRSP v1/v1.1 均保持不变。
 
@@ -33,12 +33,14 @@ x'_channel(t) = x_channel(t) - mean(x_reference_channels(t))
 
 ## 下一步
 
-1. 使用合成 EEG 运行最多 2 个真实 DeepSeek calibration case，不发送波形。
-2. 运行完整回归并核对 Draft PR CI。
-3. 完成验证、协议和冻结决策文档；不再增加新的转换模块。
+1. 等待 Draft PR 最新 CI 并记录 run 状态。
+2. 后续新任务按冻结协议执行 development/holdout 正式比较，不在 holdout 上调规则。
+3. 若实验否定优势，保留 No-Go/工程基线结论，不新增第三种转换救结果。
 
 ## 提交
 
 - 阶段 A：`a5dacf8`（候选比较与设计，已推送）。
 - 阶段 B：`6bc4df2`（真实重参考、状态迁移和 provenance 修复，已推送）。
-- 阶段 C：待提交。
+- 阶段 C：`953a8b5`（同规则 Expert、Fake calibration 与冻结协议，已推送）。
+- 阶段 D：`3306e94`（真实 DeepSeek 失败保留、标量 evidence manifest 与有界复测，已推送）。
+- 阶段 E：待提交。
