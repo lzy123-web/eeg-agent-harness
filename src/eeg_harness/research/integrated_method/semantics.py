@@ -8,6 +8,14 @@ from typing import Mapping
 class AnalysisSemanticContract:
     analysis_type: str
     required_concepts: frozenset[str]
+    optional_concepts: frozenset[str] = frozenset()
+
+    def matches(self, concepts):
+        concepts = frozenset(concepts)
+        return (
+            self.required_concepts <= concepts
+            and concepts <= self.required_concepts | self.optional_concepts
+        )
 
 
 CONCEPT_ANCHORS = {
@@ -27,30 +35,42 @@ ANALYSIS_SEMANTIC_CONTRACTS = {
         AnalysisSemanticContract("amplitude", frozenset({"time_domain_amplitude"})),
         AnalysisSemanticContract("psd", frozenset({"spectral_power"})),
         AnalysisSemanticContract(
-            "event_bandpower", frozenset({"event_locked", "spectral_power"})
-        ),
-        AnalysisSemanticContract(
-            "epoch_quality", frozenset({"event_locked", "quality_measurement"})
-        ),
-        AnalysisSemanticContract(
-            "quality_selection",
-            frozenset({"event_locked", "quality_measurement", "trial_selection"}),
-        ),
-        AnalysisSemanticContract(
-            "quality_selected_bandpower",
-            frozenset({
-                "event_locked", "quality_measurement", "trial_selection", "spectral_power"
-            }),
+            "event_workflow",
+            frozenset({"event_locked"}),
+            frozenset({"quality_measurement", "trial_selection", "spectral_power"}),
         ),
         AnalysisSemanticContract("record_quality", frozenset({"quality_measurement"})),
         AnalysisSemanticContract("seizure_detection", frozenset({"seizure_detection"})),
     )
 }
 
-_CONCEPT_SET_TO_ANALYSIS = {
-    contract.required_concepts: name
-    for name, contract in ANALYSIS_SEMANTIC_CONTRACTS.items()
+EVENT_OBJECTIVE_CONCEPTS = {
+    "quality_measurement": "epoch_quality",
+    "trial_selection": "trial_selection",
+    "spectral_power": "event_bandpower",
 }
+
+
+def selection_is_forbidden(forbidden_operations):
+    for value in forbidden_operations:
+        normalized = value.casefold().replace("-", "_").replace(" ", "_")
+        if "selection" in normalized or "筛" in normalized or "reject_trial" in normalized:
+            return True
+    return False
+
+
+def resolve_event_objectives(semantic_evidence, forbidden_operations=()):
+    """Compose positive atomic objectives; a negated selection remains a prohibition."""
+
+    concepts = frozenset(semantic_evidence)
+    objectives = []
+    for concept, objective in EVENT_OBJECTIVE_CONCEPTS.items():
+        if concept not in concepts:
+            continue
+        if objective == "trial_selection" and selection_is_forbidden(forbidden_operations):
+            continue
+        objectives.append(objective)
+    return tuple(objectives)
 
 
 def concept_quote_is_grounded(concept, quote):
@@ -63,5 +83,9 @@ def concept_quote_is_grounded(concept, quote):
 
 def resolve_analysis_type(semantic_evidence: Mapping[str, str]):
     """Resolve a unique analysis capability from grounded semantic concepts."""
-    return _CONCEPT_SET_TO_ANALYSIS.get(frozenset(semantic_evidence))
+    matches = [
+        name for name, contract in ANALYSIS_SEMANTIC_CONTRACTS.items()
+        if contract.matches(semantic_evidence)
+    ]
+    return matches[0] if len(matches) == 1 else None
 

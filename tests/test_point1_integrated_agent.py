@@ -102,23 +102,45 @@ class Point1IntentSchemaTest(unittest.TestCase):
             self.assertEqual(name, resolve_analysis_type(evidence))
         self.assertEqual(
             set(ANALYSIS_SEMANTIC_CONTRACTS),
-            {"record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
-             "quality_selection", "quality_selected_bandpower", "record_quality",
+            {"record_info", "amplitude", "psd", "event_workflow", "record_quality",
              "seizure_detection"},
         )
 
 
 def intent_payload(analysis, parameters, evidence, **overrides):
+    legacy_event_objectives = {
+        "event_bandpower": ("event_bandpower",),
+        "epoch_quality": ("epoch_quality",),
+        "quality_selection": ("epoch_quality", "trial_selection"),
+        "quality_selected_bandpower": (
+            "epoch_quality", "trial_selection", "event_bandpower",
+        ),
+    }
+    objectives = legacy_event_objectives.get(analysis, ())
+    if analysis in legacy_event_objectives:
+        analysis = "event_workflow"
+    forbidden = tuple(overrides.get("forbidden_operations", ()))
+    if any("selection" in item or "筛" in item for item in forbidden):
+        objectives = tuple(item for item in objectives if item != "trial_selection")
     semantic_evidence = {}
     contract = ANALYSIS_SEMANTIC_CONTRACTS.get(analysis)
     if contract:
-        for concept in contract.required_concepts:
+        concepts = set(contract.required_concepts)
+        if "epoch_quality" in objectives:
+            concepts.add("quality_measurement")
+        if "trial_selection" in legacy_event_objectives.get(overrides.get("legacy_analysis", ""), ()):
+            concepts.add("trial_selection")
+        if "trial_selection" in objectives or "selection_authorized" in parameters:
+            concepts.add("trial_selection")
+        if "event_bandpower" in objectives:
+            concepts.add("spectral_power")
+        for concept in concepts:
             semantic_evidence[concept] = next(
                 quote for quote in evidence.values()
                 if any(anchor.casefold() in quote.casefold() for anchor in CONCEPT_ANCHORS[concept])
             )
     payload = {
-        "analysis_type": analysis, "parameters": parameters,
+        "analysis_type": analysis, "objectives": list(objectives), "parameters": parameters,
         "explicit_evidence": evidence, "semantic_evidence": semantic_evidence,
         "unknown_slots": [],
         "forbidden_operations": [], "source_stage": "current",
@@ -204,7 +226,7 @@ class Point1IntegratedAgentTest(unittest.TestCase):
         self.assertEqual(["psd"], result.answer_check["required_tools"])
 
     def test_verbose_selection_forbid_is_enforced(self):
-        request = "请对 stimulus 事件前 -0.2 秒到后 0.8 秒检查质量并允许筛选，但不要执行试次选择"
+        request = "请对 stimulus 事件前 -0.2 秒到后 0.8 秒检查质量并允许筛选，但不要执行试次筛选"
         payload = intent_payload(
             "quality_selection",
             {"labels": ["stimulus"], "tmin": -0.2, "tmax": 0.8, "selection_authorized": True},
@@ -213,8 +235,8 @@ class Point1IntegratedAgentTest(unittest.TestCase):
             forbidden_operations=["trial_selection_or_rejection"],
         )
         result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
-        self.assertEqual("plan_rejected", result.stop_reason)
-        self.assertIn("forbidden_tool:select_quality_epochs", result.plan_check["violations"])
+        self.assertEqual("completed", result.stop_reason)
+        self.assertNotIn("select_quality_epochs", result.evidence_check["successful_tools"])
 
     def test_explicit_psd_runs_planner_executor_and_closes_evidence(self):
         context = make_context()
@@ -347,6 +369,29 @@ class Point1IntegratedAgentTest(unittest.TestCase):
         )
         self.assertEqual(selected_id, analysis_event["arguments"]["artifact_id"])
         self.assertTrue(selected_id.endswith("-quality-selected"))
+        self.assertTrue(result.evidence_check["closed"])
+
+    def test_quality_measurement_and_bandpower_without_selection_is_legal(self):
+        request = (
+            "检查 stimulus 事件前 0 秒到后 1 秒的质量，不要筛选或剔除试次，"
+            "随后计算未筛选试次的绝对频带功率"
+        )
+        result = ConstraintCarryingEEGAgent(Point1FakeLLM(), make_context()).run(request)
+        self.assertEqual("completed", result.stop_reason)
+        self.assertEqual(
+            ["list_events", "create_epochs", "epoch_quality", "event_bandpower"],
+            result.evidence_check["successful_tools"],
+        )
+        self.assertNotIn("select_quality_epochs", result.evidence_check["successful_tools"])
+        create_id = next(
+            item["data"]["artifact_id"] for item in result.execution["tool_results"]
+            if item["tool_name"] == "create_epochs"
+        )
+        analysis = next(
+            event for event in result.execution["execution_trace"]["events"]
+            if event["tool_name"] == "event_bandpower"
+        )
+        self.assertEqual(create_id, analysis["arguments"]["artifact_id"])
         self.assertTrue(result.evidence_check["closed"])
 
     def test_transient_failure_replans_once_without_changing_obligations(self):

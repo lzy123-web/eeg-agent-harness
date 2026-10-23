@@ -101,3 +101,10 @@
 - 决策：Evidence Phase 不把 `epoch_quality` 的输出或 CCEP 的 Evidence Gate 当科学真值。独立造数程序固定异常 trial 索引，独立 oracle 直接从记录样本重建应保留 Epoch，并单独计算 Welch 频带积分。
 - 结果：真实 Registry→Executor 链把 3 个 Epoch 筛为 2 个；异常索引、派生波形、原 artifact 不变性、前后试次数及全部频带数值均通过 oracle。全部试次异常时安全失败且无派生 artifact。
 - 边界：这证明当前经验规则和 artifact lineage 在受控合成条件下实现正确，不证明阈值具有临床有效性或真实数据泛化性。
+
+## D16：事件多目标以原子目标集合组合，不增加第十个复合类型
+
+- 决策：CCEP 意图使用一个 `event_workflow` family，正向目标限定为 `epoch_quality`、`trial_selection`、`event_bandpower`；否定操作只进入 forbidden obligations。Planner 只创建一个共享 Epoch artifact，并根据目标集合与选择授权组合 DAG。
+- 原因：固定 concept-set→复合 TaskType 会把“测质量、禁止筛选、仍计算功率”误拒；原子目标能表达筛选/不筛选两条合法 lineage，同时保持现有 Planner、Executor 和 EEG Tools。
+- 保留硬编码：当前只支持三个已注册事件原子目标；`trial_selection` 仍硬性要求先测质量和显式授权，`event_bandpower` 仍要求至少 1 秒。这是有限 capability composition，不是开放式通用规划。
+- 验证：禁止筛选组合使用原 Epoch 计算功率；授权筛选组合使用派生 Epoch；质量测量失败时后续选择/分析不执行。定向 CCEP、Planner 与 oracle 测试 35/35 通过。

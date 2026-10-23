@@ -68,12 +68,11 @@ def compile_intent(intent, context):
             {"tool_name": analysis, "parameters": params},
             task_id="point1-task",
         )
-    elif analysis in {"event_bandpower", "epoch_quality", "select_quality_epochs"}:
-        task = TaskSpec(analysis, params, task_id="point1-task")
-    elif analysis == "quality_selection":
-        task = TaskSpec("quality_selection", params, task_id="point1-task")
-    elif analysis == "quality_selected_bandpower":
-        task = TaskSpec("quality_selected_bandpower", params, task_id="point1-task")
+    elif analysis == "event_workflow":
+        task = TaskSpec(
+            "event_workflow", {**params, "objectives": list(intent.objectives)},
+            task_id="point1-task",
+        )
     else:
         task = TaskSpec("unsupported", params, task_id="point1-task")
     obligations = [
@@ -85,15 +84,17 @@ def compile_intent(intent, context):
             f"parameter:{key}", "parameter", {"name": key, "value": value},
             intent.explicit_evidence.get(key, ""),
         ))
-    expected_tools = {
-        "event_bandpower": ["list_events", "create_epochs", "event_bandpower"],
-        "epoch_quality": ["list_events", "create_epochs", "epoch_quality"],
-        "quality_selection": ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs"],
-        "quality_selected_bandpower": [
-            "list_events", "create_epochs", "epoch_quality",
-            "select_quality_epochs", "event_bandpower",
-        ],
-    }.get(analysis, [analysis])
+    if analysis == "event_workflow":
+        expected_tools = ["list_events", "create_epochs"]
+        if "epoch_quality" in intent.objectives or "trial_selection" in intent.objectives:
+            expected_tools.append("epoch_quality")
+        if "trial_selection" in intent.objectives:
+            expected_tools.append("select_quality_epochs")
+        if "event_bandpower" in intent.objectives:
+            expected_tools.append("event_bandpower")
+        obligations.append(Obligation("objectives", "objectives", list(intent.objectives)))
+    else:
+        expected_tools = [analysis]
     obligations.append(Obligation("evidence", "successful_tools", expected_tools))
     forbidden = _forbidden_tools(intent.forbidden_operations)
     return task, ObligationLedger(context.task_id, analysis, tuple(obligations), forbidden)
@@ -104,6 +105,15 @@ def validate_plan_against_ledger(plan, ledger):
         return {"valid": False, "code": plan.reason_code or "PLAN_REJECTED", "violations": []}
     names = [step.tool_name for step in plan.steps]
     violations = [f"forbidden_tool:{name}" for name in names if name in ledger.forbidden_tools]
+    expected_tools = next(
+        item.expected for item in ledger.obligations if item.kind == "successful_tools"
+    )
+    for tool in expected_tools:
+        if tool not in names:
+            violations.append(f"planned_tool_missing:{tool}")
+    for tool in names:
+        if tool not in expected_tools:
+            violations.append(f"unexpected_planned_tool:{tool}")
     parameter_values = {
         item.expected["name"]: item.expected["value"]
         for item in ledger.obligations if item.kind == "parameter"

@@ -73,7 +73,7 @@ class Point1FakeLLM:
         lowered = text.lower()
         if any(term in lowered for term in ("诊断", "erp", "erd/ers", "显著性检验")):
             return self._call({
-                "analysis_type": "unsupported", "parameters": {},
+                "analysis_type": "unsupported", "objectives": [], "parameters": {},
                 "explicit_evidence": {"analysis_type": text}, "semantic_evidence": {},
                 "unknown_slots": [],
                 "forbidden_operations": [], "source_stage": "current",
@@ -81,8 +81,8 @@ class Point1FakeLLM:
             })
         channel = next((name for name in ("SYNTH-C1", "SYNTH-C2") if name.lower() in lowered), None)
         numbers = [float(item) for item in re.findall(r"(?<![A-Za-z])(-?\d+(?:\.\d+)?)", text)]
-        if "事件" in text or "event" in lowered:
-            label = next((name for name in ("stimulus", "control") if name in lowered), None)
+        if any(term in lowered for term in ("事件", "试次", "event", "epoch")):
+            label = next((name for name in ("stimulus", "control", "target") if name in lowered), None)
             parameters = {}
             evidence = {"analysis_type": "事件" if "事件" in text else "event"}
             unknown = []
@@ -97,27 +97,36 @@ class Point1FakeLLM:
                 evidence.update({"tmin": quote, "tmax": quote})
             else:
                 unknown.extend(("tmin", "tmax"))
-            selection = any(term in text for term in ("筛选", "筛除"))
-            if selection and any(term in text for term in ("允许", "请筛", "生成筛选")):
+            selection = any(term in text for term in ("筛选", "筛除", "剔除"))
+            forbidden_selection = any(term in text for term in ("不要筛", "禁止筛", "不要剔除"))
+            selection_authorized = selection and not forbidden_selection and any(
+                term in text for term in ("允许", "请筛", "筛除异常", "剔除异常", "生成筛选")
+            )
+            if selection_authorized:
                 parameters["selection_authorized"] = True
                 evidence["selection_authorized"] = text
             quality = any(term in text for term in ("质量", "伪迹"))
-            selected_analysis = (
-                "quality_selected_bandpower"
-                if selection and quality and any(term in lowered for term in ("频带", "功率", "psd", "band power"))
-                else "quality_selection"
-            )
+            power = any(term in lowered for term in ("频带", "功率", "psd", "band power"))
+            objectives = []
+            if quality:
+                objectives.append("epoch_quality")
+            if selection_authorized:
+                objectives.append("trial_selection")
+            if power:
+                objectives.append("event_bandpower")
+            semantic = {"event_locked": text}
+            if quality:
+                semantic["quality_measurement"] = text
+            if selection:
+                semantic["trial_selection"] = text
+            if power:
+                semantic["spectral_power"] = text
             return self._call({
-                "analysis_type": selected_analysis if selection else "event_bandpower", "parameters": parameters,
+                "analysis_type": "event_workflow", "objectives": objectives,
+                "parameters": parameters,
                 "explicit_evidence": evidence, "unknown_slots": unknown,
-                "semantic_evidence": (
-                    {
-                        "event_locked": text, "quality_measurement": text, "trial_selection": text,
-                        **({"spectral_power": text} if selected_analysis == "quality_selected_bandpower" else {}),
-                    }
-                    if selection else {"event_locked": text, "spectral_power": text}
-                ),
-                "forbidden_operations": ["selection"] if "不要筛" in text else [],
+                "semantic_evidence": semantic,
+                "forbidden_operations": ["selection"] if forbidden_selection else [],
                 "source_stage": "current", "output_boundary": "absolute_bandpower_only",
                 "rationale": "event request",
             })
@@ -136,7 +145,7 @@ class Point1FakeLLM:
         else:
             unknown.extend(("start", "end"))
         return self._call({
-            "analysis_type": analysis, "parameters": parameters,
+            "analysis_type": analysis, "objectives": [], "parameters": parameters,
             "explicit_evidence": evidence, "unknown_slots": unknown,
             "semantic_evidence": {
                 "spectral_power" if analysis == "psd" else "time_domain_amplitude": text

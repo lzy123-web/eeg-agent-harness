@@ -37,6 +37,9 @@ Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状�
 - 对比请求“不要筛选或剔除试次”在 Planner 前以 `clarification_required` 停止，工具调用为 0；命令式“并筛选异常试次”则属于真实授权并正常执行，不能将其误记为缺少授权。
 - Issue #12 阶段 A 已新增独立造数与 NumPy/SciPy oracle：3 个合成 Epoch 中固定注入 1 个高幅异常试次，真实 Registry→Executor 将计数从 3 降到 2；派生 artifact 波形逐样本等于 oracle 保留试次，原 artifact 未修改，筛选前后频带结果分别与独立 Welch oracle 一致。
 - 全部 3 个试次异常时，选择工具明确失败且不产生派生 artifact；没有把空结果包装成成功。
+- 事件意图已从四个固定复合 analysis type 收敛为一个 `event_workflow` 与三个可组合原子目标：`epoch_quality`、`trial_selection`、`event_bandpower`。Planner 在一个共享 Epoch artifact 上按目标和授权生成 DAG。
+- “测量质量 + 禁止筛选 + 未筛选 bandpower”现在执行 `list_events → create_epochs → epoch_quality → event_bandpower`；`select_quality_epochs` 不在计划或 trace 中，最终分析消费原始 Epoch artifact。
+- 真正授权筛选时仍必须先测质量并让 bandpower 消费派生 artifact；质量工具故障会在选择前停止，ledger 中 label/window/授权义务保持不变。
 
 ## 上次成功验证
 
@@ -46,9 +49,9 @@ Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状�
 
 ## 下一步
 
-1. 将事件任务从固定复合类型迁移为有限原子目标组合，使“质量测量 + 禁止筛选 + 未筛选 bandpower”合法执行。
-2. 冻结独立任务集、oracle、权限与预算，再运行确定性公平比较。
-3. 只在协议冻结后做有界真实 DeepSeek 合成验证；不得围绕 holdout 调参。
+1. 冻结独立任务集、oracle、权限与预算，再运行确定性公平比较。
+2. 只在协议冻结后做有界真实 DeepSeek 合成验证；不得围绕 holdout 调参。
+3. 汇总强 Expert 等效/超过 CCEP、CCEP 误拒和协议无效案例，给出 GO/CONDITIONAL/NO-GO。
 
 ## 阻塞与未验证问题
 

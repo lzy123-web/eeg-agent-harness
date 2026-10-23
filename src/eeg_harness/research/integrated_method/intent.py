@@ -8,13 +8,12 @@ from typing import Any, Mapping, Optional
 
 from .semantics import (
     ANALYSIS_SEMANTIC_CONTRACTS, CONCEPT_ANCHORS,
-    concept_quote_is_grounded, resolve_analysis_type,
+    concept_quote_is_grounded, resolve_analysis_type, resolve_event_objectives,
 )
 
 
 SUPPORTED_ANALYSES = frozenset({
-    "record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
-    "quality_selection", "quality_selected_bandpower", "record_quality",
+    "record_info", "amplitude", "psd", "event_workflow", "record_quality",
     "seizure_detection", "unsupported",
 })
 
@@ -24,10 +23,7 @@ REQUIRED_SLOTS = {
     "amplitude": ("channels", "start", "end"),
     "psd": ("channels", "start", "end"),
     "seizure_detection": ("channels", "start", "end"),
-    "event_bandpower": ("labels", "tmin", "tmax"),
-    "epoch_quality": ("labels", "tmin", "tmax"),
-    "quality_selection": ("labels", "tmin", "tmax", "selection_authorized"),
-    "quality_selected_bandpower": ("labels", "tmin", "tmax", "selection_authorized"),
+    "event_workflow": ("labels", "tmin", "tmax"),
     "unsupported": (),
 }
 
@@ -35,6 +31,7 @@ REQUIRED_SLOTS = {
 @dataclass(frozen=True)
 class IntentSpec:
     analysis_type: str
+    objectives: tuple[str, ...] = ()
     parameters: Mapping[str, Any] = field(default_factory=dict)
     explicit_evidence: Mapping[str, str] = field(default_factory=dict)
     semantic_evidence: Mapping[str, str] = field(default_factory=dict)
@@ -47,6 +44,7 @@ class IntentSpec:
     def to_dict(self):
         payload = {
             "analysis_type": self.analysis_type,
+            "objectives": list(self.objectives),
             "parameters": dict(self.parameters),
             "explicit_evidence": dict(self.explicit_evidence),
             "semantic_evidence": dict(self.semantic_evidence),
@@ -93,6 +91,17 @@ INTENT_TOOL = [{
             "type": "object",
             "properties": {
                 "analysis_type": {"type": "string", "enum": sorted(SUPPORTED_ANALYSES)},
+                "objectives": {
+                    "type": "array",
+                    "description": (
+                        "Positive atomic event objectives only: epoch_quality, trial_selection, "
+                        "event_bandpower. Negated operations belong only in forbidden_operations."
+                    ),
+                    "items": {
+                        "type": "string",
+                        "enum": ["epoch_quality", "trial_selection", "event_bandpower"],
+                    },
+                },
                 "parameters": {
                     "type": "object",
                     "description": (
@@ -129,7 +138,7 @@ INTENT_TOOL = [{
                 "rationale": {"type": "string"}
             },
             "required": [
-                "analysis_type", "parameters", "explicit_evidence", "semantic_evidence", "unknown_slots",
+                "analysis_type", "objectives", "parameters", "explicit_evidence", "semantic_evidence", "unknown_slots",
                 "forbidden_operations", "source_stage", "output_boundary", "rationale"
             ],
             "additionalProperties": False
@@ -169,10 +178,15 @@ def _parse_message(message):
     if analysis not in SUPPORTED_ANALYSES:
         raise ValueError("Intent analysis_type is unsupported")
     parameters = payload.get("parameters")
+    objectives = payload.get("objectives")
     evidence = payload.get("explicit_evidence")
     semantic_evidence = payload.get("semantic_evidence")
     unknown = payload.get("unknown_slots")
     forbidden = payload.get("forbidden_operations")
+    if not isinstance(objectives, list) or not all(isinstance(item, str) for item in objectives):
+        raise ValueError("Intent objectives must be a string array")
+    if len(objectives) != len(set(objectives)):
+        raise ValueError("Intent objectives must not contain duplicates")
     if not all(isinstance(item, dict) for item in (parameters, evidence, semantic_evidence)):
         raise ValueError("Intent parameters and evidence fields must be objects")
     if not isinstance(unknown, list) or not all(isinstance(item, str) for item in unknown):
@@ -181,6 +195,7 @@ def _parse_message(message):
         raise ValueError("Intent forbidden_operations must be a string array")
     return IntentSpec(
         analysis_type=analysis,
+        objectives=tuple(objectives),
         parameters=parameters,
         explicit_evidence=evidence,
         semantic_evidence=semantic_evidence,
@@ -230,7 +245,7 @@ def validate_intent(intent, user_request, context):
     expected_contract = ANALYSIS_SEMANTIC_CONTRACTS.get(intent.analysis_type)
     if (
         semantic_failures or expected_contract is None
-        or frozenset(intent.semantic_evidence) != expected_contract.required_concepts
+        or not expected_contract.matches(intent.semantic_evidence)
         or resolved_analysis != intent.analysis_type
     ):
         return IntentInterpretation(
@@ -245,7 +260,21 @@ def validate_intent(intent, user_request, context):
             continue
         if slot in intent.parameters and not _value_supported_by_quote(intent.parameters[slot], quote):
             bad_evidence.append(slot)
-    required = REQUIRED_SLOTS[intent.analysis_type]
+    expected_objectives = (
+        resolve_event_objectives(intent.semantic_evidence, intent.forbidden_operations)
+        if intent.analysis_type == "event_workflow" else ()
+    )
+    if set(intent.objectives) != set(expected_objectives) or (
+        intent.analysis_type == "event_workflow" and not intent.objectives
+    ):
+        return IntentInterpretation(
+            True, intent, "clarify", ("objectives",),
+            "INTENT_OBJECTIVE_MISMATCH",
+            "Positive event objectives do not match grounded concepts and prohibitions.",
+        )
+    required = list(REQUIRED_SLOTS[intent.analysis_type])
+    if "trial_selection" in intent.objectives:
+        required.append("selection_authorized")
     missing = []
     for slot in required:
         value = intent.parameters.get(slot)
@@ -290,14 +319,15 @@ class EvidenceBoundIntentInterpreter:
             "显式科学 slot 必须在 explicit_evidence 中引用用户原文的精确连续片段；不能用"
             "记录里已有的通道或事件标签替用户补全。缺失值放入 unknown_slots。事件绝对频带"
             "功率不是 ERP/ERD-ERS；临床诊断和未注册分析标为 unsupported。选择或筛除试次"
-            "只有用户明确授权时 selection_authorized=true。严格使用以下映射：普通连续时间窗"
-            "频带功率是 analysis_type=psd，参数只能是 channels/start/end；只有用户明确提到事件"
-            "或 epoch 时才是 event_bandpower，参数只能是 labels/tmin/tmax；参数键和证据键必须"
+            "只有用户明确授权时 selection_authorized=true。普通连续时间窗频带功率使用"
+            "analysis_type=psd 和 channels/start/end。明确提到事件、试次或 epoch 时使用"
+            "analysis_type=event_workflow 和 labels/tmin/tmax，并把正向目标拆成 objectives："
+            "epoch_quality、trial_selection、event_bandpower。参数键和证据键必须"
             "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。"
             "semantic_evidence 必须列出用户真正要求的全部科学操作概念，并为每个概念引用"
             "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。"
-            "事件质量测量+明确试次筛选+筛选后频带功率的组合任务使用"
-            "quality_selected_bandpower，四个概念都必须保留。STATE="
+            "否定的操作只放 forbidden_operations，不得放入正向 objectives；例如测量质量、"
+            "禁止筛选、随后计算功率的 objectives 是 epoch_quality+event_bandpower。STATE="
             + json.dumps(_state(context), ensure_ascii=False, allow_nan=False)
         )
         try:

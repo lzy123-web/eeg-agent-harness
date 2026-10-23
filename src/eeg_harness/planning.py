@@ -446,8 +446,72 @@ class StateAwareConstrainedPlanner:
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
+    def _plan_event_workflow(self, task, state):
+        """Compose a shared Epoch DAG from positive atomic objectives."""
+
+        arguments = dict(task.arguments)
+        objectives = tuple(arguments.pop("objectives", ()))
+        supported = {"epoch_quality", "trial_selection", "event_bandpower"}
+        if not objectives or len(objectives) != len(set(objectives)) or not set(objectives) <= supported:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Event workflow requires unique supported atomic objectives",
+            )
+        selection = "trial_selection" in objectives
+        if selection and arguments.pop("selection_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch selection requires explicit user authorization",
+            )
+        arguments.pop("selection_authorized", None)
+        consumer = "event_bandpower" if "event_bandpower" in objectives else "epoch_quality"
+        failure = self._validate_epoch_goal(task, arguments, state, consumer)
+        if failure:
+            return _reject(task, state, failure[0], failure[1])
+        epoch_args = {
+            "labels": list(arguments["labels"]),
+            "tmin": arguments["tmin"], "tmax": arguments["tmax"],
+        }
+        if "baseline" in arguments:
+            epoch_args["baseline"] = list(arguments["baseline"])
+        source_reference = {"$result": "produce-artifact", "path": ["artifact_id"]}
+        steps = [
+            PlanStep("observe-events", "list_events", {}, purpose="record visible event state"),
+            PlanStep(
+                "produce-artifact", "create_epochs", epoch_args, ("observe-events",),
+                "produce one shared Epoch artifact for all requested objectives",
+            ),
+        ]
+        quality_needed = "epoch_quality" in objectives or selection
+        if quality_needed:
+            steps.append(PlanStep(
+                "measure-quality", "epoch_quality", {"artifact_id": source_reference},
+                ("produce-artifact",), "measure requested quality before any possible selection",
+            ))
+        analysis_reference = source_reference
+        last_dependency = "measure-quality" if quality_needed else "produce-artifact"
+        if selection:
+            steps.append(PlanStep(
+                "select-quality", "select_quality_epochs", {"artifact_id": source_reference},
+                ("measure-quality",), "apply explicitly authorized empirical selection",
+            ))
+            analysis_reference = {"$result": "select-quality", "path": ["artifact_id"]}
+            last_dependency = "select-quality"
+        if "event_bandpower" in objectives:
+            steps.append(PlanStep(
+                "analyse-events", "event_bandpower", {"artifact_id": analysis_reference},
+                (last_dependency,),
+                "analyse the selected artifact only when selection is an authorized objective",
+            ))
+        return Plan(
+            task.task_id, "ready", tuple(steps),
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
     def plan(self, task, state=None):
         state = state or EEGStateSnapshot.from_context(self.context)
+        if task.goal == "event_workflow":
+            return self._plan_event_workflow(task, state)
         if task.goal == "quality_selected_bandpower":
             return self._plan_quality_selected_bandpower(task, state)
         if task.goal == "quality_selection":
