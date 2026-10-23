@@ -95,3 +95,9 @@
 - 证据：真实复杂链首次执行成功，但模型引用 `data...` 导致 `ANSWER_EVIDENCE_MISMATCH`；修复接口说明后，同一请求完成并引用质量、筛选和事件频带功率三类实际结果。
 - 原因：这是 API 坐标系不明确造成的协议错误。自动剥离前缀会掩盖调用方是否遵守契约，因此只修正文档化接口并保留严格校验。
 - 边界：schema、Prompt 和 Validator 本身属于常规工程机制；CCEP 的论文候选价值只能来自同一 obligation 在意图、派生状态 lineage、有限恢复和回答发布之间的可检验传播，且尚未由公平强基线实验确认。
+
+## D15：实际筛选效果必须由独立造数真值与特征 oracle 验证
+
+- 决策：Evidence Phase 不把 `epoch_quality` 的输出或 CCEP 的 Evidence Gate 当科学真值。独立造数程序固定异常 trial 索引，独立 oracle 直接从记录样本重建应保留 Epoch，并单独计算 Welch 频带积分。
+- 结果：真实 Registry→Executor 链把 3 个 Epoch 筛为 2 个；异常索引、派生波形、原 artifact 不变性、前后试次数及全部频带数值均通过 oracle。全部试次异常时安全失败且无派生 artifact。
+- 边界：这证明当前经验规则和 artifact lineage 在受控合成条件下实现正确，不证明阈值具有临床有效性或真实数据泛化性。

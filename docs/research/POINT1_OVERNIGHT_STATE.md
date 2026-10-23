@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类型一致性、派生 EEG 状态链和证据寻址回答已实现并完成有界真实验证。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
+Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状态改变，并推进通用多目标组合与公平强基线初评。工作分支仍为 `research/point1-integrated-method-v0`，不替换 Baseline v1。
 
 ## 已确认状态
 
@@ -35,6 +35,8 @@ Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类
 - 最终回答改为证据寻址协议：LLM 只选择成功 ToolResult 的 request id 与标量 JSON path；运行时验证路径、必要工具覆盖并确定性渲染。无效路径或缺少质量/筛选/分析任一必要证据时返回 `completed_without_llm_answer`。
 - 首次真实复杂链暴露模型把 `ToolResult.data` 内部路径误写为以 `data` 开头。完整未跟踪 JSON 被同名重测覆盖，仓库没有伪造还原，而是保存 `raw_response_preserved=false` 的观测字段摘要。补充相对路径协议后，重测完成五工具链并引用 `epoch_quality`、`select_quality_epochs` 和 `event_bandpower` 的实际值。
 - 对比请求“不要筛选或剔除试次”在 Planner 前以 `clarification_required` 停止，工具调用为 0；命令式“并筛选异常试次”则属于真实授权并正常执行，不能将其误记为缺少授权。
+- Issue #12 阶段 A 已新增独立造数与 NumPy/SciPy oracle：3 个合成 Epoch 中固定注入 1 个高幅异常试次，真实 Registry→Executor 将计数从 3 降到 2；派生 artifact 波形逐样本等于 oracle 保留试次，原 artifact 未修改，筛选前后频带结果分别与独立 Welch oracle 一致。
+- 全部 3 个试次异常时，选择工具明确失败且不产生派生 artifact；没有把空结果包装成成功。
 
 ## 上次成功验证
 
@@ -44,9 +46,9 @@ Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类
 
 ## 下一步
 
-1. 在全新冻结任务集上比较 Native、同规则 Strong Expert、Generic Contract 与 CCEP；当前不得围绕这四个 follow-up 请求继续调参。
-2. 独立评估概念词表的同义词、否定作用域、多意图和单位换算，不把安全澄清等同于任务完成。
-3. 保持本分支为 Draft PR，不自动合并 main；等待论文实验设计审查。
+1. 将事件任务从固定复合类型迁移为有限原子目标组合，使“质量测量 + 禁止筛选 + 未筛选 bandpower”合法执行。
+2. 冻结独立任务集、oracle、权限与预算，再运行确定性公平比较。
+3. 只在协议冻结后做有界真实 DeepSeek 合成验证；不得围绕 holdout 调参。
 
 ## 阻塞与未验证问题
 
