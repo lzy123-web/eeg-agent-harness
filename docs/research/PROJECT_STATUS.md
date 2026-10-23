@@ -445,4 +445,4 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `037d2c1`：方法审计、候选比较与设计冻结。
 - `c11bb95`：CIEDG 原型、双 consumer 与真实 Agent 集成。
 - `ea497ac`：内容寻址 evidence 恢复、反例、多条件与 strong expert 诊断。
-- 阶段 D 交付提交：待创建。
+- 阶段 D 交付提交：`df59826`（有界 Fake/DeepSeek、完整回归与研究判断）。
