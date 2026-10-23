@@ -391,6 +391,7 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 | 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、15,363 tokens；仅合成 EEG；不外推准确率 |
 | 全仓无私有资源回归 | 190 tests：178 passed、12 resource-gated skipped；0 failed |
 | 敏感信息检查 | v1 代码、文档与结果未发现密钥、本地私密路径或原始 EEG 数组 |
+| GitHub CI | `unit-tests` run `39926245053` 对提交 `7e0ac46` 完成，结论 `success` |
 
 ### 研究判断与遗留问题
 
@@ -406,3 +407,4 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `36c4adf`：内容 fingerprint、quality evidence binding 与回答条件修订。
 - `df334d1`：固定 Fake/真实 DeepSeek 合成轨迹与有界评估入口。
 - 最终审查与文档提交：`347bc0d`。
+- 状态留痕提交：`7e0ac46`；GitHub Actions run `39926245053` 成功。
