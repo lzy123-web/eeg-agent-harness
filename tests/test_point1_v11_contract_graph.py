@@ -1,10 +1,12 @@
 import json
 import unittest
+from dataclasses import replace
 
 import numpy as np
 
 from eeg_harness.context import ExecutionContext
 from eeg_harness.executor import Executor
+from eeg_harness.events import EEGEvent, EventSet
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.evidence_phase import (
@@ -47,6 +49,17 @@ class ExpireEffectiveBeforeBandpower:
             (session_resources or {}).get("artifact_store", {}).pop(
                 request.arguments["artifact_id"], None
             )
+        return self.base.execute(record, profile, request, session_resources)
+
+
+class ChangeRecordAndExpireArtifactsBeforeBandpower(ExpireEffectiveBeforeBandpower):
+    """Force repair from changed source content so cached evidence is illegal."""
+
+    def execute(self, record, profile, request, session_resources=None):
+        if request.name == "event_bandpower" and not self.applied:
+            self.applied = True
+            record.data[0] += np.float32(1e-6)
+            (session_resources or {}).get("artifact_store", {}).clear()
         return self.base.execute(record, profile, request, session_resources)
 
 
@@ -131,7 +144,7 @@ class LRSPV11ContractGraphTest(unittest.TestCase):
         self.assertIn("epoch_summary", tools)
         self.assertIn("event_bandpower", tools)
 
-    def test_prototype_repairs_expired_derived_artifact_but_replays_summary(self):
+    def test_content_equivalent_repair_reuses_completed_summary(self):
         context, _ = make_context()
         context.executor = ExpireEffectiveBeforeBandpower(context.executor)
         result = ConstraintCarryingEEGAgentV11(Point1FakeLLM(), context).run(REQUEST)
@@ -140,13 +153,54 @@ class LRSPV11ContractGraphTest(unittest.TestCase):
         self.assertEqual(1, tools.count("create_epochs"))
         self.assertEqual(1, tools.count("epoch_quality"))
         self.assertEqual(2, tools.count("select_quality_epochs"))
-        self.assertEqual(2, tools.count("epoch_summary"))
+        self.assertEqual(1, tools.count("epoch_summary"))
         self.assertEqual(2, tools.count("event_bandpower"))
         self.assertEqual(1, result.execution["scientific_state"]["repairs"])
         self.assertTrue(any(
             item["event"] == "evidence_graph_invalidated"
             for item in result.execution["planning_trace"]
         ))
+        self.assertTrue(any(
+            item["event"] == "goal_evidence_reused"
+            for item in result.execution["planning_trace"]
+        ))
+
+    def test_changed_content_does_not_reuse_cached_summary(self):
+        context, _ = make_context()
+        context.executor = ChangeRecordAndExpireArtifactsBeforeBandpower(context.executor)
+        result = ConstraintCarryingEEGAgentV11(Point1FakeLLM(), context).run(REQUEST)
+        self.assertEqual("completed", result.stop_reason)
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(2, tools.count("create_epochs"))
+        self.assertEqual(2, tools.count("epoch_summary"))
+        self.assertFalse(any(
+            item["event"] == "goal_evidence_reused"
+            for item in result.execution["planning_trace"]
+        ))
+
+    def test_one_requested_condition_without_usable_epochs_stops_all_consumers(self):
+        record, _ = build_quality_selection_record((1,))
+        labels = ("target", "control", "target")
+        events = EventSet(tuple(
+            EEGEvent(label, event.onset_seconds, source_index=event.source_index)
+            for label, event in zip(labels, record.events.events)
+        ), source=record.events.source)
+        record = replace(record, events=events)
+        context = ExecutionContext(
+            record, EDF_NATIVE, Executor(build_default_registry(), CONFIG),
+            "point1-v11-multicondition",
+        )
+        request = (
+            "检查 target 和 control 事件后 0 秒到 1 秒的质量，允许筛除异常试次，"
+            "汇总筛选后的试次数，并计算筛选后试次的绝对频带功率"
+        )
+        result = ConstraintCarryingEEGAgentV11(Point1FakeLLM(), context).run(request)
+        state = result.execution["scientific_state"]
+        self.assertEqual("NO_USABLE_EPOCHS_FOR_CONDITION", state["blocked"]["code"])
+        self.assertEqual(["control"], state["blocked"]["labels"])
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(["list_events", "create_epochs", "epoch_quality"], tools)
+        self.assertNotEqual("completed", result.stop_reason)
 
 
 if __name__ == "__main__":

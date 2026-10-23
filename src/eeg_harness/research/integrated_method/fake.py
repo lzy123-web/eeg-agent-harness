@@ -82,13 +82,16 @@ class Point1FakeLLM:
         channel = next((name for name in ("SYNTH-C1", "SYNTH-C2") if name.lower() in lowered), None)
         numbers = [float(item) for item in re.findall(r"(?<![A-Za-z])(-?\d+(?:\.\d+)?)", text)]
         if any(term in lowered for term in ("事件", "试次", "event", "epoch")):
-            label = next((name for name in ("stimulus", "control", "target") if name in lowered), None)
+            labels = [
+                name for name in ("stimulus", "control", "target")
+                if name in lowered
+            ]
             parameters = {}
             evidence = {"analysis_type": "事件" if "事件" in text else "event"}
             unknown = []
-            if label:
-                parameters["labels"] = [label]
-                evidence["labels"] = label
+            if labels:
+                parameters["labels"] = labels
+                evidence["labels"] = text
             else:
                 unknown.append("labels")
             if len(numbers) >= 2:

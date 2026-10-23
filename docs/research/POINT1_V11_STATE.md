@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #14 阶段 B：声明式目标契约图原型已接入真实 Agent/Registry/Executor；正在针对原型暴露的“内容相同但 artifact 身份重建时 consumer 被无谓重放”开展算法修订。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
+Issue #14 阶段 C：声明式目标契约图及内容寻址 evidence 恢复已接入真实 Agent/Registry/Executor；准备进行有界 Fake/DeepSeek 集成验证和交付审查。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
 
 ## 已冻结问题
 
@@ -47,11 +47,12 @@ Issue #14 阶段 B：声明式目标契约图原型已接入真实 Agent/Registr
 
 ## 下一步
 
-1. 阶段 C：增加内容寻址 evidence cache，只在 artifact 内容及上游 token 均等价时恢复 consumer evidence。
-2. 补充多条件零 usable、错误证据、禁止筛选、fingerprint 成本与强 Expert 诊断。
-3. 运行有界 Fake/DeepSeek 与完整回归，客观判断是否适合正式实验。
+1. 阶段 D：运行固定合成用例的 Fake 与有界 DeepSeek，保留失败。
+2. 完整回归、方法/集成/研究判断文档及 README/PROJECT_STATUS 更新。
+3. 推送分阶段提交并更新 Draft PR #11 与 Issue #14。
 
 ## 提交
 
 - 阶段 A：`037d2c1 research: design LRSP v1.1 evidence dependency graph`
-- 阶段 B：待提交。
+- 阶段 B：`c11bb95 feat: integrate LRSP v1.1 contract evidence graph`
+- 阶段 C：待提交。

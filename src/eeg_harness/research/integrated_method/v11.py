@@ -51,6 +51,7 @@ class ArtifactBinding:
 class GoalEvidence:
     goal: str
     token_id: str
+    semantic_id: str
     tool_name: str | None
     request_id: str | None
     dependency_tokens: tuple[tuple[str, str], ...]
@@ -63,6 +64,7 @@ class GoalEvidence:
         return {
             "goal": self.goal,
             "token_id": self.token_id,
+            "semantic_id": self.semantic_id,
             "tool_name": self.tool_name,
             "request_id": self.request_id,
             "dependency_tokens": dict(self.dependency_tokens),
@@ -146,6 +148,7 @@ class ContractGraphResidualPlanner:
         self.max_repairs = int(max_repairs)
         self.max_tool_calls = int(max_tool_calls)
         self.evidence = {}
+        self.evidence_cache = {}
         self.results = []
         self.transitions = []
         self.attempts = Counter()
@@ -222,6 +225,40 @@ class ContractGraphResidualPlanner:
             for dependency in self.dependencies[goal]
         )
 
+    def _evidence_payload(
+        self, goal, *, arguments, input_binding, output_binding, mode,
+        semantic=False,
+    ):
+        if semantic:
+            normalized_arguments = {
+                key: value for key, value in dict(arguments or {}).items()
+                if key not in {
+                    "artifact_id", "expected_artifact_fingerprint",
+                    "expected_quality_evidence_id",
+                }
+            }
+            normalize_binding = lambda binding: (
+                None if binding is None else {"fingerprint": binding.fingerprint}
+            )
+            dependencies = {
+                dependency: self.evidence[dependency].semantic_id
+                for dependency in self.dependencies[goal]
+            }
+        else:
+            normalized_arguments = dict(arguments or {})
+            normalize_binding = lambda binding: (
+                None if binding is None else binding.to_dict()
+            )
+            dependencies = dict(self._dependency_tokens(goal))
+        return {
+            "goal": goal,
+            "arguments": normalized_arguments,
+            "input": normalize_binding(input_binding),
+            "output": normalize_binding(output_binding),
+            "dependencies": dependencies,
+            "mode": mode,
+        }
+
     def _reconcile(self):
         invalid = set()
         reasons = {}
@@ -251,7 +288,9 @@ class ContractGraphResidualPlanner:
         if invalid:
             ordered = sorted(invalid, key=lambda name: (self.contracts[name].priority, name))
             for goal in ordered:
-                self.evidence.pop(goal, None)
+                token = self.evidence.pop(goal, None)
+                if token is not None and self.contracts[goal].role == "consumer":
+                    self.evidence_cache.setdefault(goal, {})[token.semantic_id] = token
             self._record_transition(
                 "evidence_graph_invalidated",
                 goals=ordered,
@@ -271,17 +310,18 @@ class ContractGraphResidualPlanner:
         output_binding=None, mode=None, arguments=None,
     ):
         dependencies = self._dependency_tokens(goal)
-        payload = {
-            "goal": goal,
-            "arguments": dict(arguments or {}),
-            "input": None if input_binding is None else input_binding.to_dict(),
-            "output": None if output_binding is None else output_binding.to_dict(),
-            "dependencies": dict(dependencies),
-            "mode": mode,
-        }
+        payload = self._evidence_payload(
+            goal, arguments=arguments, input_binding=input_binding,
+            output_binding=output_binding, mode=mode,
+        )
+        semantic_payload = self._evidence_payload(
+            goal, arguments=arguments, input_binding=input_binding,
+            output_binding=output_binding, mode=mode, semantic=True,
+        )
         token = GoalEvidence(
             goal=goal,
             token_id=_stable_token(payload),
+            semantic_id=_stable_token(semantic_payload),
             tool_name=self.contracts[goal].tool_name if request_id else None,
             request_id=request_id,
             dependency_tokens=dependencies,
@@ -292,6 +332,46 @@ class ContractGraphResidualPlanner:
         )
         self.evidence[goal] = token
         return token
+
+    def _restore_cached_consumer(self, goal):
+        if self.contracts[goal].role != "consumer":
+            return False
+        input_binding = self._input_binding(goal)
+        arguments = self._action_arguments(goal)
+        semantic_payload = self._evidence_payload(
+            goal, arguments=arguments, input_binding=input_binding,
+            output_binding=None, mode=None, semantic=True,
+        )
+        semantic_id = _stable_token(semantic_payload)
+        cached = self.evidence_cache.get(goal, {}).get(semantic_id)
+        if cached is None:
+            return False
+        payload = self._evidence_payload(
+            goal, arguments=arguments, input_binding=input_binding,
+            output_binding=None, mode=None,
+        )
+        restored = GoalEvidence(
+            goal=goal,
+            token_id=_stable_token(payload),
+            semantic_id=semantic_id,
+            tool_name=cached.tool_name,
+            request_id=cached.request_id,
+            dependency_tokens=self._dependency_tokens(goal),
+            input_binding=input_binding,
+            output_binding=None,
+            mode=None,
+            result=cached.result,
+        )
+        self.evidence[goal] = restored
+        self._record_transition(
+            "goal_evidence_reused",
+            goal=goal,
+            cached_token_id=cached.token_id,
+            restored_token_id=restored.token_id,
+            semantic_id=semantic_id,
+            artifact_fingerprint=input_binding.fingerprint,
+        )
+        return True
 
     def _resolve_selection(self):
         quality = self._quality_result()
@@ -356,6 +436,8 @@ class ContractGraphResidualPlanner:
             if not ready:
                 return None
             goal = ready[0]
+            if self._restore_cached_consumer(goal):
+                continue
             if goal == "trial_selection":
                 if self._resolve_selection() == "resolved":
                     continue
