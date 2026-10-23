@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-阶段 5：代码、真实模型验证、完整回归与研究文档均已完成，等待最终提交、Draft PR 和 Issue 回报。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
+Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图—任务类型一致性。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
 
 ## 已确认状态
 
@@ -60,5 +60,5 @@
 
 ## Git 传输恢复入口
 
-- 阶段 0–4 的原生 Git 提交已正常推送；Draft PR #11 的代码与最终文档内容完整。
-- 本地与远端在阶段 5 后具有相同文件内容但不同提交历史。网络恢复后先执行 `git fetch origin research/point1-integrated-method-v0`，再执行非强制 `git merge --no-edit origin/research/point1-integrated-method-v0`，复核测试后普通 `git push`；禁止 force push。
+- 2026-10-23 已执行 `git fetch origin research/point1-integrated-method-v0` 和非强制 `git merge --no-edit origin/research/point1-integrated-method-v0`；`ort` 合并无文件差异。
+- Merge commit 为 `1bd8e7c`，已通过普通 push 更新 Draft PR #11；未 force push、未合并 main。本节历史恢复事项已关闭。
