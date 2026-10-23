@@ -95,11 +95,14 @@ INTENT_TOOL = [{
                     "type": "array",
                     "description": (
                         "Positive atomic event objectives only: epoch_quality, trial_selection, "
-                        "event_bandpower. Negated operations belong only in forbidden_operations."
+                        "epoch_summary, event_bandpower. Negated operations belong only in "
+                        "forbidden_operations."
                     ),
                     "items": {
                         "type": "string",
-                        "enum": ["epoch_quality", "trial_selection", "event_bandpower"],
+                        "enum": [
+                            "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
+                        ],
                     },
                 },
                 "parameters": {
@@ -322,7 +325,7 @@ class EvidenceBoundIntentInterpreter:
             "只有用户明确授权时 selection_authorized=true。普通连续时间窗频带功率使用"
             "analysis_type=psd 和 channels/start/end。明确提到事件、试次或 epoch 时使用"
             "analysis_type=event_workflow 和 labels/tmin/tmax，并把正向目标拆成 objectives："
-            "epoch_quality、trial_selection、event_bandpower。参数键和证据键必须"
+            "epoch_quality、trial_selection、epoch_summary、event_bandpower。参数键和证据键必须"
             "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。"
             "semantic_evidence 必须列出用户真正要求的全部科学操作概念，并为每个概念引用"
             "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。"

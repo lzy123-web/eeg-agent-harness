@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #14 阶段 A：已完成 v1 硬编码审计和候选架构比较，准备实现声明式目标契约图。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
+Issue #14 阶段 B：声明式目标契约图原型已接入真实 Agent/Registry/Executor；正在针对原型暴露的“内容相同但 artifact 身份重建时 consumer 被无谓重放”开展算法修订。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
 
 ## 已冻结问题
 
@@ -36,12 +36,22 @@ Issue #14 阶段 A：已完成 v1 硬编码审计和候选架构比较，准备�
 - 无关且仍有效的目标不重放；
 - LLM 不决定阈值、失效传播、恢复范围或工具参数。
 
+## 阶段 B 原型实测
+
+- 新增 opt-in `point1-v11` Agent 模式；原有 v0/v1 路径不变。
+- 六个目标由 `GoalContract` 和依赖闭包生成，不再在 `next_action/apply_result/_goal_status` 中复制 consumer 分支。
+- `epoch_summary` 与 `event_bandpower` 已在真实工具链上共享 original/selected effective Epoch，数值和试次数由独立 NumPy oracle 校验。
+- artifact 不存在与内容冲突现在使用 `ARTIFACT_NOT_FOUND` / `ARTIFACT_STATE_CONFLICT` 区分，不向 Agent 暴露 traceback。
+- 针对性回归：36 项通过。
+- 控制故障发现：selected artifact 在 bandpower 前被删除后，系统可只重建 selection 分支并完成任务，但已完成的 `epoch_summary` 被执行两次。科学结果正确，增量复用不充分。
+
 ## 下一步
 
-1. 阶段 B：实现 v1.1 opt-in Agent、contract graph 与 `epoch_summary + event_bandpower` 双 consumer。
-2. 先验证共享复用、内容失效和故障恢复，记录初版实际缺陷。
-3. 至少进行一轮状态/证据算法修订，再运行有界 Fake/DeepSeek 和强 Expert 诊断。
+1. 阶段 C：增加内容寻址 evidence cache，只在 artifact 内容及上游 token 均等价时恢复 consumer evidence。
+2. 补充多条件零 usable、错误证据、禁止筛选、fingerprint 成本与强 Expert 诊断。
+3. 运行有界 Fake/DeepSeek 与完整回归，客观判断是否适合正式实验。
 
 ## 提交
 
-- 阶段 A：待提交。
+- 阶段 A：`037d2c1 research: design LRSP v1.1 evidence dependency graph`
+- 阶段 B：待提交。

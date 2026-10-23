@@ -4,7 +4,7 @@ import numpy as np
 from dataclasses import replace
 from scipy.signal import welch
 
-from .events import create_epoch_set
+from .events import ArtifactConsistencyError, create_epoch_set
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
 from .provenance import source_reference
@@ -94,7 +94,7 @@ def _get_epoch_artifact(arguments, resources):
         raise LookupError(f"Epoch artifact not found: {artifact_id}") from exc
     expected = arguments.get("expected_artifact_fingerprint")
     if expected is not None and artifact.content_fingerprint() != expected:
-        raise ValueError(
+        raise ArtifactConsistencyError(
             "Epoch artifact content does not match the expected fingerprint"
         )
     return artifact
@@ -144,6 +144,7 @@ def _event_bandpower(record, arguments, config, resources):
         }
     return {
         "artifact_id": epochs.artifact_id,
+        "artifact_fingerprint": epochs.content_fingerprint(),
         "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
         "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
         "frequency_resolution_hz": float(epochs.sfreq / min(epoch_samples, int(round(epochs.sfreq)))),
@@ -176,7 +177,7 @@ def _select_quality_epochs(record, arguments, config, resources):
     )
     expected_evidence = arguments.get("expected_quality_evidence_id")
     if expected_evidence is not None and evidence["evidence_id"] != expected_evidence:
-        raise ValueError(
+        raise ArtifactConsistencyError(
             "Current Epoch quality evidence does not match expected_quality_evidence_id"
         )
     excluded = set(evidence["flagged_epoch_indices"])

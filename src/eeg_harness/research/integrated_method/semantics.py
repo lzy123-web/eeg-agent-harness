@@ -25,6 +25,9 @@ CONCEPT_ANCHORS = {
     "event_locked": ("事件", "试次", "epoch", "event", "trigger"),
     "quality_measurement": ("质量", "噪声", "伪迹", "quality", "artifact", "noise"),
     "trial_selection": ("筛选", "筛除", "剔除", "选择试次", "trial selection", "reject trial"),
+    "epoch_summary": (
+        "epoch 汇总", "epoch 概要", "试次汇总", "试次数", "epoch summary", "trial count",
+    ),
     "seizure_detection": ("癫痫", "发作", "seizure", "epilept"),
 }
 
@@ -37,7 +40,9 @@ ANALYSIS_SEMANTIC_CONTRACTS = {
         AnalysisSemanticContract(
             "event_workflow",
             frozenset({"event_locked"}),
-            frozenset({"quality_measurement", "trial_selection", "spectral_power"}),
+            frozenset({
+                "quality_measurement", "trial_selection", "spectral_power", "epoch_summary",
+            }),
         ),
         AnalysisSemanticContract("record_quality", frozenset({"quality_measurement"})),
         AnalysisSemanticContract("seizure_detection", frozenset({"seizure_detection"})),
@@ -48,6 +53,7 @@ EVENT_OBJECTIVE_CONCEPTS = {
     "quality_measurement": "epoch_quality",
     "trial_selection": "trial_selection",
     "spectral_power": "event_bandpower",
+    "epoch_summary": "epoch_summary",
 }
 
 

@@ -90,6 +90,8 @@ def compile_intent(intent, context):
             expected_tools.append("epoch_quality")
         if "trial_selection" in intent.objectives:
             expected_tools.append("select_quality_epochs")
+        if "epoch_summary" in intent.objectives:
+            expected_tools.append("epoch_summary")
         if "event_bandpower" in intent.objectives:
             expected_tools.append("event_bandpower")
         obligations.append(Obligation("objectives", "objectives", list(intent.objectives)))

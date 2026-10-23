@@ -451,7 +451,7 @@ class StateAwareConstrainedPlanner:
 
         arguments = dict(task.arguments)
         objectives = tuple(arguments.pop("objectives", ()))
-        supported = {"epoch_quality", "trial_selection", "event_bandpower"}
+        supported = {"epoch_quality", "trial_selection", "epoch_summary", "event_bandpower"}
         if not objectives or len(objectives) != len(set(objectives)) or not set(objectives) <= supported:
             return _reject(
                 task, state, "UNSATISFIABLE_CONSTRAINTS",
@@ -464,7 +464,11 @@ class StateAwareConstrainedPlanner:
                 "Epoch selection requires explicit user authorization",
             )
         arguments.pop("selection_authorized", None)
-        consumer = "event_bandpower" if "event_bandpower" in objectives else "epoch_quality"
+        consumer = (
+            "event_bandpower" if "event_bandpower" in objectives else
+            "epoch_summary" if "epoch_summary" in objectives else
+            "epoch_quality"
+        )
         failure = self._validate_epoch_goal(task, arguments, state, consumer)
         if failure:
             return _reject(task, state, failure[0], failure[1])
@@ -497,6 +501,11 @@ class StateAwareConstrainedPlanner:
             ))
             analysis_reference = {"$result": "select-quality", "path": ["artifact_id"]}
             last_dependency = "select-quality"
+        if "epoch_summary" in objectives:
+            steps.append(PlanStep(
+                "summarise-epochs", "epoch_summary", {"artifact_id": analysis_reference},
+                (last_dependency,), "summarise the current effective Epoch artifact",
+            ))
         if "event_bandpower" in objectives:
             steps.append(PlanStep(
                 "analyse-events", "event_bandpower", {"artifact_id": analysis_reference},

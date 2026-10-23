@@ -216,7 +216,7 @@ class CCEPV1DynamicPlanningTest(unittest.TestCase):
             "stale-select",
         ))
         self.assertFalse(result.success)
-        self.assertEqual("TOOL_EXECUTION_FAILED", result.error_code)
+        self.assertEqual("ARTIFACT_STATE_CONFLICT", result.error_code)
         self.assertIn("expected_quality_evidence_id", result.error_message)
 
     def test_two_dynamic_contexts_are_isolated(self):

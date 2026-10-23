@@ -19,6 +19,12 @@ class EpochError(ValueError):
     pass
 
 
+class ArtifactConsistencyError(ValueError):
+    """An artifact no longer matches the version declared by its consumer."""
+
+    pass
+
+
 @dataclass(frozen=True)
 class EEGEvent:
     label: str

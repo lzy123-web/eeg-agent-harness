@@ -107,11 +107,16 @@ class Point1FakeLLM:
                 evidence["selection_authorized"] = text
             quality = any(term in text for term in ("质量", "伪迹"))
             power = any(term in lowered for term in ("频带", "功率", "psd", "band power"))
+            summary = any(term in lowered for term in (
+                "epoch 汇总", "epoch 概要", "试次汇总", "试次数", "epoch summary", "trial count",
+            ))
             objectives = []
             if quality:
                 objectives.append("epoch_quality")
             if selection_authorized:
                 objectives.append("trial_selection")
+            if summary:
+                objectives.append("epoch_summary")
             if power:
                 objectives.append("event_bandpower")
             semantic = {"event_locked": text}
@@ -119,6 +124,8 @@ class Point1FakeLLM:
                 semantic["quality_measurement"] = text
             if selection:
                 semantic["trial_selection"] = text
+            if summary:
+                semantic["epoch_summary"] = text
             if power:
                 semantic["spectral_power"] = text
             return self._call({
