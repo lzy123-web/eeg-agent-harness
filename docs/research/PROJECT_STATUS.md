@@ -326,3 +326,42 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - Issue #10 follow-up 证据寻址回答：`339aab5`。
 - Issue #10 follow-up Fake/真实验证与交付：`3866818`。
 - Issue #10 follow-up 失败证据留痕：`1d0d392`。
+
+## Issue #12：CCEP Evidence Phase（2026-10-23）
+
+### 已完成
+
+- 增加独立合成异常 Epoch 真值与 SciPy Welch oracle，通过真实 Registry/Executor 验证筛选前后波形、试次数、artifact 不变性和全部频带值。
+- 将固定复合事件类型收敛为 `event_workflow` 与三个原子目标，支持“测质量但禁止筛选，再计算未筛选功率”和“明确授权筛选后计算功率”。
+- 冻结 24 项（12 development / 12 holdout）独立协议、权限、oracle、预算和规范化 SHA-256，再运行公平比较。
+- 保存共享解析任务对照和两个真实 DeepSeek holdout 的脱敏逐例结果；失败结果没有删除或用于事后调 Prompt。
+- 新增研究报告 `POINT1_EVIDENCE_PHASE_RESULTS.md` 与方法决策 `POINT1_METHOD_DECISION.md`。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立 Epoch oracle | 异常索引 `[1]`；3→2；原 artifact 未变；派生波形逐样本相等；筛选前后全部频带与独立 oracle 一致 |
+| 全部异常 | `TOOL_EXECUTION_FAILED`；无空派生 artifact；后续功率不执行 |
+| 定向 Evidence Phase | 10/10 通过 |
+| 冻结共享任务 | Strong 18/18、CCEP 18/18；科学完成均 10/10；各 55 工具调用、2 重规划 |
+| 真实 DeepSeek holdout | Native 2/2；CCEP 1/2；13 请求、34,263 tokens；仅合成 EEG |
+| CCEP Evidence Gate | 禁止筛选例通过；授权筛选例在意图层安全澄清，0 工具、无数值发布 |
+| 有本地 EDF/权重回归 | `pip check`、`compileall` 通过；180 项中 177 通过、3 项按设计跳过 |
+| 无私有资源回归 | 180 项中 168 通过、12 项按设计跳过 |
+
+### 研究判断与遗留问题
+
+- CCEP v0 的跨意图、计划、派生状态、恢复和回答 obligation 是实际运行机制，不是单一 Prompt；但本轮没有发现相对同规则强专家的增量收益。
+- 真实小样本中 CCEP 因意图 schema 服从问题误拒一例，完成率未超过 Native。当前“CCEP 优于强基线”结论为 **No-Go**；作为 opt-in 安全骨架为 **Conditional Keep**。
+- 质量阈值仍未临床校准；真实 LLM 只有两个 holdout；Native 最终回答只做逐例人工数值审核；不能外推真实 EEG、临床或多数据集能力。
+- 下一入口应是预先提出并冻结“一次性 preflight 会因执行中状态变化/恢复失效”的动态假设，不再围绕本次 holdout 堆 Prompt 或 validator。
+
+### 本轮提交
+
+- `f5283cb`：真实 Epoch 筛选与独立 oracle。
+- `caed65d`：事件原子目标组合。
+- `06ab4e9`：冻结 Evidence Phase 协议。
+- `aa6b20a`：共享任务公平比较。
+- `b705638`：真实 DeepSeek holdout。
+- 最终文档与状态提交：见本节之后的 Git 历史记录。

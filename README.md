@@ -235,6 +235,30 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
 - CCEP 已增加意图—任务类型一致性、质量筛选派生 Epoch 的五工具链和证据寻址回答；真实模型只在有界合成请求上验证，未与公平强基线完成新的正式比较，不得宣称方法优势或多数据集验证。
 
+## Issue #12：CCEP Evidence Phase
+
+本轮将事件分析统一为 `event_workflow` 与质量、筛选、频带功率三个原子目标。以下两条链共用真实 Registry/Executor 和同一个 Epoch artifact lineage：
+
+- 禁止筛选：`list_events → create_epochs → epoch_quality → event_bandpower`；
+- 明确授权筛选：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。
+
+独立造数与 Welch oracle 已验证实际异常 Epoch 被剔除后试次数从 3 变为 2、原 artifact 不变、派生波形及筛选前后各频带值正确。冻结共享任务比较中，Strong route+preflight 与 CCEP 均为 18/18 正确、10/10 科学完成，没有观察到 CCEP 增量优势。两个真实 DeepSeek holdout 中 Native 为 2/2，CCEP 为 1/2；失败是执行前安全误拒，结果没有用于事后调 Prompt。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python' # 或替换为已安装项目依赖的 Python 解释器
+
+# 无联网、可重复的共享解析任务比较
+& $python -m eeg_harness.research.evidence_phase.evaluation `
+  --output artifacts\point1_evidence_shared.json
+
+# 真实模型实验仅可使用合成 EEG，并须通过环境变量提供服务配置
+& $python -m eeg_harness.research.evidence_phase.real_evaluation `
+  --output artifacts\point1_evidence_real.json
+```
+
+实验报告见 `docs/research/POINT1_EVIDENCE_PHASE_RESULTS.md`，方法决策见 `docs/research/POINT1_METHOD_DECISION.md`。当前结论是：CCEP 作为可审计安全骨架可保留，但“优于强基线”的论文主张为 No-Go。
+
 ## Issue #9：科学意图对齐研究验证
 
 仓库新增隔离的 `research/intent_alignment` 评测，不改变 Baseline v1.0 运行时。24 项冻结任务中的 12 项 development 使用真实 DeepSeek 与合成 EEG 运行；11 项可评价，发现 1 项自然发生的未授权事件条件选择。5 项人工合法替换单独统计，不冒充模型错误。

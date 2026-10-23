@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状态改变，并推进通用多目标组合与公平强基线初评。工作分支仍为 `research/point1-integrated-method-v0`，不替换 Baseline v1。
+Issue #12 Evidence Phase 已完成实现、独立 oracle、冻结比较与有界真实 DeepSeek 验证。工作分支仍为 `research/point1-integrated-method-v0`，不替换 Baseline v1；CCEP v0 的相对优势主张判定为 No-Go，代码仅作为 opt-in 科学安全骨架 Conditional Keep。
 
 ## 已确认状态
 
@@ -40,18 +40,22 @@ Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状�
 - 事件意图已从四个固定复合 analysis type 收敛为一个 `event_workflow` 与三个可组合原子目标：`epoch_quality`、`trial_selection`、`event_bandpower`。Planner 在一个共享 Epoch artifact 上按目标和授权生成 DAG。
 - “测量质量 + 禁止筛选 + 未筛选 bandpower”现在执行 `list_events → create_epochs → epoch_quality → event_bandpower`；`select_quality_epochs` 不在计划或 trace 中，最终分析消费原始 Epoch artifact。
 - 真正授权筛选时仍必须先测质量并让 bandpower 消费派生 artifact；质量工具故障会在选择前停止，ledger 中 label/window/授权义务保持不变。
+- 24 项 Evidence Phase 协议已在首次比较前冻结，12/12 development/holdout，语料 SHA-256 为 `e85b5cda…e696`。
+- 共享解析任务层的 18 个可评价案例中，Strong route+preflight 与 CCEP 均为 18/18 正确、10/10 科学完成、55 次工具调用、2 次重规划；未观察到 ledger 增量收益。
+- 两个固定真实 DeepSeek holdout 中 Native 2/2、CCEP 1/2。CCEP 在授权筛选例误报缺 `analysis_type` 并安全澄清，失败已冻结且未据此调 Prompt。
+- 真实比较总计 13 次 Provider 请求、34,263 tokens；只使用确定性合成 EEG。
 
 ## 上次成功验证
 
-当前集成方法与 Planner 定向测试 30/30 通过；三条 Fake 轨迹已按证据寻址协议重新生成。真实 follow-up 为 4 条不同合成请求、5 次执行，计入首次失败后共 9 次 Provider 请求、19,275 tokens：PSD 类型对抗、两条授权复杂链完成，一条禁止筛选请求零工具澄清；其中复杂链首次回答路径失败后经协议修复成功。
+Issue #12 定向 Evidence Phase 测试 10/10 通过；共享任务冻结比较与真实 DeepSeek 结果均已保存。真实 holdout 为两个请求、两种方法，共 13 次 Provider 请求、34,263 tokens；Native 2/2，CCEP 1/2，失败案例完整保留。
 
-最终本地回归为：`pip check`/`compileall` 通过；167 项有资源测试除 1 项联网 opt-in 外均通过，R3 两项资源测试另行通过；无资源 155 通过、12 跳过。Draft PR #11 的 GitHub Actions run `39892152377` 对 `30ae956` 执行完成，结论 `success`。
+最终本地回归为：`pip check`/`compileall` 通过；提供原 EEGAgent EDF/权重时 180 项中 177 通过、3 项按设计跳过；无私有资源时 168 通过、12 跳过。最新 Issue #12 提交的 GitHub CI 状态待推送后核验。
 
 ## 下一步
 
-1. 冻结独立任务集、oracle、权限与预算，再运行确定性公平比较。
-2. 只在协议冻结后做有界真实 DeepSeek 合成验证；不得围绕 holdout 调参。
-3. 汇总强 Expert 等效/超过 CCEP、CCEP 误拒和协议无效案例，给出 GO/CONDITIONAL/NO-GO。
+1. 不围绕本次 holdout 修 Prompt；先提出一次性 preflight 在动态状态/恢复中会失效的可证伪假设。
+2. 只有在新方法修改前冻结新任务、独立标注和分层 scorer 后，才重新比较 Native/Strong/CCEP。
+3. 若 ledger 消融仍与完整 CCEP 持平，将 CCEP 明确降级为工程安全机制，不再作为性能型论文贡献。
 
 ## 阻塞与未验证问题
 
@@ -60,7 +64,7 @@ Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状�
 - 真实原始/处理后多分支不是当前生产 Context 的通用能力，不能虚构。
 - 当前数值 span normalizer 只覆盖阿拉伯数字和 Unicode 负号，不支持中文数字、单位换算和共指消解。
 - 科学概念锚点是声明式运行时词表，能阻止已知类型漂移，但其同义词召回率、否定作用域和多意图组合尚未正式评估。
-- 禁止筛选的真实请求当前安全澄清而非自动降级为“不筛选的质量+功率”计划，说明组合意图的最小充分任务类型仍需扩展；本轮不为单个案例添加特例。
+- 原子目标已能表达“禁止筛选但做质量+功率”，但真实授权筛选 holdout 仍因上游意图 schema 服从失败而误拒。
 - 证据寻址回答保证发布值可追溯，但现在是固定模板，尚未验证复杂自然语言归纳的忠实度与可读性。
 - 不得把 TaskSpec/validator/Prompt 的简单拼接包装为已证明创新。
 
@@ -77,6 +81,11 @@ Issue #12 Evidence Phase：正在以独立科学 oracle 验证实际 Epoch 状�
 - Follow-up 证据寻址回答：`339aab5`。
 - Follow-up Fake/真实验证与交付：`3866818`。
 - Follow-up 失败证据留痕：`1d0d392`。
+- Issue #12 阶段 A：`f5283cb`。
+- Issue #12 阶段 B：`caed65d`。
+- Issue #12 协议冻结：`06ab4e9`。
+- Issue #12 共享任务比较：`aa6b20a`。
+- Issue #12 真实 DeepSeek holdout：`b705638`。
 
 ## Git 传输恢复入口
 

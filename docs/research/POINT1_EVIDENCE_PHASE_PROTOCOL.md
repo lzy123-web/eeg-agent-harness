@@ -2,6 +2,8 @@
 
 冻结日期：2026-10-23。协议版本：`point1-evidence-phase-v1`。
 
+执行状态：已完成。结果见 `POINT1_EVIDENCE_PHASE_RESULTS.md`；协议内容和 gold 未按结果修改。
+
 ## 1. 研究对象与假设
 
 候选机制不是关键词词表、Prompt、JSON Schema 或单次 preflight，而是同一组科学 obligations 在自然语言解释、计划、派生 EEG 状态、有限恢复和回答发布之间持续保持。需要检验的最小假设是：

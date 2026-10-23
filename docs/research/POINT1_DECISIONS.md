@@ -108,3 +108,21 @@
 - 原因：固定 concept-set→复合 TaskType 会把“测质量、禁止筛选、仍计算功率”误拒；原子目标能表达筛选/不筛选两条合法 lineage，同时保持现有 Planner、Executor 和 EEG Tools。
 - 保留硬编码：当前只支持三个已注册事件原子目标；`trial_selection` 仍硬性要求先测质量和显式授权，`event_bandpower` 仍要求至少 1 秒。这是有限 capability composition，不是开放式通用规划。
 - 验证：禁止筛选组合使用原 Epoch 计算功率；授权筛选组合使用派生 Epoch；质量测量失败时后续选择/分析不执行。定向 CCEP、Planner 与 oracle 测试 35/35 通过。
+
+## D17：独立协议先冻结，计分错误修复不修改 gold
+
+- 决策：固定 24 案例、12/12 split、合成 fixture、oracle、同权限方法和 36 请求/80k tokens 预算后才运行比较；规范化语料 SHA-256 为 `e85b5cda…e696`。
+- 过程：首次 scorer 把“全部 Epoch 被拒且工具明确失败”错误地沿用为输入计数 3。修复为依据该类型化空选择错误计 0；case、gold、方法和输出均未改变，新增回归测试锁定此边界。
+- 原因：评测基础设施缺陷不能被包装为方法失败，也不能借修复改变判定目标。
+
+## D18：真实 holdout 不做结果后 Prompt 调参
+
+- 决策：固定两个相反授权的英文 holdout，Native 与 CCEP 各执行一次。CCEP 在授权筛选例因 `analysis_type` 缺失而安全澄清；保留失败，不重跑、不修改 Prompt。
+- 结果：Native 2/2、CCEP 1/2；13 次 Provider 请求、34,263 tokens。禁止筛选例的 CCEP Evidence Gate 通过，授权筛选例 0 工具执行。
+- 原因：事后修 Prompt 会污染 holdout，也会把接口服从问题伪装成方法优势。
+
+## D19：核心机制增量价值当前判定 No-Go
+
+- 决策：CCEP v0 的“优于同规则强基线”主张为 No-Go；代码作为 opt-in 科学安全骨架 Conditional Keep。
+- 证据：共享任务层 Strong 与 CCEP 都是 18/18 正确、10/10 科学完成、55 次工具调用、2 次重规划；真实两例中 CCEP 未超过 Native。
+- 含义：持续 ledger 确有跨阶段可审计实现，但本轮没有观测到只有它才能解决的实际错误。后续若继续，必须预先提出一次性 preflight 会失效的动态状态/恢复假设并重新冻结实验。
