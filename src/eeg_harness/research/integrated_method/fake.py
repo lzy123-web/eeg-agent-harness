@@ -23,12 +23,52 @@ class Point1FakeLLM:
             }],
         }
 
+    @staticmethod
+    def _answer_call(messages):
+        payload = json.loads(messages[0]["content"].split("INPUT=", 1)[1])
+        references = []
+
+        def leaves(value, path=()):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key.endswith("_id") or key == "artifact_id":
+                        continue
+                    yield from leaves(item, path + (key,))
+            elif isinstance(value, list):
+                for index, item in enumerate(value):
+                    yield from leaves(item, path + (index,))
+            elif isinstance(value, (str, int, float)) and not isinstance(value, bool):
+                yield path, value
+
+        for tool_name in payload["required_answer_tools"]:
+            result = next(
+                item for item in payload["tool_results"]
+                if item["success"] and item["tool_name"] == tool_name
+            )
+            path, _ = next(leaves(result["data"]))
+            references.append({
+                "request_id": result["request_id"],
+                "path": [str(component) for component in path],
+            })
+        return {
+            "role": "assistant", "content": None,
+            "tool_calls": [{
+                "id": "fake-answer", "type": "function",
+                "function": {
+                    "name": "submit_evidence_answer",
+                    "arguments": json.dumps({"evidence_references": references}, ensure_ascii=False),
+                },
+            }],
+        }
+
     def complete(self, messages, tools, tool_choice="auto"):
         self.calls.append({"messages": messages, "tools": tools, "tool_choice": tool_choice})
         self.request_count += 1
         self.finish_reasons.append("tool_calls" if tools else "stop")
+        if tools and tools[0]["function"]["name"] == "submit_evidence_answer":
+            return self._answer_call(messages)
         if not tools:
-            return {"role": "assistant", "content": "已依据成功工具结果完成研究用途的 EEG 分析；不构成临床诊断。"}
+            return {"role": "assistant", "content": "未请求工具调用。"}
         text = next(item["content"] for item in messages if item["role"] == "user")
         lowered = text.lower()
         if any(term in lowered for term in ("诊断", "erp", "erd/ers", "显著性检验")):

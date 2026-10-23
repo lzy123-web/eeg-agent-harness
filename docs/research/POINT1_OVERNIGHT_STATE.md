@@ -32,16 +32,17 @@ Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图
 - Draft PR #11 的 GitHub Actions run `39814383931` 中安装、compileall 和无资源 unittest 步骤均完成且结论为 success。
 - 已新增覆盖全部 9 个已支持分析类型（含组合任务）的声明式科学概念契约。analysis type 由原文绑定概念集合独立解析并与模型声明交叉检查；合法 PSD 参数但声明 amplitude 的对抗用例在 0 工具调用时澄清。
 - 新增 `quality_selected_bandpower` 完整状态链：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。最终分析消费筛选工具新产生的 Epoch artifact，Evidence Gate 按执行顺序检查两级 lineage。
+- 最终回答改为证据寻址协议：LLM 只选择成功 ToolResult 的 request id 与标量 JSON path；运行时验证路径、必要工具覆盖并确定性渲染。无效路径或缺少质量/筛选/分析任一必要证据时返回 `completed_without_llm_answer`。
 
 ## 上次成功验证
 
-当前集成+规划定向测试 28/28 通过；复杂状态链 Fake trace 保存为 `results/point1_quality_selected_bandpower_fake.json`。上一轮完整结果仍待本轮全部改动后重跑。
+当前回答校验定向测试 21/21 通过；复杂状态链 Fake trace将在回答协议稳定后重新生成。上一轮完整结果仍待本轮全部改动后重跑。
 
 ## 下一步
 
-1. 增加最终回答中的数值/科学条件与 Evidence Gate 一致性检查。
-2. 用真实 DeepSeek 在合成 EEG 上验证类型一致性和复杂状态链。
-3. 重跑完整回归并更新 Draft PR。
+1. 重新生成 Fake 轨迹，并用真实 DeepSeek 在合成 EEG 上验证类型一致性、复杂状态链和回答引用。
+2. 重跑完整回归并更新验收、状态和 Draft PR。
+3. 审查本轮新增部分是否只是普通 schema/validator，保持客观研究边界。
 
 ## 阻塞与未验证问题
 

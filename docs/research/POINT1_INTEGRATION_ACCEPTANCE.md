@@ -64,7 +64,7 @@ EEG-specific 内容体现在：连续窗与事件窗使用不同科学 slot；�
 1. `list_events` 验证记录中存在 `stimulus`；
 2. `create_epochs` 以同一 label/window 产生请求级 artifact；
 3. `event_bandpower` 通过 artifact id 消费该 Epoch；
-4. Evidence Gate 验证成功工具集合、参数不变和 producer/consumer lineage。
+4. Evidence Gate 验证成功工具集合、参数不变和 producer/consumer lineage；回答阶段只接受可解析到成功 ToolResult 标量的 JSON path。
 
 终止为 `completed`；共 3 次工具调用、2 次 Provider 请求、3,300 tokens。完整脱敏 JSON：`results/point1_integrated_deepseek_event.json`。Fake 回归轨迹：`results/point1_integrated_event_fake.json`。
 
@@ -100,6 +100,7 @@ EEG-specific 内容体现在：连续窗与事件窗使用不同科学 slot；�
 - 临时工具失败和 artifact 失效只允许一次恢复，恢复前重新验证同一 ledger；
 - 计划和执行不能静默丢失 obligation 参数；
 - 最终 LLM 回答失败时保留工具证据，但使用 `completed_without_llm_answer`，不冒充闭环成功；
+- 最终回答引用不存在 request/path 或没有覆盖必要科学结果工具时不发布；已发布值由运行时从 ToolResult 读取并确定性渲染；
 - 结果与 trace 均可 JSON 序列化，不包含 EEG 波形。
 
 有本地资源时完整回归为 161 项中 160 通过、1 项真实联网 opt-in 测试按设计跳过；无私有资源时 149 通过、12 项资源/联网测试按设计跳过；`compileall` 和 `pip check` 通过。既有 EDF、seizure 权重与 R3 文件只在本地测试环境引用，没有进入 Git。

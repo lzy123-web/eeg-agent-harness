@@ -42,6 +42,8 @@ class ScriptedIntentLLM:
     def complete(self, messages, tools, tool_choice="auto"):
         self.request_count += 1
         self.finish_reasons.append("tool_calls" if tools else "stop")
+        if tools and tools[0]["function"]["name"] == "submit_evidence_answer":
+            return Point1FakeLLM._answer_call(messages)
         if not tools:
             return {"role": "assistant", "content": "已依据闭合证据回答。"}
         return {
@@ -58,9 +60,30 @@ class ScriptedIntentLLM:
 
 class AnswerFailingLLM(ScriptedIntentLLM):
     def complete(self, messages, tools, tool_choice="auto"):
-        if not tools:
+        if tools and tools[0]["function"]["name"] == "submit_evidence_answer":
             self.request_count += 1
             raise RuntimeError("provider unavailable")
+        return super().complete(messages, tools, tool_choice)
+
+
+class DistortedAnswerLLM(ScriptedIntentLLM):
+    def complete(self, messages, tools, tool_choice="auto"):
+        if tools and tools[0]["function"]["name"] == "submit_evidence_answer":
+            return {
+                "role": "assistant", "content": None,
+                "tool_calls": [{
+                    "id": "bad-answer", "type": "function",
+                    "function": {
+                        "name": "submit_evidence_answer",
+                        "arguments": json.dumps({
+                            "evidence_references": [{
+                                "request_id": "missing-result",
+                                "path": ["SYNTH-C1", "alpha"],
+                            }],
+                        }),
+                    },
+                }],
+            }
         return super().complete(messages, tools, tool_choice)
 
 
@@ -158,6 +181,27 @@ class Point1IntegratedAgentTest(unittest.TestCase):
         result = ConstraintCarryingEEGAgent(AnswerFailingLLM(payload), make_context()).run(request)
         self.assertEqual("completed_without_llm_answer", result.stop_reason)
         self.assertTrue(result.evidence_check["closed"])
+
+    def test_invalid_answer_reference_is_not_released(self):
+        request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        payload = intent_payload(
+            "psd", {"channels": ["SYNTH-C1"], "start": 1.0, "end": 3.0},
+            {"analysis_type": "频带功率", "channels": "SYNTH-C1", "start": request, "end": request},
+        )
+        result = ConstraintCarryingEEGAgent(DistortedAnswerLLM(payload), make_context()).run(request)
+        self.assertEqual("completed_without_llm_answer", result.stop_reason)
+        self.assertEqual("ANSWER_EVIDENCE_MISMATCH", result.answer_check["code"])
+        self.assertNotIn("alpha", result.final_answer)
+
+    def test_released_answer_values_are_resolved_from_tool_results(self):
+        result = ConstraintCarryingEEGAgent(Point1FakeLLM(), make_context()).run(
+            "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        )
+        self.assertEqual("completed", result.stop_reason)
+        self.assertTrue(result.answer_check["valid"])
+        reference = result.answer_check["references"][0]
+        self.assertIn(str(reference["value"]), result.final_answer)
+        self.assertEqual(["psd"], result.answer_check["required_tools"])
 
     def test_verbose_selection_forbid_is_enforced(self):
         request = "请对 stimulus 事件前 -0.2 秒到后 0.8 秒检查质量并允许筛选，但不要执行试次选择"

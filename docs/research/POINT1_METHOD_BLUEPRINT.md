@@ -55,7 +55,7 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 - Obligation Ledger：绑定 `context_id`、Profile 和意图摘要；记录参数/来源/操作/证据义务及其状态。
 - Planner adapter：只把 gate 通过的 IntentSpec 编译为现有 `TaskSpec`；调用原 `StateAwareConstrainedPlanner` 与 `ConstrainedPlanRunner`。
 - Evidence Gate：从真实结果与 trace 验证所需工具/参数/artifact 是否出现；失败时安全停止，不让 LLM补结果。
-- Answerer：只接收脱敏元数据、意图/计划摘要和 JSON ToolResult，不接收 EEG 数组。
+- Answerer：LLM 只能提交成功 ToolResult 的 `request_id + JSON path`；Gate 解析实际标量并用确定性模板发布，不接收 EEG 数组，也不直接发布自由文本事实。
 
 ## 4. 轻量形式化不变量
 
@@ -70,6 +70,7 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 7. **证据闭合**：只有对应 obligation 被成功 ToolResult/trace 消解，Answerer 才能报告完成；否则报告 clarify/reject/failure。
 8. **恢复单调性**：恢复可以新增观察或重建丢失 artifact，但不能删除/改写用户显式义务。
 9. **任务类型一致性**：模型声明的 analysis type 必须等于由原文绑定科学概念集合唯一解析出的 capability；参数合法不能替代该证明。
+10. **回答值可寻址**：发布的每个结果值必须由成功 ToolResult 的 request id 和 JSON path 唯一定位；组合任务必须覆盖各必要科学结果工具，否则不发布回答。
 
 ## 5. 初版支持场景
 

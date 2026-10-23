@@ -5,6 +5,7 @@ import json
 from typing import Any, Mapping, Optional
 
 from ...planning import ConstrainedPlanRunner, StateAwareConstrainedPlanner
+from .answer import ANSWER_TOOL, required_answer_tools, validate_and_render_answer
 from .contracts import close_ledger, compile_intent, validate_plan_against_ledger
 from .intent import EvidenceBoundIntentInterpreter
 
@@ -17,6 +18,7 @@ class Point1RunResult:
     plan_check: Optional[Mapping[str, Any]] = None
     execution: Optional[Mapping[str, Any]] = None
     evidence_check: Optional[Mapping[str, Any]] = None
+    answer_check: Optional[Mapping[str, Any]] = None
     final_answer: str = ""
     llm: Mapping[str, Any] = None
 
@@ -29,6 +31,7 @@ class Point1RunResult:
             "plan_check": None if self.plan_check is None else dict(self.plan_check),
             "execution": None if self.execution is None else dict(self.execution),
             "evidence_check": None if self.evidence_check is None else dict(self.evidence_check),
+            "answer_check": None if self.answer_check is None else dict(self.answer_check),
             "final_answer": self.final_answer,
             "llm": dict(self.llm or {}),
         }
@@ -60,26 +63,30 @@ class ConstraintCarryingEEGAgent:
 
     def _answer(self, user_request, interpretation, ledger, execution, evidence):
         prompt = (
-            "你是 EEG 证据回答器。只能依据给定的成功 ToolResult 和 evidence_check 回答；"
-            "不得补充未执行分析、临床诊断、原始数组或未证实科学解释。若 evidence_check.closed"
-            "为 false，明确报告未完成及原因。INPUT=" + json.dumps({
+            "你是 EEG 证据选择器。只调用 submit_evidence_answer，引用成功 ToolResult 中"
+            "可定位的标量 JSON path；不得生成自由文本事实、临床诊断、原始数组或未执行分析。"
+            "每个 required_answer_tools 至少引用一项能表达其结果或科学条件的标量。INPUT=" + json.dumps({
                 "user_request": user_request,
                 "intent": interpretation.intent.to_dict(),
                 "ledger": ledger.to_dict(),
                 "tool_results": list(execution.tool_results),
                 "evidence_check": evidence,
+                "required_answer_tools": list(required_answer_tools(ledger)),
             }, ensure_ascii=False, allow_nan=False)
         )
         try:
             response = self.llm_client.complete(
                 [{"role": "system", "content": prompt},
                  {"role": "user", "content": "请给出简洁、证据受限的最终回答。"}],
-                [],
+                ANSWER_TOOL,
+                tool_choice={"type": "function", "function": {"name": "submit_evidence_answer"}},
             )
-            content = response.get("content") or ""
-            return content, bool(content)
+            return validate_and_render_answer(response, execution, ledger)
         except Exception:
-            return "工具执行已记录，但最终回答模型调用失败；请查阅结构化 ToolResult。", False
+            return (
+                "工具执行已记录，但最终回答模型调用失败；请查阅结构化 ToolResult。",
+                {"valid": False, "code": "ANSWER_MODEL_ERROR", "required_tools": list(required_answer_tools(ledger))},
+            )
 
     def run(self, user_request):
         interpretation = self.interpreter.interpret(user_request, self.context)
@@ -115,14 +122,15 @@ class ConstraintCarryingEEGAgent:
             plan_validator=lambda candidate: validate_plan_against_ledger(candidate, ledger),
         ).execute_plan(task, plan)
         evidence = close_ledger(ledger, execution)
-        answer, answer_ok = self._answer(user_request, interpretation, ledger, execution, evidence)
+        answer, answer_check = self._answer(user_request, interpretation, ledger, execution, evidence)
         if not evidence["closed"]:
             reason = "safe_stop_without_evidence"
-        elif not answer_ok:
+        elif not answer_check["valid"]:
             reason = "completed_without_llm_answer"
         else:
             reason = "completed"
         return Point1RunResult(
             reason, interpretation.to_dict(), ledger.to_dict(), plan_check,
-            execution.to_dict(), evidence, answer, self._llm_summary(),
+            execution.to_dict(), evidence, answer_check=answer_check,
+            final_answer=answer, llm=self._llm_summary(),
         )
