@@ -18,6 +18,7 @@ from eeg_harness.research.integrated_method.contracts import compile_intent
 from eeg_harness.research.integrated_method.intent import IntentSpec
 from eeg_harness.research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
 from eeg_harness.research.integrated_method.v1 import ResidualScientificPlanner
+from eeg_harness.research.integrated_method.v1_evaluation import run_suite
 from eeg_harness.tooling import ToolRequest, ToolResult
 from eeg_harness.tools import build_default_registry
 
@@ -235,6 +236,15 @@ class CCEPV1DynamicPlanningTest(unittest.TestCase):
         )
         self.assertEqual("completed", result.stop_reason)
         self.assertEqual(2, llm.request_count)  # one intent call and one answer call
+
+    def test_frozen_bounded_suite_is_json_serializable(self):
+        report = run_suite(Point1FakeLLM())
+        self.assertEqual("ccep-v1-bounded-integration-v1", report["protocol_id"])
+        self.assertEqual(3, len(report["cases"]))
+        self.assertTrue(all(
+            item["result"]["stop_reason"] == "completed" for item in report["cases"]
+        ))
+        json.dumps(report, ensure_ascii=False, allow_nan=False)
 
 
 if __name__ == "__main__":

@@ -74,3 +74,24 @@ $env:PYTHONPATH='src'
 - 相关回归 51/51 通过，另有 1 个需要本地 EDF/权重环境变量的模型测试按设计跳过。
 
 这轮改进是 lineage/state 机制改进，不是增加关键词或针对某个自然语言短语写特例。
+
+## 迭代 3：完整 Fake 与真实 DeepSeek 合成链
+
+预先固定三个请求与 fixture，不在看到真实输出后改措辞：
+
+1. one-bad + 明确授权筛选 + bandpower；
+2. clean + 明确授权筛选 + bandpower；
+3. one-bad + 明确禁止筛选 + bandpower。
+
+Fake LLM 结果为 3/3 completed、6 次模型协议调用。三条实际工具链分别为：
+
+- `list → create → quality → select → bandpower`，`selection_mode=derived`；
+- `list → create → quality → bandpower`，`selection_mode=identity`；
+- `list → create → quality → bandpower`，`selection_mode=null`（禁止筛选）。
+
+真实 DeepSeek 使用同一请求与合成 EEG，设置 8 请求/20,000 tokens 总上限；实际 6 请求、15,363 tokens，3/3 completed。三个案例的 Tool chain、selection mode 和 Evidence Gate 均与预先边界一致；最终回答证据路径校验均通过。完整脱敏轨迹位于：
+
+- `results/point1_v1_fake_traces.json`
+- `results/point1_v1_deepseek_traces.json`
+
+报告不含 API 密钥、认证头、本地私密路径、原始 EEG 数组或真实受试者数据。真实结果只证明本次三种固定措辞下的集成链可运行；它不是准确率估计，也没有与 guarded Expert 做效果比较。
