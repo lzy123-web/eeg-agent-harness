@@ -49,7 +49,7 @@ Issue #12 Evidence Phase 已完成实现、独立 oracle、冻结比较与有界
 
 Issue #12 定向 Evidence Phase 测试 10/10 通过；共享任务冻结比较与真实 DeepSeek 结果均已保存。真实 holdout 为两个请求、两种方法，共 13 次 Provider 请求、34,263 tokens；Native 2/2，CCEP 1/2，失败案例完整保留。
 
-最终本地回归为：`pip check`/`compileall` 通过；提供原 EEGAgent EDF/权重时 180 项中 177 通过、3 项按设计跳过；无私有资源时 168 通过、12 跳过。最新 Issue #12 提交的 GitHub CI 状态待推送后核验。
+最终本地回归为：`pip check`/`compileall` 通过；提供原 EEGAgent EDF/权重时 180 项中 177 通过、3 项按设计跳过；无私有资源时 168 通过、12 跳过。Draft PR #11 的 GitHub Actions run `39906771336` 对 `2d5d9cf` 完成公开无资源回归，结论 `success`。
 
 ## 下一步
 
@@ -86,6 +86,7 @@ Issue #12 定向 Evidence Phase 测试 10/10 通过；共享任务冻结比较�
 - Issue #12 协议冻结：`06ab4e9`。
 - Issue #12 共享任务比较：`aa6b20a`。
 - Issue #12 真实 DeepSeek holdout：`b705638`。
+- Issue #12 研究结论与文档：`2d5d9cf`；GitHub Actions run `39906771336` 成功。
 
 ## Git 传输恢复入口
 

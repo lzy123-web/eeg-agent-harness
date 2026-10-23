@@ -349,6 +349,7 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 | CCEP Evidence Gate | 禁止筛选例通过；授权筛选例在意图层安全澄清，0 工具、无数值发布 |
 | 有本地 EDF/权重回归 | `pip check`、`compileall` 通过；180 项中 177 通过、3 项按设计跳过 |
 | 无私有资源回归 | 180 项中 168 通过、12 项按设计跳过 |
+| GitHub CI | Draft PR #11 run `39906771336` 对 `2d5d9cf` 的公开无资源 `unit-tests` 成功 |
 
 ### 研究判断与遗留问题
 
@@ -364,4 +365,4 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - `06ab4e9`：冻结 Evidence Phase 协议。
 - `aa6b20a`：共享任务公平比较。
 - `b705638`：真实 DeepSeek holdout。
-- 最终文档与状态提交：见本节之后的 Git 历史记录。
+- 最终文档与状态提交：`2d5d9cf`；GitHub Actions run `39906771336` 成功。
