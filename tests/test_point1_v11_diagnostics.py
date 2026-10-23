@@ -12,6 +12,7 @@ from eeg_harness.research.integrated_method.v11_diagnostics import (
     benchmark_epoch_fingerprint,
     run_guarded_epoch_expert,
 )
+from eeg_harness.research.integrated_method.v11_evaluation import run_suite
 from eeg_harness.tools import build_default_registry
 
 
@@ -73,6 +74,16 @@ class LRSPV11DiagnosticsTest(unittest.TestCase):
         self.assertGreater(report[0]["bytes"], 0)
         self.assertGreaterEqual(report[0]["median_ms"], 0.0)
         json.dumps(report, allow_nan=False)
+
+    def test_bounded_fake_suite_is_serializable_and_closes_all_cases(self):
+        report = run_suite(Point1FakeLLM())
+        self.assertEqual(3, len(report["cases"]))
+        self.assertTrue(all(
+            item["result"]["stop_reason"] == "completed"
+            for item in report["cases"]
+        ))
+        self.assertFalse(report["raw_eeg_sent_to_llm"])
+        json.dumps(report, ensure_ascii=False, allow_nan=False)
 
 
 if __name__ == "__main__":

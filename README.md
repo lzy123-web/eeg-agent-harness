@@ -251,6 +251,25 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
 - CCEP 已增加意图—任务类型一致性、质量筛选派生 Epoch 的五工具链和证据寻址回答；真实模型只在有界合成请求上验证，未与公平强基线完成新的正式比较，不得宣称方法优势或多数据集验证。
 
+## Issue #14：LRSP v1.1 契约索引证据依赖图
+
+`point1-v11` 是 opt-in 研究模式。它把事件目标编译为 `GoalContract` 依赖闭包，并用绑定输入/输出内容版本及上游 token 的 `GoalEvidence` 管理动态失效。`epoch_summary` 和 `event_bandpower` 可共享 original/identity/derived effective Epoch；内容等价的 artifact 重建可恢复已完成纯 consumer，内容改变则强制重算。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python'
+
+# 三个确定性合成任务，不联网
+& $python -m eeg_harness.research.integrated_method.v11_evaluation `
+  --output artifacts\point1_v11_fake.json
+
+# 单请求 CLI；使用 Fake 时加 --fake，真实服务由通用环境变量配置
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1-v11 --fake `
+  --request '检查 target 事件后 0 秒到 1 秒的质量，允许筛除异常试次，汇总筛选后的试次数，并计算绝对频带功率'
+```
+
+固定三例 Fake 与真实 DeepSeek 均为 3/3 completed；真实调用共 6 请求、18,253 tokens，仅使用合成 EEG。小型同规则强 Expert 诊断在科学输出和 6 次工具调用上持平，因此当前结论是 Conditional Keep、创新性未证实，尚未进入正式公平实验。详见 `docs/research/POINT1_V11_INTEGRATION.md` 与 `docs/research/POINT1_V11_RESEARCH_DECISION.md`。
+
 ## Issue #12：CCEP Evidence Phase
 
 本轮将事件分析统一为 `event_workflow` 与质量、筛选、频带功率三个原子目标。以下两条链共用真实 Registry/Executor 和同一个 Epoch artifact lineage：

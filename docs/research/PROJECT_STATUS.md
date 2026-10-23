@@ -408,3 +408,41 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `df334d1`：固定 Fake/真实 DeepSeek 合成轨迹与有界评估入口。
 - 最终审查与文档提交：`347bc0d`。
 - 状态留痕提交：`7e0ac46`；GitHub Actions run `39926245053` 成功。
+
+## Issue #14：CCEP/LRSP v1.1 契约索引证据依赖图（2026-10-23）
+
+### 方法与实现
+
+- 审计 LRSP v1 固定 Epoch 流程，比较过程式扩展、完整动态 plan repair 和契约索引依赖图，选择 CIEDG。
+- 新增 opt-in `ConstraintCarryingEEGAgentV11`；从请求目标生成依赖闭包，使用绑定 artifact fingerprint、参数和上游 token 的 `GoalEvidence` 管理完成与失效。
+- `epoch_summary` 与 `event_bandpower` 成为两个共享 effective Epoch 的 consumer；禁止筛选、identity、derived 和多条件零 usable 均由真实状态决定。
+- 原型暴露“内容相同的 artifact 重建导致 summary 重放”；修订后增加仅限纯 consumer 的 semantic evidence cache，内容变化反例不会错误复用。
+- 新增同规则过程式 strong expert 与 fingerprint 微基准，只作为小型诊断，不冒充正式对比实验。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 双 consumer + 独立 oracle | selected Epoch 3→2；summary 与 bandpower 共用同一 artifact；波形和全部频带值一致 |
+| 禁止筛选 | 测量质量后两个 consumer 均使用 original 3 Epoch；未调用筛选 |
+| 多条件零 usable | `NO_USABLE_EPOCHS_FOR_CONDITION`；筛选与下游 consumer 均未执行 |
+| 内容等价 repair | selection 2 次；summary 从原型 2 次降为 1 次；任务完成 |
+| 内容改变 repair | cache miss；create/summary 均重算，未发布陈旧证据 |
+| 强 Expert 小诊断 | 相同 6 次调用、相同试次数与频带数值；未观察候选优势 |
+| Fake 固定三例 | 3/3 completed，6 次协议调用 |
+| 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、18,253 tokens；Evidence Gate/answer check 均通过；仅合成 EEG |
+| 全仓回归 | `compileall`、`pip check` 通过；199 tests：187 passed、12 gated skipped、0 failed |
+
+### 研究判断与遗留问题
+
+- CIEDG 是真实运行时机制，不是只加 Prompt/Schema；它将科学目标、状态版本、证据依赖与局部恢复连接起来。
+- 当前结论为 **Conditional Keep / 创新性未证实**。强 Expert 无故障诊断持平，不能宣称成功率、成本或科学正确性优势。
+- 尚未冻结强动态 Expert 的故障恢复正式套件；quality evidence ID 含随机 artifact ID；当前只有 event Epoch 状态族和两个 consumer；全数组 fingerprint 的大规模成本未知。
+- 尚不具备直接进入正式大规模公平实验的条件。下一入口是冻结独立协议、实现同恢复预算强 Expert、分层指标，并增加一个不同且科学合法的状态转移族。
+
+### 本轮提交
+
+- `037d2c1`：方法审计、候选比较与设计冻结。
+- `c11bb95`：CIEDG 原型、双 consumer 与真实 Agent 集成。
+- `ea497ac`：内容寻址 evidence 恢复、反例、多条件与 strong expert 诊断。
+- 阶段 D 交付提交：待创建。

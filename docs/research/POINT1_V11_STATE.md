@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #14 阶段 C：声明式目标契约图及内容寻址 evidence 恢复已接入真实 Agent/Registry/Executor；准备进行有界 Fake/DeepSeek 集成验证和交付审查。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
+Issue #14 阶段 D：声明式目标契约图、内容寻址 evidence 恢复、有界 Fake/DeepSeek 与完整回归均已完成；正在完成提交、PR/Issue 留痕。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
 
 ## 已冻结问题
 
@@ -47,12 +47,13 @@ Issue #14 阶段 C：声明式目标契约图及内容寻址 evidence 恢复已�
 
 ## 下一步
 
-1. 阶段 D：运行固定合成用例的 Fake 与有界 DeepSeek，保留失败。
-2. 完整回归、方法/集成/研究判断文档及 README/PROJECT_STATUS 更新。
-3. 推送分阶段提交并更新 Draft PR #11 与 Issue #14。
+1. 提交阶段 D 轨迹和研究判断，推送研究分支。
+2. 更新 Draft PR #11 与 Issue #14；等待 CI。
+3. 下一轮不得直接扩实验，先冻结强动态 Expert 与独立正式协议。
 
 ## 提交
 
 - 阶段 A：`037d2c1 research: design LRSP v1.1 evidence dependency graph`
 - 阶段 B：`c11bb95 feat: integrate LRSP v1.1 contract evidence graph`
-- 阶段 C：待提交。
+- 阶段 C：`ea497ac feat: reuse content-equivalent LRSP evidence safely`
+- 阶段 D：待提交。
