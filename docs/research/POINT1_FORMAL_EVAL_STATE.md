@@ -11,7 +11,7 @@
 
 ## 当前阶段
 
-Issue #16 阶段 A：24 个登记场景已补齐 append-only case supplement、自然语言、fixture、fault、gold 和 lineage invariants，并冻结 hash；准备实现独立 oracle/scorer。在 development 校验前不打开 holdout。
+Issue #16 阶段 A/B 边界：独立 fixture/oracle/scorer、selection+rereference Strong Expert、CIEDG adapter 和四项预注册消融已实现。8 个 development case 已运行；Candidate/Expert 各 8/8 通过共享 scorer。Evaluator 修订已锁定，下一步才允许一次性打开 holdout。
 
 ## 已识别的协议风险
 
@@ -20,11 +20,22 @@ Issue #16 阶段 A：24 个登记场景已补齐 append-only case supplement、�
 3. `unsupported_profile`、`invalid_event_label` 等失败必须区分 intent、planning/preflight 与 Executor 层，不能用统一“安全失败”掩盖误拒或错误执行。
 4. 原生 Agent 与 CIEDG 的最终回答形式不同，需要共享、独立的事实/工具结果 scorer；不能只给 CIEDG 使用结构化 Evidence Gate 优势。
 
+## Development evaluator 修订（打开 holdout 前）
+
+首次 dry run 原样保存为 `point1_formal_dev_dryrun.json`，暴露三项 eval-only 问题：
+
+1. scorer 错误要求 selection 前 quality evidence 绑定筛选后的 effective artifact；修正为 role-aware provenance；
+2. 质量输出省略零计数条件，gold 显式写 `0`；scorer 对请求条件补零后比较；
+3. Strong Expert 未把成功 rereference transition 纳入 release evidence；补齐后与 Candidate 使用同一 answer evidence scorer。
+
+这些修改没有改变 Candidate、EEG 工具、scientific threshold、case/gold 或 holdout。修订后 development Candidate 8/8、Expert 8/8；无 EEG guard 消融在 S04/R04 正确暴露 2 个未授权转换，其他无 fault 的 dev 消融未观察差异。
+
 ## 下一步
 
-1. 实现独立 fixture/oracle/scorer、完整 selection+rereference Strong Expert 及预注册消融。
-2. 仅运行 8 个 development 校验实验基础设施；审查后锁定 evaluator，再一次性打开 16 个 holdout。
-3. 保存逐例 raw trace、分层错误类型和预算；最后形成 GO / Conditional / NO-GO 判断。
+1. 提交并锁定 evaluator/Expert 的 dev 版本与测试。
+2. 一次性运行 16 个 holdout × Candidate/Expert/四消融，不再修改方法或 gold。
+3. 运行相同请求的 Native/CIEDG 真实 DeepSeek 分层子集，保存 provider failures。
+4. 汇总逐例错误、成本和 Wilson 区间，形成 GO / Conditional / NO-GO 判断。
 
 ## 提交
 
