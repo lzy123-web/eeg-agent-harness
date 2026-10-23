@@ -200,6 +200,7 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 | follow-up Fake | 集成方法与 Planner 定向 30/30；单步、事件和质量筛选后分析轨迹均按新回答协议生成。 |
 | follow-up DeepSeek | 4 个合成请求、7 次 Provider 请求、14,313 tokens；PSD 对抗及两条授权复杂链完成，禁止筛选请求 0 工具澄清。首次复杂链的错误 `data` 路径被安全阻止，接口说明修复后重测完成；其完整未跟踪 JSON 被覆盖，仓库仅保留明确标注的观测失败摘要，不伪造原始响应。 |
 | follow-up 完整回归 | `pip check`/`compileall` 通过；167 项有资源测试除 1 项联网 opt-in 外均通过，R3 两项显式资源测试另行通过；无资源 155 通过、12 跳过。 |
+| follow-up GitHub CI | Draft PR #11 run `39892152377` 对 `30ae956` 执行公开无资源 `unit-tests`，结论 `success`。 |
 
 真实 LLM 的中文回答存在服务侧历史乱码，因此只确认结构化调用、工具执行和终止语义，不宣称中文可读性通过。方法当前是可运行候选，创新性和相对优势均未证明。完整报告见 `POINT1_INTEGRATION_ACCEPTANCE.md`，后续公平对照和消融见 `POINT1_FUTURE_EXPERIMENTS.md`。
 
