@@ -232,7 +232,7 @@ def create_epoch_set(record, labels, tmin, tmax, baseline=None):
             "selected_labels": [labels] if isinstance(labels, str) else list(labels),
             "window_semantics": "[event_onset+tmin, event_onset+tmax)",
             "sampling_alignment": "round(seconds * sfreq)",
-            "event_source": record.events.source,
+            "event_source": source_reference(record.events.source),
         },
     )
 

@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存在性为 **Conditional Go**；最小意图契约相对原生方法未显示优势，方法结论为 **NO-GO / 证据不足**。Baseline v1.0 与 Issue #8 历史结果保持不变。
+Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交付。选定机制为 Lineage-aware Residual Scientific Planning（LRSP）；它已实际改变质量反馈后的后续动作并避免全计划重放，但尚未在冻结协议上优于同规则动态 Expert，当前结论为 **可运行研究候选 / 创新性未证实**。Baseline v1.0、CCEP v0 及 Issue #8–#12 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -67,7 +67,7 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 
 ## 实际验证结果
 
-最新验证日期：2026-10-22。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
+最新验证日期：2026-10-23。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
 
 | 检查项 | 结果 |
 |---|---|
@@ -366,3 +366,43 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - `aa6b20a`：共享任务公平比较。
 - `b705638`：真实 DeepSeek holdout。
 - 最终文档与状态提交：`2d5d9cf`；GitHub Actions run `39906771336` 成功。
+
+## Issue #13：CCEP v1 动态科学状态与增量约束规划（2026-10-23）
+
+### 方法与实现
+
+- 比较 partial replanning、scientific-state residual goals、guarded conditional DAG 与 LLM feedback replanning 后，选择 LRSP；guarded DAG 保留为未来强动态基线。
+- 新增 opt-in `ConstraintCarryingEEGAgentV1`，冻结一次 Intent/ledger，每轮只从实际 artifact、质量 evidence、每条件计数和剩余目标生成一个 frontier action。
+- clean 数据走 identity transition；实际异常且用户授权时才创建派生 Epoch；任一请求条件无 usable Epoch 时在选择前安全停止；禁止筛选时分析原 artifact。
+- transient failure 只重试当前 frontier，保留已经有效的事件、Epoch、质量和选择结果。
+- `EpochSet` 新增内容 fingerprint；质量 evidence 绑定 artifact ID/fingerprint/阈值；下游工具可检查 expected fingerprint/evidence ID。
+- 最终回答在 LLM evidence path 校验后，由运行时确定性披露 derived/identity/no-selection 分支与经验阈值边界。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立 oracle | one-bad 场景实际 3→2；派生数组逐样本一致；全部通道/频带值与独立 SciPy oracle 一致 |
+| 状态分支 | one-bad=`derived`；clean=`identity` 且无伪 artifact；禁止筛选=原 artifact；all-bad=质量后安全停止 |
+| residual recovery | 一次受控 bandpower transient：list/create/quality/select 各 1 次，bandpower 2 次，完成 |
+| 初版失败探针 | 同 ID 内容改变后仍执行 `select_quality`，`detected=false`；结果已保留在迭代日志 |
+| 修订后 | 同一探针回到 `measure_quality`；过期 evidence ID 被结构化拒绝 |
+| Fake 固定三例 | 3/3 completed，6 次协议调用，完整轨迹已保存 |
+| 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、15,363 tokens；仅合成 EEG；不外推准确率 |
+| 全仓无私有资源回归 | 190 tests：178 passed、12 resource-gated skipped；0 failed |
+| 敏感信息检查 | v1 代码、文档与结果未发现密钥、本地私密路径或原始 EEG 数组 |
+
+### 研究判断与遗留问题
+
+- LRSP 已经是实际运行机制，不是单一 Prompt：工具状态会改变动作，内容 lineage 会撤销旧完成项，恢复不重放无关步骤。
+- guarded dynamic Expert 能表达当前同类分支，因此本轮没有证明 CCEP v1 的相对优势或新颖性。当前为“可运行研究候选 / 创新性未证实”。
+- 动态语义仅覆盖事件质量、选择和绝对频带功率；阈值未临床校准；artifact store 无跨进程事务；检查后并发变化目前安全失败但不自动恢复。
+- 下一步只能在预冻结同信息、同规则、同预算的 guarded Expert/Native/LRSP 协议上比较，并将语言解析错误与运行时规划错误分开。
+
+### 本轮提交
+
+- `b85eef2`：冻结研究设计与恢复状态。
+- `d96c764`：接入 LRSP、Fake/oracle/局部恢复测试。
+- `36c4adf`：内容 fingerprint、quality evidence binding 与回答条件修订。
+- `df334d1`：固定 Fake/真实 DeepSeek 合成轨迹与有界评估入口。
+- 最终审查与文档提交：见本节之后的最新 Git commit。

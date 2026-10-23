@@ -95,3 +95,15 @@ Fake LLM 结果为 3/3 completed、6 次模型协议调用。三条实际工具�
 - `results/point1_v1_deepseek_traces.json`
 
 报告不含 API 密钥、认证头、本地私密路径、原始 EEG 数组或真实受试者数据。真实结果只证明本次三种固定措辞下的集成链可运行；它不是准确率估计，也没有与 guarded Expert 做效果比较。
+
+## 阶段 V 审查
+
+代码/科学边界审查得到以下结论：
+
+- v1 复用唯一 Executor/Context/Registry，没有第二套 EEG 数值核心或模拟执行器；故障 wrapper 仅在测试中替换一次返回值，其他调用均委托真实 Executor。
+- 外部模型只看到脱敏状态、工具描述和 ToolResult；本轮联网输入是合成 EEG。审查时进一步把 Epoch 参数中的事件来源改为 `source_reference`，避免未来摘要直接携带本地路径。
+- `content_fingerprint` 是一致性证据，不是数据隐私技术、数字签名或跨进程事务。
+- `selection_mode=identity`、内容失效和 residual retry 是普通 Prompt/Schema 无法单独产生的运行时行为；但 guarded Expert 仍可实现，故不主张已证明独创性。
+- 未解决的最重要问题是动态 Expert 公平对照、事件以外状态扩展、阈值外部有效性和检查—执行并发恢复。
+
+最终交付选择停止在方法可运行和边界清晰的位置，不在当前三例上继续刷成功率。

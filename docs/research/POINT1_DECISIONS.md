@@ -126,3 +126,27 @@
 - 决策：CCEP v0 的“优于同规则强基线”主张为 No-Go；代码作为 opt-in 科学安全骨架 Conditional Keep。
 - 证据：共享任务层 Strong 与 CCEP 都是 18/18 正确、10/10 科学完成、55 次工具调用、2 次重规划；真实两例中 CCEP 未超过 Native。
 - 含义：持续 ledger 确有跨阶段可审计实现，但本轮没有观测到只有它才能解决的实际错误。后续若继续，必须预先提出一次性 preflight 会失效的动态状态/恢复假设并重新冻结实验。
+
+## D20：v1 采用 lineage-aware residual goals，而不是 LLM 每步重规划
+
+- 决策：LLM 只在开始编译 Intent、结束选择证据；运行中由确定性科学状态逐步选择唯一 frontier。
+- 原因：质量、每条件可用 Epoch、选择授权与 artifact lineage 都能由工具结果确定，交给 LLM 会增加目标漂移、费用与不可复现性。
+- 边界：guarded conditional DAG 能表达当前相同分支，LRSP 的相对价值必须由未来冻结强对照决定。
+
+## D21：clean selection 是 identity transition
+
+- 决策：用户授权筛选但实际 flagged=0 时，以质量 evidence 满足 selection goal，复用原 Epoch，不调用选择工具制造内容相同的派生 artifact。
+- 原因：授权是一种许可，不等于实际必须删除数据；伪派生会混淆 lineage 和回答语义。
+- 边界：identity 只在当前经验规则给出零标记时成立，不证明数据没有其他质量问题。
+
+## D22：artifact lineage 必须绑定内容而不只绑定 ID
+
+- 决策：Epoch 科学元数据和数组内容形成 SHA-256 fingerprint；质量 evidence 同时绑定 artifact ID/fingerprint/阈值，下游工具可声明预期绑定。
+- 证据：迭代初版在同 ID 内容变化探针中仍选择旧分支；修订后撤销旧质量并重新测量，过期 evidence ID 会被 Executor 拒绝。
+- 边界：当前 artifact store 仍为单 Context 内存对象；fingerprint 不是分布式锁，检查后并发修改仍会安全失败但不会自动无限恢复。
+
+## D23：回答中的动态分支由运行时确定性披露
+
+- 决策：LLM 只提交成功 ToolResult 的 JSON path；校验通过后，运行时追加 derived/identity/no-selection 分支及经验阈值边界。
+- 原因：工具数值引用正确仍不足以保证回答没有把“授权筛选”写成“实际发生筛除”。动态分支属于 Planner 已验证事实，不需要 LLM 改写。
+- 边界：这提高忠实度但牺牲部分自然语言灵活性；它不是科学解释或临床结论生成器。

@@ -12,6 +12,8 @@ Issue #8 对收缩后的研究点一完成了独立 research spike：18 个冻�
 
 Issue #10 在不改写 Baseline v1 默认路径的前提下，新增 opt-in 的 Constraint-Carrying EEG Plan（CCEP）初版：意图原文证据、科学 obligation、Planner/恢复校验、实际 ToolResult 与 artifact lineage 贯穿为一个可检查闭环。它已用 Fake LLM 和真实 DeepSeek+合成 EEG 跑通单步 PSD、事件多步与缺参澄清，但仍是**创新性未证明的方法候选**。详见 `docs/research/POINT1_INTEGRATION_ACCEPTANCE.md`。
 
+Issue #13 在同一 opt-in 研究路径上增加 CCEP v1 的 Lineage-aware Residual Scientific Planning（LRSP）：事件任务按实际质量证据逐步生成剩余 frontier，clean/异常/全坏/禁止筛选状态会改变后续动作；瞬态失败只重试未完成 frontier，Epoch 内容 fingerprint 与质量 evidence 显式绑定。Fake 与真实 DeepSeek 的固定三例合成链均跑通，但尚未与同规则动态 Expert 做冻结正式比较，**不能宣称方法优于强基线或创新已经成立**。详见 `docs/research/POINT1_V1_RESEARCH_DESIGN.md` 与 `docs/research/POINT1_V1_ITERATION_LOG.md`。
+
 它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
@@ -37,6 +39,7 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `planning_agent.py`、`nl_evaluation.py`：可选自然语言结构化目标桥与明确标记的人工 Fake 对照。
 - `quality.py`、`adaptive.py`：不生成总分的质量测量、证据要求和受限自适应 Pilot。
 - `research/integrated_method/`：opt-in 的 CCEP 意图契约、obligation ledger、计划/恢复验证和 Evidence Gate；复用原 Planner、Executor 与工具。
+- `research/integrated_method/v1.py`：opt-in 的 LRSP 动态科学状态、剩余目标、内容 lineage 与局部恢复；当前只为事件质量/选择/bandpower 任务增加动态语义。
 
 ## Profile
 
@@ -94,6 +97,19 @@ Fake LLM Agent：
 & $python -m eeg_harness.agent_cli --fake --profile tuev_bipolar_22 `
   --request '检查癫痫活动' --output artifacts\fake_agent.json
 ```
+
+CCEP v1 合成事件链（不改变默认 Agent）：
+
+```powershell
+& $python -m eeg_harness.agent_cli --fake --demo-synthetic --profile edf_native `
+  --agent-mode point1-v1 `
+  --request '检查 stimulus 事件后 0 秒到 1 秒的质量，允许筛除异常试次，随后计算绝对频带功率'
+
+& $python -m eeg_harness.research.integrated_method.v1_evaluation `
+  --output artifacts\point1_v1_fake_traces.json
+```
+
+真实 LLM 评估只从环境变量读取配置；代码与文档不含密钥。固定评估仅使用合成 EEG，且设总请求与 Token 上限。
 
 可复现的事件分析 Demo 使用明确标记的合成 MNE RawArray，不伪装成真实 EDF 或 ASD 数据：
 

@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #13 阶段 IV：完整 Fake 回归与有界真实 DeepSeek 合成验证已完成，进入方法审查、下一步实验设计和交付。分支继续使用 `research/point1-integrated-method-v0`，Draft PR #11 保持 Draft；Baseline v1 和 CCEP v0 均不替换。
+Issue #13 阶段 V：本轮方法审查、下一步公平实验设计和交付已完成。分支继续使用 `research/point1-integrated-method-v0`，Draft PR #11 保持 Draft；Baseline v1 和 CCEP v0 均未替换或合并。
 
 ## 已继承事实
 
@@ -55,20 +55,21 @@ Guarded conditional DAG 将作为未来强动态 Expert；LLM feedback replannin
 
 ## 阶段 IV 结果
 
-- 全仓 `unittest discover`：189 tests，177 passed，12 skipped；skip 均为未显式配置的 EDF/权重/R3/联网资源测试。
+- 全仓 `unittest discover`：190 tests，178 passed，12 skipped；skip 均为未显式配置的 EDF/权重/R3/联网资源测试。
 - Fake 固定三例：3/3 completed、6 次协议调用；derived、identity、禁止筛选三条分支均实际发生。
 - 真实 DeepSeek 固定三例：3/3 completed、6 次请求、15,363 tokens；只使用合成 EEG，工具链和 answer evidence 均通过。
 - 未做大规模比较，不把 3/3 外推为可靠率或相对优势。
 
 ## 下一步
 
-1. 完成 guarded conditional DAG 公平协议与消融设计，但本 Issue 不跑大规模比较。
-2. 更新 README、PROJECT_STATUS、下一步研究文档和 Draft PR/Issue 报告。
-3. 最后检查敏感信息、Git 历史和 CI，不合并 main。
+1. 等待本轮 PR/Issue 审阅，不在当前三例继续调参。
+2. 下一研究轮先冻结 guarded Expert/Native/LRSP 公平协议与 corpus hash，再实现和运行。
+3. 不扩展第二论文工作点，不合并 main。
 
 ## 提交
 
 - 阶段 I：`b85eef2`，研究设计与恢复状态，已推送。
 - 阶段 II：`d96c764`，LRSP 初版、Fake/oracle/恢复测试，已推送。
 - 阶段 III：`36c4adf`，内容 fingerprint、evidence binding 与回答条件修订，已推送。
-- 阶段 IV：待提交。
+- 阶段 IV：`df334d1`，固定 Fake/真实 DeepSeek 合成轨迹，已推送。
+- 阶段 V：待提交。
