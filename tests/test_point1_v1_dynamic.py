@@ -1,0 +1,175 @@
+import json
+import unittest
+
+import numpy as np
+
+from eeg_harness.context import ExecutionContext
+from eeg_harness.executor import Executor
+from eeg_harness.pipeline import load_config
+from eeg_harness.profiles import EDF_NATIVE
+from eeg_harness.research.evidence_phase import (
+    build_quality_selection_record,
+    oracle_epoch_data,
+    oracle_event_bandpower,
+)
+from eeg_harness.research.integrated_method.fake import Point1FakeLLM
+from eeg_harness.research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
+from eeg_harness.tooling import ToolResult
+from eeg_harness.tools import build_default_registry
+
+
+CONFIG = load_config("config/baseline.json")
+
+
+def make_context(anomalous=(1,), task_id="point1-v1"):
+    record, truth = build_quality_selection_record(anomalous)
+    context = ExecutionContext(
+        record, EDF_NATIVE, Executor(build_default_registry(), CONFIG), task_id,
+    )
+    return context, truth
+
+
+def run_request(context):
+    return ConstraintCarryingEEGAgentV1(Point1FakeLLM(), context).run(
+        "检查 target 事件后 0 秒到 1 秒的质量，允许筛除异常试次，"
+        "随后计算筛选后试次的绝对频带功率"
+    )
+
+
+class TransientBandpowerExecutor:
+    """One declared transient fault; every non-fault call uses the real Executor."""
+
+    def __init__(self, base):
+        self.base = base
+        self.registry = base.registry
+        self.config = base.config
+        self.resources = base.resources
+        self.injected = False
+
+    def execute(self, record, profile, request, session_resources=None):
+        if request.name == "event_bandpower" and not self.injected:
+            self.injected = True
+            return ToolResult(
+                request.request_id, request.name, False,
+                error_code="INJECTED_TRANSIENT_FAILURE",
+                error_message="declared deterministic research fault",
+            )
+        return self.base.execute(record, profile, request, session_resources)
+
+
+class CCEPV1DynamicPlanningTest(unittest.TestCase):
+    def test_quality_changes_branch_and_matches_independent_oracle(self):
+        context, truth = make_context()
+        result = run_request(context)
+        self.assertEqual("completed", result.stop_reason)
+        self.assertEqual("constraint_carrying_eeg_plan_v1_lrsp", result.method)
+        execution = result.execution
+        tools = [item["tool_name"] for item in execution["tool_results"]]
+        self.assertEqual(
+            ["list_events", "create_epochs", "epoch_quality",
+             "select_quality_epochs", "event_bandpower"], tools,
+        )
+        state = execution["scientific_state"]
+        self.assertEqual("derived", state["selection_mode"])
+        selected = context.artifacts[state["artifacts"]["selected"]]
+        expected = oracle_epoch_data(context.record, truth)
+        np.testing.assert_allclose(selected.data, expected, rtol=0, atol=0)
+        expected_power = oracle_event_bandpower(
+            expected, context.record.sfreq, context.record.channel_names,
+            CONFIG["freq_bands"],
+        )
+        actual = execution["tool_results"][-1]["data"]["conditions"][truth.label]
+        self.assertEqual(2, actual["epoch_count"])
+        for channel in context.record.channel_names:
+            for band in CONFIG["freq_bands"]:
+                self.assertAlmostEqual(
+                    expected_power[channel][band], actual["channels"][channel][band],
+                    places=18,
+                )
+        json.dumps(result.to_dict(), ensure_ascii=False, allow_nan=False)
+
+    def test_clean_quality_uses_identity_transition_without_fake_artifact(self):
+        context, _ = make_context(())
+        result = run_request(context)
+        self.assertEqual("completed", result.stop_reason)
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(
+            ["list_events", "create_epochs", "epoch_quality", "event_bandpower"],
+            tools,
+        )
+        state = result.execution["scientific_state"]
+        self.assertEqual("identity", state["selection_mode"])
+        self.assertIsNone(state["artifacts"]["selected"])
+        self.assertEqual(state["artifacts"]["created"], state["artifacts"]["effective"])
+
+    def test_all_bad_stops_before_destructive_selection_and_analysis(self):
+        context, _ = make_context((0, 1, 2))
+        result = run_request(context)
+        self.assertEqual("safe_stop_without_evidence", result.stop_reason)
+        self.assertEqual("scientifically_blocked", result.execution["status"])
+        self.assertEqual(
+            "NO_USABLE_EPOCHS_FOR_CONDITION",
+            result.execution["scientific_state"]["blocked"]["code"],
+        )
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(["list_events", "create_epochs", "epoch_quality"], tools)
+
+    def test_measure_without_selection_analyzes_original_artifact(self):
+        context, _ = make_context()
+        result = ConstraintCarryingEEGAgentV1(Point1FakeLLM(), context).run(
+            "检查 target 事件后 0 秒到 1 秒的质量，不要筛选或剔除试次，"
+            "随后计算未筛选试次的绝对频带功率"
+        )
+        self.assertEqual("completed", result.stop_reason)
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(
+            ["list_events", "create_epochs", "epoch_quality", "event_bandpower"],
+            tools,
+        )
+        self.assertIsNone(result.execution["scientific_state"]["selection_mode"])
+        self.assertEqual(
+            3,
+            result.execution["tool_results"][-1]["data"]["conditions"]["target"]["epoch_count"],
+        )
+
+    def test_transient_frontier_retry_preserves_prior_completed_work(self):
+        context, _ = make_context()
+        context.executor = TransientBandpowerExecutor(context.executor)
+        result = run_request(context)
+        self.assertEqual("completed", result.stop_reason)
+        tools = [item["tool_name"] for item in result.execution["tool_results"]]
+        self.assertEqual(1, tools.count("list_events"))
+        self.assertEqual(1, tools.count("create_epochs"))
+        self.assertEqual(1, tools.count("epoch_quality"))
+        self.assertEqual(1, tools.count("select_quality_epochs"))
+        self.assertEqual(2, tools.count("event_bandpower"))
+        self.assertEqual(1, result.execution["replans"])
+        failed, recovered = result.execution["tool_results"][-2:]
+        self.assertFalse(failed["success"])
+        self.assertTrue(recovered["success"])
+        self.assertEqual(
+            failed["request_id"].split("-a")[0],
+            recovered["request_id"].split("-a")[0],
+        )
+
+    def test_two_dynamic_contexts_are_isolated(self):
+        first, _ = make_context((1,), "v1-first")
+        second, _ = make_context((), "v1-second")
+        first_result = run_request(first)
+        second_result = run_request(second)
+        self.assertEqual("derived", first_result.execution["scientific_state"]["selection_mode"])
+        self.assertEqual("identity", second_result.execution["scientific_state"]["selection_mode"])
+        self.assertTrue(set(first.artifacts).isdisjoint(second.artifacts))
+
+    def test_non_event_task_does_not_interpret_twice(self):
+        context, _ = make_context()
+        llm = Point1FakeLLM()
+        result = ConstraintCarryingEEGAgentV1(llm, context).run(
+            "计算 SYNTH-C1 从 0 秒到 1 秒的频带功率"
+        )
+        self.assertEqual("completed", result.stop_reason)
+        self.assertEqual(2, llm.request_count)  # one intent call and one answer call
+
+
+if __name__ == "__main__":
+    unittest.main()

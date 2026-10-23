@@ -88,7 +88,7 @@ def _render_scalar(value):
     return str(value)
 
 
-def validate_and_render_answer(message, execution, ledger):
+def validate_and_render_answer(message, execution, ledger, required_tools=None):
     """Validate every claim address, then render only verified facts."""
     try:
         references = _parse_submission(message)
@@ -113,18 +113,19 @@ def validate_and_render_answer(message, execution, ledger):
                 "request_id": request_id, "tool_name": result["tool_name"],
                 "path": list(path), "value": value,
             })
-        missing = [name for name in required_answer_tools(ledger) if name not in cited_tools]
+        required = tuple(required_tools or required_answer_tools(ledger))
+        missing = [name for name in required if name not in cited_tools]
         if missing:
             raise ValueError("Required answer evidence is not cited: " + ", ".join(missing))
         answer = "证据受限结果：" + "；".join(rendered) + "。以上仅对应已执行工具及当前科学条件，不构成临床诊断。"
         return answer, {
-            "valid": True, "code": None, "required_tools": list(required_answer_tools(ledger)),
+            "valid": True, "code": None, "required_tools": list(required),
             "cited_tools": sorted(cited_tools), "references": normalized_references,
         }
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         return "工具结果已保存，但回答证据引用未通过校验；请查阅结构化 ToolResult。", {
             "valid": False, "code": "ANSWER_EVIDENCE_MISMATCH", "message": str(exc),
-            "required_tools": list(required_answer_tools(ledger)), "cited_tools": [],
+            "required_tools": list(required_tools or required_answer_tools(ledger)), "cited_tools": [],
             "references": [],
         }
 

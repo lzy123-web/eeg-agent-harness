@@ -17,6 +17,7 @@ from .profiles import get_profile
 from .tools import build_default_registry
 from .research.integrated_method.agent import ConstraintCarryingEEGAgent
 from .research.integrated_method.fake import Point1FakeLLM
+from .research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
 
 
 def build_parser():
@@ -38,7 +39,7 @@ def build_parser():
         help="Interpret a structured goal and run the constrained Planner",
     )
     parser.add_argument(
-        "--agent-mode", choices=("native", "planning", "point1"), default="native",
+        "--agent-mode", choices=("native", "planning", "point1", "point1-v1"), default="native",
         help="Select the opt-in Agent runtime; point1 enables the integrated research method",
     )
     parser.add_argument("--max-rounds", type=int, default=6)
@@ -69,12 +70,14 @@ def main(argv=None):
     mode = "planning" if args.planning else args.agent_mode
     if args.fake:
         client = (
-            Point1FakeLLM() if mode == "point1" else
+            Point1FakeLLM() if mode in {"point1", "point1-v1"} else
             DeterministicGoalFakeLLM() if mode == "planning" else DemoFakeLLM()
         )
     else:
         client = OpenAICompatibleClient.from_env()
-    if mode == "point1":
+    if mode == "point1-v1":
+        agent = ConstraintCarryingEEGAgentV1(client, context)
+    elif mode == "point1":
         agent = ConstraintCarryingEEGAgent(client, context)
     elif mode == "planning":
         agent = NaturalLanguagePlanningAgent(client, context)

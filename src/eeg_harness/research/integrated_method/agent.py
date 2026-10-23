@@ -21,10 +21,11 @@ class Point1RunResult:
     answer_check: Optional[Mapping[str, Any]] = None
     final_answer: str = ""
     llm: Mapping[str, Any] = None
+    method: str = "constraint_carrying_eeg_plan_v0"
 
     def to_dict(self):
         payload = {
-            "method": "constraint_carrying_eeg_plan_v0",
+            "method": self.method,
             "stop_reason": self.stop_reason,
             "interpretation": dict(self.interpretation),
             "ledger": None if self.ledger is None else dict(self.ledger),
@@ -61,7 +62,11 @@ class ConstraintCarryingEEGAgent:
             llm=self._llm_summary(),
         )
 
-    def _answer(self, user_request, interpretation, ledger, execution, evidence):
+    def _answer(
+        self, user_request, interpretation, ledger, execution, evidence,
+        required_tools=None, runtime_facts=None,
+    ):
+        required = tuple(required_tools or required_answer_tools(ledger))
         prompt = (
             "你是 EEG 证据选择器。只调用 submit_evidence_answer，引用成功 ToolResult 中"
             "可定位的标量 JSON path；path 从每个 ToolResult.data 的内部开始，首段绝不能写 data。"
@@ -72,7 +77,8 @@ class ConstraintCarryingEEGAgent:
                 "ledger": ledger.to_dict(),
                 "tool_results": list(execution.tool_results),
                 "evidence_check": evidence,
-                "required_answer_tools": list(required_answer_tools(ledger)),
+                "required_answer_tools": list(required),
+                "runtime_facts": dict(runtime_facts or {}),
             }, ensure_ascii=False, allow_nan=False)
         )
         try:
@@ -82,11 +88,13 @@ class ConstraintCarryingEEGAgent:
                 ANSWER_TOOL,
                 tool_choice={"type": "function", "function": {"name": "submit_evidence_answer"}},
             )
-            return validate_and_render_answer(response, execution, ledger)
+            return validate_and_render_answer(
+                response, execution, ledger, required_tools=required,
+            )
         except Exception:
             return (
                 "工具执行已记录，但最终回答模型调用失败；请查阅结构化 ToolResult。",
-                {"valid": False, "code": "ANSWER_MODEL_ERROR", "required_tools": list(required_answer_tools(ledger))},
+                {"valid": False, "code": "ANSWER_MODEL_ERROR", "required_tools": list(required)},
             )
 
     def run(self, user_request):
