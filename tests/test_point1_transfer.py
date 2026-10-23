@@ -13,6 +13,9 @@ from eeg_harness.research.integrated_method.fake import Point1FakeLLM
 from eeg_harness.research.integrated_method.transfer import (
     ConstraintCarryingEEGAgentTransfer,
 )
+from eeg_harness.research.integrated_method.transfer_diagnostics import (
+    ExpireRereferencedArtifactBeforeBandpower,
+)
 from eeg_harness.tooling import ToolRequest
 from eeg_harness.tools import build_default_registry
 
@@ -36,23 +39,6 @@ def execute(context, name, arguments, request_id):
     if not result.success:
         raise AssertionError(result.to_dict())
     return result.data
-
-
-class ExpireRereferencedArtifactBeforeBandpower:
-    def __init__(self, base):
-        self.base = base
-        self.registry = base.registry
-        self.config = base.config
-        self.resources = base.resources
-        self.applied = False
-
-    def execute(self, record, profile, request, session_resources=None):
-        if request.name == "event_bandpower" and not self.applied:
-            self.applied = True
-            (session_resources or {}).get("artifact_store", {}).pop(
-                request.arguments["artifact_id"], None,
-            )
-        return self.base.execute(record, profile, request, session_resources)
 
 
 class EpochRereferenceToolTest(unittest.TestCase):

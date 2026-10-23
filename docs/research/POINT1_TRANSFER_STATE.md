@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #15 阶段 B：显式 Epoch 重参考已接入真实 Registry/Executor/Agent；独立 NumPy、MNE oracle 与受控 artifact 丢失恢复均已通过。准备实现同规则强动态 Expert 与冻结协议。
+Issue #15 阶段 C：显式 Epoch 重参考、来源安全的最小恢复和同规则强动态 Expert 已实现；24 例正式协议已冻结但未执行。准备进行有界真实 DeepSeek、完整回归与方法冻结审查。
 
 分支：`research/point1-integrated-method-v0`；Draft PR：#11。Baseline v1、CCEP v0、LRSP v1/v1.1 均保持不变。
 
@@ -33,11 +33,12 @@ x'_channel(t) = x_channel(t) - mean(x_reference_channels(t))
 
 ## 下一步
 
-1. 实现同规则动态 Expert，给它相同状态、规则、故障反馈与恢复预算。
-2. 冻结 24--36 例正式协议及开发/留出边界，仅运行小规模 calibration。
-3. 运行有界 Fake/DeepSeek、完整回归，形成冻结或 No-Go 决策。
+1. 使用合成 EEG 运行最多 2 个真实 DeepSeek calibration case，不发送波形。
+2. 运行完整回归并核对 Draft PR CI。
+3. 完成验证、协议和冻结决策文档；不再增加新的转换模块。
 
 ## 提交
 
 - 阶段 A：`a5dacf8`（候选比较与设计，已推送）。
-- 阶段 B：待提交。
+- 阶段 B：`6bc4df2`（真实重参考、状态迁移和 provenance 修复，已推送）。
+- 阶段 C：待提交。

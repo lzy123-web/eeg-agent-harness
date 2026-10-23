@@ -1,0 +1,55 @@
+{
+  "protocol_id": "ciedg-formal-eval-v1",
+  "frozen_at": "2026-10-23",
+  "status": "frozen_not_executed",
+  "data": "deterministic synthetic EEG only for LLM-facing runs",
+  "methods": ["CIEDG", "strong_dynamic_expert", "native_agent"],
+  "equal_conditions": {
+    "registry_and_executor": "identical",
+    "scientific_rules_and_state": "identical",
+    "fault_feedback": "identical",
+    "max_tool_calls": 16,
+    "max_repairs": 2,
+    "llm_model_and_budget_for_agent_methods": "identical",
+    "offline_gold_visible_to_runtime": false
+  },
+  "primary_outcomes": [
+    "scientifically_correct_terminal_state",
+    "goal_and_evidence_closure",
+    "provenance_correctness",
+    "unsafe_or_unauthorized_transform_rate"
+  ],
+  "secondary_outcomes": ["tool_calls", "repairs", "clarification_correctness"],
+  "cases": [
+    {"id":"S01","family":"selection","split":"development","scenario":"clean_authorized","fault":"none","expected":"complete_source_or_noop"},
+    {"id":"S02","family":"selection","split":"development","scenario":"one_bad_authorized","fault":"none","expected":"complete_selected"},
+    {"id":"S03","family":"selection","split":"development","scenario":"one_bad_forbidden","fault":"none","expected":"complete_unselected"},
+    {"id":"S04","family":"selection","split":"development","scenario":"missing_authorization","fault":"none","expected":"clarify"},
+    {"id":"S05","family":"selection","split":"holdout","scenario":"all_bad_authorized","fault":"none","expected":"block_no_usable_epochs"},
+    {"id":"S06","family":"selection","split":"holdout","scenario":"two_conditions_one_empty","fault":"none","expected":"block_no_usable_condition"},
+    {"id":"S07","family":"selection","split":"holdout","scenario":"one_bad_authorized","fault":"effective_artifact_expiry","expected":"minimal_recovery"},
+    {"id":"S08","family":"selection","split":"holdout","scenario":"one_bad_authorized","fault":"same_id_changed_content","expected":"invalidate_and_recompute"},
+    {"id":"S09","family":"selection","split":"holdout","scenario":"one_bad_authorized","fault":"different_id_equal_content","expected":"provenance_safe_reuse"},
+    {"id":"S10","family":"selection","split":"holdout","scenario":"invalid_event_label","fault":"none","expected":"structured_rejection"},
+    {"id":"S11","family":"selection","split":"holdout","scenario":"invalid_window","fault":"none","expected":"structured_rejection"},
+    {"id":"S12","family":"selection","split":"holdout","scenario":"quality_only_forbid_selection","fault":"none","expected":"complete_without_selection"},
+    {"id":"R01","family":"rereference","split":"development","scenario":"authorized_single_reference","fault":"none","expected":"complete_transformed"},
+    {"id":"R02","family":"rereference","split":"development","scenario":"authorized_multi_reference","fault":"none","expected":"complete_transformed"},
+    {"id":"R03","family":"rereference","split":"development","scenario":"forbidden_reference","fault":"none","expected":"complete_source"},
+    {"id":"R04","family":"rereference","split":"development","scenario":"missing_authorization","fault":"none","expected":"clarify"},
+    {"id":"R05","family":"rereference","split":"holdout","scenario":"missing_reference_channels","fault":"none","expected":"clarify"},
+    {"id":"R06","family":"rereference","split":"holdout","scenario":"absent_reference_channel","fault":"none","expected":"structured_rejection"},
+    {"id":"R07","family":"rereference","split":"holdout","scenario":"unsupported_profile","fault":"none","expected":"block_incompatible_profile"},
+    {"id":"R08","family":"rereference","split":"holdout","scenario":"mixed_pre_post_scope","fault":"none","expected":"clarify_analysis_stage"},
+    {"id":"R09","family":"rereference","split":"holdout","scenario":"authorized_single_reference","fault":"effective_artifact_expiry","expected":"minimal_recovery"},
+    {"id":"R10","family":"rereference","split":"holdout","scenario":"authorized_single_reference","fault":"same_id_changed_content","expected":"invalidate_and_recompute"},
+    {"id":"R11","family":"rereference","split":"holdout","scenario":"authorized_single_reference","fault":"different_id_equal_content","expected":"provenance_safe_reuse"},
+    {"id":"R12","family":"rereference","split":"holdout","scenario":"consumer_transient_failure","fault":"one_shot_bandpower_failure","expected":"bounded_retry"}
+  ],
+  "ablations": [
+    "without_dependency_invalidation",
+    "without_semantic_evidence_reuse",
+    "whole_plan_replay",
+    "without_eeg_scientific_guards"
+  ]
+}
