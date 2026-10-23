@@ -324,3 +324,4 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - Issue #10 follow-up 派生质量状态链：`8796c82`。
 - Issue #10 follow-up 证据寻址回答：`339aab5`。
 - Issue #10 follow-up Fake/真实验证与交付：`3866818`。
+- Issue #10 follow-up 失败证据留痕：`1d0d392`。

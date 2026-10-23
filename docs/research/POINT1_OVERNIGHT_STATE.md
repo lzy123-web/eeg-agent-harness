@@ -69,6 +69,7 @@ Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类
 - Follow-up 派生 EEG 状态链：`8796c82`。
 - Follow-up 证据寻址回答：`339aab5`。
 - Follow-up Fake/真实验证与交付：`3866818`。
+- Follow-up 失败证据留痕：`1d0d392`。
 
 ## Git 传输恢复入口
 
