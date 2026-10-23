@@ -49,10 +49,11 @@ def _science_signature(release_results):
     }
 
 
-def run_calibration(client, config_path="config/baseline.json"):
+def run_calibration(client, config_path="config/baseline.json", case_limit=None):
     config = load_config(config_path)
     cases = []
-    for fault in (False, True):
+    faults = (False, True) if case_limit is None else (False, True)[:int(case_limit)]
+    for fault in faults:
         case_id = "reference-artifact-expiry" if fault else "reference-normal"
         candidate = ConstraintCarryingEEGAgentTransfer(
             client, _context(config, f"candidate-{case_id}", fault),
@@ -70,6 +71,12 @@ def run_calibration(client, config_path="config/baseline.json"):
             _science_signature(expert["release_results"])
             if expert["status"] == "completed" else None
         )
+        candidate_signature_json = json.dumps(
+            candidate_signature, ensure_ascii=False, sort_keys=True, allow_nan=False,
+        ) if candidate_signature is not None else None
+        expert_signature_json = json.dumps(
+            expert_signature, ensure_ascii=False, sort_keys=True, allow_nan=False,
+        ) if expert_signature is not None else None
         cases.append({
             "case_id": case_id,
             "fault": "expire_effective_artifact_before_bandpower" if fault else None,
@@ -77,7 +84,7 @@ def run_calibration(client, config_path="config/baseline.json"):
             "expert_stop": expert["status"],
             "candidate_tool_calls": len(candidate.execution["tool_results"]) if candidate.execution else 0,
             "expert_tool_calls": len(expert["tool_results"]),
-            "science_equal": candidate_signature == expert_signature,
+            "science_equal": candidate_signature_json == expert_signature_json,
             "candidate": candidate.to_dict(),
             "expert": expert,
         })
@@ -107,12 +114,13 @@ def main(argv=None):
     parser.add_argument("--config", default="config/baseline.json")
     parser.add_argument("--max-requests", type=int, default=6)
     parser.add_argument("--max-tokens", type=int, default=12000)
+    parser.add_argument("--case-limit", type=int, choices=(1, 2), default=2)
     args = parser.parse_args(argv)
     client = (
         BoundedClient(OpenAICompatibleClient.from_env(), args.max_requests, args.max_tokens)
         if args.real else Point1FakeLLM()
     )
-    report = run_calibration(client, args.config)
+    report = run_calibration(client, args.config, args.case_limit)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False),

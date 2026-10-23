@@ -1,7 +1,7 @@
 {
   "protocol_id": "point1-transfer-calibration-v1",
   "formal_experiment": false,
-  "generated_at_utc": "2026-10-23T13:08:45.979893+00:00",
+  "generated_at_utc": "2026-10-23T13:12:01.118185+00:00",
   "input_data": "deterministic synthetic EEG only",
   "raw_eeg_sent_to_llm": false,
   "gold_visible_to_runtime": false,
@@ -297,14 +297,14 @@
                 }
               },
               "error": null,
-              "duration_ms": 0.062
+              "duration_ms": 0.056
             },
             {
               "request_id": "v11-create_epochs-a1",
               "tool_name": "create_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                 "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -350,14 +350,14 @@
                 }
               },
               "error": null,
-              "duration_ms": 0.308
+              "duration_ms": 0.201
             },
             {
               "request_id": "v11-epoch_rereference-a1",
               "tool_name": "rereference_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -413,24 +413,24 @@
                   "reference_channels": [
                     "SYNTH-C2"
                   ],
-                  "source_artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "source_artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "output_reference": "explicit average of SYNTH-C2"
                 }
               },
               "error": null,
-              "duration_ms": 0.26
+              "duration_ms": 0.233
             },
             {
               "request_id": "v11-epoch_quality-a1",
               "tool_name": "epoch_quality",
               "success": true,
               "data": {
-                "evidence_id": "evidence-b494dc175ee9d4ad",
+                "evidence_id": "evidence-cbe336f46ac7b782",
                 "evidence_type": "epoch_quality",
                 "profile_id": "edf_native",
                 "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "epoch_counts": {
                   "requested_or_boundary_checked": 3,
@@ -464,14 +464,14 @@
                 "validity": "screening_suggestion_only; no automatic deletion performed"
               },
               "error": null,
-              "duration_ms": 0.281
+              "duration_ms": 0.416
             },
             {
               "request_id": "v11-epoch_summary-a1",
               "tool_name": "epoch_summary",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -531,7 +531,7 @@
               "tool_name": "event_bandpower",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
                 "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -559,7 +559,7 @@
                 }
               },
               "error": null,
-              "duration_ms": 1.271
+              "duration_ms": 1.359
             }
           ],
           "planning_trace": [
@@ -845,7 +845,7 @@
               "kind": "epoch_rereference",
               "tool_name": "rereference_epochs",
               "arguments": {
-                "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                 "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "reference_channels": [
                   "SYNTH-C2"
@@ -910,7 +910,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a",
+                      "token_id": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -919,7 +919,7 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
@@ -927,11 +927,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "created": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "effective": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "effective_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                 },
                 "quality": null,
@@ -986,7 +986,7 @@
               "kind": "epoch_quality",
               "tool_name": "epoch_quality",
               "arguments": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal epoch_quality from declared contract",
@@ -1048,7 +1048,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a",
+                      "token_id": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -1057,26 +1057,26 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e",
+                      "token_id": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a"
+                        "create_epochs": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
@@ -1084,11 +1084,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "created": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "effective": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": null,
@@ -1108,7 +1108,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   }
                 },
                 "attempts": {
@@ -1144,7 +1144,7 @@
               "kind": "epoch_summary",
               "tool_name": "epoch_summary",
               "arguments": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal epoch_summary from declared contract",
@@ -1206,7 +1206,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a",
+                      "token_id": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -1215,41 +1215,41 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e",
+                      "token_id": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a"
+                        "create_epochs": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
                     },
                     "epoch_quality": {
                       "goal": "epoch_quality",
-                      "token_id": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea",
+                      "token_id": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb",
                       "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                       "tool_name": "epoch_quality",
                       "request_id": "v11-epoch_quality-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                        "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -1258,17 +1258,17 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "created": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "effective": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": {
                   "request_id": "v11-epoch_quality-a1",
-                  "evidence_id": "evidence-b494dc175ee9d4ad",
-                  "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "evidence_id": "evidence-cbe336f46ac7b782",
+                  "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "epoch_counts": {
                     "requested_or_boundary_checked": 3,
@@ -1284,7 +1284,7 @@
                 "goals": {
                   "epoch_quality": {
                     "status": "satisfied",
-                    "evidence": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea"
+                    "evidence": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb"
                   },
                   "epoch_summary": {
                     "status": "pending",
@@ -1296,7 +1296,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   }
                 },
                 "attempts": {
@@ -1333,7 +1333,7 @@
               "kind": "event_bandpower",
               "tool_name": "event_bandpower",
               "arguments": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal event_bandpower from declared contract",
@@ -1395,7 +1395,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a",
+                      "token_id": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -1404,41 +1404,41 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e",
+                      "token_id": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a"
+                        "create_epochs": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                        "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
                     },
                     "epoch_quality": {
                       "goal": "epoch_quality",
-                      "token_id": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea",
+                      "token_id": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb",
                       "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                       "tool_name": "epoch_quality",
                       "request_id": "v11-epoch_quality-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                        "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -1446,15 +1446,15 @@
                     },
                     "epoch_summary": {
                       "goal": "epoch_summary",
-                      "token_id": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8",
+                      "token_id": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da",
                       "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
                       "tool_name": "epoch_summary",
                       "request_id": "v11-epoch_summary-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                        "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                        "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -1463,17 +1463,17 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "created": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "effective": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": {
                   "request_id": "v11-epoch_quality-a1",
-                  "evidence_id": "evidence-b494dc175ee9d4ad",
-                  "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "evidence_id": "evidence-cbe336f46ac7b782",
+                  "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "epoch_counts": {
                     "requested_or_boundary_checked": 3,
@@ -1489,11 +1489,11 @@
                 "goals": {
                   "epoch_quality": {
                     "status": "satisfied",
-                    "evidence": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea"
+                    "evidence": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb"
                   },
                   "epoch_summary": {
                     "status": "satisfied",
-                    "evidence": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8"
+                    "evidence": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da"
                   },
                   "event_bandpower": {
                     "status": "pending",
@@ -1501,7 +1501,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   }
                 },
                 "attempts": {
@@ -1541,8 +1541,8 @@
               "kind": "synthetic",
               "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
             },
-            "started_at_utc": "2026-10-23T13:08:45.962516+00:00",
-            "ended_at_utc": "2026-10-23T13:08:45.966516+00:00",
+            "started_at_utc": "2026-10-23T13:12:01.102186+00:00",
+            "ended_at_utc": "2026-10-23T13:12:01.106185+00:00",
             "termination_reason": "v11_completed",
             "events": [
               {
@@ -1562,7 +1562,7 @@
                     "source"
                   ]
                 },
-                "duration_ms": 0.062,
+                "duration_ms": 0.056,
                 "error": null
               },
               {
@@ -1598,7 +1598,7 @@
                     "parameters"
                   ]
                 },
-                "duration_ms": 0.308,
+                "duration_ms": 0.201,
                 "error": null
               },
               {
@@ -1606,7 +1606,7 @@
                 "request_id": "v11-epoch_rereference-a1",
                 "tool_name": "rereference_epochs",
                 "arguments": {
-                  "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "reference_channels": [
                     "SYNTH-C2"
@@ -1635,7 +1635,7 @@
                     "transformation"
                   ]
                 },
-                "duration_ms": 0.26,
+                "duration_ms": 0.233,
                 "error": null
               },
               {
@@ -1643,7 +1643,7 @@
                 "request_id": "v11-epoch_quality-a1",
                 "tool_name": "epoch_quality",
                 "arguments": {
-                  "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -1667,7 +1667,7 @@
                     "validity"
                   ]
                 },
-                "duration_ms": 0.281,
+                "duration_ms": 0.416,
                 "error": null
               },
               {
@@ -1675,7 +1675,7 @@
                 "request_id": "v11-epoch_summary-a1",
                 "tool_name": "epoch_summary",
                 "arguments": {
-                  "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -1708,7 +1708,7 @@
                 "request_id": "v11-event_bandpower-a1",
                 "tool_name": "event_bandpower",
                 "arguments": {
-                  "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                  "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -1723,13 +1723,13 @@
                     "conditions"
                   ]
                 },
-                "duration_ms": 1.271,
+                "duration_ms": 1.359,
                 "error": null
               }
             ]
           },
           "replans": 0,
-          "duration_ms": 3.107,
+          "duration_ms": 3.149,
           "scientific_state": {
             "context_id": "candidate-reference-normal",
             "profile_id": "edf_native",
@@ -1788,7 +1788,7 @@
                 },
                 "create_epochs": {
                   "goal": "create_epochs",
-                  "token_id": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a",
+                  "token_id": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7",
                   "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                   "tool_name": "create_epochs",
                   "request_id": "v11-create_epochs-a1",
@@ -1797,41 +1797,41 @@
                   },
                   "input_binding": null,
                   "output_binding": {
-                    "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                    "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                     "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                   },
                   "mode": null
                 },
                 "epoch_rereference": {
                   "goal": "epoch_rereference",
-                  "token_id": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e",
+                  "token_id": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73",
                   "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                   "tool_name": "rereference_epochs",
                   "request_id": "v11-epoch_rereference-a1",
                   "dependency_tokens": {
-                    "create_epochs": "goal-token:707c9bd5073d3800c9c6abf00db3fd52fff1a80d6780da8d14b9deaea306ae6a"
+                    "create_epochs": "goal-token:6df2ec6c66707b6be077935972fb123bf9c62ca454adb11008f966afc07733e7"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                    "artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                     "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                   },
                   "output_binding": {
-                    "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                    "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "mode": "epoch_rereference"
                 },
                 "epoch_quality": {
                   "goal": "epoch_quality",
-                  "token_id": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea",
+                  "token_id": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb",
                   "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                   "tool_name": "epoch_quality",
                   "request_id": "v11-epoch_quality-a1",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                    "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -1839,15 +1839,15 @@
                 },
                 "epoch_summary": {
                   "goal": "epoch_summary",
-                  "token_id": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8",
+                  "token_id": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da",
                   "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
                   "tool_name": "epoch_summary",
                   "request_id": "v11-epoch_summary-a1",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                    "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -1855,15 +1855,15 @@
                 },
                 "event_bandpower": {
                   "goal": "event_bandpower",
-                  "token_id": "goal-token:813e840d6cec1e1705e4b2026382b41ec002269946d60896436d22720dd9e689",
+                  "token_id": "goal-token:c2e0429f21763aa80b5778c44e4bf6b4e5fe0f3f1313b0086e18b3445d86a695",
                   "semantic_id": "goal-token:8c4e68a91fb876289ab956c5ae4b238d03b4be9054f36eece1f15eb58e666530",
                   "tool_name": "event_bandpower",
                   "request_id": "v11-event_bandpower-a1",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                    "epoch_rereference": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                    "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -1872,17 +1872,17 @@
               }
             },
             "artifacts": {
-              "created": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+              "created": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
               "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
               "selected": null,
               "selected_fingerprint": null,
-              "effective": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+              "effective": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
               "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
             },
             "quality": {
               "request_id": "v11-epoch_quality-a1",
-              "evidence_id": "evidence-b494dc175ee9d4ad",
-              "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+              "evidence_id": "evidence-cbe336f46ac7b782",
+              "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -1898,19 +1898,19 @@
             "goals": {
               "epoch_quality": {
                 "status": "satisfied",
-                "evidence": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea"
+                "evidence": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb"
               },
               "epoch_summary": {
                 "status": "satisfied",
-                "evidence": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8"
+                "evidence": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da"
               },
               "event_bandpower": {
                 "status": "satisfied",
-                "evidence": "goal-token:813e840d6cec1e1705e4b2026382b41ec002269946d60896436d22720dd9e689"
+                "evidence": "goal-token:c2e0429f21763aa80b5778c44e4bf6b4e5fe0f3f1313b0086e18b3445d86a695"
               },
               "epoch_rereference": {
                 "status": "satisfied",
-                "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
               }
             },
             "attempts": {
@@ -1946,25 +1946,25 @@
               "event_bandpower"
             ],
             "selection_mode": null,
-            "effective_artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+            "effective_artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
             "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
             "termination_status": "completed",
             "goal_status": {
               "epoch_quality": {
                 "status": "satisfied",
-                "evidence": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea"
+                "evidence": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb"
               },
               "epoch_summary": {
                 "status": "satisfied",
-                "evidence": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8"
+                "evidence": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da"
               },
               "event_bandpower": {
                 "status": "satisfied",
-                "evidence": "goal-token:813e840d6cec1e1705e4b2026382b41ec002269946d60896436d22720dd9e689"
+                "evidence": "goal-token:c2e0429f21763aa80b5778c44e4bf6b4e5fe0f3f1313b0086e18b3445d86a695"
               },
               "epoch_rereference": {
                 "status": "satisfied",
-                "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+                "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
               }
             }
           },
@@ -1980,7 +1980,7 @@
               "tool_name": "rereference_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -2036,24 +2036,24 @@
                   "reference_channels": [
                     "SYNTH-C2"
                   ],
-                  "source_artifact_id": "epochs-0ff66c0e-9992-4116-a564-4f18a39a9fb3",
+                  "source_artifact_id": "epochs-fa45a26f-2173-429f-b472-197a0d9789ff",
                   "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "output_reference": "explicit average of SYNTH-C2"
                 }
               },
               "error": null,
-              "duration_ms": 0.26
+              "duration_ms": 0.233
             },
             {
               "request_id": "v11-epoch_quality-a1",
               "tool_name": "epoch_quality",
               "success": true,
               "data": {
-                "evidence_id": "evidence-b494dc175ee9d4ad",
+                "evidence_id": "evidence-cbe336f46ac7b782",
                 "evidence_type": "epoch_quality",
                 "profile_id": "edf_native",
                 "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "epoch_counts": {
                   "requested_or_boundary_checked": 3,
@@ -2087,14 +2087,14 @@
                 "validity": "screening_suggestion_only; no automatic deletion performed"
               },
               "error": null,
-              "duration_ms": 0.281
+              "duration_ms": 0.416
             },
             {
               "request_id": "v11-epoch_summary-a1",
               "tool_name": "epoch_summary",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -2154,7 +2154,7 @@
               "tool_name": "event_bandpower",
               "success": true,
               "data": {
-                "artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+                "artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
                 "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -2182,7 +2182,7 @@
                 }
               },
               "error": null,
-              "duration_ms": 1.271
+              "duration_ms": 1.359
             }
           ]
         },
@@ -2198,25 +2198,25 @@
             "event_bandpower"
           ],
           "selection_mode": null,
-          "effective_artifact_id": "epochs-e25c1d3f-02ab-48e2-9b6a-7770a6598764",
+          "effective_artifact_id": "epochs-32d5cb68-f7e5-4d84-af88-c2036d244ef0",
           "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
           "termination_status": "completed",
           "goal_status": {
             "epoch_quality": {
               "status": "satisfied",
-              "evidence": "goal-token:baa7e2304fd000583fd3316730dc8eda1082cbbe885c3316cce2f946fa2defea"
+              "evidence": "goal-token:5d6084a68b235c580fc13b9ef864b36f4959bc877a4b6cca8fb2fa93db60d4bb"
             },
             "epoch_summary": {
               "status": "satisfied",
-              "evidence": "goal-token:190c5090bc56454a47436a8b0f6a5e442d7586e4a42aaa6ce3792a7d5aedc4f8"
+              "evidence": "goal-token:355928595029acd99812f05df334d73358fb781167d9f7ba26268fa03a23c3da"
             },
             "event_bandpower": {
               "status": "satisfied",
-              "evidence": "goal-token:813e840d6cec1e1705e4b2026382b41ec002269946d60896436d22720dd9e689"
+              "evidence": "goal-token:c2e0429f21763aa80b5778c44e4bf6b4e5fe0f3f1313b0086e18b3445d86a695"
             },
             "epoch_rereference": {
               "status": "satisfied",
-              "evidence": "goal-token:97dafcf7e74e66c3d9866c1e777fe106885fdd3ff06943aba8718c86b695bf9e"
+              "evidence": "goal-token:9363e126c712d1d0ba5163ca02ec2cb45a4d8d6a42698d3030b9bcff1c16fb73"
             }
           }
         },
@@ -2303,14 +2303,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.058
+            "duration_ms": 0.057
           },
           {
             "request_id": "transfer-expert-2-create_epochs",
             "tool_name": "create_epochs",
             "success": true,
             "data": {
-              "artifact_id": "epochs-a0e92c5a-667a-43dd-ba37-b1b69aba8b4c",
+              "artifact_id": "epochs-4d349074-e6ed-4859-86eb-8001c8285a88",
               "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -2356,14 +2356,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.163
+            "duration_ms": 0.165
           },
           {
             "request_id": "transfer-expert-3-rereference_epochs",
             "tool_name": "rereference_epochs",
             "success": true,
             "data": {
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -2419,24 +2419,24 @@
                 "reference_channels": [
                   "SYNTH-C2"
                 ],
-                "source_artifact_id": "epochs-a0e92c5a-667a-43dd-ba37-b1b69aba8b4c",
+                "source_artifact_id": "epochs-4d349074-e6ed-4859-86eb-8001c8285a88",
                 "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "output_reference": "explicit average of SYNTH-C2"
               }
             },
             "error": null,
-            "duration_ms": 0.192
+            "duration_ms": 0.195
           },
           {
             "request_id": "transfer-expert-4-epoch_quality",
             "tool_name": "epoch_quality",
             "success": true,
             "data": {
-              "evidence_id": "evidence-f0b79ba3a326ba4f",
+              "evidence_id": "evidence-a799ad13a7f28288",
               "evidence_type": "epoch_quality",
               "profile_id": "edf_native",
               "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -2470,14 +2470,14 @@
               "validity": "screening_suggestion_only; no automatic deletion performed"
             },
             "error": null,
-            "duration_ms": 0.235
+            "duration_ms": 0.214
           },
           {
             "request_id": "transfer-expert-5-epoch_summary",
             "tool_name": "epoch_summary",
             "success": true,
             "data": {
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -2530,14 +2530,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.114
+            "duration_ms": 0.122
           },
           {
             "request_id": "transfer-expert-6-event_bandpower",
             "tool_name": "event_bandpower",
             "success": true,
             "data": {
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
               "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -2565,7 +2565,7 @@
               }
             },
             "error": null,
-            "duration_ms": 1.092
+            "duration_ms": 1.058
           }
         ],
         "release_results": [
@@ -2574,11 +2574,11 @@
             "tool_name": "epoch_quality",
             "success": true,
             "data": {
-              "evidence_id": "evidence-f0b79ba3a326ba4f",
+              "evidence_id": "evidence-a799ad13a7f28288",
               "evidence_type": "epoch_quality",
               "profile_id": "edf_native",
               "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -2612,14 +2612,14 @@
               "validity": "screening_suggestion_only; no automatic deletion performed"
             },
             "error": null,
-            "duration_ms": 0.235
+            "duration_ms": 0.214
           },
           {
             "request_id": "transfer-expert-5-epoch_summary",
             "tool_name": "epoch_summary",
             "success": true,
             "data": {
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -2672,14 +2672,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.114
+            "duration_ms": 0.122
           },
           {
             "request_id": "transfer-expert-6-event_bandpower",
             "tool_name": "event_bandpower",
             "success": true,
             "data": {
-              "artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+              "artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
               "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -2707,10 +2707,10 @@
               }
             },
             "error": null,
-            "duration_ms": 1.092
+            "duration_ms": 1.058
           }
         ],
-        "effective_artifact_id": "epochs-3719a25e-ea6c-4a08-bb9d-a67f3a90342e",
+        "effective_artifact_id": "epochs-b75cc859-c36b-4ed1-b530-877683130da8",
         "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
         "repair_count": 0
       }
@@ -2998,14 +2998,14 @@
                 }
               },
               "error": null,
-              "duration_ms": 0.044
+              "duration_ms": 0.045
             },
             {
               "request_id": "v11-create_epochs-a1",
               "tool_name": "create_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                 "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -3051,14 +3051,14 @@
                 }
               },
               "error": null,
-              "duration_ms": 0.18
+              "duration_ms": 0.163
             },
             {
               "request_id": "v11-epoch_rereference-a1",
               "tool_name": "rereference_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -3114,24 +3114,24 @@
                   "reference_channels": [
                     "SYNTH-C2"
                   ],
-                  "source_artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "source_artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "output_reference": "explicit average of SYNTH-C2"
                 }
               },
               "error": null,
-              "duration_ms": 0.211
+              "duration_ms": 0.196
             },
             {
               "request_id": "v11-epoch_quality-a1",
               "tool_name": "epoch_quality",
               "success": true,
               "data": {
-                "evidence_id": "evidence-78cc1410a6804964",
+                "evidence_id": "evidence-743d845e0e0839de",
                 "evidence_type": "epoch_quality",
                 "profile_id": "edf_native",
                 "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "epoch_counts": {
                   "requested_or_boundary_checked": 3,
@@ -3165,14 +3165,14 @@
                 "validity": "screening_suggestion_only; no automatic deletion performed"
               },
               "error": null,
-              "duration_ms": 0.214
+              "duration_ms": 0.204
             },
             {
               "request_id": "v11-epoch_summary-a1",
               "tool_name": "epoch_summary",
               "success": true,
               "data": {
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -3225,7 +3225,7 @@
                 }
               },
               "error": null,
-              "duration_ms": 0.117
+              "duration_ms": 0.107
             },
             {
               "request_id": "v11-event_bandpower-a1",
@@ -3234,16 +3234,16 @@
               "data": null,
               "error": {
                 "code": "ARTIFACT_NOT_FOUND",
-                "message": "Epoch artifact not found: epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d"
+                "message": "Epoch artifact not found: epochs-6e0406ea-7398-48c7-b501-b9de47192d4a"
               },
-              "duration_ms": 0.011
+              "duration_ms": 0.01
             },
             {
               "request_id": "v11-epoch_rereference-a2",
               "tool_name": "rereference_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -3299,24 +3299,24 @@
                   "reference_channels": [
                     "SYNTH-C2"
                   ],
-                  "source_artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "source_artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "output_reference": "explicit average of SYNTH-C2"
                 }
               },
               "error": null,
-              "duration_ms": 0.777
+              "duration_ms": 0.741
             },
             {
               "request_id": "v11-epoch_quality-a2",
               "tool_name": "epoch_quality",
               "success": true,
               "data": {
-                "evidence_id": "evidence-0ba2c1fb1a6a0d55",
+                "evidence_id": "evidence-9661efb57eb89f17",
                 "evidence_type": "epoch_quality",
                 "profile_id": "edf_native",
                 "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "epoch_counts": {
                   "requested_or_boundary_checked": 3,
@@ -3350,14 +3350,14 @@
                 "validity": "screening_suggestion_only; no automatic deletion performed"
               },
               "error": null,
-              "duration_ms": 0.352
+              "duration_ms": 0.199
             },
             {
               "request_id": "v11-event_bandpower-a2",
               "tool_name": "event_bandpower",
               "success": true,
               "data": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
                 "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -3385,7 +3385,7 @@
                 }
               },
               "error": null,
-              "duration_ms": 1.112
+              "duration_ms": 1.012
             }
           ],
           "planning_trace": [
@@ -3671,7 +3671,7 @@
               "kind": "epoch_rereference",
               "tool_name": "rereference_epochs",
               "arguments": {
-                "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                 "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "reference_channels": [
                   "SYNTH-C2"
@@ -3736,7 +3736,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -3745,7 +3745,7 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
@@ -3753,11 +3753,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "effective": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "effective_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                 },
                 "quality": null,
@@ -3812,7 +3812,7 @@
               "kind": "epoch_quality",
               "tool_name": "epoch_quality",
               "arguments": {
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal epoch_quality from declared contract",
@@ -3874,7 +3874,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -3883,26 +3883,26 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e",
+                      "token_id": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                        "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
@@ -3910,11 +3910,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "effective": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": null,
@@ -3934,7 +3934,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                    "evidence": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                   }
                 },
                 "attempts": {
@@ -3970,7 +3970,7 @@
               "kind": "epoch_summary",
               "tool_name": "epoch_summary",
               "arguments": {
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal epoch_summary from declared contract",
@@ -4032,7 +4032,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -4041,41 +4041,41 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e",
+                      "token_id": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                        "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
                     },
                     "epoch_quality": {
                       "goal": "epoch_quality",
-                      "token_id": "goal-token:c6fa0101aa87adabc93547cca164a2d3beecfedd9db9674e1876b9c11642b82d",
+                      "token_id": "goal-token:36183e79cc94d1e9b3d28cde882fca7faaf903c55a1db93f032e3ed57fe24bc8",
                       "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                       "tool_name": "epoch_quality",
                       "request_id": "v11-epoch_quality-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                        "epoch_rereference": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -4084,17 +4084,17 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "effective": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": {
                   "request_id": "v11-epoch_quality-a1",
-                  "evidence_id": "evidence-78cc1410a6804964",
-                  "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "evidence_id": "evidence-743d845e0e0839de",
+                  "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "epoch_counts": {
                     "requested_or_boundary_checked": 3,
@@ -4110,7 +4110,7 @@
                 "goals": {
                   "epoch_quality": {
                     "status": "satisfied",
-                    "evidence": "goal-token:c6fa0101aa87adabc93547cca164a2d3beecfedd9db9674e1876b9c11642b82d"
+                    "evidence": "goal-token:36183e79cc94d1e9b3d28cde882fca7faaf903c55a1db93f032e3ed57fe24bc8"
                   },
                   "epoch_summary": {
                     "status": "pending",
@@ -4122,7 +4122,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                    "evidence": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                   }
                 },
                 "attempts": {
@@ -4159,7 +4159,7 @@
               "kind": "event_bandpower",
               "tool_name": "event_bandpower",
               "arguments": {
-                "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal event_bandpower from declared contract",
@@ -4221,7 +4221,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -4230,41 +4230,41 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e",
+                      "token_id": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a1",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                        "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
                     },
                     "epoch_quality": {
                       "goal": "epoch_quality",
-                      "token_id": "goal-token:c6fa0101aa87adabc93547cca164a2d3beecfedd9db9674e1876b9c11642b82d",
+                      "token_id": "goal-token:36183e79cc94d1e9b3d28cde882fca7faaf903c55a1db93f032e3ed57fe24bc8",
                       "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                       "tool_name": "epoch_quality",
                       "request_id": "v11-epoch_quality-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                        "epoch_rereference": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -4272,15 +4272,15 @@
                     },
                     "epoch_summary": {
                       "goal": "epoch_summary",
-                      "token_id": "goal-token:80e0711be50e82047dc604d910d8f5238678ebffb727e801d6557ba3b6d92c90",
+                      "token_id": "goal-token:ce1298ebae6589a2e778e0afe608e14a8a167b34325d18548281a724225d188d",
                       "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
                       "tool_name": "epoch_summary",
                       "request_id": "v11-epoch_summary-a1",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                        "epoch_rereference": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                        "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -4289,17 +4289,17 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "effective": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": {
                   "request_id": "v11-epoch_quality-a1",
-                  "evidence_id": "evidence-78cc1410a6804964",
-                  "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "evidence_id": "evidence-743d845e0e0839de",
+                  "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "epoch_counts": {
                     "requested_or_boundary_checked": 3,
@@ -4315,11 +4315,11 @@
                 "goals": {
                   "epoch_quality": {
                     "status": "satisfied",
-                    "evidence": "goal-token:c6fa0101aa87adabc93547cca164a2d3beecfedd9db9674e1876b9c11642b82d"
+                    "evidence": "goal-token:36183e79cc94d1e9b3d28cde882fca7faaf903c55a1db93f032e3ed57fe24bc8"
                   },
                   "epoch_summary": {
                     "status": "satisfied",
-                    "evidence": "goal-token:80e0711be50e82047dc604d910d8f5238678ebffb727e801d6557ba3b6d92c90"
+                    "evidence": "goal-token:ce1298ebae6589a2e778e0afe608e14a8a167b34325d18548281a724225d188d"
                   },
                   "event_bandpower": {
                     "status": "pending",
@@ -4327,7 +4327,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:6bc3fceff32ab40cebd2be6d05082817bac962bf0dc12fc739198657745b3e2e"
+                    "evidence": "goal-token:4664d745c3b49439acd176d8530db5d5e826365d1f5d8b62fd7ff8b8ce72be92"
                   }
                 },
                 "attempts": {
@@ -4384,7 +4384,7 @@
               "kind": "epoch_rereference",
               "tool_name": "rereference_epochs",
               "arguments": {
-                "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                 "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "reference_channels": [
                   "SYNTH-C2"
@@ -4449,7 +4449,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -4458,7 +4458,7 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
@@ -4466,11 +4466,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "effective": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "effective_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                 },
                 "quality": null,
@@ -4528,7 +4528,7 @@
               "kind": "epoch_quality",
               "tool_name": "epoch_quality",
               "arguments": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal epoch_quality from declared contract",
@@ -4590,7 +4590,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -4599,26 +4599,26 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70",
+                      "token_id": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a2",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                        "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                        "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
@@ -4626,11 +4626,11 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "effective": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": null,
@@ -4650,7 +4650,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                    "evidence": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                   }
                 },
                 "attempts": {
@@ -4685,8 +4685,8 @@
             {
               "event": "goal_evidence_reused",
               "goal": "epoch_summary",
-              "cached_token_id": "goal-token:80e0711be50e82047dc604d910d8f5238678ebffb727e801d6557ba3b6d92c90",
-              "restored_token_id": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0",
+              "cached_token_id": "goal-token:ce1298ebae6589a2e778e0afe608e14a8a167b34325d18548281a724225d188d",
+              "restored_token_id": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338",
               "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "release_request_id": "reuse-epoch_summary-0d0e094ca250"
@@ -4697,7 +4697,7 @@
               "kind": "event_bandpower",
               "tool_name": "event_bandpower",
               "arguments": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               },
               "purpose": "satisfy residual goal event_bandpower from declared contract",
@@ -4759,7 +4759,7 @@
                     },
                     "create_epochs": {
                       "goal": "create_epochs",
-                      "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                      "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                       "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                       "tool_name": "create_epochs",
                       "request_id": "v11-create_epochs-a1",
@@ -4768,41 +4768,41 @@
                       },
                       "input_binding": null,
                       "output_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "mode": null
                     },
                     "epoch_rereference": {
                       "goal": "epoch_rereference",
-                      "token_id": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70",
+                      "token_id": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15",
                       "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                       "tool_name": "rereference_epochs",
                       "request_id": "v11-epoch_rereference-a2",
                       "dependency_tokens": {
-                        "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                        "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                        "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                         "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                       },
                       "output_binding": {
-                        "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                        "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "mode": "epoch_rereference"
                     },
                     "epoch_quality": {
                       "goal": "epoch_quality",
-                      "token_id": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3",
+                      "token_id": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd",
                       "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                       "tool_name": "epoch_quality",
                       "request_id": "v11-epoch_quality-a2",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                        "epoch_rereference": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                        "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -4810,15 +4810,15 @@
                     },
                     "epoch_summary": {
                       "goal": "epoch_summary",
-                      "token_id": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0",
+                      "token_id": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338",
                       "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
                       "tool_name": "epoch_summary",
                       "request_id": "reuse-epoch_summary-0d0e094ca250",
                       "dependency_tokens": {
-                        "epoch_rereference": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                        "epoch_rereference": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                       },
                       "input_binding": {
-                        "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                        "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                         "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                       },
                       "output_binding": null,
@@ -4827,17 +4827,17 @@
                   }
                 },
                 "artifacts": {
-                  "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "selected": null,
                   "selected_fingerprint": null,
-                  "effective": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "effective": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "quality": {
                   "request_id": "v11-epoch_quality-a2",
-                  "evidence_id": "evidence-0ba2c1fb1a6a0d55",
-                  "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "evidence_id": "evidence-9661efb57eb89f17",
+                  "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "epoch_counts": {
                     "requested_or_boundary_checked": 3,
@@ -4853,11 +4853,11 @@
                 "goals": {
                   "epoch_quality": {
                     "status": "satisfied",
-                    "evidence": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3"
+                    "evidence": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd"
                   },
                   "epoch_summary": {
                     "status": "satisfied",
-                    "evidence": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0"
+                    "evidence": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338"
                   },
                   "event_bandpower": {
                     "status": "pending",
@@ -4865,7 +4865,7 @@
                   },
                   "epoch_rereference": {
                     "status": "satisfied",
-                    "evidence": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                    "evidence": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                   }
                 },
                 "attempts": {
@@ -4905,8 +4905,8 @@
               "kind": "synthetic",
               "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
             },
-            "started_at_utc": "2026-10-23T13:08:45.970539+00:00",
-            "ended_at_utc": "2026-10-23T13:08:45.975052+00:00",
+            "started_at_utc": "2026-10-23T13:12:01.109185+00:00",
+            "ended_at_utc": "2026-10-23T13:12:01.114185+00:00",
             "termination_reason": "v11_completed",
             "events": [
               {
@@ -4926,7 +4926,7 @@
                     "source"
                   ]
                 },
-                "duration_ms": 0.044,
+                "duration_ms": 0.045,
                 "error": null
               },
               {
@@ -4962,7 +4962,7 @@
                     "parameters"
                   ]
                 },
-                "duration_ms": 0.18,
+                "duration_ms": 0.163,
                 "error": null
               },
               {
@@ -4970,7 +4970,7 @@
                 "request_id": "v11-epoch_rereference-a1",
                 "tool_name": "rereference_epochs",
                 "arguments": {
-                  "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "reference_channels": [
                     "SYNTH-C2"
@@ -4999,7 +4999,7 @@
                     "transformation"
                   ]
                 },
-                "duration_ms": 0.211,
+                "duration_ms": 0.196,
                 "error": null
               },
               {
@@ -5007,7 +5007,7 @@
                 "request_id": "v11-epoch_quality-a1",
                 "tool_name": "epoch_quality",
                 "arguments": {
-                  "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -5031,7 +5031,7 @@
                     "validity"
                   ]
                 },
-                "duration_ms": 0.214,
+                "duration_ms": 0.204,
                 "error": null
               },
               {
@@ -5039,7 +5039,7 @@
                 "request_id": "v11-epoch_summary-a1",
                 "tool_name": "epoch_summary",
                 "arguments": {
-                  "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -5064,7 +5064,7 @@
                     "parameters"
                   ]
                 },
-                "duration_ms": 0.117,
+                "duration_ms": 0.107,
                 "error": null
               },
               {
@@ -5072,17 +5072,17 @@
                 "request_id": "v11-event_bandpower-a1",
                 "tool_name": "event_bandpower",
                 "arguments": {
-                  "artifact_id": "epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d",
+                  "artifact_id": "epochs-6e0406ea-7398-48c7-b501-b9de47192d4a",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": false,
                 "output_summary": {
                   "error_code": "ARTIFACT_NOT_FOUND"
                 },
-                "duration_ms": 0.011,
+                "duration_ms": 0.01,
                 "error": {
                   "code": "ARTIFACT_NOT_FOUND",
-                  "message": "Epoch artifact not found: epochs-088117b4-86f6-4ced-acb8-6cc12b8af31d"
+                  "message": "Epoch artifact not found: epochs-6e0406ea-7398-48c7-b501-b9de47192d4a"
                 }
               },
               {
@@ -5090,7 +5090,7 @@
                 "request_id": "v11-epoch_rereference-a2",
                 "tool_name": "rereference_epochs",
                 "arguments": {
-                  "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "reference_channels": [
                     "SYNTH-C2"
@@ -5119,7 +5119,7 @@
                     "transformation"
                   ]
                 },
-                "duration_ms": 0.777,
+                "duration_ms": 0.741,
                 "error": null
               },
               {
@@ -5127,7 +5127,7 @@
                 "request_id": "v11-epoch_quality-a2",
                 "tool_name": "epoch_quality",
                 "arguments": {
-                  "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -5151,7 +5151,7 @@
                     "validity"
                   ]
                 },
-                "duration_ms": 0.352,
+                "duration_ms": 0.199,
                 "error": null
               },
               {
@@ -5159,7 +5159,7 @@
                 "request_id": "v11-event_bandpower-a2",
                 "tool_name": "event_bandpower",
                 "arguments": {
-                  "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "expected_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                 },
                 "validation_passed": true,
@@ -5174,13 +5174,13 @@
                     "conditions"
                   ]
                 },
-                "duration_ms": 1.112,
+                "duration_ms": 1.012,
                 "error": null
               }
             ]
           },
           "replans": 1,
-          "duration_ms": 4.167,
+          "duration_ms": 3.745,
           "scientific_state": {
             "context_id": "candidate-reference-artifact-expiry",
             "profile_id": "edf_native",
@@ -5239,7 +5239,7 @@
                 },
                 "create_epochs": {
                   "goal": "create_epochs",
-                  "token_id": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a",
+                  "token_id": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142",
                   "semantic_id": "goal-token:15f23ef693193a16dc1d067e6563ccb5405ade6e4837c86794356b413282811b",
                   "tool_name": "create_epochs",
                   "request_id": "v11-create_epochs-a1",
@@ -5248,41 +5248,41 @@
                   },
                   "input_binding": null,
                   "output_binding": {
-                    "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                    "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                     "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                   },
                   "mode": null
                 },
                 "epoch_rereference": {
                   "goal": "epoch_rereference",
-                  "token_id": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70",
+                  "token_id": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15",
                   "semantic_id": "goal-token:726e5a0deb2bcf6a057d82d7e32227124da1113c4b3db352fbef7ecb765f0746",
                   "tool_name": "rereference_epochs",
                   "request_id": "v11-epoch_rereference-a2",
                   "dependency_tokens": {
-                    "create_epochs": "goal-token:74cb61f68a9db535b3af7376f41cfde2a41bfd4977152a691caf80604656775a"
+                    "create_epochs": "goal-token:b74f7ad38c41cc580e6d18e2aa26f222c83d6077ea8fd2e4a12b946e6caaf142"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                    "artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                     "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
                   },
                   "output_binding": {
-                    "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                    "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "mode": "epoch_rereference"
                 },
                 "epoch_quality": {
                   "goal": "epoch_quality",
-                  "token_id": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3",
+                  "token_id": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd",
                   "semantic_id": "goal-token:f1a011055e9b960fee6a19f37ed172bdfa8e0dc6821ed10d85a523f52b70b2ad",
                   "tool_name": "epoch_quality",
                   "request_id": "v11-epoch_quality-a2",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                    "epoch_rereference": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                    "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -5290,15 +5290,15 @@
                 },
                 "epoch_summary": {
                   "goal": "epoch_summary",
-                  "token_id": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0",
+                  "token_id": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338",
                   "semantic_id": "goal-token:0d0e094ca250296d0af756b7f9fdd91fd1b6bd0f82360e6cb2d787c1e0df9384",
                   "tool_name": "epoch_summary",
                   "request_id": "reuse-epoch_summary-0d0e094ca250",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                    "epoch_rereference": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                    "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -5306,15 +5306,15 @@
                 },
                 "event_bandpower": {
                   "goal": "event_bandpower",
-                  "token_id": "goal-token:f3d4069ebca71638b829c4bd75fe28174e6680958831385ffa74718e2d9d3702",
+                  "token_id": "goal-token:9bf6ea3ca66976b0228de89415fca7188d2ce95efe3efa4f5c1fcbb681c88a6c",
                   "semantic_id": "goal-token:8c4e68a91fb876289ab956c5ae4b238d03b4be9054f36eece1f15eb58e666530",
                   "tool_name": "event_bandpower",
                   "request_id": "v11-event_bandpower-a2",
                   "dependency_tokens": {
-                    "epoch_rereference": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                    "epoch_rereference": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
                   },
                   "input_binding": {
-                    "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                    "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                     "fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
                   },
                   "output_binding": null,
@@ -5323,17 +5323,17 @@
               }
             },
             "artifacts": {
-              "created": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+              "created": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
               "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
               "selected": null,
               "selected_fingerprint": null,
-              "effective": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+              "effective": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
               "effective_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
             },
             "quality": {
               "request_id": "v11-epoch_quality-a2",
-              "evidence_id": "evidence-0ba2c1fb1a6a0d55",
-              "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+              "evidence_id": "evidence-9661efb57eb89f17",
+              "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -5349,19 +5349,19 @@
             "goals": {
               "epoch_quality": {
                 "status": "satisfied",
-                "evidence": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3"
+                "evidence": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd"
               },
               "epoch_summary": {
                 "status": "satisfied",
-                "evidence": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0"
+                "evidence": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338"
               },
               "event_bandpower": {
                 "status": "satisfied",
-                "evidence": "goal-token:f3d4069ebca71638b829c4bd75fe28174e6680958831385ffa74718e2d9d3702"
+                "evidence": "goal-token:9bf6ea3ca66976b0228de89415fca7188d2ce95efe3efa4f5c1fcbb681c88a6c"
               },
               "epoch_rereference": {
                 "status": "satisfied",
-                "evidence": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                "evidence": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
               }
             },
             "attempts": {
@@ -5399,25 +5399,25 @@
               "event_bandpower"
             ],
             "selection_mode": null,
-            "effective_artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+            "effective_artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
             "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
             "termination_status": "completed",
             "goal_status": {
               "epoch_quality": {
                 "status": "satisfied",
-                "evidence": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3"
+                "evidence": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd"
               },
               "epoch_summary": {
                 "status": "satisfied",
-                "evidence": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0"
+                "evidence": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338"
               },
               "event_bandpower": {
                 "status": "satisfied",
-                "evidence": "goal-token:f3d4069ebca71638b829c4bd75fe28174e6680958831385ffa74718e2d9d3702"
+                "evidence": "goal-token:9bf6ea3ca66976b0228de89415fca7188d2ce95efe3efa4f5c1fcbb681c88a6c"
               },
               "epoch_rereference": {
                 "status": "satisfied",
-                "evidence": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+                "evidence": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
               }
             }
           },
@@ -5433,7 +5433,7 @@
               "tool_name": "rereference_epochs",
               "success": true,
               "data": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -5489,24 +5489,24 @@
                   "reference_channels": [
                     "SYNTH-C2"
                   ],
-                  "source_artifact_id": "epochs-f334c47f-8588-4f02-a6ff-3b3afd660a79",
+                  "source_artifact_id": "epochs-21008413-2a8d-40b5-a560-faa9f3c256fd",
                   "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                   "output_reference": "explicit average of SYNTH-C2"
                 }
               },
               "error": null,
-              "duration_ms": 0.777
+              "duration_ms": 0.741
             },
             {
               "request_id": "v11-epoch_quality-a2",
               "tool_name": "epoch_quality",
               "success": true,
               "data": {
-                "evidence_id": "evidence-0ba2c1fb1a6a0d55",
+                "evidence_id": "evidence-9661efb57eb89f17",
                 "evidence_type": "epoch_quality",
                 "profile_id": "edf_native",
                 "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "epoch_counts": {
                   "requested_or_boundary_checked": 3,
@@ -5540,14 +5540,14 @@
                 "validity": "screening_suggestion_only; no automatic deletion performed"
               },
               "error": null,
-              "duration_ms": 0.352
+              "duration_ms": 0.199
             },
             {
               "request_id": "reuse-epoch_summary-0d0e094ca250",
               "tool_name": "epoch_summary",
               "success": true,
               "data": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "valid_epoch_count": 3,
                 "rejected_epoch_count": 0,
@@ -5600,13 +5600,13 @@
                 },
                 "evidence_reuse": {
                   "source_request_id": "v11-epoch_summary-a1",
-                  "current_artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                  "current_artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                   "current_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                   "scientific_content_equivalent": true
                 }
               },
               "error": null,
-              "duration_ms": 0.117,
+              "duration_ms": 0.107,
               "execution_kind": "semantic_evidence_reuse",
               "reused_from_request_id": "v11-epoch_summary-a1"
             },
@@ -5615,7 +5615,7 @@
               "tool_name": "event_bandpower",
               "success": true,
               "data": {
-                "artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+                "artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
                 "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
                 "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
                 "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -5643,7 +5643,7 @@
                 }
               },
               "error": null,
-              "duration_ms": 1.112
+              "duration_ms": 1.012
             }
           ]
         },
@@ -5661,25 +5661,25 @@
             "event_bandpower"
           ],
           "selection_mode": null,
-          "effective_artifact_id": "epochs-17546ae4-667a-441d-86b8-44c6115d460a",
+          "effective_artifact_id": "epochs-996d5451-aa41-460d-8576-b3401a2d0c3f",
           "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
           "termination_status": "completed",
           "goal_status": {
             "epoch_quality": {
               "status": "satisfied",
-              "evidence": "goal-token:300f0b49213da5f9c8c9ed2e4ba2e4761df1c932198937d47a0c4de576074bb3"
+              "evidence": "goal-token:1b850b300da3ea83bbc7a8e72c42bd2838d8452006e56c25008305bc6f05fcbd"
             },
             "epoch_summary": {
               "status": "satisfied",
-              "evidence": "goal-token:0bf33c4af36dd4c5583bf3588e9ed89b380007c9be2cc6f10bf50b3ab70aa1c0"
+              "evidence": "goal-token:b60ce6063a5235489c60917d79d3e3869b378a0ecc6c96931f00ccec4fd93338"
             },
             "event_bandpower": {
               "status": "satisfied",
-              "evidence": "goal-token:f3d4069ebca71638b829c4bd75fe28174e6680958831385ffa74718e2d9d3702"
+              "evidence": "goal-token:9bf6ea3ca66976b0228de89415fca7188d2ce95efe3efa4f5c1fcbb681c88a6c"
             },
             "epoch_rereference": {
               "status": "satisfied",
-              "evidence": "goal-token:82544f29a454d9184b66db6b708b939bcb6a77410ffe973438feb98dc455ec70"
+              "evidence": "goal-token:b731d9223a39f6a7fe28482c34fbbc39b89292b5e96a10b72ad4c33abaa10b15"
             }
           }
         },
@@ -5768,14 +5768,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.07
+            "duration_ms": 0.107
           },
           {
             "request_id": "transfer-expert-2-create_epochs",
             "tool_name": "create_epochs",
             "success": true,
             "data": {
-              "artifact_id": "epochs-743e9a35-9329-4c64-af79-4e12d69f1792",
+              "artifact_id": "epochs-bb698e4f-d99a-4129-840b-f4c4a5096c19",
               "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -5821,14 +5821,14 @@
               }
             },
             "error": null,
-            "duration_ms": 0.185
+            "duration_ms": 0.182
           },
           {
             "request_id": "transfer-expert-3-rereference_epochs",
             "tool_name": "rereference_epochs",
             "success": true,
             "data": {
-              "artifact_id": "epochs-160f27b7-f35f-48d2-94e2-b4ce5a8536c1",
+              "artifact_id": "epochs-1f579dde-082a-442d-9c6b-3fdbf5159c20",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -5884,24 +5884,24 @@
                 "reference_channels": [
                   "SYNTH-C2"
                 ],
-                "source_artifact_id": "epochs-743e9a35-9329-4c64-af79-4e12d69f1792",
+                "source_artifact_id": "epochs-bb698e4f-d99a-4129-840b-f4c4a5096c19",
                 "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "output_reference": "explicit average of SYNTH-C2"
               }
             },
             "error": null,
-            "duration_ms": 0.233
+            "duration_ms": 0.202
           },
           {
             "request_id": "transfer-expert-4-epoch_quality",
             "tool_name": "epoch_quality",
             "success": true,
             "data": {
-              "evidence_id": "evidence-c6da23bcb7956a26",
+              "evidence_id": "evidence-32cd082faab3cfca",
               "evidence_type": "epoch_quality",
               "profile_id": "edf_native",
               "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-              "artifact_id": "epochs-160f27b7-f35f-48d2-94e2-b4ce5a8536c1",
+              "artifact_id": "epochs-1f579dde-082a-442d-9c6b-3fdbf5159c20",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -5935,14 +5935,14 @@
               "validity": "screening_suggestion_only; no automatic deletion performed"
             },
             "error": null,
-            "duration_ms": 0.245
+            "duration_ms": 0.222
           },
           {
             "request_id": "transfer-expert-5-epoch_summary",
             "tool_name": "epoch_summary",
             "success": true,
             "data": {
-              "artifact_id": "epochs-160f27b7-f35f-48d2-94e2-b4ce5a8536c1",
+              "artifact_id": "epochs-1f579dde-082a-442d-9c6b-3fdbf5159c20",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -5995,7 +5995,7 @@
               }
             },
             "error": null,
-            "duration_ms": 0.14
+            "duration_ms": 0.144
           },
           {
             "request_id": "transfer-expert-6-event_bandpower",
@@ -6004,16 +6004,16 @@
             "data": null,
             "error": {
               "code": "ARTIFACT_NOT_FOUND",
-              "message": "Epoch artifact not found: epochs-160f27b7-f35f-48d2-94e2-b4ce5a8536c1"
+              "message": "Epoch artifact not found: epochs-1f579dde-082a-442d-9c6b-3fdbf5159c20"
             },
-            "duration_ms": 0.012
+            "duration_ms": 0.01
           },
           {
             "request_id": "transfer-expert-7-rereference_epochs",
             "tool_name": "rereference_epochs",
             "success": true,
             "data": {
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -6069,24 +6069,24 @@
                 "reference_channels": [
                   "SYNTH-C2"
                 ],
-                "source_artifact_id": "epochs-743e9a35-9329-4c64-af79-4e12d69f1792",
+                "source_artifact_id": "epochs-bb698e4f-d99a-4129-840b-f4c4a5096c19",
                 "source_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
                 "output_reference": "explicit average of SYNTH-C2"
               }
             },
             "error": null,
-            "duration_ms": 0.233
+            "duration_ms": 0.206
           },
           {
             "request_id": "transfer-expert-8-epoch_quality",
             "tool_name": "epoch_quality",
             "success": true,
             "data": {
-              "evidence_id": "evidence-fb713f93d8b6469a",
+              "evidence_id": "evidence-f8385cb069b70c78",
               "evidence_type": "epoch_quality",
               "profile_id": "edf_native",
               "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -6120,14 +6120,14 @@
               "validity": "screening_suggestion_only; no automatic deletion performed"
             },
             "error": null,
-            "duration_ms": 0.235
+            "duration_ms": 0.198
           },
           {
             "request_id": "transfer-expert-9-event_bandpower",
             "tool_name": "event_bandpower",
             "success": true,
             "data": {
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
               "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -6155,7 +6155,7 @@
               }
             },
             "error": null,
-            "duration_ms": 1.248
+            "duration_ms": 1.103
           }
         ],
         "release_results": [
@@ -6164,11 +6164,11 @@
             "tool_name": "epoch_quality",
             "success": true,
             "data": {
-              "evidence_id": "evidence-fb713f93d8b6469a",
+              "evidence_id": "evidence-f8385cb069b70c78",
               "evidence_type": "epoch_quality",
               "profile_id": "edf_native",
               "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "epoch_counts": {
                 "requested_or_boundary_checked": 3,
@@ -6202,14 +6202,14 @@
               "validity": "screening_suggestion_only; no automatic deletion performed"
             },
             "error": null,
-            "duration_ms": 0.235
+            "duration_ms": 0.198
           },
           {
-            "request_id": "expert-reuse-78f0acbbb37b",
+            "request_id": "expert-reuse-9107b7bc3f3c",
             "tool_name": "epoch_summary",
             "success": true,
             "data": {
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "valid_epoch_count": 3,
               "rejected_epoch_count": 0,
@@ -6263,12 +6263,12 @@
               "evidence_reuse": {
                 "equivalent_content": true,
                 "reused_from_request_id": "transfer-expert-5-epoch_summary",
-                "current_artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+                "current_artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
                 "current_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81"
               }
             },
             "error": null,
-            "duration_ms": 0.14,
+            "duration_ms": 0.144,
             "execution_kind": "semantic_evidence_reuse",
             "reused_from_request_id": "transfer-expert-5-epoch_summary"
           },
@@ -6277,7 +6277,7 @@
             "tool_name": "event_bandpower",
             "success": true,
             "data": {
-              "artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+              "artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
               "artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
               "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
               "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
@@ -6305,10 +6305,10 @@
               }
             },
             "error": null,
-            "duration_ms": 1.248
+            "duration_ms": 1.103
           }
         ],
-        "effective_artifact_id": "epochs-9d330eb0-6b28-4f15-a4ad-5f7e74d9a009",
+        "effective_artifact_id": "epochs-2522e9a8-b6d1-4226-9660-565d6b4b635b",
         "effective_artifact_fingerprint": "sha256:245fd1e4ecf0b66d723c04047212eb7aeaec4c9911c1c0cea514cf98709d5b81",
         "repair_count": 1
       }

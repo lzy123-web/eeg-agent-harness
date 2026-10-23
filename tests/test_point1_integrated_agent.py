@@ -11,6 +11,7 @@ from eeg_harness.evaluation_faults import FaultInjectingExecutor
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.integrated_method.agent import ConstraintCarryingEEGAgent
+from eeg_harness.research.integrated_method.answer import scalar_evidence_manifest
 from eeg_harness.research.integrated_method.fake import Point1FakeLLM
 from eeg_harness.research.integrated_method.intent import INTENT_TOOL
 from eeg_harness.research.integrated_method.semantics import (
@@ -21,6 +22,18 @@ from eeg_harness.record import EEGRecord
 
 
 CONFIG = load_config("config/baseline.json")
+
+
+class ScalarEvidenceManifestTest(unittest.TestCase):
+    def test_manifest_exposes_only_resolvable_scalar_leaves(self):
+        manifest = scalar_evidence_manifest(({
+            "request_id": "r1", "tool_name": "example", "success": True,
+            "data": {"nested": {"value": 3.0}, "items": ["ok"], "flag": True},
+        },))
+        self.assertIn(["nested", "value"], manifest[0]["valid_scalar_paths"])
+        self.assertIn(["items", "0"], manifest[0]["valid_scalar_paths"])
+        self.assertNotIn(["nested"], manifest[0]["valid_scalar_paths"])
+        self.assertNotIn(["flag"], manifest[0]["valid_scalar_paths"])
 
 
 def make_context(task_id="point1-test"):

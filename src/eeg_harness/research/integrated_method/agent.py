@@ -5,7 +5,10 @@ import json
 from typing import Any, Mapping, Optional
 
 from ...planning import ConstrainedPlanRunner, StateAwareConstrainedPlanner
-from .answer import ANSWER_TOOL, required_answer_tools, validate_and_render_answer
+from .answer import (
+    ANSWER_TOOL, required_answer_tools, scalar_evidence_manifest,
+    validate_and_render_answer,
+)
 from .contracts import close_ledger, compile_intent, validate_plan_against_ledger
 from .intent import EvidenceBoundIntentInterpreter
 
@@ -78,6 +81,7 @@ class ConstraintCarryingEEGAgent:
                 "intent": interpretation.intent.to_dict(),
                 "ledger": ledger.to_dict(),
                 "tool_results": list(evidence_results),
+                "valid_scalar_evidence_manifest": scalar_evidence_manifest(evidence_results),
                 "evidence_check": evidence,
                 "required_answer_tools": list(required),
                 "runtime_facts": dict(runtime_facts or {}),

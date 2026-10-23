@@ -67,3 +67,11 @@ list_events → create_epochs → rereference_epochs
 - trial selection 与 rereference 同时请求目前被明确拒绝，尚未验证两个有序 transition 的组合；
 - 质量阈值在重参考后可能把参考通道判为 flatline；这是现有 screening 定义的真实结果，不能隐藏，但提示未来质量契约可能需要 reference-aware channel exclusions；
 - 二通道 synthetic 的参考选择只用于验证数学和状态，不代表现实推荐。
+
+## 7. 有界真实 DeepSeek
+
+仅使用 deterministic synthetic EEG；发送内容不含波形、受试者信息或本地路径。两轮合计 6 次请求、20,679 tokens，低于 12 次/30,000 tokens 上限。
+
+首次固定两例的意图解释和工具执行均正确，但回答引用对象路径而被 Evidence Gate 拒绝（0/2 最终回答通过）。原始脱敏结果保存在 `point1_transfer_deepseek.json`。加入通用 scalar evidence manifest 后，只复测一个正常 development case：2 次请求、7,641 tokens，状态 `completed`、answer valid、与 Expert science signature 相同。修订结果保存在 `point1_transfer_deepseek_manifest_retry.json`。
+
+没有复测故障 case，也没有运行 16 个 holdout；因此不能据此报告成功率提升或泛化优势。

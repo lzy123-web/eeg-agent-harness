@@ -43,6 +43,7 @@ class RegistryExecutorTest(unittest.TestCase):
         self.assertEqual(names, [
             "record_info", "amplitude", "psd", "list_events",
             "create_epochs", "epoch_summary", "event_bandpower",
+            "rereference_epochs",
             "record_quality", "epoch_quality", "select_quality_epochs",
         ])
         definitions = self.registry.public_definitions("tuev_bipolar_22")

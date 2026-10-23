@@ -45,6 +45,38 @@ ANSWER_TOOL = [{
 _ORCHESTRATION_TOOLS = frozenset({"list_events", "create_epochs"})
 
 
+def scalar_evidence_manifest(results):
+    """Enumerate valid scalar addresses so the LLM never has to guess JSON leaves."""
+
+    manifest = []
+
+    def walk(value, path, output):
+        if isinstance(value, bool):
+            return
+        if isinstance(value, (str, int)) or (
+            isinstance(value, float) and math.isfinite(value)
+        ):
+            output.append(list(path))
+        elif isinstance(value, dict):
+            for key, child in value.items():
+                walk(child, (*path, str(key)), output)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(child, (*path, str(index)), output)
+
+    for result in results:
+        if not result.get("success"):
+            continue
+        paths = []
+        walk(result.get("data"), (), paths)
+        manifest.append({
+            "request_id": result["request_id"],
+            "tool_name": result["tool_name"],
+            "valid_scalar_paths": paths,
+        })
+    return manifest
+
+
 def required_answer_tools(ledger):
     expected = next(
         item.expected for item in ledger.obligations if item.kind == "successful_tools"

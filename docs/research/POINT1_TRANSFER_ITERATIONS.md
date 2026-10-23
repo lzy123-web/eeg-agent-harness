@@ -44,3 +44,13 @@ x' = x - mean(x_reference_channels)
 ## 当前判断
 
 重参考迁移只增加一个 transition contract、一个参数 resolver 和通用发布修复，没有复制 Executor 或为每个 consumer 手写失效链。它初步支持 CIEDG 的声明式迁移假设；但能否形成论文优势仍必须与同规则强动态 Expert 在冻结协议下比较，不能由本轮功能测试推出。
+
+## 迭代 2：真实 LLM 回答地址失败与评价器误报
+
+首次真实 DeepSeek 两例均正确解释意图并完成科学工具链，但回答模型引用了一个 JSON 对象而非标量叶子。Evidence Gate 正确拒绝发布，结果为 `completed_without_llm_answer`。失败保存在 `results/point1_transfer_deepseek.json`，没有改写成成功。
+
+同时发现 calibration 直接比较 Python 容器时，tuple/list 表示差异导致 `science_equal=false`；已保存 JSON 规范化后数值内容实际相等。修订评价器为 UTF-8、排序键的严格 JSON 规范化比较。这只修评分器，不改变 EEG 结果。
+
+回答接口增加从实际成功 ToolResult 自动枚举的 `valid_scalar_evidence_manifest`。它不放宽 Evidence Gate、不替模型生成结论，只把可合法引用的叶路径明确暴露，适用于任意嵌套 ToolResult 而非重参考特例。随后用一个正常 case 有界复测：2 次请求、7,641 tokens，工具链和 Evidence Gate 均通过，科学签名与 Expert 相同。
+
+该 manifest 是工程可靠性修复，不作为 CIEDG 论文贡献。首次失败和修订后结果分别保存，避免只报告成功复测。
