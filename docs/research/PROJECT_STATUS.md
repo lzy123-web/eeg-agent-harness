@@ -432,6 +432,7 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 | Fake 固定三例 | 3/3 completed，6 次协议调用 |
 | 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、18,253 tokens；Evidence Gate/answer check 均通过；仅合成 EEG |
 | 全仓回归 | `compileall`、`pip check` 通过；199 tests：187 passed、12 gated skipped、0 failed |
+| GitHub CI | Draft PR #11 `unit-tests` run `39930738446` 对 `53b5869` 完成，结论 `success` |
 
 ### 研究判断与遗留问题
 
@@ -446,3 +447,4 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `c11bb95`：CIEDG 原型、双 consumer 与真实 Agent 集成。
 - `ea497ac`：内容寻址 evidence 恢复、反例、多条件与 strong expert 诊断。
 - 阶段 D 交付提交：`df59826`（有界 Fake/DeepSeek、完整回归与研究判断）。
+- 状态留痕提交：`53b5869`；Issue #14 与 Draft PR #11 已评论，CI run `39930738446` 成功。

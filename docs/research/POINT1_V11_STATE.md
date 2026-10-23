@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #14 阶段 D 已完成：声明式目标契约图、内容寻址 evidence 恢复、有界 Fake/DeepSeek、完整回归与研究判断均已提交；正在完成推送、PR/Issue 留痕。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
+Issue #14 阶段 D 已完成：声明式目标契约图、内容寻址 evidence 恢复、有界 Fake/DeepSeek、完整回归与研究判断均已提交并推送；Draft PR #11 与 Issue #14 已留痕，GitHub Actions run `39930738446` 成功。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
 
 ## 已冻结问题
 
