@@ -72,4 +72,4 @@ Guarded conditional DAG 将作为未来强动态 Expert；LLM feedback replannin
 - 阶段 II：`d96c764`，LRSP 初版、Fake/oracle/恢复测试，已推送。
 - 阶段 III：`36c4adf`，内容 fingerprint、evidence binding 与回答条件修订，已推送。
 - 阶段 IV：`df334d1`，固定 Fake/真实 DeepSeek 合成轨迹，已推送。
-- 阶段 V：待提交。
+- 阶段 V：`347bc0d`，方法审查、下一步公平实验设计与客观交付，已推送。

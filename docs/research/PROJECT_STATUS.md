@@ -405,4 +405,4 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `d96c764`：接入 LRSP、Fake/oracle/局部恢复测试。
 - `36c4adf`：内容 fingerprint、quality evidence binding 与回答条件修订。
 - `df334d1`：固定 Fake/真实 DeepSeek 合成轨迹与有界评估入口。
-- 最终审查与文档提交：见本节之后的最新 Git commit。
+- 最终审查与文档提交：`347bc0d`。
