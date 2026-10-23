@@ -1,0 +1,47 @@
+# CCEP/LRSP v1.1 研发状态
+
+更新时间：2026-10-23（Asia/Shanghai）
+
+## 当前阶段
+
+Issue #14 阶段 A：已完成 v1 硬编码审计和候选架构比较，准备实现声明式目标契约图。继续使用 `research/point1-integrated-method-v0` 与 Draft PR #11；不替换 Baseline v1、CCEP v0 或 LRSP v1。
+
+## 已冻结问题
+
+- v1 的 `next_action()`、`_goal_status()`、`apply_result()` 和失效列表都按三个事件目标写定。
+- v1 只有 `event_bandpower` 一个分析 consumer；无法证明共享 Epoch 对多个目标的复用和独立失效。
+- v1 用 artifact ID/fingerprint 保证内容一致性，但没有通用的“完成证据依赖哪些目标、输入和版本”表示。
+- 每轮多次重算同一 artifact fingerprint；检查与工具执行间变化会安全失败，但 v1 将其作为永久失败停止。
+
+## 选定路线
+
+实现 **Contract-Indexed Evidence Dependency Graph（CIEDG）**：
+
+1. 用小型 `GoalContract` 表声明目标的工具、输入策略、依赖、优先级和结果角色；
+2. 从用户请求的原子目标生成闭包和动态依赖图；
+3. 每个完成目标产生绑定输入/输出 artifact fingerprint 与上游 evidence token 的 `GoalEvidence`；
+4. 每轮依据真实 artifact 版本失效 token 并传播到依赖目标；
+5. 只选择 ready residual goal 的一个 frontier；
+6. EEG 专属 selection guard 仍由确定性代码掌握授权、质量和每条件 usable count。
+
+新增现有 `epoch_summary` 作为第二 consumer，与 `event_bandpower` 共享 effective Epoch。新增 consumer 的主规划变化应限于一条 contract 与意图目标声明，不再修改 `next_action/apply_result/_goal_status` 分支。
+
+## 不变量
+
+- Intent 的 label/window/source/objectives/authorization 不漂移；
+- consumer 只能读取由 requested selection branch 决定的 effective artifact；
+- selection 必须依赖同一 source fingerprint 的质量 evidence 和明确授权；
+- 每个请求条件至少保留一个可计算 Epoch，否则安全停止；
+- evidence token 的输入 fingerprint 或上游 token 失效时，依赖目标必须失效；
+- 无关且仍有效的目标不重放；
+- LLM 不决定阈值、失效传播、恢复范围或工具参数。
+
+## 下一步
+
+1. 阶段 B：实现 v1.1 opt-in Agent、contract graph 与 `epoch_summary + event_bandpower` 双 consumer。
+2. 先验证共享复用、内容失效和故障恢复，记录初版实际缺陷。
+3. 至少进行一轮状态/证据算法修订，再运行有界 Fake/DeepSeek 和强 Expert 诊断。
+
+## 提交
+
+- 阶段 A：待提交。
