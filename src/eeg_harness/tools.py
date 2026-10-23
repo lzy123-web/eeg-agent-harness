@@ -2,6 +2,7 @@
 
 import numpy as np
 from dataclasses import replace
+from uuid import uuid4
 from scipy.signal import welch
 
 from .events import ArtifactConsistencyError, create_epoch_set
@@ -207,6 +208,48 @@ def _select_quality_epochs(record, arguments, config, resources):
     return output
 
 
+def _rereference_epochs(record, arguments, config, resources):
+    epochs = _get_epoch_artifact(arguments, resources)
+    reference_channels = tuple(arguments["reference_channels"])
+    if not reference_channels:
+        raise ValueError("At least one explicit reference channel is required")
+    if len(reference_channels) != len(set(reference_channels)):
+        raise ValueError("Reference channels must be unique")
+    channel_index = {name: index for index, name in enumerate(epochs.channel_names)}
+    missing = [name for name in reference_channels if name not in channel_index]
+    if missing:
+        raise ValueError("Reference channels are absent from Epoch artifact: " + ", ".join(missing))
+    indices = [channel_index[name] for name in reference_channels]
+    reference_signal = epochs.data[:, indices, :].mean(axis=1, keepdims=True)
+    transformed_data = (epochs.data - reference_signal).astype(epochs.data.dtype, copy=False)
+    source_fingerprint = epochs.content_fingerprint()
+    reference = "explicit average of " + ", ".join(reference_channels)
+    transformed = replace(
+        epochs,
+        data=transformed_data.copy(),
+        reference=reference,
+        artifact_id=f"epochs-{uuid4()}",
+        parameters={
+            **dict(epochs.parameters),
+            "rereference": {
+                "method": "subtract_explicit_reference_channel_mean",
+                "reference_channels": list(reference_channels),
+                "source_artifact_fingerprint": source_fingerprint,
+            },
+        },
+    )
+    resources["artifact_store"][transformed.artifact_id] = transformed
+    output = transformed.summary()
+    output["transformation"] = {
+        "operation": "epoch_rereference",
+        "reference_channels": list(reference_channels),
+        "source_artifact_id": epochs.artifact_id,
+        "source_artifact_fingerprint": source_fingerprint,
+        "output_reference": reference,
+    }
+    return output
+
+
 def build_default_registry():
     registry = ToolRegistry()
     common_profiles = ("*",)
@@ -311,6 +354,17 @@ def build_default_registry():
         "required": ["artifact_id"],
         "additionalProperties": False,
     }
+    rereference_schema = {
+        "type": "object",
+        "properties": {
+            **artifact_schema["properties"],
+            "reference_channels": {
+                "type": "array", "items": {"type": "string"}, "minItems": 1,
+            },
+        },
+        "required": ["artifact_id", "reference_channels"],
+        "additionalProperties": False,
+    }
     registry.register(
         ToolSpec(
             name="epoch_summary",
@@ -332,6 +386,23 @@ def build_default_registry():
             handler=_event_bandpower,
             consumes_artifact="epochs",
             preconditions={"min_artifact_duration_seconds": 1.0},
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="rereference_epochs",
+            description=(
+                "Create a new Epoch artifact by subtracting the mean of explicitly named "
+                "existing reference channels from every EEG channel. This changes the "
+                "scientific reference state and requires explicit user authorization."
+            ),
+            parameters=rereference_schema,
+            return_type="object",
+            compatible_profiles=("edf_native",),
+            handler=_rereference_epochs,
+            consumes_artifact="epochs",
+            produces_artifact="epochs",
+            state_effect="stores_session_artifact",
         )
     )
     registry.register(

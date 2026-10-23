@@ -95,13 +95,14 @@ INTENT_TOOL = [{
                     "type": "array",
                     "description": (
                         "Positive atomic event objectives only: epoch_quality, trial_selection, "
-                        "epoch_summary, event_bandpower. Negated operations belong only in "
+                        "epoch_summary, event_bandpower, epoch_rereference. Negated operations belong only in "
                         "forbidden_operations."
                     ),
                     "items": {
                         "type": "string",
                         "enum": [
                             "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
+                            "epoch_rereference",
                         ],
                     },
                 },
@@ -119,6 +120,8 @@ INTENT_TOOL = [{
                         "tmin": {"type": "number"},
                         "tmax": {"type": "number"},
                         "selection_authorized": {"type": "boolean"},
+                        "reference_channels": {"type": "array", "items": {"type": "string"}},
+                        "rereference_authorized": {"type": "boolean"},
                     },
                     "additionalProperties": False,
                 },
@@ -238,6 +241,17 @@ def validate_intent(intent, user_request, context):
             True, intent, "reject", error_code="UNSUPPORTED_ANALYSIS",
             error_message="The requested analysis is outside the registered EEG capabilities.",
         )
+    if "epoch_rereference" in intent.objectives and any(
+        marker in user_request.casefold() for marker in (
+            "重参考前", "重参考之前", "重新参考前",
+            "before re-reference", "before rereference",
+        )
+    ):
+        return IntentInterpretation(
+            True, intent, "clarify", ("analysis_stage",),
+            "MIXED_TRANSFORM_SCOPE_UNSUPPORTED",
+            "Pre-transform and post-transform evidence must not be silently merged.",
+        )
     semantic_failures = []
     for concept, quote in intent.semantic_evidence.items():
         if not _evidence_is_exact(user_request, quote):
@@ -278,10 +292,12 @@ def validate_intent(intent, user_request, context):
     required = list(REQUIRED_SLOTS[intent.analysis_type])
     if "trial_selection" in intent.objectives:
         required.append("selection_authorized")
+    if "epoch_rereference" in intent.objectives:
+        required.extend(("reference_channels", "rereference_authorized"))
     missing = []
     for slot in required:
         value = intent.parameters.get(slot)
-        if slot == "selection_authorized":
+        if slot in {"selection_authorized", "rereference_authorized"}:
             missing_slot = value is not True or slot not in intent.explicit_evidence
         else:
             missing_slot = value in (None, "", []) or slot not in intent.explicit_evidence
@@ -322,10 +338,11 @@ class EvidenceBoundIntentInterpreter:
             "显式科学 slot 必须在 explicit_evidence 中引用用户原文的精确连续片段；不能用"
             "记录里已有的通道或事件标签替用户补全。缺失值放入 unknown_slots。事件绝对频带"
             "功率不是 ERP/ERD-ERS；临床诊断和未注册分析标为 unsupported。选择或筛除试次"
-            "只有用户明确授权时 selection_authorized=true。普通连续时间窗频带功率使用"
+            "只有用户明确授权时 selection_authorized=true。Epoch 重参考只有用户明确授权并"
+            "逐字给出 reference_channels 时 rereference_authorized=true；不得猜默认参考。普通连续时间窗频带功率使用"
             "analysis_type=psd 和 channels/start/end。明确提到事件、试次或 epoch 时使用"
             "analysis_type=event_workflow 和 labels/tmin/tmax，并把正向目标拆成 objectives："
-            "epoch_quality、trial_selection、epoch_summary、event_bandpower。参数键和证据键必须"
+            "epoch_quality、trial_selection、epoch_summary、event_bandpower、epoch_rereference。参数键和证据键必须"
             "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。"
             "semantic_evidence 必须列出用户真正要求的全部科学操作概念，并为每个概念引用"
             "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。"

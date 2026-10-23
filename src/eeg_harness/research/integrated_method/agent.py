@@ -67,6 +67,8 @@ class ConstraintCarryingEEGAgent:
         required_tools=None, runtime_facts=None,
     ):
         required = tuple(required_tools or required_answer_tools(ledger))
+        release_results = tuple(getattr(execution, "release_results", ()))
+        evidence_results = release_results or execution.tool_results
         prompt = (
             "你是 EEG 证据选择器。只调用 submit_evidence_answer，引用成功 ToolResult 中"
             "可定位的标量 JSON path；path 从每个 ToolResult.data 的内部开始，首段绝不能写 data。"
@@ -75,7 +77,7 @@ class ConstraintCarryingEEGAgent:
                 "user_request": user_request,
                 "intent": interpretation.intent.to_dict(),
                 "ledger": ledger.to_dict(),
-                "tool_results": list(execution.tool_results),
+                "tool_results": list(evidence_results),
                 "evidence_check": evidence,
                 "required_answer_tools": list(required),
                 "runtime_facts": dict(runtime_facts or {}),
@@ -90,6 +92,7 @@ class ConstraintCarryingEEGAgent:
             )
             return validate_and_render_answer(
                 response, execution, ledger, required_tools=required,
+                evidence_results=evidence_results,
             )
         except Exception:
             return (

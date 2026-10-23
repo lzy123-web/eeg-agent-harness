@@ -19,6 +19,7 @@ from .research.integrated_method.agent import ConstraintCarryingEEGAgent
 from .research.integrated_method.fake import Point1FakeLLM
 from .research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
 from .research.integrated_method.v11 import ConstraintCarryingEEGAgentV11
+from .research.integrated_method.transfer import ConstraintCarryingEEGAgentTransfer
 
 
 def build_parser():
@@ -41,7 +42,7 @@ def build_parser():
     )
     parser.add_argument(
         "--agent-mode", choices=(
-            "native", "planning", "point1", "point1-v1", "point1-v11",
+            "native", "planning", "point1", "point1-v1", "point1-v11", "point1-transfer",
         ), default="native",
         help="Select the opt-in Agent runtime; point1 enables the integrated research method",
     )
@@ -73,12 +74,16 @@ def main(argv=None):
     mode = "planning" if args.planning else args.agent_mode
     if args.fake:
         client = (
-            Point1FakeLLM() if mode in {"point1", "point1-v1", "point1-v11"} else
+            Point1FakeLLM() if mode in {
+                "point1", "point1-v1", "point1-v11", "point1-transfer",
+            } else
             DeterministicGoalFakeLLM() if mode == "planning" else DemoFakeLLM()
         )
     else:
         client = OpenAICompatibleClient.from_env()
-    if mode == "point1-v11":
+    if mode == "point1-transfer":
+        agent = ConstraintCarryingEEGAgentTransfer(client, context)
+    elif mode == "point1-v11":
         agent = ConstraintCarryingEEGAgentV11(client, context)
     elif mode == "point1-v1":
         agent = ConstraintCarryingEEGAgentV1(client, context)

@@ -98,6 +98,7 @@ class EpochSet:
     baseline: Optional[tuple[Optional[float], Optional[float]]]
     rejected: tuple[RejectedEpoch, ...]
     source: str
+    reference: str = "unspecified"
     artifact_id: str = field(default_factory=lambda: f"epochs-{uuid4()}")
     parameters: Mapping[str, Any] = field(default_factory=dict)
 
@@ -119,6 +120,7 @@ class EpochSet:
             "event_labels": list(self.event_labels),
             "event_onsets_seconds": list(self.event_onsets_seconds),
             "baseline": self.baseline,
+            "reference": self.reference,
             "rejected": [item.to_dict() for item in self.rejected],
             "parameters": dict(self.parameters),
         }
@@ -141,6 +143,7 @@ class EpochSet:
             "tmin": self.tmin,
             "tmax": self.tmax,
             "baseline": list(self.baseline) if self.baseline is not None else None,
+            "reference": self.reference,
             "event_labels": list(self.event_labels),
             "event_onsets_seconds": list(self.event_onsets_seconds),
             "rejected": [item.to_dict() for item in self.rejected],
@@ -234,6 +237,7 @@ def create_epoch_set(record, labels, tmin, tmax, baseline=None):
         baseline=resolved_baseline,
         rejected=tuple(rejected),
         source=record.source,
+        reference=record.reference,
         parameters={
             "selected_labels": [labels] if isinstance(labels, str) else list(labels),
             "window_semantics": "[event_onset+tmin, event_onset+tmax)",

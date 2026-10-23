@@ -13,6 +13,8 @@ FORBIDDEN_TOOL_MAP = {
     "event_analysis": "event_bandpower",
     "amplitude": "amplitude",
     "psd": "psd",
+    "rereference": "rereference_epochs",
+    "epoch_rereference": "rereference_epochs",
 }
 
 
@@ -94,6 +96,8 @@ def compile_intent(intent, context):
             expected_tools.append("epoch_summary")
         if "event_bandpower" in intent.objectives:
             expected_tools.append("event_bandpower")
+        if "epoch_rereference" in intent.objectives:
+            expected_tools.append("rereference_epochs")
         obligations.append(Obligation("objectives", "objectives", list(intent.objectives)))
     else:
         expected_tools = [analysis]
@@ -121,7 +125,7 @@ def validate_plan_against_ledger(plan, ledger):
         for item in ledger.obligations if item.kind == "parameter"
     }
     for key, expected in parameter_values.items():
-        if key == "selection_authorized":
+        if key in {"selection_authorized", "rereference_authorized"}:
             continue
         relevant = [step for step in plan.steps if key in step.arguments]
         if not relevant:
@@ -155,7 +159,7 @@ def close_ledger(ledger, execution):
         for item in ledger.obligations if item.kind == "parameter"
     }
     for key, expected in parameter_values.items():
-        if key == "selection_authorized":
+        if key in {"selection_authorized", "rereference_authorized"}:
             continue
         seen = [event["arguments"][key] for event in events if key in event.get("arguments", {})]
         if not seen:
@@ -168,10 +172,14 @@ def close_ledger(ledger, execution):
         if not item["success"]:
             continue
         event = event_by_request.get(item["request_id"], {})
-        if item["tool_name"] in {"event_bandpower", "epoch_quality", "select_quality_epochs"}:
+        if item["tool_name"] in {
+            "event_bandpower", "epoch_quality", "select_quality_epochs", "rereference_epochs",
+        }:
             if event.get("arguments", {}).get("artifact_id") not in produced_ids:
                 violations.append("artifact_lineage_mismatch")
-        if item["tool_name"] in {"create_epochs", "select_quality_epochs"}:
+        if item["tool_name"] in {
+            "create_epochs", "select_quality_epochs", "rereference_epochs",
+        }:
             artifact_id = item.get("data", {}).get("artifact_id")
             if artifact_id:
                 produced_ids.add(artifact_id)

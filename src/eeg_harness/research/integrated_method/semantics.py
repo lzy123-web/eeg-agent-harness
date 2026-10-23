@@ -28,6 +28,9 @@ CONCEPT_ANCHORS = {
     "epoch_summary": (
         "epoch 汇总", "epoch 概要", "试次汇总", "试次数", "epoch summary", "trial count",
     ),
+    "epoch_rereference": (
+        "重参考", "重新参考", "参考通道", "re-reference", "rereference", "reference channel",
+    ),
     "seizure_detection": ("癫痫", "发作", "seizure", "epilept"),
 }
 
@@ -42,6 +45,7 @@ ANALYSIS_SEMANTIC_CONTRACTS = {
             frozenset({"event_locked"}),
             frozenset({
                 "quality_measurement", "trial_selection", "spectral_power", "epoch_summary",
+                "epoch_rereference",
             }),
         ),
         AnalysisSemanticContract("record_quality", frozenset({"quality_measurement"})),
@@ -54,6 +58,7 @@ EVENT_OBJECTIVE_CONCEPTS = {
     "trial_selection": "trial_selection",
     "spectral_power": "event_bandpower",
     "epoch_summary": "epoch_summary",
+    "epoch_rereference": "epoch_rereference",
 }
 
 
@@ -61,6 +66,14 @@ def selection_is_forbidden(forbidden_operations):
     for value in forbidden_operations:
         normalized = value.casefold().replace("-", "_").replace(" ", "_")
         if "selection" in normalized or "筛" in normalized or "reject_trial" in normalized:
+            return True
+    return False
+
+
+def rereference_is_forbidden(forbidden_operations):
+    for value in forbidden_operations:
+        normalized = value.casefold().replace("-", "_").replace(" ", "_")
+        if "rereference" in normalized or "re_reference" in normalized or "重参考" in normalized:
             return True
     return False
 
@@ -74,6 +87,8 @@ def resolve_event_objectives(semantic_evidence, forbidden_operations=()):
         if concept not in concepts:
             continue
         if objective == "trial_selection" and selection_is_forbidden(forbidden_operations):
+            continue
+        if objective == "epoch_rereference" and rereference_is_forbidden(forbidden_operations):
             continue
         objectives.append(objective)
     return tuple(objectives)

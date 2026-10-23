@@ -148,7 +148,7 @@ class OperationContract:
 
 
 def build_operation_contracts(registry):
-    """Build contracts for the eight registered tools without loading models."""
+    """Build operation contracts from registry metadata without loading models."""
 
     contracts = {}
     for spec in registry.list_specs():
@@ -451,7 +451,10 @@ class StateAwareConstrainedPlanner:
 
         arguments = dict(task.arguments)
         objectives = tuple(arguments.pop("objectives", ()))
-        supported = {"epoch_quality", "trial_selection", "epoch_summary", "event_bandpower"}
+        supported = {
+            "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
+            "epoch_rereference",
+        }
         if not objectives or len(objectives) != len(set(objectives)) or not set(objectives) <= supported:
             return _reject(
                 task, state, "UNSATISFIABLE_CONSTRAINTS",
@@ -464,6 +467,38 @@ class StateAwareConstrainedPlanner:
                 "Epoch selection requires explicit user authorization",
             )
         arguments.pop("selection_authorized", None)
+        rereference = "epoch_rereference" in objectives
+        if selection and rereference:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Combining trial selection and Epoch re-referencing is not validated",
+            )
+        if rereference and arguments.pop("rereference_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch re-referencing requires explicit user authorization",
+            )
+        arguments.pop("rereference_authorized", None)
+        if rereference:
+            reference_channels = tuple(arguments.get("reference_channels", ()))
+            if not reference_channels:
+                return _reject(
+                    task, state, "UNSATISFIABLE_CONSTRAINTS",
+                    "Epoch re-referencing requires explicit reference channels",
+                )
+            if state.profile_id != "edf_native":
+                return _reject(
+                    task, state, "PROFILE_INCOMPATIBLE",
+                    "Epoch re-referencing is not validated for this Profile",
+                )
+            missing_reference = [
+                name for name in reference_channels if name not in state.channel_names
+            ]
+            if missing_reference:
+                return _reject(
+                    task, state, "INVALID_CHANNEL",
+                    "Reference channels are absent: " + ", ".join(missing_reference),
+                )
         consumer = (
             "event_bandpower" if "event_bandpower" in objectives else
             "epoch_summary" if "epoch_summary" in objectives else
@@ -486,14 +521,24 @@ class StateAwareConstrainedPlanner:
                 "produce one shared Epoch artifact for all requested objectives",
             ),
         ]
+        analysis_reference = source_reference
+        last_dependency = "produce-artifact"
+        if rereference:
+            steps.append(PlanStep(
+                "rereference-epochs", "rereference_epochs", {
+                    "artifact_id": source_reference,
+                    "reference_channels": list(reference_channels),
+                }, ("produce-artifact",), "apply explicitly authorized Epoch reference",
+            ))
+            analysis_reference = {"$result": "rereference-epochs", "path": ["artifact_id"]}
+            last_dependency = "rereference-epochs"
         quality_needed = "epoch_quality" in objectives or selection
         if quality_needed:
             steps.append(PlanStep(
-                "measure-quality", "epoch_quality", {"artifact_id": source_reference},
-                ("produce-artifact",), "measure requested quality before any possible selection",
+                "measure-quality", "epoch_quality", {"artifact_id": analysis_reference},
+                (last_dependency,), "measure quality on the current effective Epoch state",
             ))
-        analysis_reference = source_reference
-        last_dependency = "measure-quality" if quality_needed else "produce-artifact"
+        last_dependency = "measure-quality" if quality_needed else last_dependency
         if selection:
             steps.append(PlanStep(
                 "select-quality", "select_quality_epochs", {"artifact_id": source_reference},

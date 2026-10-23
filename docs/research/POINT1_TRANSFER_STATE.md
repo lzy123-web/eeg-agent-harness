@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #15 阶段 A：已完成候选科学转换、现有 CIEDG 边界和 semantic cache provenance 风险审计，准备实现显式 Epoch 重参考与不同-ID/同内容证据发布探针。
+Issue #15 阶段 B：显式 Epoch 重参考已接入真实 Registry/Executor/Agent；独立 NumPy、MNE oracle 与受控 artifact 丢失恢复均已通过。准备实现同规则强动态 Expert 与冻结协议。
 
 分支：`research/point1-integrated-method-v0`；Draft PR：#11。Baseline v1、CCEP v0、LRSP v1/v1.1 均保持不变。
 
@@ -20,17 +20,24 @@ x'_channel(t) = x_channel(t) - mean(x_reference_channels(t))
 
 不自动使用“所有通道平均参考”，因为当前 Harness 不保证原记录参考电极已作为零通道存在；不选择 Epoch 重采样，因为其同时引入 anti-alias、逐 Epoch 边界效应、采样网格和频带可用性问题，难以在本轮隔离 CIEDG 的状态机制。
 
-## 待验证风险
+## 已发现并修复的机制风险
 
-v1.1 的 semantic cache 在内容等价时恢复旧 `GoalEvidence`，但 `token.result` 仍可能携带旧 artifact ID/request ID。若重建产生不同 ID，最终 answer selector 可能引用旧 provenance。必须保留历史 ToolResult，同时为发布构造显式标记的当前-lineage evidence view；不能篡改历史或伪装工具重算。
+受控删除转换后 artifact 时，重建会产生新 ID 但相同 content fingerprint。v1.1 原先恢复的 consumer cache 仍携带旧 artifact ID/request ID，导致回答层可能把“内容等价”错误表述成“来源身份相同”。修复后：
+
+- 历史 ToolResult 保持不可变；
+- semantic cache 生成 `execution_kind=semantic_evidence_reuse` 的发布视图；
+- 发布视图显式记录原 request、新 artifact ID/fingerprint 和等价判断；
+- Evidence Gate 只从当前 goal token 的发布视图选证据。
+
+质量证据不跨 artifact 身份复用，因此重参考恢复后重新执行；结构 summary 可在内容等价时复用；事件观察与 source Epoch 不重放。
 
 ## 下一步
 
-1. 为 `EpochSet` 增加显式 reference 科学属性，并实现真实 `rereference_epochs` 工具。
-2. 建立 transfer opt-in Agent/contract，验证 transformed quality/summary/bandpower。
-3. 用不同-ID/同内容故障触发局部恢复，先保留失败，再修复 answer evidence provenance。
-4. 实现同规则动态 Expert、冻结正式协议、运行有界 Fake/DeepSeek 和完整回归。
+1. 实现同规则动态 Expert，给它相同状态、规则、故障反馈与恢复预算。
+2. 冻结 24--36 例正式协议及开发/留出边界，仅运行小规模 calibration。
+3. 运行有界 Fake/DeepSeek、完整回归，形成冻结或 No-Go 决策。
 
 ## 提交
 
-- 阶段 A：待提交。
+- 阶段 A：`a5dacf8`（候选比较与设计，已推送）。
+- 阶段 B：待提交。

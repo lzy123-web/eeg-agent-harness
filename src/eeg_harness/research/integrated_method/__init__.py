@@ -4,10 +4,12 @@ from .agent import ConstraintCarryingEEGAgent, Point1RunResult
 from .intent import IntentSpec, IntentInterpretation, EvidenceBoundIntentInterpreter
 from .v1 import ConstraintCarryingEEGAgentV1, ResidualScientificPlanner
 from .v11 import ConstraintCarryingEEGAgentV11, ContractGraphResidualPlanner
+from .transfer import ConstraintCarryingEEGAgentTransfer, TransferContractGraphPlanner
 
 __all__ = (
     "ConstraintCarryingEEGAgent", "Point1RunResult", "IntentSpec",
     "IntentInterpretation", "EvidenceBoundIntentInterpreter",
     "ConstraintCarryingEEGAgentV1", "ResidualScientificPlanner",
     "ConstraintCarryingEEGAgentV11", "ContractGraphResidualPlanner",
+    "ConstraintCarryingEEGAgentTransfer", "TransferContractGraphPlanner",
 )

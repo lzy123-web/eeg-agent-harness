@@ -93,7 +93,10 @@ class Point1IntentSchemaTest(unittest.TestCase):
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(
             set(schema["properties"]),
-            {"channels", "start", "end", "labels", "tmin", "tmax", "selection_authorized"},
+            {
+                "channels", "start", "end", "labels", "tmin", "tmax",
+                "selection_authorized", "reference_channels", "rereference_authorized",
+            },
         )
 
     def test_every_supported_analysis_has_unique_semantic_contract(self):

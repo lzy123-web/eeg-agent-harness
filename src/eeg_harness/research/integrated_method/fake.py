@@ -79,7 +79,10 @@ class Point1FakeLLM:
                 "forbidden_operations": [], "source_stage": "current",
                 "output_boundary": "unsupported", "rationale": "unregistered analysis",
             })
-        channel = next((name for name in ("SYNTH-C1", "SYNTH-C2") if name.lower() in lowered), None)
+        mentioned_channels = [
+            name for name in ("SYNTH-C1", "SYNTH-C2") if name.lower() in lowered
+        ]
+        channel = mentioned_channels[0] if mentioned_channels else None
         numbers = [float(item) for item in re.findall(r"(?<![A-Za-z])(-?\d+(?:\.\d+)?)", text)]
         if any(term in lowered for term in ("事件", "试次", "event", "epoch")):
             labels = [
@@ -108,6 +111,24 @@ class Point1FakeLLM:
             if selection_authorized:
                 parameters["selection_authorized"] = True
                 evidence["selection_authorized"] = text
+            rereference = any(term in lowered for term in (
+                "重参考", "重新参考", "re-reference", "rereference", "reference channel",
+            ))
+            forbidden_rereference = any(term in lowered for term in (
+                "不要重参考", "禁止重参考", "do not re-reference", "no rereference",
+            ))
+            rereference_authorized = rereference and not forbidden_rereference and any(
+                term in text for term in ("允许", "请", "重参考到", "作为参考")
+            )
+            if rereference and not forbidden_rereference:
+                if mentioned_channels:
+                    parameters["reference_channels"] = mentioned_channels
+                    evidence["reference_channels"] = text
+                else:
+                    unknown.append("reference_channels")
+            if rereference_authorized:
+                parameters["rereference_authorized"] = True
+                evidence["rereference_authorized"] = text
             quality = any(term in text for term in ("质量", "伪迹"))
             power = any(term in lowered for term in ("频带", "功率", "psd", "band power"))
             summary = any(term in lowered for term in (
@@ -122,6 +143,8 @@ class Point1FakeLLM:
                 objectives.append("epoch_summary")
             if power:
                 objectives.append("event_bandpower")
+            if rereference and not forbidden_rereference:
+                objectives.append("epoch_rereference")
             semantic = {"event_locked": text}
             if quality:
                 semantic["quality_measurement"] = text
@@ -131,12 +154,17 @@ class Point1FakeLLM:
                 semantic["epoch_summary"] = text
             if power:
                 semantic["spectral_power"] = text
+            if rereference:
+                semantic["epoch_rereference"] = text
             return self._call({
                 "analysis_type": "event_workflow", "objectives": objectives,
                 "parameters": parameters,
                 "explicit_evidence": evidence, "unknown_slots": unknown,
                 "semantic_evidence": semantic,
-                "forbidden_operations": ["selection"] if forbidden_selection else [],
+                "forbidden_operations": (
+                    (["selection"] if forbidden_selection else [])
+                    + (["epoch_rereference"] if forbidden_rereference else [])
+                ),
                 "source_stage": "current", "output_boundary": "absolute_bandpower_only",
                 "rationale": "event request",
             })

@@ -43,6 +43,7 @@ class DynamicPlanningRunResult:
     scientific_state: dict
     evidence_check: dict
     required_answer_tools: tuple[str, ...]
+    release_results: tuple[dict, ...] = ()
 
     def to_dict(self):
         payload = {
@@ -56,6 +57,7 @@ class DynamicPlanningRunResult:
             "scientific_state": dict(self.scientific_state),
             "evidence_check": dict(self.evidence_check),
             "required_answer_tools": list(self.required_answer_tools),
+            "release_results": [dict(item) for item in self.release_results],
         }
         json.dumps(payload, ensure_ascii=False, allow_nan=False)
         return payload

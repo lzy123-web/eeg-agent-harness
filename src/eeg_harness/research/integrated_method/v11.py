@@ -1,6 +1,7 @@
 """CCEP/LRSP v1.1: contract-indexed EEG evidence dependency planning."""
 
 from collections import Counter
+from copy import deepcopy
 from dataclasses import dataclass
 import hashlib
 import json
@@ -125,9 +126,7 @@ class ContractGraphResidualPlanner:
         self.ledger = ledger
         self.contracts = dict(contracts or GOAL_CONTRACTS)
         self.requested_goals = tuple(task.arguments.get("objectives", ()))
-        unknown = set(self.requested_goals) - {
-            "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
-        }
+        unknown = set(self.requested_goals) - set(self.contracts)
         if not self.requested_goals or unknown:
             raise ValueError(f"Unsupported v1.1 objectives: {sorted(unknown)}")
         self.labels = tuple(task.arguments.get("labels", ()))
@@ -350,17 +349,35 @@ class ContractGraphResidualPlanner:
             goal, arguments=arguments, input_binding=input_binding,
             output_binding=None, mode=None,
         )
+        release_result = deepcopy(cached.result)
+        release_request_id = (
+            f"reuse-{goal}-{semantic_id.removeprefix('goal-token:')[:12]}"
+        )
+        release_result["request_id"] = release_request_id
+        release_result["execution_kind"] = "semantic_evidence_reuse"
+        release_result["reused_from_request_id"] = cached.request_id
+        if isinstance(release_result.get("data"), dict):
+            if "artifact_id" in release_result["data"]:
+                release_result["data"]["artifact_id"] = input_binding.artifact_id
+            if "artifact_fingerprint" in release_result["data"]:
+                release_result["data"]["artifact_fingerprint"] = input_binding.fingerprint
+            release_result["data"]["evidence_reuse"] = {
+                "source_request_id": cached.request_id,
+                "current_artifact_id": input_binding.artifact_id,
+                "current_artifact_fingerprint": input_binding.fingerprint,
+                "scientific_content_equivalent": True,
+            }
         restored = GoalEvidence(
             goal=goal,
             token_id=_stable_token(payload),
             semantic_id=semantic_id,
             tool_name=cached.tool_name,
-            request_id=cached.request_id,
+            request_id=release_request_id,
             dependency_tokens=self._dependency_tokens(goal),
             input_binding=input_binding,
             output_binding=None,
             mode=None,
-            result=cached.result,
+            result=release_result,
         )
         self.evidence[goal] = restored
         self._record_transition(
@@ -370,8 +387,24 @@ class ContractGraphResidualPlanner:
             restored_token_id=restored.token_id,
             semantic_id=semantic_id,
             artifact_fingerprint=input_binding.fingerprint,
+            release_request_id=release_request_id,
         )
         return True
+
+    def _release_results(self):
+        results = []
+        seen = set()
+        for goal in self.active_goals:
+            token = self.evidence.get(goal)
+            if (
+                token is None or token.result is None
+                or not self.contracts[goal].answer_required
+                or token.result["request_id"] in seen
+            ):
+                continue
+            seen.add(token.result["request_id"])
+            results.append(token.result)
+        return tuple(results)
 
     def _resolve_selection(self):
         quality = self._quality_result()
@@ -479,13 +512,17 @@ class ContractGraphResidualPlanner:
         input_binding = self._input_binding(goal)
         output_binding = None
         mode = None
-        if goal in {"create_epochs", "trial_selection"}:
+        if (
+            self.contracts[goal].role in {"producer", "transition"}
+            and isinstance(rendered.get("data"), dict)
+            and "artifact_id" in rendered["data"]
+        ):
             output_binding = ArtifactBinding(
                 rendered["data"]["artifact_id"],
                 rendered["data"]["artifact_fingerprint"],
             )
-        if goal == "trial_selection":
-            mode = "derived"
+        if self.contracts[goal].role == "transition":
+            mode = "derived" if goal == "trial_selection" else goal
         self._materialize_evidence(
             goal,
             request_id=rendered["request_id"],
@@ -588,9 +625,13 @@ class ContractGraphResidualPlanner:
             if goal not in self.evidence:
                 violations.append(f"goal_not_satisfied:{goal}")
         effective = self._effective_binding()
-        for goal in ("epoch_summary", "event_bandpower"):
+        for goal in self.requested_goals:
             token = self.evidence.get(goal)
-            if token is not None and token.input_binding != effective:
+            if (
+                token is not None
+                and self.contracts[goal].input_policy == "effective_epochs"
+                and token.input_binding != effective
+            ):
                 violations.append(f"effective_artifact_mismatch:{goal}")
         return {
             "closed": status == "completed" and not violations,
@@ -675,11 +716,15 @@ class ContractGraphResidualPlanner:
             self.context.trace.to_dict(), self.retries + self.repairs,
             round((time.perf_counter() - started) * 1000, 3),
             self.state_dict(), evidence, self._required_answer_tools(),
+            self._release_results(),
         )
 
 
 class ConstraintCarryingEEGAgentV11(ConstraintCarryingEEGAgentV1):
     """Opt-in v1.1 Agent using the contract-indexed evidence graph."""
+
+    runner_class = ContractGraphResidualPlanner
+    method_name = "constraint_carrying_eeg_plan_v11_ciedg"
 
     def __init__(
         self, llm_client, context, max_retries=1, max_repairs=2, max_tool_calls=16,
@@ -715,7 +760,7 @@ class ConstraintCarryingEEGAgentV11(ConstraintCarryingEEGAgentV1):
                     "plan_rejected", interpretation.to_dict(), ledger.to_dict(),
                     plan_check, final_answer="科学约束或当前 EEG 状态不允许执行该计划。",
                     llm=self._llm_summary(),
-                    method="constraint_carrying_eeg_plan_v11_ciedg",
+                    method=self.method_name,
                 )
             execution = ConstrainedPlanRunner(
                 self.context, max_replans=0,
@@ -736,11 +781,11 @@ class ConstraintCarryingEEGAgentV11(ConstraintCarryingEEGAgentV1):
                 reason, interpretation.to_dict(), ledger.to_dict(), plan_check,
                 execution.to_dict(), evidence, answer_check=answer_check,
                 final_answer=answer, llm=self._llm_summary(),
-                method="constraint_carrying_eeg_plan_v11_ciedg",
+                method=self.method_name,
             )
         initial_plan = StateAwareConstrainedPlanner(self.context).plan(task)
         initial_check = validate_plan_against_ledger(initial_plan, ledger)
-        runner = ContractGraphResidualPlanner(
+        runner = self.runner_class(
             self.context, task, ledger,
             max_retries=self.max_retries,
             max_repairs=self.max_repairs,
@@ -775,5 +820,5 @@ class ConstraintCarryingEEGAgentV11(ConstraintCarryingEEGAgentV1):
             reason, interpretation.to_dict(), ledger.to_dict(), initial_check,
             execution.to_dict(), evidence, answer_check=answer_check,
             final_answer=answer, llm=self._llm_summary(),
-            method="constraint_carrying_eeg_plan_v11_ciedg",
+            method=self.method_name,
         )

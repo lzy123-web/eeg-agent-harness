@@ -88,13 +88,14 @@ def _render_scalar(value):
     return str(value)
 
 
-def validate_and_render_answer(message, execution, ledger, required_tools=None):
+def validate_and_render_answer(
+    message, execution, ledger, required_tools=None, evidence_results=None,
+):
     """Validate every claim address, then render only verified facts."""
     try:
         references = _parse_submission(message)
-        successful = {
-            item["request_id"]: item for item in execution.tool_results if item["success"]
-        }
+        results = evidence_results if evidence_results is not None else execution.tool_results
+        successful = {item["request_id"]: item for item in results if item["success"]}
         rendered = []
         cited_tools = set()
         normalized_references = []
