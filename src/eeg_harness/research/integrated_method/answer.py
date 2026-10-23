@@ -24,6 +24,10 @@ ANSWER_TOOL = [{
                             "request_id": {"type": "string"},
                             "path": {
                                 "type": "array",
+                                "description": (
+                                    "JSON path relative to that ToolResult's data object. "
+                                    "Never prefix the path with data or ToolResult."
+                                ),
                                 "items": {"type": "string"},
                             },
                         },

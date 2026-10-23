@@ -188,7 +188,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-23 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：161 项中 160 项通过、1 项真实联网测试按设计跳过；`compileall` 与 `pip check` 通过。GitHub Actions 不下载 EDF、权重或使用 API 密钥。
+2026-10-23 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：167 项中除 1 项真实联网 opt-in 测试外均通过；两项 R3 本地资源测试也以显式样例单独通过。清除私有资源后 167 项中 155 项通过、12 项按设计跳过；`compileall` 与 `pip check` 通过。GitHub Actions 不下载 EDF、权重或使用 API 密钥。
 
 真实 DeepSeek 合成验收另行执行：4/4 案例通过，其中 3 个完成真实 Tool Calling 闭环，1 个正确拒绝临床诊断；共 9 次模型请求、5 次工具调用、16,041 tokens。逐例脱敏结果见 `docs/research/results/real_llm_baseline_v1.json`，解释边界见 `docs/research/REAL_LLM_BASELINE_REPORT.md`。
 
@@ -233,7 +233,7 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
 - 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
-- CCEP 当前只完成三类合成真实模型验收，未与公平强基线完成新的正式比较；不得宣称方法优势或多数据集验证。
+- CCEP 已增加意图—任务类型一致性、质量筛选派生 Epoch 的五工具链和证据寻址回答；真实模型只在有界合成请求上验证，未与公平强基线完成新的正式比较，不得宣称方法优势或多数据集验证。
 
 ## Issue #9：科学意图对齐研究验证
 

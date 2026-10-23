@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图—任务类型一致性。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
+Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类型一致性、派生 EEG 状态链和证据寻址回答已实现并完成有界真实验证。工作分支为 `research/point1-integrated-method-v0`，基线起点 `d0ae05c`。
 
 ## 已确认状态
 
@@ -33,16 +33,18 @@ Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图
 - 已新增覆盖全部 9 个已支持分析类型（含组合任务）的声明式科学概念契约。analysis type 由原文绑定概念集合独立解析并与模型声明交叉检查；合法 PSD 参数但声明 amplitude 的对抗用例在 0 工具调用时澄清。
 - 新增 `quality_selected_bandpower` 完整状态链：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。最终分析消费筛选工具新产生的 Epoch artifact，Evidence Gate 按执行顺序检查两级 lineage。
 - 最终回答改为证据寻址协议：LLM 只选择成功 ToolResult 的 request id 与标量 JSON path；运行时验证路径、必要工具覆盖并确定性渲染。无效路径或缺少质量/筛选/分析任一必要证据时返回 `completed_without_llm_answer`。
+- 首次真实复杂链暴露模型把 `ToolResult.data` 内部路径误写为以 `data` 开头；该失败已原样保留。补充相对路径协议后，重测完成五工具链并引用 `epoch_quality`、`select_quality_epochs` 和 `event_bandpower` 的实际值。
+- 对比请求“不要筛选或剔除试次”在 Planner 前以 `clarification_required` 停止，工具调用为 0；命令式“并筛选异常试次”则属于真实授权并正常执行，不能将其误记为缺少授权。
 
 ## 上次成功验证
 
-当前回答校验定向测试 21/21 通过；复杂状态链 Fake trace将在回答协议稳定后重新生成。上一轮完整结果仍待本轮全部改动后重跑。
+当前集成方法与 Planner 定向测试 30/30 通过；三条 Fake 轨迹已按证据寻址协议重新生成。真实 follow-up 共 4 个合成请求、7 次 Provider 请求、14,313 tokens：PSD 类型对抗、两条授权复杂链完成，一条禁止筛选请求零工具澄清；其中复杂链首次回答路径失败后经协议修复成功。完整回归仍待本轮全部改动后重跑。
 
 ## 下一步
 
-1. 重新生成 Fake 轨迹，并用真实 DeepSeek 在合成 EEG 上验证类型一致性、复杂状态链和回答引用。
-2. 重跑完整回归并更新验收、状态和 Draft PR。
-3. 审查本轮新增部分是否只是普通 schema/validator，保持客观研究边界。
+1. 重跑有资源与无资源完整回归，检查结果文件脱敏和 Git 差异。
+2. 更新总项目状态、验收文档和 Draft PR。
+3. 完成普通 schema/validator 与跨阶段机制贡献边界的客观审查。
 
 ## 阻塞与未验证问题
 
@@ -51,6 +53,8 @@ Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图
 - 真实原始/处理后多分支不是当前生产 Context 的通用能力，不能虚构。
 - 当前数值 span normalizer 只覆盖阿拉伯数字和 Unicode 负号，不支持中文数字、单位换算和共指消解。
 - 科学概念锚点是声明式运行时词表，能阻止已知类型漂移，但其同义词召回率、否定作用域和多意图组合尚未正式评估。
+- 禁止筛选的真实请求当前安全澄清而非自动降级为“不筛选的质量+功率”计划，说明组合意图的最小充分任务类型仍需扩展；本轮不为单个案例添加特例。
+- 证据寻址回答保证发布值可追溯，但现在是固定模板，尚未验证复杂自然语言归纳的忠实度与可读性。
 - 不得把 TaskSpec/validator/Prompt 的简单拼接包装为已证明创新。
 
 ## 本轮 Commit

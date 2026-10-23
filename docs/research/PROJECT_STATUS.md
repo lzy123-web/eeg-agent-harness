@@ -180,6 +180,9 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - 复用 `StateAwareConstrainedPlanner`、`ConstrainedPlanRunner`、`ExecutionContext`、`Executor` 与现有工具；没有创建第二套 EEG Core 或执行器。
 - `planning.py` 增加可选 plan validator hook，并将授权质量筛选实现为同一 Epoch artifact 上的“先质量证据、后筛选”。默认 native/planning 路径保持不变。
 - CLI 新增 `--agent-mode point1`；Fake LLM 用于确定性回归，真实 OpenAI 兼容客户端用于合成 EEG 联网验收。
+- follow-up 新增覆盖当前分析类型的科学概念契约：模型声明类型必须与用户原文 span 中的概念集合独立解析结果一致，不使用离线 gold。
+- 新增质量证据→授权筛选→派生 Epoch→事件频带功率五工具链，Evidence Gate 校验两级 artifact lineage。
+- 最终回答改为证据寻址：LLM 只选择成功 ToolResult 的 request id 与相对 `data` 的 JSON path，运行时解析实际标量并确定性渲染。
 
 ### 验证结果
 
@@ -194,6 +197,9 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 | 本地资源全回归 | 161 项中 160 通过、1 项联网 opt-in 测试跳过；`pip check`/`compileall` 通过。 |
 | 无私有资源回归 | 161 项中 149 通过、12 项资源/联网测试按设计跳过。 |
 | GitHub CI | Draft PR #11 run `39814383931` 的安装、compileall 与无资源 unittest 步骤均为 success。 |
+| follow-up Fake | 集成方法与 Planner 定向 30/30；单步、事件和质量筛选后分析轨迹均按新回答协议生成。 |
+| follow-up DeepSeek | 4 个合成请求、7 次 Provider 请求、14,313 tokens；PSD 对抗及两条授权复杂链完成，禁止筛选请求 0 工具澄清。首次复杂链的错误 `data` 路径被安全阻止，接口说明修复后重测完成。 |
+| follow-up 完整回归 | `pip check`/`compileall` 通过；167 项有资源测试除 1 项联网 opt-in 外均通过，R3 两项显式资源测试另行通过；无资源 155 通过、12 跳过。 |
 
 真实 LLM 的中文回答存在服务侧历史乱码，因此只确认结构化调用、工具执行和终止语义，不宣称中文可读性通过。方法当前是可运行候选，创新性和相对优势均未证明。完整报告见 `POINT1_INTEGRATION_ACCEPTANCE.md`，后续公平对照和消融见 `POINT1_FUTURE_EXPERIMENTS.md`。
 
@@ -241,6 +247,9 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 30. 当前原文数值校验不支持中文数字、单位换算、范围共指或复杂多意图。
 31. 默认 EEGRecord 没有 raw/processed 双分支；raw obligation 只能在来源未显式可观测时安全拒绝。
 32. `deepseek-flash` 当前返回的中文文本存在乱码，结构化链路成功不能替代自然语言质量验收。
+33. 科学概念契约尚未覆盖否定作用域、开放同义词、单位换算和多意图组合；“禁止筛选但做质量+功率”目前安全澄清，尚不能自动分解为合法替代计划。
+34. 证据寻址回答保证数值和条件可追溯，但固定模板的可读性、跨值归纳与复杂科学表述尚未验证。
+35. 概念词表、Prompt、schema 和 Validator 本身不是独立创新；CCEP 的潜在贡献仅是 obligation 在意图、派生状态、恢复和回答发布之间的持续保持，仍需公平强基线证据。
 
 ## 下一步候选任务
 
@@ -310,3 +319,7 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - Issue #9 阶段 B Commit：`57a2b4d`（`eval: run real DeepSeek intent-alignment pilot`）。
 - Issue #9 阶段 C Commit：`631b9b5`（`research: compare minimal intent contract on holdout`）。
 - Issue #9 阶段 D Commit：`84ed297`（`docs: conclude intent-alignment study objectively`）。
+- Issue #10 follow-up 历史收敛：`1bd8e7c`（普通 merge，无文件差异）、`f041146`（记录恢复完成）。
+- Issue #10 follow-up 意图类型一致性：`ceabfc4`。
+- Issue #10 follow-up 派生质量状态链：`8796c82`。
+- Issue #10 follow-up 证据寻址回答：`339aab5`。

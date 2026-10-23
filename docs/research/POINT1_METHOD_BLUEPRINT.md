@@ -44,7 +44,10 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
        bounded recovery（不得弱化 obligation）→ Evidence Gate
                                                    │
                                                    ▼
-                               LLM evidence-bound final answer
+                               LLM evidence selector
+                                          │ request id + path relative to ToolResult.data
+                                          ▼
+                               deterministic evidence renderer
 ```
 
 模块职责：
@@ -122,4 +125,4 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 2. Strong route+preflight：同规则、同状态、同请求/token/恢复预算，但没有持续 obligation ledger。
 3. CCEP：相同输入与工具，验证未知 slot、显式参数、来源、选择权限、lineage 和恢复单调性。
 
-正式实验需新冻结任务集、独立 gold、未见措辞和公平预算；今晚只完成集成方法初版与有界验收。
+正式实验需新冻结任务集、独立 gold、未见措辞和公平预算；当前只完成集成方法初版与有界验收。声明式概念词表、Prompt、schema 与 Validator 均属于常规实现手段，不单独形成研究贡献；后续只能检验“同一 obligation 跨意图、派生 EEG 状态、恢复和回答发布持续保持”是否相对强基线产生可测差异。

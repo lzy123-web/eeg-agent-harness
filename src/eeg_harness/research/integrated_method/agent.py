@@ -64,7 +64,8 @@ class ConstraintCarryingEEGAgent:
     def _answer(self, user_request, interpretation, ledger, execution, evidence):
         prompt = (
             "你是 EEG 证据选择器。只调用 submit_evidence_answer，引用成功 ToolResult 中"
-            "可定位的标量 JSON path；不得生成自由文本事实、临床诊断、原始数组或未执行分析。"
+            "可定位的标量 JSON path；path 从每个 ToolResult.data 的内部开始，首段绝不能写 data。"
+            "不得生成自由文本事实、临床诊断、原始数组或未执行分析。"
             "每个 required_answer_tools 至少引用一项能表达其结果或科学条件的标量。INPUT=" + json.dumps({
                 "user_request": user_request,
                 "intent": interpretation.intent.to_dict(),

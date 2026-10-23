@@ -76,13 +76,21 @@ EEG-specific 内容体现在：连续窗与事件窗使用不同科学 slot；�
 
 新增组合任务通过同一 Agent、Planner、Context 和 Executor 执行 `list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。选择工具创建带新 artifact id 的派生 Epoch，最后的频带分析必须消费该 id；Evidence Gate 按真实执行顺序校验原始 Epoch 和派生 Epoch 两级 lineage。确定性轨迹见 `results/point1_quality_selected_bandpower_fake.json`；质量阈值仍是未校准经验规则。
 
+真实 follow-up 中，同一合成请求第一次完成全部五个工具，但回答模型把相对路径写成 `data...`，系统以 `completed_without_llm_answer` 停止而没有发布不可验证回答。明确 path 根之后重测为 `completed`，回答引用覆盖 `epoch_quality`、`select_quality_epochs`、`event_bandpower`，且所有值均由运行时从真实 ToolResult 解析。失败轨迹被后续同名重测结果替换前已在开发记录中保留其原因；修复后的脱敏结果见 `results/point1_followup_deepseek_quality_selected.json`。
+
+另一个真实请求明确写“不要筛选或剔除试次”，模型虽声明组合类型，但 `selection_authorized=false`，系统在执行前以 `clarification_required` 停止，工具调用为 0。当前没有自动改写为另一任务类型，见 `results/point1_followup_deepseek_no_selection.json`。命令式“并筛选异常试次”是明确授权，作为正例保存在 `results/point1_followup_deepseek_authorized_selection.json`，不能据文件名或预期把它记作安全失败。
+
+### 3.5 意图类型对抗
+
+follow-up 请求明确要求“不要做幅值分析，只计算……绝对频带功率”。真实模型声明 `psd` 并执行唯一 `psd` 工具，证据回答直接引用五个频带结果；2 次 Provider 请求、2,826 tokens。见 `results/point1_followup_deepseek_psd_contrast.json`。这证明该例的运行链路正确，不等于已证明对未见同义表达的泛化。
+
 ## 4. 真实模型失败与修复
 
 首轮三个请求全部安全停在澄清，没有误执行。根因不是 Executor，而是意图 Tool Schema 将 `parameters` 定义成任意 object：模型产生 `channel`、`event_label`、`window_start_seconds` 等别名，并把普通 PSD 误判为事件任务。
 
 修复没有添加 case-specific gold 或接受别名，而是把模型接口收紧为共享 canonical slot：`channels/start/end/labels/tmin/tmax/selection_authorized`，并明确普通连续窗与事件窗的判别边界。第二轮两条完整任务通过，真正缺参请求仍澄清。
 
-两轮合计 8 次 Provider 请求、10,477 tokens，低于 36 请求/90k tokens 上限。所有外部调用仅使用确定性合成记录的元数据和派生工具结果；没有真实 EEG、受试者信息、本地路径、原始数组或凭据进入请求/结果。
+原 Issue #10 两轮合计 8 次 Provider 请求、10,477 tokens。本轮 follow-up 四个合成请求合计 7 次 Provider 请求、14,313 tokens；复杂链首次回答路径失败后只做一次有意义的接口修复与重测，没有刷成功率。所有外部调用仅使用确定性合成记录的元数据和派生工具结果；没有真实 EEG、受试者信息、本地路径、原始数组或凭据进入请求/结果。
 
 当前服务的 `deepseek-flash` 中文响应仍出现历史已知乱码。结构化参数、工具链和终止状态可验证，但不能把最终中文可读性记为通过。
 

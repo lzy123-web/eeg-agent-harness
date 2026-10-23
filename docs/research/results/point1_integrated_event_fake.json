@@ -19,6 +19,10 @@
         "tmin": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率",
         "tmax": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率"
       },
+      "semantic_evidence": {
+        "event_locked": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率",
+        "spectral_power": "计算 stimulus 事件前 -0.2 秒到后 0.8 秒的绝对频带功率"
+      },
       "unknown_slots": [],
       "forbidden_operations": [],
       "source_stage": "current",
@@ -29,7 +33,7 @@
     "error": null
   },
   "ledger": {
-    "context_id": "365427de-174e-46af-8711-0f26cf71433e",
+    "context_id": "8675cc94-9855-4eb1-a657-845948bd14dd",
     "analysis_type": "event_bandpower",
     "obligations": [
       {
@@ -143,7 +147,7 @@
       ],
       "reason": null,
       "state_summary": {
-        "context_id": "365427de-174e-46af-8711-0f26cf71433e",
+        "context_id": "8675cc94-9855-4eb1-a657-845948bd14dd",
         "profile_id": "edf_native"
       }
     },
@@ -167,14 +171,14 @@
           }
         },
         "error": null,
-        "duration_ms": 0.058
+        "duration_ms": 0.07
       },
       {
         "request_id": "produce-artifact",
         "tool_name": "create_epochs",
         "success": true,
         "data": {
-          "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93",
+          "artifact_id": "epochs-d9cf1558-1da9-4b4b-ac6e-86b2f89af335",
           "valid_epoch_count": 2,
           "rejected_epoch_count": 1,
           "shape": [
@@ -219,14 +223,14 @@
           }
         },
         "error": null,
-        "duration_ms": 0.125
+        "duration_ms": 0.123
       },
       {
         "request_id": "consume-artifact",
         "tool_name": "event_bandpower",
         "success": true,
         "data": {
-          "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93",
+          "artifact_id": "epochs-d9cf1558-1da9-4b4b-ac6e-86b2f89af335",
           "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
           "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
           "frequency_resolution_hz": 1.0,
@@ -253,7 +257,7 @@
           }
         },
         "error": null,
-        "duration_ms": 0.871
+        "duration_ms": 0.846
       }
     ],
     "planning_trace": [
@@ -293,14 +297,14 @@
       }
     ],
     "execution_trace": {
-      "task_id": "365427de-174e-46af-8711-0f26cf71433e",
+      "task_id": "8675cc94-9855-4eb1-a657-845948bd14dd",
       "profile_id": "edf_native",
       "source": {
         "kind": "synthetic",
         "reference_sha256": "c64f227a0fab0ca9c5d95dbf3c7b050de30fd543323601b5a66d25a687d71343"
       },
-      "started_at_utc": "2026-10-22T16:09:07.719673+00:00",
-      "ended_at_utc": "2026-10-22T16:09:07.721680+00:00",
+      "started_at_utc": "2026-10-23T02:43:05.391243+00:00",
+      "ended_at_utc": "2026-10-23T02:43:05.393244+00:00",
       "termination_reason": "completed",
       "events": [
         {
@@ -320,7 +324,7 @@
               "source"
             ]
           },
-          "duration_ms": 0.058,
+          "duration_ms": 0.07,
           "error": null
         },
         {
@@ -354,7 +358,7 @@
               "parameters"
             ]
           },
-          "duration_ms": 0.125,
+          "duration_ms": 0.123,
           "error": null
         },
         {
@@ -362,7 +366,7 @@
           "request_id": "consume-artifact",
           "tool_name": "event_bandpower",
           "arguments": {
-            "artifact_id": "epochs-fae2ff97-be08-4129-967d-6b7c5a51fc93"
+            "artifact_id": "epochs-d9cf1558-1da9-4b4b-ac6e-86b2f89af335"
           },
           "validation_passed": true,
           "output_summary": {
@@ -375,13 +379,13 @@
               "conditions"
             ]
           },
-          "duration_ms": 0.871,
+          "duration_ms": 0.846,
           "error": null
         }
       ]
     },
     "replans": 0,
-    "duration_ms": 1.142
+    "duration_ms": 1.133
   },
   "evidence_check": {
     "closed": true,
@@ -393,14 +397,34 @@
     ],
     "termination_status": "completed"
   },
-  "final_answer": "已依据成功工具结果完成研究用途的 EEG 分析；不构成临床诊断。",
+  "answer_check": {
+    "valid": true,
+    "code": null,
+    "required_tools": [
+      "event_bandpower"
+    ],
+    "cited_tools": [
+      "event_bandpower"
+    ],
+    "references": [
+      {
+        "request_id": "consume-artifact",
+        "tool_name": "event_bandpower",
+        "path": [
+          "method"
+        ],
+        "value": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs"
+      }
+    ]
+  },
+  "final_answer": "证据受限结果：event_bandpower.method=whole-Epoch Welch PSD followed by arithmetic mean across Epochs。以上仅对应已执行工具及当前科学条件，不构成临床诊断。",
   "llm": {
     "provider_model": "point1-protocol-double",
     "request_count": 2,
     "usage": {},
     "finish_reasons": [
       "tool_calls",
-      "stop"
+      "tool_calls"
     ]
   }
 }

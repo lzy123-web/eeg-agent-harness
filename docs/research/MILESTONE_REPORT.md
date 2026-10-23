@@ -419,3 +419,13 @@ Commit：`ac36b45`。
 - 中文响应存在乱码，未把结构化闭环包装成自然语言质量成功。
 - 正式报告：`POINT1_INTEGRATION_ACCEPTANCE.md`；后续公平实验：`POINT1_FUTURE_EXPERIMENTS.md`。
 
+### Follow-up：类型一致性、派生状态与回答证据
+
+- 使用非强制 fetch/merge 收敛本地与 Draft PR 历史，未改写 main 或远端历史。
+- 新增声明式科学概念契约和原文 span：由概念集合独立解析任务类型，再与模型声明交叉检查；合法参数不再能掩盖“正确执行错误目标”。
+- 新增 `list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower` 五工具链，最终分析必须消费筛选产生的派生 Epoch artifact。
+- 最终 LLM 改为提交 ToolResult request id 与相对 `data` 的 JSON path；运行时解析实际标量、检查必要工具覆盖并确定性发布。真实首次路径失败被安全阻止，协议说明修复后同一合成用例完成。
+- 真实 follow-up 四个合成请求共 7 次 Provider 请求、14,313 tokens；PSD 对抗和两条明确授权复杂链完成，明确禁止筛选的请求在 0 工具调用时澄清。
+- 回归：`pip check`、`compileall` 通过；167 项有资源测试除联网 opt-in 外均通过，R3 两项本地资源测试另行通过；无私有资源 155 通过、12 跳过。
+- 客观结论不变：Prompt/schema/validator 是普通工程机制；CCEP 作为跨阶段机制的相对贡献尚未经过新的公平强基线验证。
+
