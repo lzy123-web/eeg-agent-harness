@@ -13,6 +13,9 @@ from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.integrated_method.agent import ConstraintCarryingEEGAgent
 from eeg_harness.research.integrated_method.fake import Point1FakeLLM
 from eeg_harness.research.integrated_method.intent import INTENT_TOOL
+from eeg_harness.research.integrated_method.semantics import (
+    ANALYSIS_SEMANTIC_CONTRACTS, CONCEPT_ANCHORS, resolve_analysis_type,
+)
 from eeg_harness.tools import build_default_registry
 from eeg_harness.record import EEGRecord
 
@@ -70,11 +73,30 @@ class Point1IntentSchemaTest(unittest.TestCase):
             {"channels", "start", "end", "labels", "tmin", "tmax", "selection_authorized"},
         )
 
+    def test_every_supported_analysis_has_unique_semantic_contract(self):
+        for name, contract in ANALYSIS_SEMANTIC_CONTRACTS.items():
+            evidence = {concept: "placeholder" for concept in contract.required_concepts}
+            self.assertEqual(name, resolve_analysis_type(evidence))
+        self.assertEqual(
+            set(ANALYSIS_SEMANTIC_CONTRACTS),
+            {"record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
+             "quality_selection", "record_quality", "seizure_detection"},
+        )
+
 
 def intent_payload(analysis, parameters, evidence, **overrides):
+    semantic_evidence = {}
+    contract = ANALYSIS_SEMANTIC_CONTRACTS.get(analysis)
+    if contract:
+        for concept in contract.required_concepts:
+            semantic_evidence[concept] = next(
+                quote for quote in evidence.values()
+                if any(anchor.casefold() in quote.casefold() for anchor in CONCEPT_ANCHORS[concept])
+            )
     payload = {
         "analysis_type": analysis, "parameters": parameters,
-        "explicit_evidence": evidence, "unknown_slots": [],
+        "explicit_evidence": evidence, "semantic_evidence": semantic_evidence,
+        "unknown_slots": [],
         "forbidden_operations": [], "source_stage": "current",
         "output_boundary": "research_only", "rationale": "test",
     }
@@ -83,6 +105,30 @@ def intent_payload(analysis, parameters, evidence, **overrides):
 
 
 class Point1IntegratedAgentTest(unittest.TestCase):
+    def test_wrong_analysis_type_cannot_execute_legal_parameters(self):
+        request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        payload = intent_payload(
+            "psd", {"channels": ["SYNTH-C1"], "start": 1.0, "end": 3.0},
+            {"analysis_type": "频带功率", "channels": "SYNTH-C1", "start": request, "end": request},
+        )
+        payload["analysis_type"] = "amplitude"
+        result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
+        self.assertEqual("clarification_required", result.stop_reason)
+        self.assertEqual("INTENT_TYPE_MISMATCH", result.interpretation["error"]["code"])
+        self.assertEqual([], result.execution or [])
+
+    def test_semantic_claim_cannot_use_an_unrelated_exact_span(self):
+        request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
+        payload = intent_payload(
+            "psd", {"channels": ["SYNTH-C1"], "start": 1.0, "end": 3.0},
+            {"analysis_type": "频带功率", "channels": "SYNTH-C1", "start": request, "end": request},
+        )
+        payload["analysis_type"] = "amplitude"
+        payload["semantic_evidence"] = {"time_domain_amplitude": "频带功率"}
+        result = ConstraintCarryingEEGAgent(ScriptedIntentLLM(payload), make_context()).run(request)
+        self.assertEqual("clarification_required", result.stop_reason)
+        self.assertEqual([], result.execution or [])
+
     def test_numeric_slot_must_match_number_in_evidence_span(self):
         request = "计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率"
         payload = intent_payload(

@@ -70,3 +70,9 @@
 
 - 决策：网络恢复后 fetch PR 分支，以 `ort` 普通 merge 合并本地归档提交与 GitHub Contents API 产生的等价文档提交，再普通 push。
 - 结果：合并无内容差异，commit `1bd8e7c` 已推送；没有改写远端历史或合并 main。
+
+## D11：任务类型由原文科学概念独立解析
+
+- 决策：IntentSpec 新增 `semantic_evidence`。模型必须把请求中的科学操作映射到原文精确 span；运行时依据覆盖全部现有分析类型的声明式概念组合独立解析 capability，再与模型声明的 `analysis_type` 交叉检查。
+- 原因：原 ledger 从模型声明的类型开始编译，若 PSD 被错误声明为 amplitude 且通道/窗口参数合法，后续所有约束都可能“正确执行错误目标”。新检查不使用离线 gold，也不是 PSD/amplitude 单一特例。
+- 边界：概念词表和唯一组合仍属于可审计的语义契约/validator，不单独构成论文创新；其价值只可能来自与跨步骤 obligation、状态变化和证据闭合结合后的整体机制。

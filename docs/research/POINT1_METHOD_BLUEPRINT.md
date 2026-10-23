@@ -22,10 +22,13 @@
 自然语言
    │
    ▼
-LLM IntentSpec ── explicit / unknown / forbidden / source / output boundary
+LLM IntentSpec ── explicit / semantic evidence / unknown / forbidden / source
    │  （运行时无离线 gold）
    ▼
-Intent Gate ── 缺关键 slot → clarify；unsupported → reject
+Semantic Contract Resolver ── 原文概念组合独立解析 analysis type
+   │
+   ▼
+Intent Gate ── 类型不一致/缺关键 slot → clarify；unsupported → reject
    │
    ▼
 Obligation Ledger + EEGStateSnapshot
@@ -46,7 +49,8 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 
 模块职责：
 
-- `IntentSpec`：保存原始请求、动作、显式参数、未知 slot、禁止操作、来源阶段和回答边界。
+- `IntentSpec`：保存动作、显式参数、原文绑定的科学操作概念、未知 slot、禁止操作、来源阶段和回答边界。
+- Semantic Contract Resolver：根据全部已支持分析声明的概念集合独立解析任务类型；不信任模型自报枚举，也不读取离线 gold。
 - Intent Gate：确定性检查关键 slot；不从 record 中自动选择一个用户未指定的标签或通道。
 - Obligation Ledger：绑定 `context_id`、Profile 和意图摘要；记录参数/来源/操作/证据义务及其状态。
 - Planner adapter：只把 gate 通过的 IntentSpec 编译为现有 `TaskSpec`；调用原 `StateAwareConstrainedPlanner` 与 `ConstrainedPlanRunner`。
@@ -65,6 +69,7 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 6. **lineage 保持**：consumer 的 artifact 必须来自同一 Context 中真实成功的 producer 结果。
 7. **证据闭合**：只有对应 obligation 被成功 ToolResult/trace 消解，Answerer 才能报告完成；否则报告 clarify/reject/failure。
 8. **恢复单调性**：恢复可以新增观察或重建丢失 artifact，但不能删除/改写用户显式义务。
+9. **任务类型一致性**：模型声明的 analysis type 必须等于由原文绑定科学概念集合唯一解析出的 capability；参数合法不能替代该证明。
 
 ## 5. 初版支持场景
 

@@ -6,6 +6,11 @@ import math
 import re
 from typing import Any, Mapping, Optional
 
+from .semantics import (
+    ANALYSIS_SEMANTIC_CONTRACTS, CONCEPT_ANCHORS,
+    concept_quote_is_grounded, resolve_analysis_type,
+)
+
 
 SUPPORTED_ANALYSES = frozenset({
     "record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
@@ -30,6 +35,7 @@ class IntentSpec:
     analysis_type: str
     parameters: Mapping[str, Any] = field(default_factory=dict)
     explicit_evidence: Mapping[str, str] = field(default_factory=dict)
+    semantic_evidence: Mapping[str, str] = field(default_factory=dict)
     unknown_slots: tuple[str, ...] = ()
     forbidden_operations: tuple[str, ...] = ()
     source_stage: str = "current"
@@ -41,6 +47,7 @@ class IntentSpec:
             "analysis_type": self.analysis_type,
             "parameters": dict(self.parameters),
             "explicit_evidence": dict(self.explicit_evidence),
+            "semantic_evidence": dict(self.semantic_evidence),
             "unknown_slots": list(self.unknown_slots),
             "forbidden_operations": list(self.forbidden_operations),
             "source_stage": self.source_stage,
@@ -102,6 +109,17 @@ INTENT_TOOL = [{
                     "additionalProperties": False,
                 },
                 "explicit_evidence": {"type": "object", "additionalProperties": {"type": "string"}},
+                "semantic_evidence": {
+                    "type": "object",
+                    "description": (
+                        "Map every requested scientific operation concept to an exact user span. "
+                        "The concept set is resolved independently into one analysis capability."
+                    ),
+                    "properties": {
+                        name: {"type": "string"} for name in sorted(CONCEPT_ANCHORS)
+                    },
+                    "additionalProperties": False,
+                },
                 "unknown_slots": {"type": "array", "items": {"type": "string"}},
                 "forbidden_operations": {"type": "array", "items": {"type": "string"}},
                 "source_stage": {"type": "string", "enum": ["current", "raw", "processed", "unknown"]},
@@ -109,7 +127,7 @@ INTENT_TOOL = [{
                 "rationale": {"type": "string"}
             },
             "required": [
-                "analysis_type", "parameters", "explicit_evidence", "unknown_slots",
+                "analysis_type", "parameters", "explicit_evidence", "semantic_evidence", "unknown_slots",
                 "forbidden_operations", "source_stage", "output_boundary", "rationale"
             ],
             "additionalProperties": False
@@ -150,10 +168,11 @@ def _parse_message(message):
         raise ValueError("Intent analysis_type is unsupported")
     parameters = payload.get("parameters")
     evidence = payload.get("explicit_evidence")
+    semantic_evidence = payload.get("semantic_evidence")
     unknown = payload.get("unknown_slots")
     forbidden = payload.get("forbidden_operations")
-    if not isinstance(parameters, dict) or not isinstance(evidence, dict):
-        raise ValueError("Intent parameters and explicit_evidence must be objects")
+    if not all(isinstance(item, dict) for item in (parameters, evidence, semantic_evidence)):
+        raise ValueError("Intent parameters and evidence fields must be objects")
     if not isinstance(unknown, list) or not all(isinstance(item, str) for item in unknown):
         raise ValueError("Intent unknown_slots must be a string array")
     if not isinstance(forbidden, list) or not all(isinstance(item, str) for item in forbidden):
@@ -162,6 +181,7 @@ def _parse_message(message):
         analysis_type=analysis,
         parameters=parameters,
         explicit_evidence=evidence,
+        semantic_evidence=semantic_evidence,
         unknown_slots=tuple(unknown),
         forbidden_operations=tuple(forbidden),
         source_stage=payload.get("source_stage", "current"),
@@ -197,6 +217,24 @@ def validate_intent(intent, user_request, context):
         return IntentInterpretation(
             True, intent, "reject", error_code="UNSUPPORTED_ANALYSIS",
             error_message="The requested analysis is outside the registered EEG capabilities.",
+        )
+    semantic_failures = []
+    for concept, quote in intent.semantic_evidence.items():
+        if not _evidence_is_exact(user_request, quote):
+            semantic_failures.append(f"non_exact:{concept}")
+        elif not concept_quote_is_grounded(concept, quote):
+            semantic_failures.append(f"ungrounded:{concept}")
+    resolved_analysis = resolve_analysis_type(intent.semantic_evidence)
+    expected_contract = ANALYSIS_SEMANTIC_CONTRACTS.get(intent.analysis_type)
+    if (
+        semantic_failures or expected_contract is None
+        or frozenset(intent.semantic_evidence) != expected_contract.required_concepts
+        or resolved_analysis != intent.analysis_type
+    ):
+        return IntentInterpretation(
+            True, intent, "clarify", ("analysis_type",),
+            "INTENT_TYPE_MISMATCH",
+            "The declared analysis does not match independently grounded request semantics.",
         )
     bad_evidence = []
     for slot, quote in intent.explicit_evidence.items():
@@ -253,7 +291,9 @@ class EvidenceBoundIntentInterpreter:
             "只有用户明确授权时 selection_authorized=true。严格使用以下映射：普通连续时间窗"
             "频带功率是 analysis_type=psd，参数只能是 channels/start/end；只有用户明确提到事件"
             "或 epoch 时才是 event_bandpower，参数只能是 labels/tmin/tmax；参数键和证据键必须"
-            "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。STATE="
+            "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。"
+            "semantic_evidence 必须列出用户真正要求的全部科学操作概念，并为每个概念引用"
+            "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。STATE="
             + json.dumps(_state(context), ensure_ascii=False, allow_nan=False)
         )
         try:

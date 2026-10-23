@@ -34,7 +34,8 @@ class Point1FakeLLM:
         if any(term in lowered for term in ("诊断", "erp", "erd/ers", "显著性检验")):
             return self._call({
                 "analysis_type": "unsupported", "parameters": {},
-                "explicit_evidence": {"analysis_type": text}, "unknown_slots": [],
+                "explicit_evidence": {"analysis_type": text}, "semantic_evidence": {},
+                "unknown_slots": [],
                 "forbidden_operations": [], "source_stage": "current",
                 "output_boundary": "unsupported", "rationale": "unregistered analysis",
             })
@@ -63,6 +64,10 @@ class Point1FakeLLM:
             return self._call({
                 "analysis_type": "quality_selection" if selection else "event_bandpower", "parameters": parameters,
                 "explicit_evidence": evidence, "unknown_slots": unknown,
+                "semantic_evidence": (
+                    {"event_locked": text, "quality_measurement": text, "trial_selection": text}
+                    if selection else {"event_locked": text, "spectral_power": text}
+                ),
                 "forbidden_operations": ["selection"] if "不要筛" in text else [],
                 "source_stage": "current", "output_boundary": "absolute_bandpower_only",
                 "rationale": "event request",
@@ -84,6 +89,9 @@ class Point1FakeLLM:
         return self._call({
             "analysis_type": analysis, "parameters": parameters,
             "explicit_evidence": evidence, "unknown_slots": unknown,
+            "semantic_evidence": {
+                "spectral_power" if analysis == "psd" else "time_domain_amplitude": text
+            },
             "forbidden_operations": [], "source_stage": "current",
             "output_boundary": "research_only", "rationale": "continuous analysis",
         })
