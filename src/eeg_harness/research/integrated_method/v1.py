@@ -90,14 +90,21 @@ class ResidualScientificPlanner:
         self.retries = 0
         self.event_result = None
         self.created_artifact_id = None
+        self.created_fingerprint = None
         self.quality_result = None
         self.selected_artifact_id = None
+        self.selected_fingerprint = None
         self.selection_mode = None
         self.bandpower_result = None
         self.blocked = None
 
     def _artifact_exists(self, artifact_id):
         return bool(artifact_id) and artifact_id in self.context.artifacts
+
+    def _artifact_fingerprint(self, artifact_id):
+        if not self._artifact_exists(artifact_id):
+            return None
+        return self.context.artifacts[artifact_id].content_fingerprint()
 
     def _record_transition(self, event, **details):
         self.transitions.append({"event": event, **details})
@@ -106,8 +113,10 @@ class ResidualScientificPlanner:
         if self.created_artifact_id and not self._artifact_exists(self.created_artifact_id):
             missing = self.created_artifact_id
             self.created_artifact_id = None
+            self.created_fingerprint = None
             self.quality_result = None
             self.selected_artifact_id = None
+            self.selected_fingerprint = None
             self.selection_mode = None
             self.bandpower_result = None
             self._record_transition(
@@ -116,14 +125,50 @@ class ResidualScientificPlanner:
                     "epoch_quality", "trial_selection", "event_bandpower",
                 ),
             )
+        elif (
+            self.created_artifact_id and self.created_fingerprint
+            and self._artifact_fingerprint(self.created_artifact_id) != self.created_fingerprint
+        ):
+            previous = self.created_fingerprint
+            self.created_fingerprint = self._artifact_fingerprint(self.created_artifact_id)
+            self.quality_result = None
+            self.selected_artifact_id = None
+            self.selected_fingerprint = None
+            self.selection_mode = None
+            self.bandpower_result = None
+            self._record_transition(
+                "lineage_invalidated", artifact_id=self.created_artifact_id,
+                reason="source_artifact_content_changed",
+                previous_fingerprint=previous,
+                current_fingerprint=self.created_fingerprint,
+                invalidated=("epoch_quality", "trial_selection", "event_bandpower"),
+            )
         elif self.selected_artifact_id and not self._artifact_exists(self.selected_artifact_id):
             missing = self.selected_artifact_id
             self.selected_artifact_id = None
+            self.selected_fingerprint = None
             self.selection_mode = None
             self.bandpower_result = None
             self._record_transition(
                 "lineage_invalidated", artifact_id=missing,
                 reason="derived_artifact_missing",
+                invalidated=("trial_selection", "event_bandpower"),
+            )
+        elif (
+            self.selected_artifact_id and self.selected_fingerprint
+            and self._artifact_fingerprint(self.selected_artifact_id) != self.selected_fingerprint
+        ):
+            previous = self.selected_fingerprint
+            invalid = self.selected_artifact_id
+            self.selected_artifact_id = None
+            self.selected_fingerprint = None
+            self.selection_mode = None
+            self.bandpower_result = None
+            self._record_transition(
+                "lineage_invalidated", artifact_id=invalid,
+                reason="derived_artifact_content_changed",
+                previous_fingerprint=previous,
+                current_fingerprint=self._artifact_fingerprint(invalid),
                 invalidated=("trial_selection", "event_bandpower"),
             )
 
@@ -185,7 +230,9 @@ class ResidualScientificPlanner:
             },
             "artifacts": {
                 "created": self.created_artifact_id,
+                "created_fingerprint": self.created_fingerprint,
                 "selected": self.selected_artifact_id,
+                "selected_fingerprint": self.selected_fingerprint,
                 "effective": self._effective_artifact_id(),
             },
             "quality": quality,
@@ -218,7 +265,10 @@ class ResidualScientificPlanner:
         if quality_needed and self.quality_result is None:
             return ResidualAction(
                 "measure_quality", "epoch_quality",
-                {"artifact_id": self.created_artifact_id},
+                {
+                    "artifact_id": self.created_artifact_id,
+                    "expected_artifact_fingerprint": self.created_fingerprint,
+                },
                 "observe quality before deciding the residual selection branch",
             )
         if "trial_selection" in self.objectives and self.selection_mode is None:
@@ -248,13 +298,22 @@ class ResidualScientificPlanner:
                 return self.next_action()
             return ResidualAction(
                 "select_quality", "select_quality_epochs",
-                {"artifact_id": self.created_artifact_id},
+                {
+                    "artifact_id": self.created_artifact_id,
+                    "expected_artifact_fingerprint": self.created_fingerprint,
+                    "expected_quality_evidence_id": self.quality_result["data"]["evidence_id"],
+                },
                 "materialize an authorized derived artifact because quality flagged Epochs",
             )
         if "event_bandpower" in self.objectives and self.bandpower_result is None:
             return ResidualAction(
                 "event_bandpower", "event_bandpower",
-                {"artifact_id": self._effective_artifact_id()},
+                {
+                    "artifact_id": self._effective_artifact_id(),
+                    "expected_artifact_fingerprint": (
+                        self.selected_fingerprint or self.created_fingerprint
+                    ),
+                },
                 "analyse the current effective artifact after dynamic branch resolution",
             )
         return None
@@ -285,10 +344,12 @@ class ResidualScientificPlanner:
             self.event_result = rendered
         elif action.kind == "create_epochs":
             self.created_artifact_id = rendered["data"]["artifact_id"]
+            self.created_fingerprint = rendered["data"]["artifact_fingerprint"]
         elif action.kind == "measure_quality":
             self.quality_result = rendered
         elif action.kind == "select_quality":
             self.selected_artifact_id = rendered["data"]["artifact_id"]
+            self.selected_fingerprint = rendered["data"]["artifact_fingerprint"]
             self.selection_mode = "derived"
         elif action.kind == "event_bandpower":
             self.bandpower_result = rendered
@@ -399,6 +460,30 @@ class ConstraintCarryingEEGAgentV1(ConstraintCarryingEEGAgent):
         self.max_retries = max_retries
         self.max_tool_calls = max_tool_calls
 
+    @staticmethod
+    def _append_runtime_disclosure(answer, execution):
+        """Append planner-owned scientific conditions after LLM evidence validation."""
+        state = execution.scientific_state
+        mode = state.get("selection_mode")
+        disclosures = []
+        if mode == "identity":
+            disclosures.append("质量分支未标记异常 Epoch，未创建筛选派生数据，分析沿用原 Epoch")
+        elif mode == "derived":
+            selection = next(
+                item["data"]["selection"] for item in execution.tool_results
+                if item["success"] and item["tool_name"] == "select_quality_epochs"
+            )
+            disclosures.append(
+                "质量分支实际筛除 "
+                f"{selection['excluded_epoch_count']} 个 Epoch，保留 "
+                f"{selection['output_epoch_count']} 个 Epoch"
+            )
+        elif "epoch_quality" in state.get("goals", {}):
+            disclosures.append("仅测量质量，未执行 Epoch 筛选")
+        if state.get("quality") is not None:
+            disclosures.append("质量阈值仅为未临床校准的经验性筛查条件")
+        return answer if not disclosures else answer + " " + "；".join(disclosures) + "。"
+
     def run(self, user_request):
         interpretation = self.interpreter.interpret(user_request, self.context)
         if not interpretation.success:
@@ -465,6 +550,8 @@ class ConstraintCarryingEEGAgentV1(ConstraintCarryingEEGAgent):
                     "goal_status": execution.scientific_state.get("goals"),
                 },
             )
+            if answer_check["valid"]:
+                answer = self._append_runtime_disclosure(answer, execution)
             reason = "completed" if answer_check["valid"] else "completed_without_llm_answer"
         else:
             answer = (

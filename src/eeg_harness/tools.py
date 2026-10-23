@@ -89,9 +89,15 @@ def _create_epochs(record, arguments, config, resources):
 def _get_epoch_artifact(arguments, resources):
     artifact_id = arguments["artifact_id"]
     try:
-        return resources["artifact_store"][artifact_id]
+        artifact = resources["artifact_store"][artifact_id]
     except KeyError as exc:
         raise LookupError(f"Epoch artifact not found: {artifact_id}") from exc
+    expected = arguments.get("expected_artifact_fingerprint")
+    if expected is not None and artifact.content_fingerprint() != expected:
+        raise ValueError(
+            "Epoch artifact content does not match the expected fingerprint"
+        )
+    return artifact
 
 
 def _epoch_summary(record, arguments, config, resources):
@@ -168,6 +174,11 @@ def _select_quality_epochs(record, arguments, config, resources):
     evidence = epoch_quality(
         epochs, record.metadata.get("profile_id", "unknown")
     )
+    expected_evidence = arguments.get("expected_quality_evidence_id")
+    if expected_evidence is not None and evidence["evidence_id"] != expected_evidence:
+        raise ValueError(
+            "Current Epoch quality evidence does not match expected_quality_evidence_id"
+        )
     excluded = set(evidence["flagged_epoch_indices"])
     kept = [index for index in range(epochs.data.shape[0]) if index not in excluded]
     if not kept:
@@ -283,7 +294,19 @@ def build_default_registry():
     )
     artifact_schema = {
         "type": "object",
-        "properties": {"artifact_id": {"type": "string"}},
+        "properties": {
+            "artifact_id": {"type": "string"},
+            "expected_artifact_fingerprint": {"type": "string"},
+        },
+        "required": ["artifact_id"],
+        "additionalProperties": False,
+    }
+    selection_schema = {
+        "type": "object",
+        "properties": {
+            **artifact_schema["properties"],
+            "expected_quality_evidence_id": {"type": "string"},
+        },
         "required": ["artifact_id"],
         "additionalProperties": False,
     }
@@ -346,7 +369,7 @@ def build_default_registry():
         ToolSpec(
             name="select_quality_epochs",
             description="Create a derived Epoch artifact excluding only epochs flagged by declared empirical quality rules.",
-            parameters=artifact_schema,
+            parameters=selection_schema,
             return_type="object",
             compatible_profiles=("*",),
             handler=_select_quality_epochs,

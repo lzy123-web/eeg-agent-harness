@@ -18,7 +18,8 @@ CCEP v1 以 `--agent-mode point1-v1` 显式启用。默认 Native Agent、Baseli
 
 - immutable task：labels、tmin/tmax、objectives、selection authorization；
 - artifacts：原始 Epoch、选择后 Epoch、当前 effective artifact；
-- quality：evidence ID、绑定 artifact、总/flagged/usable 数、每条件 usable 数；
+- artifacts 还包含由科学元数据和数组内容计算的 SHA-256 fingerprint；
+- quality：evidence ID、绑定 artifact ID/fingerprint、总/flagged/usable 数、每条件 usable 数；
 - goals：`epoch_quality/trial_selection/event_bandpower` 的 pending/satisfied/blocked；
 - attempts/blocked：动作尝试次数、结构化停止原因。
 
@@ -35,11 +36,14 @@ python -m eeg_harness.agent_cli --fake --demo-synthetic --profile edf_native `
 
 CLI 的普通 demo 并非质量异常基准；异常分支使用 `tests/test_point1_v1_dynamic.py` 中显式生成的合成数据。当前不向外部 LLM 发送真实 EEG 数组或实验室数据。
 
+工具仍允许旧调用方只传 `artifact_id`，因此 CCEP v0 不被破坏；CCEP v1 会额外传 `expected_artifact_fingerprint`，选择时还传 `expected_quality_evidence_id`。这些值不匹配时 Executor 返回结构化错误，不暴露 traceback。
+
+Evidence Gate 分两层：LLM 只能引用成功 ToolResult 的已解析标量；验证通过后，运行时再确定性追加 actual selection branch 和经验阈值边界，避免回答把 identity transition 说成实际筛除。
+
 ## 尚未冻结
 
-- artifact 的内容级 fingerprint 与同 ID 变更检测；
-- selection 工具对先前 quality evidence 的显式绑定；
-- 运行时 branch/identity 状态在最终自然语言回答中的确定性表达；
 - guarded conditional DAG 公平对照的正式冻结协议。
+- 多进程/持久化 artifact store；当前 fingerprint 解决单个 `ExecutionContext` 内的内容绑定，不等于分布式事务。
+- 质量规则的临床校准与统计充分性；当前每条件至少 1 个 Epoch 只是工具可计算性 guard。
 
 因此本文件仍是开发中集成说明，不能作为 CCEP v1 创新性或可靠性验收声明。

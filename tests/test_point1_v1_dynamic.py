@@ -7,14 +7,18 @@ from eeg_harness.context import ExecutionContext
 from eeg_harness.executor import Executor
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
+from eeg_harness.planning import StateAwareConstrainedPlanner
 from eeg_harness.research.evidence_phase import (
     build_quality_selection_record,
     oracle_epoch_data,
     oracle_event_bandpower,
 )
 from eeg_harness.research.integrated_method.fake import Point1FakeLLM
+from eeg_harness.research.integrated_method.contracts import compile_intent
+from eeg_harness.research.integrated_method.intent import IntentSpec
 from eeg_harness.research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
-from eeg_harness.tooling import ToolResult
+from eeg_harness.research.integrated_method.v1 import ResidualScientificPlanner
+from eeg_harness.tooling import ToolRequest, ToolResult
 from eeg_harness.tools import build_default_registry
 
 
@@ -101,6 +105,8 @@ class CCEPV1DynamicPlanningTest(unittest.TestCase):
         self.assertEqual("identity", state["selection_mode"])
         self.assertIsNone(state["artifacts"]["selected"])
         self.assertEqual(state["artifacts"]["created"], state["artifacts"]["effective"])
+        self.assertIn("未创建筛选派生数据", result.final_answer)
+        self.assertIn("未临床校准", result.final_answer)
 
     def test_all_bad_stops_before_destructive_selection_and_analysis(self):
         context, _ = make_context((0, 1, 2))
@@ -151,6 +157,66 @@ class CCEPV1DynamicPlanningTest(unittest.TestCase):
             failed["request_id"].split("-a")[0],
             recovered["request_id"].split("-a")[0],
         )
+
+    def test_same_id_content_change_invalidates_quality_and_remeasures(self):
+        context, _ = make_context()
+        intent = IntentSpec(
+            "event_workflow",
+            ("epoch_quality", "trial_selection", "event_bandpower"),
+            {
+                "labels": ["target"], "tmin": 0.0, "tmax": 1.0,
+                "selection_authorized": True,
+            },
+        )
+        task, ledger = compile_intent(intent, context)
+        initial = StateAwareConstrainedPlanner(context).plan(task)
+        runner = ResidualScientificPlanner(context, task, ledger)
+        for _ in range(3):
+            action = runner.next_action()
+            result = context.execute(ToolRequest(
+                action.tool_name, action.arguments, runner._request_id(action),
+            ))
+            runner.results.append(result.to_dict())
+            runner.apply_result(action, result.to_dict())
+        old_evidence_id = runner.quality_result["data"]["evidence_id"]
+        artifact = context.artifacts[runner.created_artifact_id]
+        old_fingerprint = artifact.content_fingerprint()
+        artifact.data[0, :, :] = 0.0
+        self.assertNotEqual(old_fingerprint, artifact.content_fingerprint())
+        action = runner.next_action()
+        self.assertEqual("measure_quality", action.kind)
+        self.assertIsNone(runner.selection_mode)
+        self.assertTrue(any(
+            item["event"] == "lineage_invalidated"
+            and item["reason"] == "source_artifact_content_changed"
+            for item in runner.transitions
+        ))
+        measured = context.execute(ToolRequest(
+            action.tool_name, action.arguments, runner._request_id(action),
+        ))
+        self.assertTrue(measured.success)
+        self.assertNotEqual(old_evidence_id, measured.data["evidence_id"])
+
+    def test_selection_rejects_stale_quality_evidence_binding(self):
+        context, _ = make_context()
+        created = context.execute(ToolRequest(
+            "create_epochs", {"labels": ["target"], "tmin": 0.0, "tmax": 1.0}, "create",
+        ))
+        quality = context.execute(ToolRequest(
+            "epoch_quality", {"artifact_id": created.data["artifact_id"]}, "quality",
+        ))
+        result = context.execute(ToolRequest(
+            "select_quality_epochs",
+            {
+                "artifact_id": created.data["artifact_id"],
+                "expected_artifact_fingerprint": quality.data["artifact_fingerprint"],
+                "expected_quality_evidence_id": "quality:deliberately-stale",
+            },
+            "stale-select",
+        ))
+        self.assertFalse(result.success)
+        self.assertEqual("TOOL_EXECUTION_FAILED", result.error_code)
+        self.assertIn("expected_quality_evidence_id", result.error_message)
 
     def test_two_dynamic_contexts_are_isolated(self):
         first, _ = make_context((1,), "v1-first")
