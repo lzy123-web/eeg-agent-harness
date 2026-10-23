@@ -43,4 +43,4 @@ x'_channel(t) = x_channel(t) - mean(x_reference_channels(t))
 - 阶段 B：`6bc4df2`（真实重参考、状态迁移和 provenance 修复，已推送）。
 - 阶段 C：`953a8b5`（同规则 Expert、Fake calibration 与冻结协议，已推送）。
 - 阶段 D：`3306e94`（真实 DeepSeek 失败保留、标量 evidence manifest 与有界复测，已推送）。
-- 阶段 E：待提交。
+- 阶段 E：`81aecd7`（方法冻结审查、README 与项目状态，已推送）；GitHub Actions run `39959623831` 成功。

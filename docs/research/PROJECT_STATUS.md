@@ -488,4 +488,4 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `6bc4df2`：真实重参考、CIEDG transfer 与 provenance 修复。
 - `953a8b5`：同规则强动态 Expert、Fake calibration 与冻结协议。
 - `3306e94`：真实 DeepSeek 失败保留、标量 evidence 地址修复与有界复测。
-- 最终审查、冻结决策和 CI 状态提交：待本提交与 GitHub Actions 完成后补充。
+- `81aecd7`：最终审查、冻结决策和 README；GitHub Actions `unit-tests` run `39959623831` 成功。
