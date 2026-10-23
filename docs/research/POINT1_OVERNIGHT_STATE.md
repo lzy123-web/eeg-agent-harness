@@ -33,7 +33,7 @@ Issue #10 后续迭代：本地/远端历史已安全收敛；意图—任务类
 - 已新增覆盖全部 9 个已支持分析类型（含组合任务）的声明式科学概念契约。analysis type 由原文绑定概念集合独立解析并与模型声明交叉检查；合法 PSD 参数但声明 amplitude 的对抗用例在 0 工具调用时澄清。
 - 新增 `quality_selected_bandpower` 完整状态链：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。最终分析消费筛选工具新产生的 Epoch artifact，Evidence Gate 按执行顺序检查两级 lineage。
 - 最终回答改为证据寻址协议：LLM 只选择成功 ToolResult 的 request id 与标量 JSON path；运行时验证路径、必要工具覆盖并确定性渲染。无效路径或缺少质量/筛选/分析任一必要证据时返回 `completed_without_llm_answer`。
-- 首次真实复杂链暴露模型把 `ToolResult.data` 内部路径误写为以 `data` 开头；该失败已原样保留。补充相对路径协议后，重测完成五工具链并引用 `epoch_quality`、`select_quality_epochs` 和 `event_bandpower` 的实际值。
+- 首次真实复杂链暴露模型把 `ToolResult.data` 内部路径误写为以 `data` 开头。完整未跟踪 JSON 被同名重测覆盖，仓库没有伪造还原，而是保存 `raw_response_preserved=false` 的观测字段摘要。补充相对路径协议后，重测完成五工具链并引用 `epoch_quality`、`select_quality_epochs` 和 `event_bandpower` 的实际值。
 - 对比请求“不要筛选或剔除试次”在 Planner 前以 `clarification_required` 停止，工具调用为 0；命令式“并筛选异常试次”则属于真实授权并正常执行，不能将其误记为缺少授权。
 
 ## 上次成功验证

@@ -76,7 +76,7 @@ EEG-specific 内容体现在：连续窗与事件窗使用不同科学 slot；�
 
 新增组合任务通过同一 Agent、Planner、Context 和 Executor 执行 `list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。选择工具创建带新 artifact id 的派生 Epoch，最后的频带分析必须消费该 id；Evidence Gate 按真实执行顺序校验原始 Epoch 和派生 Epoch 两级 lineage。确定性轨迹见 `results/point1_quality_selected_bandpower_fake.json`；质量阈值仍是未校准经验规则。
 
-真实 follow-up 中，同一合成请求第一次完成全部五个工具，但回答模型把相对路径写成 `data...`，系统以 `completed_without_llm_answer` 停止而没有发布不可验证回答。明确 path 根之后重测为 `completed`，回答引用覆盖 `epoch_quality`、`select_quality_epochs`、`event_bandpower`，且所有值均由运行时从真实 ToolResult 解析。失败轨迹被后续同名重测结果替换前已在开发记录中保留其原因；修复后的脱敏结果见 `results/point1_followup_deepseek_quality_selected.json`。
+真实 follow-up 中，同一合成请求第一次完成全部五个工具，但回答模型把相对路径写成 `data...`，系统以 `completed_without_llm_answer` 停止而没有发布不可验证回答。明确 path 根之后重测为 `completed`，回答引用覆盖 `epoch_quality`、`select_quality_epochs`、`event_bandpower`，且所有值均由运行时从真实 ToolResult 解析。首次完整 JSON 在提交前被同名重测覆盖，无法诚实还原；仓库只保存当时已观察字段的脱敏摘要 `results/point1_followup_deepseek_quality_selected_failure.json`，并明确标记 `raw_response_preserved=false`。修复后的完整结果见 `results/point1_followup_deepseek_quality_selected.json`。
 
 另一个真实请求明确写“不要筛选或剔除试次”，模型虽声明组合类型，但 `selection_authorized=false`，系统在执行前以 `clarification_required` 停止，工具调用为 0。当前没有自动改写为另一任务类型，见 `results/point1_followup_deepseek_no_selection.json`。命令式“并筛选异常试次”是明确授权，作为正例保存在 `results/point1_followup_deepseek_authorized_selection.json`，不能据文件名或预期把它记作安全失败。
 
