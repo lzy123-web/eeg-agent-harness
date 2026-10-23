@@ -30,17 +30,18 @@ Issue #10 后续迭代：本地/远端历史已安全收敛，正在修复意图
 - 提供本地 EDF、既有 seizure 权重与匿名 R3 样例后，全量 161 项中 160 通过、1 项联网 opt-in 测试按设计跳过；`compileall` 和 `pip check` 通过。
 - 清除所有私有资源/LLM 环境变量后，无资源回归 149 通过、12 项按设计跳过。
 - Draft PR #11 的 GitHub Actions run `39814383931` 中安装、compileall 和无资源 unittest 步骤均完成且结论为 success。
-- 已新增覆盖全部 8 个已支持分析类型的声明式科学概念契约。analysis type 由原文绑定概念集合独立解析并与模型声明交叉检查；合法 PSD 参数但声明 amplitude 的对抗用例在 0 工具调用时澄清。
+- 已新增覆盖全部 9 个已支持分析类型（含组合任务）的声明式科学概念契约。analysis type 由原文绑定概念集合独立解析并与模型声明交叉检查；合法 PSD 参数但声明 amplitude 的对抗用例在 0 工具调用时澄清。
+- 新增 `quality_selected_bandpower` 完整状态链：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。最终分析消费筛选工具新产生的 Epoch artifact，Evidence Gate 按执行顺序检查两级 lineage。
 
 ## 上次成功验证
 
-当前意图一致性定向测试 18/18 通过；上一轮完整结果仍为本地资源 160 通过、1 跳过和无资源 149 通过、12 跳过，待本轮全部改动后重跑。
+当前集成+规划定向测试 28/28 通过；复杂状态链 Fake trace 保存为 `results/point1_quality_selected_bandpower_fake.json`。上一轮完整结果仍待本轮全部改动后重跑。
 
 ## 下一步
 
-1. 扩展一个真实事件→Epoch→质量→明确授权筛选→派生分析状态链。
-2. 增加最终回答中的数值/科学条件与 Evidence Gate 一致性检查。
-3. Fake 与有界真实 DeepSeek 验证后重跑完整回归并更新 Draft PR。
+1. 增加最终回答中的数值/科学条件与 Evidence Gate 一致性检查。
+2. 用真实 DeepSeek 在合成 EEG 上验证类型一致性和复杂状态链。
+3. 重跑完整回归并更新 Draft PR。
 
 ## 阻塞与未验证问题
 

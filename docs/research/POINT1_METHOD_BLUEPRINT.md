@@ -83,6 +83,10 @@ StateAwareConstrainedPlanner ── TaskSpec / PlanStep / artifact dependencies
 
 后续最小扩展：明确授权的 `epoch_quality → select_quality_epochs`；只有处理后数据时拒绝“原始 50 Hz”请求；artifact 失效时最多一次重建。
 
+### 场景 C：质量证据驱动的授权筛选后分析
+
+用户同时明确事件条件、Epoch 窗口、质量检查、筛选授权和筛选后频带功率。Planner 生成 `list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。最后一步只能消费选择工具真实产生的新 artifact id；Evidence Gate 逐步验证原 Epoch 与派生 Epoch 的 producer/consumer lineage。筛选授权缺失时不得通过参数默认值补全。
+
 ## 6. 与相关工作的实质区别
 
 - EEGAgent 提供多工具调度，本方案关注意图约束从解释到回答的持续保持。

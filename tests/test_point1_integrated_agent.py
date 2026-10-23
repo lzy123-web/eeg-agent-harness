@@ -80,7 +80,8 @@ class Point1IntentSchemaTest(unittest.TestCase):
         self.assertEqual(
             set(ANALYSIS_SEMANTIC_CONTRACTS),
             {"record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
-             "quality_selection", "record_quality", "seizure_detection"},
+             "quality_selection", "quality_selected_bandpower", "record_quality",
+             "seizure_detection"},
         )
 
 
@@ -279,6 +280,30 @@ class Point1IntegratedAgentTest(unittest.TestCase):
             ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs"],
             result.evidence_check["successful_tools"],
         )
+
+    def test_quality_selected_bandpower_uses_derived_artifact(self):
+        request = (
+            "请对 stimulus 事件前 -0.2 秒到后 0.8 秒先检查质量并允许筛选异常试次，"
+            "然后计算筛选后试次的绝对频带功率"
+        )
+        result = ConstraintCarryingEEGAgent(Point1FakeLLM(), make_context()).run(request)
+        self.assertEqual("completed", result.stop_reason)
+        self.assertEqual(
+            ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs", "event_bandpower"],
+            result.evidence_check["successful_tools"],
+        )
+        outputs = result.execution["tool_results"]
+        selected_id = next(
+            item["data"]["artifact_id"] for item in outputs
+            if item["tool_name"] == "select_quality_epochs"
+        )
+        analysis_event = next(
+            item for item in result.execution["execution_trace"]["events"]
+            if item["tool_name"] == "event_bandpower"
+        )
+        self.assertEqual(selected_id, analysis_event["arguments"]["artifact_id"])
+        self.assertTrue(selected_id.endswith("-quality-selected"))
+        self.assertTrue(result.evidence_check["closed"])
 
     def test_transient_failure_replans_once_without_changing_obligations(self):
         context = make_context()

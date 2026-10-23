@@ -72,6 +72,10 @@ EEG-specific 内容体现在：连续窗与事件窗使用不同科学 slot；�
 
 请求只说“某个事件条件”，没有给出可执行标签。真实 DeepSeek 将 `labels` 保持未知，系统在 Planner 前以 `clarification_required` 停止，工具调用为 0；共 1 次 Provider 请求、1,362 tokens。见 `results/point1_integrated_deepseek_clarify.json`。
 
+### 3.4 质量筛选后的派生分析
+
+新增组合任务通过同一 Agent、Planner、Context 和 Executor 执行 `list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。选择工具创建带新 artifact id 的派生 Epoch，最后的频带分析必须消费该 id；Evidence Gate 按真实执行顺序校验原始 Epoch 和派生 Epoch 两级 lineage。确定性轨迹见 `results/point1_quality_selected_bandpower_fake.json`；质量阈值仍是未校准经验规则。
+
 ## 4. 真实模型失败与修复
 
 首轮三个请求全部安全停在澄清，没有误执行。根因不是 Executor，而是意图 Tool Schema 将 `parameters` 定义成任意 object：模型产生 `channel`、`event_label`、`window_start_seconds` 等别名，并把普通 PSD 误判为事件任务。

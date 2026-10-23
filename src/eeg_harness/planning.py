@@ -428,8 +428,28 @@ class StateAwareConstrainedPlanner:
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
+    def _plan_quality_selected_bandpower(self, task, state):
+        """Measure, select, then analyse the derived Epoch artifact."""
+        base = self._plan_quality_selection(task, state)
+        if base.status != "ready":
+            return base
+        selected_reference = {"$result": "select-quality", "path": ["artifact_id"]}
+        steps = base.steps + (
+            PlanStep(
+                "analyse-selected", "event_bandpower",
+                {"artifact_id": selected_reference}, ("select-quality",),
+                "analyse only the explicitly authorized quality-selected artifact",
+            ),
+        )
+        return Plan(
+            task.task_id, "ready", steps,
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
     def plan(self, task, state=None):
         state = state or EEGStateSnapshot.from_context(self.context)
+        if task.goal == "quality_selected_bandpower":
+            return self._plan_quality_selected_bandpower(task, state)
         if task.goal == "quality_selection":
             return self._plan_quality_selection(task, state)
         if task.goal == "tool":

@@ -61,11 +61,20 @@ class Point1FakeLLM:
             if selection and any(term in text for term in ("允许", "请筛", "生成筛选")):
                 parameters["selection_authorized"] = True
                 evidence["selection_authorized"] = text
+            quality = any(term in text for term in ("质量", "伪迹"))
+            selected_analysis = (
+                "quality_selected_bandpower"
+                if selection and quality and any(term in lowered for term in ("频带", "功率", "psd", "band power"))
+                else "quality_selection"
+            )
             return self._call({
-                "analysis_type": "quality_selection" if selection else "event_bandpower", "parameters": parameters,
+                "analysis_type": selected_analysis if selection else "event_bandpower", "parameters": parameters,
                 "explicit_evidence": evidence, "unknown_slots": unknown,
                 "semantic_evidence": (
-                    {"event_locked": text, "quality_measurement": text, "trial_selection": text}
+                    {
+                        "event_locked": text, "quality_measurement": text, "trial_selection": text,
+                        **({"spectral_power": text} if selected_analysis == "quality_selected_bandpower" else {}),
+                    }
                     if selection else {"event_locked": text, "spectral_power": text}
                 ),
                 "forbidden_operations": ["selection"] if "不要筛" in text else [],

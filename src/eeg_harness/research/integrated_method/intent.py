@@ -14,7 +14,8 @@ from .semantics import (
 
 SUPPORTED_ANALYSES = frozenset({
     "record_info", "amplitude", "psd", "event_bandpower", "epoch_quality",
-    "quality_selection", "record_quality", "seizure_detection", "unsupported",
+    "quality_selection", "quality_selected_bandpower", "record_quality",
+    "seizure_detection", "unsupported",
 })
 
 REQUIRED_SLOTS = {
@@ -26,6 +27,7 @@ REQUIRED_SLOTS = {
     "event_bandpower": ("labels", "tmin", "tmax"),
     "epoch_quality": ("labels", "tmin", "tmax"),
     "quality_selection": ("labels", "tmin", "tmax", "selection_authorized"),
+    "quality_selected_bandpower": ("labels", "tmin", "tmax", "selection_authorized"),
     "unsupported": (),
 }
 
@@ -293,7 +295,9 @@ class EvidenceBoundIntentInterpreter:
             "或 epoch 时才是 event_bandpower，参数只能是 labels/tmin/tmax；参数键和证据键必须"
             "完全相同。不要创建 channel、event_label、window_start_seconds、power_type 等别名。"
             "semantic_evidence 必须列出用户真正要求的全部科学操作概念，并为每个概念引用"
-            "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。STATE="
+            "用户原文精确片段；analysis_type 必须与概念组合一致，不能只根据参数形状猜测。"
+            "事件质量测量+明确试次筛选+筛选后频带功率的组合任务使用"
+            "quality_selected_bandpower，四个概念都必须保留。STATE="
             + json.dumps(_state(context), ensure_ascii=False, allow_nan=False)
         )
         try:

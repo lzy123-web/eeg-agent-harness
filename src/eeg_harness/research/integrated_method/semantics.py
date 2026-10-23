@@ -36,6 +36,12 @@ ANALYSIS_SEMANTIC_CONTRACTS = {
             "quality_selection",
             frozenset({"event_locked", "quality_measurement", "trial_selection"}),
         ),
+        AnalysisSemanticContract(
+            "quality_selected_bandpower",
+            frozenset({
+                "event_locked", "quality_measurement", "trial_selection", "spectral_power"
+            }),
+        ),
         AnalysisSemanticContract("record_quality", frozenset({"quality_measurement"})),
         AnalysisSemanticContract("seizure_detection", frozenset({"seizure_detection"})),
     )

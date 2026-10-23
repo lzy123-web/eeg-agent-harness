@@ -72,6 +72,8 @@ def compile_intent(intent, context):
         task = TaskSpec(analysis, params, task_id="point1-task")
     elif analysis == "quality_selection":
         task = TaskSpec("quality_selection", params, task_id="point1-task")
+    elif analysis == "quality_selected_bandpower":
+        task = TaskSpec("quality_selected_bandpower", params, task_id="point1-task")
     else:
         task = TaskSpec("unsupported", params, task_id="point1-task")
     obligations = [
@@ -87,6 +89,10 @@ def compile_intent(intent, context):
         "event_bandpower": ["list_events", "create_epochs", "event_bandpower"],
         "epoch_quality": ["list_events", "create_epochs", "epoch_quality"],
         "quality_selection": ["list_events", "create_epochs", "epoch_quality", "select_quality_epochs"],
+        "quality_selected_bandpower": [
+            "list_events", "create_epochs", "epoch_quality",
+            "select_quality_epochs", "event_bandpower",
+        ],
     }.get(analysis, [analysis])
     obligations.append(Obligation("evidence", "successful_tools", expected_tools))
     forbidden = _forbidden_tools(intent.forbidden_operations)
@@ -144,12 +150,19 @@ def close_ledger(ledger, execution):
             violations.append(f"executed_parameter_missing:{key}")
         elif any(value != expected for value in seen):
             violations.append(f"executed_parameter_changed:{key}")
-    producers = [item for item in results if item["success"] and item["tool_name"] == "create_epochs"]
-    consumers = [event for event in events if event["tool_name"] in {"event_bandpower", "epoch_quality", "select_quality_epochs"}]
-    if producers and consumers:
-        produced_ids = {item["data"].get("artifact_id") for item in producers}
-        if any(event["arguments"].get("artifact_id") not in produced_ids for event in consumers):
-            violations.append("artifact_lineage_mismatch")
+    event_by_request = {event["request_id"]: event for event in events}
+    produced_ids = set()
+    for item in results:
+        if not item["success"]:
+            continue
+        event = event_by_request.get(item["request_id"], {})
+        if item["tool_name"] in {"event_bandpower", "epoch_quality", "select_quality_epochs"}:
+            if event.get("arguments", {}).get("artifact_id") not in produced_ids:
+                violations.append("artifact_lineage_mismatch")
+        if item["tool_name"] in {"create_epochs", "select_quality_epochs"}:
+            artifact_id = item.get("data", {}).get("artifact_id")
+            if artifact_id:
+                produced_ids.add(artifact_id)
     return {
         "closed": execution.status == "completed" and not violations,
         "violations": violations,
