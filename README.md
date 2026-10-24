@@ -336,3 +336,18 @@ $env:PYTHONPATH = 'src'
 & $python -m eeg_harness.research.intent_alignment.cli --mode injections `
   --output artifacts\intent-injections.json
 ```
+
+## Issue #24：冻结 CIEDG 的真实 R3 离线应用
+
+只在已授权的本地资源上运行；不会连接 LLM。显式配置的数字事件、Epoch 和质量规则尚未获得实验范式确认，不能解释为 ASD/TD 条件或诊断结果。命令选取两个存储分区各前两份 EDF，并把逐例结果只写入 Git 忽略的 `r3_outputs/`；终端仅显示聚合通过数。
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.applications.r3.ciedg_cli `
+  --data-root '<已授权本地R3根目录>' `
+  --application-config config/r3_ciedg.example.json `
+  --config config/baseline.json
+python -m unittest discover -s tests -p test_r3_ciedg_application.py -v
+```
+
+固定 4 份真实 EDF 的两类任务及 14 项逐例检查均通过；完整协议、独立数值核验和科学资料缺口见 `docs/research/R3_CIEDG_VALIDATION.md` 与 `docs/research/R3_ASD_APPLICATION_READINESS.md`。这属于应用接入，不是新增方法版本或第二创新点。

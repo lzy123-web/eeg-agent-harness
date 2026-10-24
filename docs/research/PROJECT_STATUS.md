@@ -2,7 +2,9 @@
 
 ## 当前阶段
 
-Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。
+Issue #24：冻结 CIEDG 的真实 R3 离线应用接入与科学数据契约已完成本地验证，待 Draft PR/CI 核验。固定 4 份 EDF 的两项任务和 14 项逐例检查全部通过；仅能证明当前显式分析配置下的执行与数值一致，不能推断实验条件、受试者分组或 ASD 结论。真实数据未进入外部 LLM。详见文末本期独立状态；以下大段为此前历史进展，不能替代本期结论。
+
+Issue #16 历史结论：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -536,3 +538,44 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
 - `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
 - `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。
+
+## Issue #24：冻结 CIEDG 的 R3 真实应用接入（2026-10-24）
+
+### 已完成与代码边界
+
+- 独立研究分支 `research/r3-ciedg-application` 从稳定 `research/point1-integrated-method-v0` 建立；不合并 main、不引入 PR #18 的意图编译器或 PR #23 的实验扩展，不改冻结方法/旧实验。
+- 新增 `applications/r3/ciedg.py`：把显式 R3 配置编译为 `IntentSpec/TaskSpec/ObligationLedger`，交给原 `StateAwareConstrainedPlanner` 预检和 `ContractGraphResidualPlanner` 运行。仍使用已有 `EEGRecord/EventSet/EpochSet`、`ExecutionContext`、`ToolRegistry`、`Executor` 与 R3 EDF 适配器。
+- 新增 `applications/r3/ciedg_validation.py`：预先固定子集、独立手动切窗/基线/Welch 频带 oracle、原确定性 R3 workflow 对照与 14 项逐例检查。`applications/r3/ciedg_cli.py` 提供离线入口，详细输出强制写入 Git 忽略的 `r3_outputs/`。
+- 新增 `config/r3_ciedg.example.json` 与 6 项合成回归；无真实数据路径、密钥、模型权重、真实单记录结果进入 Git。两项真实任务：数字事件试次/有效窗口摘要；同一配置的 Epoch 质量测量及绝对频带功率。默认不筛选或重参考。未知任务返回 `unsupported`。
+
+### 实际验证
+
+本地已授权资源只读清单：2 个存储分区、69 份 EDF。依预先确定的“每分区按相对路径前两份”选取 4 份；4/4 完成两项任务，逐例 14/14 检查通过，没有替换样本。每份核验 annotation/EventSet、21 导/300 Hz、事件计数、Epoch 接受与越界拒绝数、shape/有限值、条件保留、artifact lineage/goal evidence 和无筛选/重参考。频带功率相对独立手动 oracle 的全子集最大绝对差 `2.5849394142282115e-26`，相对原确定性 workflow 为 `0`；`rtol=1e-5, atol=1e-12` 事先固定。单记录 trace、路径、哈希、事件与特征仅在本地忽略目录。
+
+复现命令（资源根目录由本机操作者填入，不保存私有绝对路径）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.applications.r3.ciedg_cli --data-root '<已授权本地R3根目录>'
+python -m unittest discover -s tests -p test_r3_ciedg_application.py -v
+python -m compileall -q src tests
+python -m unittest discover -s tests
+python -m pip check
+```
+
+本地 Python 3.10.17 / MNE 1.6.1 / NumPy 1.24.4 / SciPy 1.10.1；合成新增 6/6 通过；全量 227 tests：215 passed、12 按资源/联网门槛跳过、0 failed；`compileall` 和 `pip check` 通过。真实 R3 验证由离线 CLI 单独完成，CI 无私有数据，不能声称复现真实 EDF。当前未运行真实 LLM + 真实 EEG；外部模型未接收任何真实资源。
+
+### 遗留与下一步候选
+
+- 数字事件 1–9 含义、Boundary、Epoch/baseline 与滤波/参考适用性、采集参考、坏道规则均未获权威实验方案确认；质量阈值不是临床校准规则。需要正式实验说明/刺激日志和采集预处理协议。
+- 缺少经授权的文件—唯一参与者—重复记录—正式诊断/组映射；不以目录名推断 ASD/TD、不把 EDF 当独立受试者。统计表与磁盘文件对齐需权威清单。下一阶段先核准这些契约，才考虑受试者级综合应用，不自动训练模型或输出诊断。
+- 本期 4 份固定子集不能推断全部 69 份或跨中心泛化。独立 oracle 从已处理 EEGRecord 起算，未独立验证原始预处理的科学适当性；质量仅同工具交叉一致。
+- 当前应用跑通是工程/可行性证据，不是第二创新点，也未改变 Issue #16 中与强动态 Expert 持平的研究判断。
+
+### 本期 Git 信息
+
+- `392b184`：冻结 R3 科学数据契约与最小应用接入设计。
+- `5e5ca5f`：离线 R3 CIEDG 桥、固定子集数值核验、CLI、配置模板和合成回归。
+- `7ececdd`：验证、科学资料缺口、README 与本状态文档；`79cb7f2`：记录仓库接口发布与本地历史差异。
+- 本机 Git HTTPS 到 GitHub 连接重置/超时；已用授权 GitHub 仓库接口从同一基线提交等价内容到远端同名分支：研究契约 `e399e49`、应用代码 `87562fb`、文档 `ee1de1e`、LF 字节校准 `69a7866`。上一轮远端 tree `1dc180a` 与对应本地 tree **完全相同**；提交 SHA 不同，后续恢复直连时须先 fetch/核对并安全合并，禁止直接覆盖或强推。
+- Draft PR [#25](https://github.com/lzy123-web/eeg-agent-harness/pull/25) 以冻结研究分支为 base；GitHub Actions `unit-tests` run [40079097685](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40079097685) 在远端相同 tree 上为 `success`。该 CI 不含真实 R3 EDF，本地真实数据验证仍只由离线 CLI 完成。
