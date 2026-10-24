@@ -536,3 +536,39 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
 - `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
 - `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。
+
+## Issue #22：CIEDG 可扩展性假设审计（2026-10-24）
+
+### 范围与实现
+
+- 从 `research/point1-integrated-method-v0` 的 `bff8940` 建立隔离分支 `research/point1-extensibility-evidence`；未修改冻结 CIEDG、Strong Expert、Issue #16 正式结果或 ESOCC 历史。
+- 冻结一个只读 `epoch_variance` 能力：通过隔离 ToolRegistry→Executor 消费 source/effective Epoch，按条件与通道计算总体方差；工具使用 `numpy.var(ddof=0)`，独立 oracle 使用显式平方离差公式。
+- 建立 7 个合成 EEG 场景，覆盖 source、禁止筛选、质量筛选、重参考、内容等价 artifact 重建、source 内容变化及一次瞬时失败；双方使用相同工具、fixture、fault、oracle 和预算。
+- CIEDG 扩展只在隔离 adapter 增加 contract/Evidence Gate/两状态族绑定；Expert 被允许使用 consumer 表与统一恢复循环，不人为削弱。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 科学正确性 | 双方 7/7；条件/试次数/全部通道方差与独立 oracle 一致 |
+| 安全性 | 禁止筛选未执行；release identity/fingerprint 绑定当前 effective artifact |
+| 恢复 | 内容等价时双方复用 variance；内容变化时双方重算；瞬时失败仅重试 consumer |
+| 工具成本 | 双方各 37 次总调用、34 次成功调用 |
+| 方法特定增量 | CIEDG 42 LOC/6 条件节点；Expert 41 LOC/11 条件节点；均未改冻结 core |
+| 定向测试 | 4/4 passed |
+| 全仓回归 | 225 tests：213 passed、12 resource-gated skipped、0 failed |
+| 环境检查 | `compileall`、`pip check` 通过 |
+| 外部资源 | 未调用 DeepSeek；仅合成 EEG；未发送或提交真实 EEG/密钥 |
+
+### 研究判断与遗留问题
+
+- **NO-GO：不能把较低任务扩展/维护成本作为 CIEDG 已成立的主要贡献。** CIEDG 的图/失效/cache 复用使条件节点较少，但公平抽象后的 Expert 增量 LOC 更少 1 行，文件数、科学正确性和运行调用完全持平。
+- 当前 CIEDG 仍在 IntentSpec、ledger、静态 Planner、基础 Evidence Gate 和状态族选择处硬编码目标；selection 与 rereference 也未统一组合。它不是 Registry-only 扩展。
+- 可保留的有限贡献是“可审计 EEG 科学状态—目标—证据依赖与有界局部恢复”，不得表述为准确率、工具成本或维护成本优势。
+- 遵守停止条件：不增加第三种转换，不继续堆 consumer。下一入口应转向本地 R3/ASD 应用适配或独立第二研究问题，并继续保护真实数据。
+
+### 本轮提交
+
+- `2b51749`：冻结可扩展性审计与实验协议。
+- `eba1fd0`：隔离 extension、真实 Registry/Executor 实验、测试与原始 JSON。
+- 最终研究文档、Draft PR、CI 与 Issue 评论将在收尾提交后补记。

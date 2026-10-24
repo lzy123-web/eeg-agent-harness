@@ -13,9 +13,10 @@
 - [x] 读取 Issue #22 并建立隔离分支。
 - [x] 审计 TaskSpec、IntentSpec、GoalContract、ToolRegistry、Executor、Evidence Gate 和 Strong Expert。
 - [x] 冻结唯一能力增量、实验案例、oracle、公平口径和停止条件。
-- [ ] 实现隔离 registered tool、CIEDG+extension 与 Expert+extension。
-- [ ] 运行独立 oracle、故障恢复、公平成本测量和全仓回归。
-- [ ] 形成结果、研究决策、Draft PR、CI 与 Issue 评论。
+- [x] 实现隔离 registered tool、CIEDG+extension 与 Expert+extension。
+- [x] 运行独立 oracle、故障恢复、公平成本测量和全仓回归。
+- [x] 形成结果与研究决策。
+- [ ] 创建 Draft PR、确认 CI 并评论 Issue。
 
 ## 已冻结设计
 
@@ -29,4 +30,18 @@
 - 当前 CIEDG 不是“新增一个 Registry entry 即自动工作”：`IntentSpec`/`compile_intent`/静态 Planner 的目标枚举、`GOAL_CONTRACTS` 以及基础 planner 的 `_required_answer_tools` 都存在显式目标知识。
 - 图执行、effective binding、artifact fingerprint、依赖失效和 consumer cache 是角色驱动的通用机制；但 selection 与 rereference 仍由两个 planner 类分别表达，二者组合仍被拒绝。
 - Strong Expert 对 summary、bandpower、selection、rereference 和恢复采用显式分支；它同样可以通过认真抽象降低新增 consumer 成本，实验不得阻止这种抽象。
+
+## 实际结果
+
+- 7 个冻结场景中，`CIEDG+extension` 与 `strong_dynamic_expert+extension` 均 7/7 通过独立 oracle。
+- 两者均为 37 次总工具调用、34 次成功调用；内容等价恢复均复用一次 variance，内容变化均重算。
+- 方法特定增量：CIEDG 42 LOC/6 条件节点；Expert 41 LOC/11 条件节点；双方均 1 个方法特定文件、0 个冻结 core 修改。
+- 完整回归：225 tests，213 passed、12 gated skipped、0 failed；compileall 和 pip check 通过。
+- 决策：可扩展性主张 **NO-GO as primary contribution**。CIEDG 控制分支较少，但没有显示更低 LOC/文件/运行成本；停止继续添加 consumer 或状态转换追逐优势。
+
+## 提交
+
+- `2b51749`：冻结审计、协议、指标和停止条件。
+- `eba1fd0`：隔离工具、两种扩展、7 场景实验、测试与原始 JSON。
+- 最终文档提交、Draft PR、CI 与 Issue 评论待完成后补记。
 
