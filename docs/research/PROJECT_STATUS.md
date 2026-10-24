@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
+
+- 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。
+- 实际工作：只读检查旧 CIEDG/v3、形式化审视共同执行图、对照旧 Issue #16 与 PR #23 负结果及 C1–C8 开发验收；查阅 EEGAgent AAAI 原论文、CogEEGAgent arXiv 正文、WINGS、Pegasus 与 W3C PROV-O 原始/官方资料。未修改算法、工具、Prompt、实验结果或科学真值；未调用付费 LLM，未读取/外发私有 EEG。
+- 研究判断：**REFINE 一次且设停线**。当前 v3 是成熟工作流机制的 EEG 实例化候选，不足以直接 KEEP 为已证明独立创新。审查文件只提出一项待导师批准的最小“声明式科学状态投影合同”，要求以后与同规则强 Expert、typed workflow 及全图重放公平比较；若无可复现的跨族额外价值，则降为 Harness 工程并停止包装为新规划算法。本轮没有实施该方案或运行新实验。
+- 验证：本轮仅检查文档引用、源码定位与 `git diff --check`；历史结果原样引用而非重跑。Issue #16 为 24/24 vs 24/24、109 vs 109 calls，PR #23 为 7/7、各 37 calls、42 vs 41 方法特定 LOC；v3 C1–C8 是合成开发集，不能当正式比较。
+- 未解决：跨任务状态投影的完整科学声明、相对成熟 typed workflow 的差异、v3 未迁移筛选/重参考、自然语言目标遗漏、独立真实数据泛化。下一步仅在用户/导师审核方向后确定，不自动进入实现或第二工作点。
+- Git：研究审查文件与本条状态更新将以文档提交推送到现有 Draft PR #27；最终 SHA 与远端状态在本轮交付时核对，禁止强推/合并 main。
+
 ## 2026-10-25 当前更新：PR #27 多任务开发验收与科学配置证据修订
 
 - 当前阶段：通用多任务 Harness 的有限跨族验收与方法缺口诊断；仍在 `research/multitask-harness-method-v2` / Draft PR #27，旧 CIEDG/Issue #16 正式实验未改，未合并 main。按最新 [审查评论 6386061605](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6386061605) 先冻结 C1–C8 请求、目标、合成记录与数值 oracle，再开发验证；见 `MULTITASK_ACCEPTANCE_PROTOCOL.md` / `MULTITASK_ACCEPTANCE_REPORT.md`。
