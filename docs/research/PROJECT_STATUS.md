@@ -619,3 +619,50 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `ece5a77`：普通 merge 协调远端 Issue #17 快照历史；合并前双方基线 tree 完全一致，未 force push。
 - 研究分支已推送到 Draft PR #18；状态留痕提交 `216cd67` 的 GitHub Actions `unit-tests`
   run `40059679391` 成功。后续若仅追加本状态记录，远端 head 可继续前移；PR 保持 Draft、未合并 main。
+
+## Issue #20：EEG 科学目标完备性研究论证（2026-10-24）
+
+### 研究范围与事实核查
+
+- 本轮仅开展文献核查、问题建模、候选方法比较和研究决策；CIEDG、TGSRG、Intent compiler、历史协议、Prompt、结果与测试均冻结。
+- 复核 SH01/Pro：原文明确要求 source quality、授权重参考和 new-reference power，候选 Intent 仅保留 `epoch_quality`；v2 因候选
+  objectives 中没有 transition 而不进入 scope 检查，随后 Ledger/CIEDG 合法完成截断子任务。
+- 将结构合法性、soundness、目标 completeness、executability 与 answer faithfulness 分开；确认现有下游 verifier 无法从已截断
+  specification 中恢复缺失目标。
+- 核查 13 项论文/标准/官方文档，覆盖 PICARD、NL2Plan、VerifyLLM、PROV-O、IFEval、FollowBench、PDDL domain 评价、SWIRL、
+  EEGAgent、CogEEGAgent、EEG preprocessing 敏感性、COBIDAS-MEEG 与 MNE 操作语义。
+
+### 候选路线与决策
+
+- 比较三条主体路线：原文侧 SourceClaimLedger + typed coverage、受控 EEG 请求语言、round-trip/NLI/反事实 judge；另将风险选择性
+  澄清定义为组合策略，而非独立检测器。
+- 条件性首选是 ESOCC：从原文独立抽取 operation/object/stage/polarity/authorization/relation，再与候选 Intent 做确定性二部匹配，
+  对 missing/ambiguous/unsupported/unresolved claim 选择性澄清；不自动补写或执行遗漏目标。
+- 与既有方法的分工：ESOCC 检查 source-to-contract coverage；TGSRG 检查已登记目标的数据阶段关系；CIEDG 管理执行状态、证据失效
+  与恢复。此分层尚未通过新实验验证。
+- 最终决策为 **CONDITIONAL GO（只允许预注册有限域 Pilot）/ 当前第二创新点主张 NO-GO**。问题真实且有 EEG 风险结构，但 source
+  extractor 仍可能与 candidate parser 共漏；如果只是第二 LLM judge、词表或 schema 补丁，只属于工程修复。
+
+### 验证与边界
+
+| 检查 | 结果 |
+|---|---|
+| 新代码或 v3 | 未开发 |
+| 新 LLM/Fake 实验 | 未运行 |
+| 冻结结果/科学 gold | 未修改 |
+| 真实 EEG/隐私数据外发 | 无 |
+| 文档交付 | failure model、literature、design options、research decision、state 共 5 份 |
+| 文档检查 | Markdown 存在性、引用链接、`git diff --check` 与变更范围将在推送前核验 |
+
+### 下一步门槛
+
+- 先建立双人 EEG source-claim 标注规范与盲标 calibration；旧 SH01/H14 只作开发回归。
+- 新协议必须冻结 ontology、模型信息、Prompt、预算和停止规则；强对照包含受控语言/用户确认与独立 LLM judge。
+- 主指标为 dangerous accept、危险遗漏 recall、合法任务误澄清和交互/Token 成本；任一新 holdout 高风险遗漏被接受即不得宣称安全采用。
+- 若 joint miss 主导、相对强基线无增量或安全仅由大量误拒获得，则停止该方向并作为 CCEP 的工程限制报告。
+
+### 本轮提交
+
+- `f04d9f9`：问题模型与文献核查。
+- `07b7065`：三条主体路线、强基线、公平实验蓝图与 CONDITIONAL GO 决策。
+- 本轮状态提交及最终远端/CI 状态将在推送后补记；Draft PR #18 保持 Draft，不合并 main。
