@@ -1,5 +1,15 @@
 # 项目状态
 
+## 2026-10-25 当前更新：PR #27 多任务开发验收与科学配置证据修订
+
+- 当前阶段：通用多任务 Harness 的有限跨族验收与方法缺口诊断；仍在 `research/multitask-harness-method-v2` / Draft PR #27，旧 CIEDG/Issue #16 正式实验未改，未合并 main。按最新 [审查评论 6386061605](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6386061605) 先冻结 C1–C8 请求、目标、合成记录与数值 oracle，再开发验证；见 `MULTITASK_ACCEPTANCE_PROTOCOL.md` / `MULTITASK_ACCEPTANCE_REPORT.md`。
+- 本轮变更：Registry `ToolSpec.config_keys` 声明 PSD 与事件条件功率对频带配置的依赖；共同目标图将实际配置纳入证据 identity、语义身份及失效判定，C8 改频带只重算相关频谱目标。逐目标 bundle 和合成应用摘要披露采样率、频带定义、输入/依赖绑定与限制。语义接口只修复边界标点误拒与同句、等值、已落地事件 scope 的来源引用；保留不同 scope/跨句拒绝。无新 Executor、模型训练或 ASD 解释。
+- 验证命令：设置 `PYTHONPATH=src`，运行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`、`python -m eeg_harness.research.integrated_method.v3_acceptance`。当前已有依赖环境与本地既有权重下 compileall/pip check 通过，273 tests / OK / 13 skipped；不设权重时 273 tests / OK / 15 skipped。Fake C1–C5 目标类型/参数匹配，C6/C7 零工具安全拒绝；C8 两频谱数值由独立 Welch 调用重算，记录信息/试次数保留。实际本地权重仅对合成 22 导模型适用性/一窗输出做验证，不推断性能。
+- 真实 DeepSeek（只有合成数据）：首轮 C1–C6 7 completion / 15,416 tokens，C1/C3/C4 完成、C2 安全澄清、C5 澄清续接误拒、C6 安全拒绝；针对 C2/C5 一次复测 3 completion / 6,410 tokens，C5 完成，C2 因模型遗漏事件 `labels` 仍安全澄清。请求 `deepseek-chat`、10 个响应均报告 `deepseek-flash`；原始输出保存在被 Git 忽略的本地 `artifacts/`，失败未覆盖。不是未见成功率或强专家对照。
+- 遗留：语言编译仍会遗漏作用域参数/目标；开放请求的完备性无独立证明。v3 的连续/事件/严格模型能力只在合成与本地既有权重条件下验证；旧版筛选/重参考未迁入当前入口；ERP/ERD-ERS、Sleep/MDD、ASD 诊断不支持。应用端只有研究性分析证据摘要，缺授权儿童映射、年龄/范式/事件释义、适龄参考、行为临床资料和专业审核。候选工作点一的额外论文价值仍需跨族任务、同规则强动态 Expert/Native、公平预算和维护成本对照，不能由本轮证明。
+- 下一步候选：冻结独立跨族扩展集和评价器，优先检验分析配置/数据来源变动下的正确失效与恢复、任务扩展维护量；另用独立错误集衡量自然语言参数遗漏/安全误拒，不在当前 C2 文句上反复调 Prompt。停止无界增加事件词表或以旧成功覆盖失败。
+- Git：`83ea94b` 冻结验收协议，`d563044` 跨任务配置证据、语言接口边界与测试；本报告/状态另行提交。远端 CI 信息在本轮收尾同步。禁止强推、覆盖 PR 历史或合并 main。
+
 ## 2026-10-24 当前更新：PR #27 阶段审查后的跨任务接口验收
 
 - 继续在 `research/multitask-harness-method-v2` 与 Draft PR #27；已读审查评论 [6385322359](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6385322359)。保留 v3 目标实例、共享证据图、旧 v1/v2/CIEDG 与历史正式实验；未增加事件工具或第二研究点。

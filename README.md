@@ -1,5 +1,7 @@
 # EEG Agent Harness
 
+> PR #27 的跨任务合成开发验收与方法边界见 [冻结协议](docs/research/MULTITASK_ACCEPTANCE_PROTOCOL.md) 和 [实测报告](docs/research/MULTITASK_ACCEPTANCE_REPORT.md)。`v3_acceptance` 可以用固定 Fake 负载离线检查连续、事件、现有模型、组合、澄清与科学停止；真实 DeepSeek 只允许合成输入、显式预算与私有本地日志。旧 CIEDG 正式实验结果不因此改变。
+
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
 Issue #26 在独立研究分支新增 opt-in 的多任务共同证据图：连续无事件分析、事件→Epoch 分析和严格输入模型任务通过同一目标/输入类型/状态版本/失败/证据发布核心。事件专有窗口、质量筛选和 Epoch lineage 留在任务策略，通用图不默认 Epoch。旧 CIEDG 和 Baseline v1 路径保留；新方法仍是**研究候选，不是已证明优于强动态 Expert 的论文创新**。见 [任务矩阵](docs/research/MULTITASK_HARNESS_RESEARCH_MAP.md)、[设计与修订](docs/research/MULTITASK_METHOD_DESIGN.md)、[实际验证](docs/research/MULTITASK_METHOD_VALIDATION.md)、[ASD 证据需求](docs/research/ASD_REPORT_REQUIREMENTS_AND_EVIDENCE.md)。

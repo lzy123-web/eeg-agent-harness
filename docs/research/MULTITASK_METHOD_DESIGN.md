@@ -1,5 +1,7 @@
 # 工作点一新版本：跨任务 EEG 目标—状态—证据图设计（Issue #26）
 
+> 最新跨任务开发验收见 [冻结协议](MULTITASK_ACCEPTANCE_PROTOCOL.md) 与 [实测报告](MULTITASK_ACCEPTANCE_REPORT.md)。在原设计的记录/Epoch/模型内容绑定之外，本轮发现频带配置也是证据身份的一部分；由 Registry `ToolSpec.config_keys` 声明依赖并让共同图执行精准失效。该改进是待公平比较的候选机制，不改变旧 CIEDG 正式实验结论。
+
 ## Issue #26 纠偏后的三项清单（2026-10-24）
 
 | 分类 | 内容与依据 |

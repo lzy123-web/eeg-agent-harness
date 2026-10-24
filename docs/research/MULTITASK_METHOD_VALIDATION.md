@@ -1,5 +1,7 @@
 # 多任务共同机制开发验证（Issue #26）
 
+> PR #27 最新跨族冻结 C1–C8、独立数值 oracle、273 项回归、有界真实 DeepSeek 首轮及一次针对失败复测、残余安全澄清，统一见 [跨任务验收报告](MULTITASK_ACCEPTANCE_REPORT.md)。下方为此前 Issue #26/#28 的历史开发验证，保留其当时范围和测试数量，不以新结果覆盖。
+
 ## 环境、隐私与复现命令
 
 - 本地环境：Windows、Python `eegagent` Conda 环境；合成记录由 `demo.py` 构造。GitHub CI 不依赖私有 EDF/模型/API。

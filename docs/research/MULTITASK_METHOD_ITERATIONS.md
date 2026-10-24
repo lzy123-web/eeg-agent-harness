@@ -1,5 +1,11 @@
 # 工作点一多任务方法迭代记录（Issue #26）
 
+## PR #27 跨任务科学配置身份修订（2026-10-25）
+
+先按 [冻结开发协议](MULTITASK_ACCEPTANCE_PROTOCOL.md) 执行 C1–C8。旧图在频带配置由 `[8,13]` 变为 `[9,11]` 后仍发布 PSD 与事件条件功率的旧证据；对照方案是全图重放、分别改两个工具、或声明工具所消费的配置并纳入共同证据身份。选第三种：`ToolSpec.config_keys` → 证据 identity/semantic identity → 共同失效传播，保留不依赖频带的目标并重算依赖者。独立 oracle 验证两任务族的新频带结果，实际配置进入逐目标证据包；不是一个事件专用分支。具体失败与方法边界见 [验收报告](MULTITASK_ACCEPTANCE_REPORT.md)。
+
+真实模型第一次 C5 澄清续接因引文末尾标点变化被误判漂移，修订只规范边界标点；C2 同句先前完全相等事件 scope 可作为后续目标的 `scope_source`。复测 C5 完成而 C2 仍因模型遗漏事件标签安全澄清；没有继续写词面特例。这两项归类为协议/语义接口工程修复，不能据此声称新研究贡献。旧失败与响应保留本地，不改历史实验。
+
 ## 初版：跨族目标进入同一图，但核心仍有事件默认假设
 
 初版 `b5cc2f7` 将连续记录 `record_info/record_quality/amplitude/psd`、严格模型 `seizure_detection` 与事件目标写入一个 `MULTITASK_CONTRACTS`。它让无事件 PSD 和 Event→Epoch→质量→条件频带功率经过相同的 `run/_reconcile/_materialize_evidence`，并给 record/model 输入增加内容与资源绑定。本地合成测试、真实 EDF+本地权重的输出形状测试通过。修复的早期缺陷：未知目标原会在构图时触发 `KeyError`；模型文件变化但 loader 可能按路径缓存，现必须 fail closed；record-only 请求中附加事件参数原会被静默忽略，现整体拒绝。
