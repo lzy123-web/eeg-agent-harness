@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-24 当前更新：PR #27 阶段审查后的跨任务接口验收
+
+- 继续在 `research/multitask-harness-method-v2` 与 Draft PR #27；已读审查评论 [6385322359](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6385322359)。保留 v3 目标实例、共享证据图、旧 v1/v2/CIEDG 与历史正式实验；未增加事件工具或第二研究点。
+- 代码：`v3_agent.py` 对有不同值的同名参数做目标锚点—参数引文归属校验；澄清续接冻结已确认目标顺序、能力、引文、参数、来源阶段和禁止操作，只补可唯一归属的缺项。`v3.py` 的目录只公开当前 Profile、事件与资源满足的 v3 能力，`capability_inventory` 区分当前可用、当前不可用、内部前提和旧入口未迁移；`evidence_bundle` 明示整单 expected/published/publication，失败不发布部分结果；合成应用拒绝不完整证据包。原 Registry/Executor/数值算法未改。
+- 先复现后修订：旧链可完成互换的双 PSD 窗口；旧续接不锁禁止操作。新增故障注入证明第二工具失败时不能把第一结果当完整交付。增量测试与方法理由见 `MULTITASK_METHOD_ITERATIONS.md` / `MULTITASK_METHOD_VALIDATION.md`。
+- 本地验证：`PYTHONPATH=src python -m compileall -q src tests`、`PYTHONPATH=src python -m unittest discover -s tests -q`、`python -m pip check` 均通过；263 tests、14 skipped、249 实际执行无失败；Fake 三例 2 个直接完成、1 个缺参澄清后完成。提交和远端 CI 待本轮收尾更新；**本轮未调用真实 DeepSeek**，不能把此前开发集末轮成功移作新验证。
+- 仍未解决：开放语言目标遗漏、复杂跨句/多处同值参数归属、否定操作被模型整体遗漏的独立发现、多个同名缺项的安全续接、自由形式最终报告与临床解释；旧版筛选/重参考不等于 v3 支持。下一候选是在冻结的跨任务开发集之外制定独立未见测试与公平强动态 Expert 对照，不提前宣称方法优势。
+- Git：本地功能提交 `ae15882`；HTTPS fetch/push 暂时失败，但远端基点 `6125d5c` 经接口核对未变。逐文件 Git blob SHA 与整棵 tree `ef98efb9` 核验一致后，以 `expected_sha=6125d5c`、`force=false` 发布等价远端功能提交 `abc110c` 到原 Draft PR #27 分支。两端功能文件 tree 一致但提交 SHA 不同；恢复命令行网络后须先 fetch/安全 merge，再继续推送。状态文档为随后独立同步提交；远端 CI 待核对。未强推、未合并 main，未上传密钥或真实 EEG/派生结果。
+
 ## 2026-10-24 当前更新：Issue #28 能力驱动多目标实例（opt-in v3）
 
 当前阶段为工作点一通用多任务共同机制继续研发，不改旧 CIEDG/历史正式结果。Draft PR #27 的研究分支上新增 Registry-backed 能力目录、`GoalInstance` 参数/来源作用域、自然语言多目标编译、同一 `SharedEvidenceGraphCore` 内部前提与逐目标证据包。独立的合成应用示例仅消费证据包，不重新处理 EEG、不生成诊断或能力分数。`record_info/record_quality/amplitude/psd`、事件质量/汇总/条件功率与合法模型输入可分别或在适用 Profile 内组合；事件筛选、重参考、ERP/ERD-ERS、ASD 解释仍不属于新入口已支持目标。
