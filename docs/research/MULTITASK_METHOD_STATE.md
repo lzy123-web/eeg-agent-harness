@@ -26,3 +26,9 @@
 - 发布后补充的隐私边界：新版真实 LLM CLI 必须显式 `--demo-synthetic`，在 EDF 读取前拒绝其它输入；新增回归测试。仅限制 CLI，程序化调用方仍需自行遵守授权。此检查在 Draft PR 上作为后续非强推提交。
 - 补充后本地 `compileall`、237 tests（13 skipped）通过；本地 EDF+权重门控新版 16/16。下一步提交/推送此补充并核实末轮 CI、Issue 评论及状态。
 - 针对“共同状态机制”再加一个受控反例：新版图中间 Epoch 内容变化会同时撤销 producer 与下游质量证据，并恢复至 `create_epochs` 前沿，不只是 record 状态可失效。最后本地 `compileall`、238 tests（13 skipped）和本地资源门控 17/17 通过；待补充提交/CI。
+
+## Issue #26 本轮交付检查点
+
+- 最新功能/测试提交 `c76cbfd` 已普通推送至独立分支，[Draft PR #27](https://github.com/lzy123-web/eeg-agent-harness/pull/27) 保持 Draft 且可合并，但**未执行合并**；旧 base 与 main 无改写。
+- GitHub Actions `unit-tests` #157、#159、最新功能提交的 [#161](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40083915694) 均成功。Issue #26 已评论实际路径、失败/限制并补充最终 CI 结果。此状态文档同步提交属于纯文档后续提交；不改变上述功能/实验结果。
+- 本轮停止于 opt-in 多任务共同核心及其开发验证；下一精确入口是依 `MULTITASK_EVALUATION_PLAN.md` 冻结新的跨族未见实验与公平强 Expert，同步开展 ASD 报告需求的权威资料确认，不继续在本轮开发集上刷成功率。

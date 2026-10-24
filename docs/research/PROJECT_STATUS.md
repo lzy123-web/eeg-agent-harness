@@ -8,7 +8,7 @@
 - 实际验证：`python -m compileall -q src tests` 通过；`PYTHONPATH=src python -m unittest discover -s tests -q` 为 **238 项，OK，13 跳过**；提供本地只读 EDF/已有权重的新版模块测试 **17/17 OK**，模型输出 shape `[1]`。合成 PSD 经独立 SciPy Welch/积分 oracle 核对；record 与 Epoch 内容变化均触发同一新版图的证据失效/前沿恢复；Fake 自然语言连续/事件两例均完成并通过答案门。真实 DeepSeek 只使用合成 EEG：三次开发检查累计 10 completion/18,365 tokens；前两次事件请求安全澄清（模型错误提出未获原文支持的 `epoch_summary`），第三次连续/事件均完成，失败原始响应保留在被忽略的本地 `artifacts/`。请求名 `deepseek-chat`，最后一次响应实际报告 `deepseek-flash`；早期调用未记录响应身份，不倒填。新版非 Fake CLI 在读取 EDF 前要求 `--demo-synthetic`。
 - 遗留：自由语言多正向/跨族目标完备性尚未独立验证；一次事件成功不能掩盖两次语言层失败；质量阈值未儿童/范式校准；旧模型训练来源“源码未提供”，不用于 ASD 报告；R3 标签/参与者映射与采集方案仍未知；新图相较强动态 Expert 的独立效益尚未正式比较。无 ERP/ERD/ERS、无 ASD 报告生成器/诊断。
 - 下一阶段候选：先冻结跨族任务/状态/故障与独立 oracle，再用同工具、同状态信息、同预算的原生 Agent、旧 CIEDG、强动态 Expert 与消融做正式比较；ASD 综合应用需另取得权威范式、身份映射、适龄参考和专业复核方案。不应把这次开发集成绩写为论文增益。
-- Git：`343e4a7`（任务矩阵与初步设计）、`b5cc2f7`（初版跨族图）、`6b660dd`（任务中性核心修订）、`38c502b`（研究文档/模型身份记录）已普通推送至独立研究分支；[Draft PR #27](https://github.com/lzy123-web/eeg-agent-harness/pull/27) 指向旧研究分支，不合并 main。首轮 CI `unit-tests` #157 成功，末轮隐私门补充待推送与复核。数据、权重、密钥、私有本地路径和生成产物不入 Git，不强推。
+- Git：`343e4a7`（矩阵/初步设计）、`b5cc2f7`（初版）、`6b660dd`（任务中性核心）、`38c502b`（研究文档）、`49f6af9`（联网 CLI 隐私门）、`c76cbfd`（Epoch 失效测试）均已普通推送至独立研究分支；[Draft PR #27](https://github.com/lzy123-web/eeg-agent-harness/pull/27) 指向旧研究分支，不合并 main。GitHub Actions #157、#159、[最新功能提交 #161](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40083915694) 均成功；Issue #26 已报告真实结果/失败/边界。数据、权重、密钥、私有本地路径和生成产物不入 Git，不强推。本状态同步为后续纯文档提交，不改变实验结果。
 
 以下原“当前阶段”等段落是此前里程碑留存，不再代表 Issue #26 最新状态。
 
