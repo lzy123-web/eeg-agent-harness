@@ -124,6 +124,18 @@ class InstanceGoalTests(unittest.TestCase):
         bundle = result["evidence_bundle"]
         self.assertEqual(bundle["goals"][1]["input_binding"], bundle["goals"][2]["input_binding"])
         self.assertTrue(bundle["goals"][0]["input_binding"]["artifact_id"].startswith("record:"))
+        artifact_id = bundle["goals"][2]["input_binding"]["artifact_id"]
+        epochs = ctx.artifacts[artifact_id]
+        values = []
+        for index, label in enumerate(epochs.event_labels):
+            if label != "stimulus":
+                continue
+            frequencies, density = welch(epochs.data[index, 0], fs=epochs.sfreq,
+                                         nperseg=min(epochs.data.shape[-1], round(epochs.sfreq)))
+            band = (frequencies >= 8) & (frequencies <= 13)
+            values.append(float(np.trapz(density[band], frequencies[band])))
+        observed = bundle["goals"][2]["result"]["conditions"]["stimulus"]["channels"]["SYNTH-C1"]["alpha"]
+        self.assertAlmostEqual(observed, float(np.mean(values)), places=12)
         json.dumps(result, allow_nan=False)
 
     def test_distinct_event_scopes_do_not_share_epoch_artifact(self):
