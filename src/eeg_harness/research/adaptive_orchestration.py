@@ -68,6 +68,11 @@ def _preflight(context, task):
     for value in task.minimum_valid_epochs.values():
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
             return "INVALID_REQUIREMENT", "Minimum valid epochs must be a positive integer"
+    by_id = {goal.instance_id: goal for goal in task.goals}
+    for goal_id in task.minimum_valid_epochs:
+        spec = context.executor.registry.get(by_id[goal_id].capability)
+        if spec is None or spec.consumes_artifact != "epochs":
+            return "INVALID_REQUIREMENT", "Epoch minimum requires an Epoch-consuming goal"
     try:
         context.profile.validate_record(context.record)
     except ValueError as exc:
@@ -108,6 +113,17 @@ def _preflight(context, task):
                 return "INVALID_EVENT_WINDOW", "Epoch window requires finite tmin < tmax"
             if name == "event_bandpower" and tmax - tmin < 1.0:
                 return "INVALID_EVENT_WINDOW", "Event bandpower requires at least 1 second"
+            baseline = params.get("baseline")
+            if baseline is not None:
+                if not isinstance(baseline, (list, tuple)) or len(baseline) != 2:
+                    return "INVALID_EVENT_BASELINE", "Baseline must contain two bounds"
+                try:
+                    low = tmin if baseline[0] is None else float(baseline[0])
+                    high = tmax if baseline[1] is None else float(baseline[1])
+                except (TypeError, ValueError):
+                    return "INVALID_EVENT_BASELINE", "Baseline bounds must be numeric"
+                if not math.isfinite(low) or not math.isfinite(high) or low < tmin or high > tmax or low >= high:
+                    return "INVALID_EVENT_BASELINE", "Baseline must lie inside the Epoch window"
         else:
             try:
                 _validate_schema(params, spec.parameters)

@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #32 科学需求/反馈驱动的渐进编排原型
+
+- 当前阶段：仅工作点一，独立分支 `research/point1-adaptive-orchestration` 基于 PR #27 远端已核实代码树；[PR #31 的 NO-GO 文档](https://github.com/lzy123-web/eeg-agent-harness/pull/31)、旧 CIEDG/v3、Issue #16/PR #23 正式结果保留。新原型为 opt-in 研究层，复用唯一 `ExecutionContext → Executor → ToolRegistry`，未修改原数值算法、main 或历史实验。
+- 代码/协议：`POINT1_ADAPTIVE_ORCHESTRATION_PROTOCOL.md` 在编码前以 `4a3dc46` 冻结 D1–D9/H1–H5 的科学条件、合成数据和独立 oracle；`adaptive_orchestration.py` 渐进编排、`adaptive_orchestration_baselines.py` 固定用户顺序与同规则 Strong Expert、`adaptive_orchestration_eval.py` 真实工具链三臂评估、自动化测试。初版 `1af47b5` 保留开发和 D10 后设探针首次失败；修订 `8486657` 对候选与 Expert 同步增加全局前提门，避免先完成一个事件分支才发现另一分支不足。后续仅安全修复非法 baseline 静态拒绝，不根据未见集改真值或方法主张。
+- 实测：D1–D9 候选/Expert 均 **9/9、14 calls**，固定 **9/9、15 calls**；H1–H5 在 `8486657` 后一次未见主评价为候选/Expert **5/5、9 calls**，固定 **5/5、10 calls**。连续/事件 alpha 功率与 Epoch 有效个数由独立 SciPy/NumPy 重算；H2 边界失败、H3 无事件科学停止、H4 零调用非法通道拒绝均保留原始 JSON。D10 初版三臂均 4 calls 才停止，修订候选/Expert 1 call、固定仍 4 calls；这是后设开发探针，不计未见成绩。最终安全修复后的 H 重放单独标记为**已见回归**。真实模型仅在本地合法既有权重 + 合成 22 导上检查一窗输出结构；无准确率结论。
+- 验证：本地 `compileall -q src tests`、`pip check` 通过；`unittest discover -s tests -q` **287 tests OK / 16 skipped**（无模型资源）、**287 OK / 15 skipped**（本地权重）；定向 pytest **13 passed / 1 skipped** 或带权重 **14 passed**。无 DeepSeek 调用（0 completion/0 tokens），无真实 EEG 读取/外发，权重和私人路径未入 Git。远端 CI 待发布核验。
+- 研究判断：同一科学目标确实因事件/试次真实反馈走不同路径，比简单固定用户顺序少一次无谓 PSD；但同规则 Strong Expert 在正确性与调用上完全持平，当前**不是已确证的独立算法贡献**。结论与严格停线见 `POINT1_WORKPOINT_DECISION.md`；下一步唯一有价值的是预注册新增跨任务能力的科学声明/专用分支/审查工时与正确性公平对照，若仍持平则停止作为新算法包装。自然语言目标遗漏、真实数据科学效度、跨设备试次阈值校准仍未解决；旧版筛选/重参考尚未进入新入口。
+- Git：协议 `4a3dc46`、首个原型/首次失败 `1af47b5`、结构性修订 `8486657`；最终安全修复、报告、推送、Draft PR、CI 与 Issue 评论待本轮收尾补录。禁止合并 main/强推/上传私有资源。
+
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
 - 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。

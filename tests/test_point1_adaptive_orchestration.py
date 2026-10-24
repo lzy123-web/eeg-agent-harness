@@ -1,6 +1,7 @@
 """Pre-frozen D1-D9 development checks on the real EEG tool chain."""
 
 import json
+import os
 from pathlib import Path
 import unittest
 
@@ -8,10 +9,11 @@ import numpy as np
 from scipy.signal import welch
 
 from eeg_harness.context import ExecutionContext
-from eeg_harness.demo import build_synthetic_event_record, build_synthetic_no_event_record
+from eeg_harness.demo import (build_synthetic_event_record, build_synthetic_no_event_record,
+                              build_synthetic_tuev_record)
 from eeg_harness.executor import Executor
 from eeg_harness.pipeline import load_config
-from eeg_harness.profiles import EDF_NATIVE
+from eeg_harness.profiles import EDF_NATIVE, TUEV_BIPOLAR_22
 from eeg_harness.research.adaptive_orchestration import ScientificTask, run_adaptive
 from eeg_harness.research.adaptive_orchestration_baselines import run_strong_expert
 from eeg_harness.research.integrated_method.v3 import GoalInstance
@@ -102,6 +104,19 @@ class AdaptiveDevelopmentTests(unittest.TestCase):
         self.assertEqual(result["status"], "clarification_required")
         self.assertEqual(names(result), [])
 
+    def test_invalid_baseline_is_rejected_before_group_serialization(self):
+        goal = GoalInstance("e", "event_bandpower", {
+            "labels": ["stimulus"], "tmin": 0, "tmax": 1, "baseline": object(),
+        })
+        result = run_adaptive(context(), ScientificTask((goal,)))
+        self.assertEqual(result["code"], "INVALID_EVENT_BASELINE")
+        self.assertEqual(names(result), [])
+
+    def test_epoch_requirement_cannot_silently_attach_to_continuous_goal(self):
+        result = run_adaptive(context(), ScientificTask((psd_goal(),), {"p": 2}))
+        self.assertEqual(result["code"], "INVALID_REQUIREMENT")
+        self.assertEqual(names(result), [])
+
     def test_d9_model_rejected_by_profile_without_tools(self):
         goal = GoalInstance("m", "seizure_detection", {"channels": ["SYNTH-C1"], "start": 0, "end": 1})
         result = run_adaptive(context(), ScientificTask((goal,)))
@@ -119,6 +134,41 @@ class AdaptiveDevelopmentTests(unittest.TestCase):
                 self.assertEqual(result["code"], "INSUFFICIENT_EVENT_COUNT")
                 self.assertEqual(names(result), ["list_events"])
                 self.assertEqual(result["evidence_bundle"]["publication"], "none")
+
+    def test_optional_existing_model_on_legal_synthetic_profile(self):
+        weight = os.environ.get("EEG_HARNESS_SEIZURE_MODEL")
+        if not weight or not Path(weight).is_file():
+            self.skipTest("Existing local model resource not configured")
+        ctx = ExecutionContext(build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
+                               Executor(build_default_registry(), CONFIG,
+                                        resources={"seizure_model": weight}))
+        channel = ctx.record.channel_names[0]
+        goal = GoalInstance("m", "seizure_detection", {
+            "channels": [channel], "start": 0, "end": 1,
+        })
+        result = run_adaptive(ctx, ScientificTask((goal,)))
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(names(result), ["seizure_detection"])
+        output = result["evidence_bundle"]["goals"][0]["result"]
+        self.assertEqual(len(output), 1)
+        self.assertEqual(set(output[0][channel]), {"Non-seiz", "seiz"})
+        json.dumps(result, allow_nan=False)
+
+    def test_extra_readonly_continuous_goal_needs_no_policy_branch(self):
+        amplitude = GoalInstance("a", "amplitude", {
+            "channels": ["SYNTH-C1"], "start": 0, "end": 2,
+        })
+        task = ScientificTask((amplitude, event_goal()), {"e": 2})
+        for policy in (run_adaptive, run_strong_expert):
+            with self.subTest(policy=policy.__name__):
+                ctx = context()
+                result = policy(ctx, task)
+                self.assertEqual(result["status"], "completed")
+                self.assertEqual(names(result), ["list_events", "create_epochs",
+                                                 "event_bandpower", "amplitude"])
+                observed = result["evidence_bundle"]["goals"][0]["result"]["SYNTH-C1"]
+                expected = "{:.2e}".format(np.mean(np.abs(ctx.record.data[0, :256])))
+                self.assertEqual(observed["mean_abs"], expected)
 
 
 if __name__ == "__main__":
