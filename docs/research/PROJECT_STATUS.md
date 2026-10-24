@@ -617,5 +617,5 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `cda3964`：保留真实原始结果和基础设施失败。
 - `efe63c8`：结果、No-Go 判断、README 与项目状态。
 - `ece5a77`：普通 merge 协调远端 Issue #17 快照历史；合并前双方基线 tree 完全一致，未 force push。
-- 研究分支已推送到 Draft PR #18，远端 head `ece5a77`；GitHub Actions `unit-tests`
-  run `40059506114` 成功。PR 保持 Draft、未合并 main。
+- 研究分支已推送到 Draft PR #18；状态留痕提交 `216cd67` 的 GitHub Actions `unit-tests`
+  run `40059679391` 成功。后续若仅追加本状态记录，远端 head 可继续前移；PR 保持 Draft、未合并 main。
