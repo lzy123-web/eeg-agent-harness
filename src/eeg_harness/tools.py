@@ -283,6 +283,7 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=common_profiles,
             handler=_psd,
+            config_keys=("freq_bands",),
             requires_window=True,
             max_window_seconds=60.0,
         )
@@ -384,6 +385,7 @@ def build_default_registry():
             return_type="object",
             compatible_profiles=event_profiles,
             handler=_event_bandpower,
+            config_keys=("freq_bands",),
             consumes_artifact="epochs",
             preconditions={"min_artifact_duration_seconds": 1.0},
         )

@@ -64,6 +64,27 @@ def _overlaps(first, second):
     return first[0] < second[1] and second[0] < first[1]
 
 
+def _preceding_equal_event_scope(goal, earlier_goals, text):
+    """Bind a later event goal to the nearest equal scope in one sentence."""
+    own = _quote_occurrences(text, goal.request_quote)
+    boundary = frozenset("。！？!?；;\n")
+    for prior in reversed(earlier_goals):
+        if prior.capability not in EVENT_CAPABILITIES or not all(
+                prior.parameters.get(key) == goal.parameters.get(key)
+                for key in ("labels", "tmin", "tmax", "baseline")):
+            continue
+        for previous in _quote_occurrences(text, prior.request_quote):
+            for current in own:
+                if (previous[1] <= current[0]
+                        and not any(char in boundary for char in text[previous[1]:current[0]])):
+                    return prior.instance_id
+    return None
+
+
+def _same_frozen_quote(before, after):
+    return before.strip(" \t\r\n，。,.!?！？；;") == after.strip(" \t\r\n，。,.!?！？；;")
+
+
 def _parameter_ownership_errors(goals, text, previous=(), clarification_start=None):
     """Require distinct values of one slot to belong to their goal anchors.
 
@@ -108,7 +129,7 @@ def _resume_drift(previous, current, previous_forbidden, current_forbidden):
         if before is None:
             continue
         if (before.capability != after.capability
-                or before.request_quote != after.request_quote
+                or not _same_frozen_quote(before.request_quote, after.request_quote)
                 or before.concept_quote != after.concept_quote
                 or before.source_stage != after.source_stage
                 or any(key not in after.parameters or after.parameters[key] != value
@@ -237,6 +258,7 @@ class InstanceGoalEEGAgent:
         for goal in goals:
             bad = []
             inherited = {}
+            scope_source = None
             if goal.capability not in USER_CAPABILITIES:
                 bad.append("unknown_capability")
             if not goal.request_quote or goal.request_quote.casefold() not in text.casefold():
@@ -248,7 +270,9 @@ class InstanceGoalEEGAgent:
             if goal.capability in EVENT_CAPABILITIES and not any(
                 word in goal.request_quote.casefold() for word in ("事件", "试次", "epoch", "event", "trigger")
             ):
-                bad.append("event_scope_not_grounded")
+                scope_source = _preceding_equal_event_scope(goal, grounded, text)
+                if scope_source is None:
+                    bad.append("event_scope_not_grounded")
             for key, value in goal.parameters.items():
                 quote = goal.parameter_quotes.get(key)
                 if (not isinstance(quote, str) or quote.casefold() not in text.casefold()
@@ -276,7 +300,8 @@ class InstanceGoalEEGAgent:
             if bad:
                 errors[goal.instance_id] = bad
             else:
-                revised_goal = replace(goal, parameter_sources=inherited)
+                revised_goal = replace(goal, parameter_sources=inherited,
+                                       scope_source=scope_source)
                 grounded.append(revised_goal)
                 revised.append(revised_goal)
         if errors:

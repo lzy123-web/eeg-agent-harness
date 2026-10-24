@@ -6,6 +6,7 @@ The Executor and the frozen v1/v2 methods remain unchanged.
 """
 
 from dataclasses import dataclass, field, replace
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -53,6 +54,7 @@ class GoalInstance:
     parameter_quotes: Mapping[str, str] = field(default_factory=dict)
     parameter_sources: Mapping[str, str] = field(default_factory=dict)
     source_stage: str = "current"
+    scope_source: str | None = None
 
     def to_dict(self):
         return {"instance_id": self.instance_id, "capability": self.capability,
@@ -60,7 +62,8 @@ class GoalInstance:
                 "concept_quote": self.concept_quote,
                 "parameter_quotes": dict(self.parameter_quotes),
                 "parameter_sources": dict(self.parameter_sources),
-                "source_stage": self.source_stage}
+                "source_stage": self.source_stage,
+                "scope_source": self.scope_source}
 
 
 @dataclass(frozen=True)
@@ -91,6 +94,7 @@ def capability_catalog(context):
             "input_artifact": spec.consumes_artifact or "EEGRecord",
             "result_type": spec.return_type, "unit_or_kind": RESULT_UNITS[name],
             "required_resources": list(spec.required_resources),
+            "configuration_dependencies": list(spec.config_keys),
             "scientific_scope": "event-locked epochs" if name in EVENT_CAPABILITIES else "continuous record",
         })
     return catalog
@@ -240,6 +244,7 @@ class InstanceEvidenceGraph(SharedEvidenceGraphCore):
         self.labels = ()
         self.epoch_arguments = {}
         self.selection_authorized = False
+        self._config_for_evidence = {}
         super().__init__(context, task, ledger, contracts, **limits)
         self._initial_model_digest = self._model_digest() if any(
             contracts[g].tool_name == "seizure_detection" for g in self.requested_goals
@@ -249,6 +254,48 @@ class InstanceEvidenceGraph(SharedEvidenceGraphCore):
         super()._begin_frontier_snapshot()
         if self._initial_model_digest is not None and self._model_digest() != self._initial_model_digest:
             self._block("MODEL_RESOURCE_CHANGED", "Model resource changed during this task")
+
+    def _analysis_configuration(self, goal):
+        spec = self.context.executor.registry.get(self.contracts[goal].tool_name)
+        return {key: deepcopy(self.context.executor.config.get(key))
+                for key in (() if spec is None else spec.config_keys)}
+
+    def _evidence_payload(self, goal, **kwargs):
+        payload = super()._evidence_payload(goal, **kwargs)
+        payload["analysis_configuration"] = self._analysis_configuration(goal)
+        return payload
+
+    def _materialize_evidence(self, goal, **kwargs):
+        token = super()._materialize_evidence(goal, **kwargs)
+        self._config_for_evidence[goal] = self._analysis_configuration(goal)
+        return token
+
+    def _restore_cached_consumer(self, goal):
+        restored = super()._restore_cached_consumer(goal)
+        if restored:
+            self._config_for_evidence[goal] = self._analysis_configuration(goal)
+        return restored
+
+    def _reconcile(self):
+        super()._reconcile()
+        changed = {goal for goal in self.evidence
+                   if self._config_for_evidence.get(goal) != self._analysis_configuration(goal)}
+        if not changed:
+            return
+        invalid = set(changed)
+        while True:
+            descendants = {goal for goal in self.evidence if goal not in invalid
+                           and any(dep in invalid for dep in self.dependencies[goal])}
+            if not descendants:
+                break
+            invalid.update(descendants)
+        for goal in invalid:
+            token = self.evidence.pop(goal)
+            self._config_for_evidence.pop(goal, None)
+            if self.contracts[goal].role == "consumer":
+                self.evidence_cache.setdefault(goal, {})[token.semantic_id] = token
+        self._record_transition("analysis_configuration_invalidated",
+                                goals=sorted(invalid), changed_goals=sorted(changed))
 
     def _record_digest(self):
         record = self.context.record
@@ -394,10 +441,13 @@ def run_instances(context, request, *, max_retries=1, max_repairs=2, max_tool_ca
                 "request_quote": goal.request_quote, "concept_quote": goal.concept_quote,
                 "parameter_quotes": dict(goal.parameter_quotes),
                 "parameter_sources": dict(goal.parameter_sources),
+                "scope_source": goal.scope_source,
                 "evidence_token": token.token_id, "request_id": token.request_id,
                 "input_binding": None if token.input_binding is None else token.input_binding.to_dict(),
                 "dependency_evidence": dict(token.dependency_tokens),
                 "unit_or_kind": RESULT_UNITS[goal.capability],
+                "sampling_rate_hz": context.record.sfreq,
+                "analysis_configuration": graph._config_for_evidence[goal.instance_id],
                 "method": data.get("method") if isinstance(data, dict) else
                           context.executor.registry.get(goal.capability).description,
                 "source": context.record.source, "profile_id": context.profile.profile_id,

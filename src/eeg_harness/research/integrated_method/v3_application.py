@@ -4,6 +4,8 @@ This is a research evidence note, not an ASD assessment or diagnostic report.
 No EEG is reloaded or recomputed here.
 """
 
+import json
+
 
 def render_auxiliary_evidence_note(bundle):
     if not isinstance(bundle, dict) or bundle.get("status") != "completed":
@@ -26,9 +28,13 @@ def render_auxiliary_evidence_note(bundle):
             f"## {item['instance_id']} · {item['capability']}", "",
             f"数据来源：`{item['source']}`；Profile：`{item['profile_id']}`。",
             f"参数：`{item['parameters']}`；单位/类型：`{item['unit_or_kind']}`。",
+            f"采样率：`{item['sampling_rate_hz']}` Hz；数据阶段：`{item['source_stage']}`。",
+            f"分析配置：`{json.dumps(item['analysis_configuration'], ensure_ascii=False, sort_keys=True)}`。",
             f"分析范围：`{item['analysis_scope']}`；方法：`{item['method']}`。",
+            f"输入绑定：`{item['input_binding']}`；依赖证据：`{item['dependency_evidence']}`。",
             f"证据索引：`{item['evidence_token']}`；工具请求：`{item['request_id']}`。",
             f"实际结果：`{item['result']}`", "",
+            f"限制：{item['limitation']}", "",
         ])
     lines.extend(["## 尚缺的应用证据", "",
                   "受试者授权、年龄/发育背景、任务范式、标签含义、规范对照、临床解释与外部验证均未由本合成示例提供。", ""])

@@ -4,6 +4,7 @@ import json
 import os
 import contextlib
 import io
+from copy import deepcopy
 from pathlib import Path
 import unittest
 from dataclasses import replace
@@ -196,6 +197,71 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertIn("continuous", graph.evidence)
         self.assertEqual(graph.evidence["continuous"].token_id, continuous_token)
         self.assertNotIn("event", graph.evidence)
+
+    def test_changed_scientific_configuration_invalidates_only_spectral_goals(self):
+        ctx = ExecutionContext(build_synthetic_event_record(), EDF_NATIVE,
+                               Executor(build_default_registry(), deepcopy(CONFIG)), "config-drift")
+        request = InstanceTaskRequest((
+            goal("info", "record_info"),
+            goal("continuous", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("summary", "epoch_summary", labels=["stimulus"], tmin=0, tmax=1),
+            goal("event", "event_bandpower", labels=["stimulus"], tmin=0, tmax=1),
+        ))
+        compiled, failure = compile_instances(ctx, request)
+        self.assertIsNone(failure)
+        task, ledger, _, contracts, arguments, scopes, _ = compiled
+        graph = InstanceEvidenceGraph(ctx, task, ledger, contracts, arguments, scopes)
+        while (action := graph.next_action()) is not None:
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, action.kind))
+            self.assertTrue(result.success)
+            graph.results.append(result.to_dict())
+            graph.apply_result(action, result.to_dict())
+        stable = {name: graph.evidence[name].token_id for name in ("info", "summary")}
+        stale = {name: graph.evidence[name].token_id for name in ("continuous", "event")}
+        ctx.executor.config["freq_bands"]["alpha"] = [9.0, 11.0]
+        action = graph.next_action()
+        self.assertIsNotNone(action)
+        self.assertEqual(action.kind, "continuous")
+        for name, token_id in stable.items():
+            self.assertEqual(graph.evidence[name].token_id, token_id)
+        for name in stale:
+            self.assertNotIn(name, graph.evidence)
+        while action is not None:
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, action.kind))
+            self.assertTrue(result.success)
+            graph.results.append(result.to_dict())
+            graph.apply_result(action, result.to_dict())
+            action = graph.next_action()
+        self.assertNotEqual(graph.evidence["continuous"].token_id, stale["continuous"])
+        self.assertNotEqual(graph.evidence["event"].token_id, stale["event"])
+        frequencies, density = welch(ctx.record.data[0, :256], fs=ctx.record.sfreq,
+                                     nperseg=ctx.record.sfreq)
+        alpha = (frequencies >= 9) & (frequencies <= 11)
+        expected = "{:.2e}".format(np.trapz(density[alpha], frequencies[alpha]))
+        self.assertEqual(graph.evidence["continuous"].result["data"]["SYNTH-C1"]["alpha"],
+                         expected)
+        source = graph.evidence[graph.dependencies["event"][0]].output_binding
+        epochs = ctx.artifacts[source.artifact_id]
+        per_epoch = []
+        for index, label in enumerate(epochs.event_labels):
+            if label == "stimulus":
+                f, d = welch(epochs.data[index, 0], fs=epochs.sfreq,
+                             nperseg=min(epochs.data.shape[-1], round(epochs.sfreq)))
+                band = (f >= 9) & (f <= 11)
+                per_epoch.append(float(np.trapz(d[band], f[band])))
+        observed = graph.evidence["event"].result["data"]["conditions"]["stimulus"]["channels"]["SYNTH-C1"]["alpha"]
+        self.assertAlmostEqual(observed, float(np.mean(per_epoch)), places=12)
+
+    def test_spectral_delivery_includes_actual_frequency_definition(self):
+        result = run_instances(context(), InstanceTaskRequest((
+            goal("p", "psd", channels=["SYNTH-C1"], start=0, end=2),
+        )))
+        self.assertEqual(result["status"], "completed")
+        delivered = result["evidence_bundle"]["goals"][0]
+        self.assertEqual(delivered["analysis_configuration"]["freq_bands"]["alpha"],
+                         CONFIG["freq_bands"]["alpha"])
+        self.assertEqual(delivered["sampling_rate_hz"], 128.0)
+        json.dumps(delivered, allow_nan=False)
 
     def test_synthetic_application_consumes_bundle_without_reanalysis(self):
         result = run_instances(context(), InstanceTaskRequest((
@@ -488,6 +554,71 @@ class InstanceGoalTests(unittest.TestCase):
                                         context(events=True)).run(request)
         self.assertEqual(rejected["status"], "clarification_required")
         self.assertEqual(rejected["tool_results"], [])
+
+    def test_event_goal_can_inherit_prior_equal_scope_in_same_sentence(self):
+        request = ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数，测量这些试次的质量"
+                   "并计算各条件绝对频带功率；只测量，不筛除试次。")
+        scope = {"labels": ["stimulus"], "tmin": 0, "tmax": 1}
+        quotes = {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}
+        payload = {"goals": [
+            {"instance_id": "a", "capability": "epoch_summary", "parameters": scope,
+             "request_quote": "stimulus 事件后 0 秒到 1 秒的试次数",
+             "concept_quote": "试次数", "parameter_quotes": quotes},
+            {"instance_id": "b", "capability": "epoch_quality", "parameters": scope,
+             "request_quote": "测量这些试次的质量", "concept_quote": "质量",
+             "parameter_quotes": quotes},
+            {"instance_id": "c", "capability": "event_bandpower", "parameters": scope,
+             "request_quote": "计算各条件绝对频带功率", "concept_quote": "绝对频带功率",
+             "parameter_quotes": quotes},
+        ], "forbidden_operations": ["selection"], "unsupported_requests": []}
+        result = InstanceGoalEEGAgent(FixtureLLM([payload]), context(events=True)).run(request)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual([item["capability"] for item in result["evidence_bundle"]["goals"]],
+                         ["epoch_summary", "epoch_quality", "event_bandpower"])
+        self.assertEqual(result["evidence_bundle"]["goals"][2]["scope_source"], "g2")
+
+    def test_implicit_event_scope_refuses_different_scope_or_sentence(self):
+        first = {"instance_id": "a", "capability": "epoch_summary",
+                 "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                 "request_quote": "stimulus 事件后 0 秒到 1 秒的试次数",
+                 "concept_quote": "试次数",
+                 "parameter_quotes": {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}}
+        for request, second in (
+            ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数，并计算 control 条件的绝对频带功率。",
+             {"labels": ["control"], "tmin": 0, "tmax": 1}),
+            ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数。另计算各条件绝对频带功率。",
+             {"labels": ["stimulus"], "tmin": 0, "tmax": 1}),
+        ):
+            with self.subTest(request=request):
+                payload = {"goals": [first, {
+                    "instance_id": "b", "capability": "event_bandpower",
+                    "parameters": second,
+                    "request_quote": "计算 control 条件的绝对频带功率" if "control" in request else
+                                     "计算各条件绝对频带功率",
+                    "concept_quote": "绝对频带功率",
+                    "parameter_quotes": {"labels": "control" if "control" in request else "stimulus",
+                                         "tmin": "0 秒", "tmax": "1 秒"},
+                }], "forbidden_operations": [], "unsupported_requests": []}
+                result = InstanceGoalEEGAgent(FixtureLLM([payload]), context(events=True)).run(request)
+                self.assertEqual(result["status"], "clarification_required")
+                self.assertEqual(result["tool_results"], [])
+
+    def test_resume_allows_punctuation_only_quote_expansion(self):
+        first = {"goals": [{"instance_id": "a", "capability": "psd",
+                            "parameters": {"channels": ["SYNTH-C2"]},
+                            "request_quote": "请计算 SYNTH-C2 导联的绝对频带功率",
+                            "concept_quote": "绝对频带功率",
+                            "parameter_quotes": {"channels": "SYNTH-C2"}}],
+                 "forbidden_operations": [], "unsupported_requests": []}
+        second = json.loads(json.dumps(first))
+        second["goals"][0]["request_quote"] += "。"
+        second["goals"][0]["parameters"].update(start=1, end=3)
+        second["goals"][0]["parameter_quotes"].update(start="1 秒", end="3 秒")
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, second]), context())
+        self.assertEqual(agent.run("请计算 SYNTH-C2 导联的绝对频带功率。")
+                         ["status"], "clarification_required")
+        result = agent.resume("窗口是 1 秒到 3 秒。")
+        self.assertEqual(result["status"], "completed")
 
 
 if __name__ == "__main__":
