@@ -1,5 +1,10 @@
 # 多任务 Harness 方法研发状态（Issue #26 / #28）
 
+## 2026-10-25 Issue #29：停止编码、等待方法论审核
+
+- `POINT1_METHOD_RESEARCH_REVIEW.md` 独立核查 CIEDG/v3、历史负结果与 EEGAgent/CogEEGAgent/WINGS/Pegasus/PROV-O 原始资料。结论为有停线的 **REFINE**，不是创新性已确证的 KEEP；只提出一项未来可审查的状态投影合同，本轮未实现、未调用付费模型或运行新基准。
+- 旧 24/24 强 Expert 持平、PR #23 42 vs 41 LOC 持平及 C2 真实语言失败均作为不利证据原样保留。下一动作需导师/用户确认研究决策；不自动进入新方法研发、第二工作点或 ASD 应用。
+
 ## 2026-10-25 最新安全检查点：PR #27 跨任务验收
 
 - 按审查评论 6386061605 已冻结 C1–C8 自然语言、合成记录、逐目标参数及独立数值 oracle；报告见 `MULTITASK_ACCEPTANCE_PROTOCOL.md`、`MULTITASK_ACCEPTANCE_REPORT.md`。旧实验与旧 v1/v2/CIEDG 保留。
