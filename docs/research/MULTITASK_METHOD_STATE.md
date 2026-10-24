@@ -4,7 +4,7 @@
 
 - 分支仍为 `research/multitask-harness-method-v2`、Draft PR #27；远端审查基点 `0f44df1` 与本地等价树 `c2c71ec` 的 SHA 不同，禁止强推。旧 v1.1/v2 运行路径及 Issue #16 历史实验未改。开始时命令行 GitHub fetch 不稳定，GitHub 仓库接口可读；提交/发布前需再核远端。
 - 设计选用 Registry-backed 能力目录 + 参数化目标实例图，而非脚本路由或为每种组合写 HTN；理论边界和成熟先行机制见 `MULTITASK_METHOD_DESIGN.md`。新增 `v3.py`、`v3_agent.py`、`v3_application.py`、`v3_validation.py`，仍经 `SharedEvidenceGraphCore/ExecutionContext/Executor/ToolRegistry`。应用仅消费合成证据包，不生成诊断。
-- 确定性 18 项新增模块测试（本地权重可用时全部运行）覆盖双窗数值 oracle、跨族同图、事件 scope 共享/隔离、模型门控、失效局部恢复、澄清恢复、共指/引文和证据序列化。最终 `compileall`、完整 **256 tests / OK / 14 skipped**、`pip check` 通过；本地权重门控 v3 **18/18 OK**。Fake 三案例：双窗、连续+事件、缺参→继续均完成。
+- 确定性 19 项新增模块测试（本地权重可用时全部运行）覆盖独立任务族、双窗数值 oracle、跨族同图、事件 scope 共享/隔离、模型门控、失效局部恢复、澄清恢复、共指/引文和证据序列化。末次完整 **257 tests / OK / 14 skipped**，`compileall`、`pip check` 通过；本地权重门控 v3 **19/19 OK**。Fake 三案例：双窗、连续+事件、缺参→继续均完成。
 - 真实 DeepSeek 仅合成数据四轮共 15 completion/32,066 tokens；首三轮错误和完整原始响应均留忽略的本地 `artifacts/`，末轮三案例完成。请求 `deepseek-chat`，末轮响应四次均报告 `deepseek-flash`。不是正式未见评价；后续代码整理只做 Fake/回归，不倒填新的真实成功。
 - 已发现并修订：单引文混淆实例范围和概念证据；同一事件共指须完整 scope 等价；Tool Calling 仅允许单字符冗余末括号修复；新版直接继承共享图而不继承 v2 事件适配类；任务内稳定实例 ID、来源阶段与质量窗口原子预检。不足：开放语言目标完备性、复杂共指、可授权部分执行、跨数据版本分支及正式公平 Expert/Native 比较未完成。
 - 本地功能提交 `190f4ef`（参数化目标实例、真实共享图执行、自然语言入口、证据包、合成应用、18 项测试）；本节研究文档为后续提交。远端安全合并/普通推送和 CI 尚需核验。

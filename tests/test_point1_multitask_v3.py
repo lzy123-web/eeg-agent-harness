@@ -71,6 +71,19 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertIn("psd", names)
         self.assertNotIn("seizure_detection", names)
 
+    def test_distinct_task_families_also_run_as_single_goal_requests(self):
+        cases = (
+            (False, goal("info", "record_info")),
+            (False, goal("amplitude", "amplitude", channels=["SYNTH-C1"], start=0, end=1)),
+            (True, goal("epochs", "epoch_summary", labels=["stimulus"], tmin=0, tmax=1)),
+        )
+        for events, instance in cases:
+            with self.subTest(capability=instance.capability):
+                result = run_instances(context(events=events), InstanceTaskRequest((instance,)))
+                self.assertEqual(result["status"], "completed")
+                self.assertEqual(result["evidence_bundle"]["goals"][0]["capability"],
+                                 instance.capability)
+
     def test_repeated_psd_distinct_windows_and_independent_oracle(self):
         ctx = context()
         result = run_instances(ctx, InstanceTaskRequest((
