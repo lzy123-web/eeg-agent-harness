@@ -83,3 +83,18 @@ Issue #17 的 H14 不是普通同义词漏识别。用户同时要求“重参�
 - 当前只支持两个已存在的 transition family，不代表通用 EEG 时序逻辑。
 - 单人 gold 无法提供标注一致性证据。
 - TGSRG 是 opt-in safety candidate，未通过未见 dangerous-accept 门槛前不得成为默认实现。
+
+## 9. 开发迭代
+
+### v2.0-a：直接边能力证书
+
+初版要求 scope graph 显式包含 runtime contract 的每一条直接先后边。例如
+`rereference → quality` 与 `rereference → power` 必须同时出现。确定性合法链测试发现，模型若忠实表达
+`rereference → quality → power`，图已经保证 transform 先于 power，但初版仍会误拒。
+
+### v2.0-b：传递可达能力证书（当前实现）
+
+能力投影改为检查有向无环图上的可达性，而不是固定直接边；循环检查仍独立执行。这是图验证算法修改，
+不是 Prompt 或关键词补丁。它降低合法链式关系的结构性误拒，同时不放宽状态类型、目标完备性、授权隔离和
+单 effective branch 边界。H14 仍因 `epoch_quality=source_epochs` 与现有 runtime 要求的
+`effective_epochs` 冲突而在工具执行前澄清。

@@ -16,10 +16,18 @@
 - 无 transition 的请求沿用 v1，不增加额外模型调用。
 - transition 请求缺少完整 scope certificate 时安全澄清。
 
+## 已完成实现
+
+- 新增 opt-in `IntentScopeCompilerV2Interpreter` 与两类 Agent adapter；冻结 v1 和 CIEDG 未修改。
+- Scope node 显式携带 goal、source/effective state 与 exact evidence；relation 构成可检查 DAG。
+- 能力证书按实际 Transfer CIEDG 合法状态投影，并将授权继续交给 v1 检查。
+- H14 冻结 raw Intent 回放会澄清 `analysis_stage`；真实 Agent 测试确认零 EEG 工具调用。
+- 合法单阶段重参考链通过原 Executor/CIEDG，Evidence Gate 与回答校验闭合。
+- 发现并修复“只接受直接边、误拒等价传递链”的图算法缺陷，改为 DAG 可达性判断。
+- 2026-10-24：`compileall` 通过；全套 239 tests 通过、12 个资源条件测试跳过。
+
 ## 下一步
 
-1. 冻结 20 例独立对抗协议与 hash。
-2. 实现 opt-in v2 interpreter、静态 scope compiler 和 Agent adapter。
-3. Fake/raw replay 诊断并进行一次机制级修订。
-4. 锁定实现后运行不超过 24 请求、65,000 tokens 的 Flash/Pro 对照。
-5. 完整回归、客观决策、PR/Issue 评论。
+1. 锁定候选实现后运行不超过 24 请求、65,000 tokens 的 Flash/Pro 对照。
+2. 保留任何未见 dangerous accept；若出现则结论必须为 NOT SAFE TO ADOPT。
+3. 完成结果、失败归因、研究价值边界与恢复入口文档。
