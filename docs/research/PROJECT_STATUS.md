@@ -512,6 +512,7 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 | 真实 DeepSeek 子集 | 4 场景 × CIEDG/Native；22 requests、59,515 tokens；追加审计后 CIEDG 1/4、Native 0/4 |
 | 数据隐私 | 仅确定性合成 EEG；不发送波形，不保存密钥/认证头/本地密钥路径 |
 | 完整回归 | `compileall`、`pip check` 通过；221 tests：209 passed、12 resource-gated skipped、0 failed |
+| GitHub CI | `unit-tests` run `40053581867` 对提交 `a326837` 完成，结论 `success` |
 
 ### 失败分类
 
@@ -534,3 +535,4 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `ffe9ee3`：锁定 development evaluator、Expert 与消融结果。
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
 - `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
+- `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。
