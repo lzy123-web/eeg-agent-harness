@@ -7,8 +7,8 @@
 - 确定性 20 项新增模块测试（本地权重可用时全部运行）覆盖独立任务族、双窗数值 oracle、跨族同图、事件 scope 共享/隔离、模型门控、失效局部恢复、澄清恢复、内部前提与额外输出目标区分、共指/引文和证据序列化。末次完整 **258 tests / OK / 14 skipped**，`compileall`、`pip check` 通过；本地权重门控 v3 **20/20 OK**。Fake 三案例：双窗、连续+事件、缺参→继续均完成。
 - 真实 DeepSeek 仅合成数据四轮共 15 completion/32,066 tokens；首三轮错误和完整原始响应均留忽略的本地 `artifacts/`，末轮三案例完成。请求 `deepseek-chat`，末轮响应四次均报告 `deepseek-flash`。不是正式未见评价；后续代码整理只做 Fake/回归，不倒填新的真实成功。
 - 已发现并修订：单引文混淆实例范围和概念证据；同一事件共指须完整 scope 等价；Tool Calling 仅允许单字符冗余末括号修复；新版直接继承共享图而不继承 v2 事件适配类；任务内稳定实例 ID、来源阶段与质量窗口原子预检。不足：开放语言目标完备性、复杂共指、可授权部分执行、跨数据版本分支及正式公平 Expert/Native 比较未完成。
-- 已推送本地功能提交 `190f4ef`、研究文档 `ec284a1`、安全历史合并 `ff6246c`、独立任务核验 `124ded4` 与事件数值 oracle `3df256d`，均在原 PR #27 分支，未强推/合并 main。`3df256d` 的 GitHub Actions [`unit-tests` #169](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40100707862) 已成功；末次新增的内部前提/额外目标区分测试与状态同步需后续提交并核对新 CI。
-- 下一精确入口：提交最后的能力边界测试及状态同步，普通推送并核对新 CI；随后在 Issue #28 报告。勿重跑旧事件 benchmark 或进入 R3/ASD 真数据。
+- 已推送功能提交 `190f4ef`、研究文档 `ec284a1`、安全历史合并 `ff6246c`、独立任务核验 `124ded4` 与事件数值 oracle `3df256d`，均在原 PR #27 分支，未强推/合并 main。最后的内部前提/额外输出目标测试本地提交 `d751913` 因 HTTPS 暂时失联，使用 GitHub 仓库接口逐文件校验相同 Git tree `0da7875`，并以预期父 SHA 非强制发布等价远端提交 `192f81d`。两端 SHA 不同但文件树相同；后续本地继续开发前需 fetch/merge 对齐。远端 [`unit-tests` #171](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40101242537) **success**。
+- 下一精确入口：完成本状态同步与 Issue #28 客观报告；下次开发开始先安全 fetch/merge 本地与远端等价树提交。勿重跑旧事件 benchmark 或进入 R3/ASD 真数据。
 
 - 分支：`research/multitask-harness-method-v2`，从已审查的 `research/point1-integrated-method-v0` `bff8940` 建立；远端基线 SHA 已经仓库接口核对一致。旧 CIEDG、Issue #16 gold/trace/results 不改。
 - 纠偏检查点：已重新读取 Issue #26 正文与 [评论 6382639080](https://github.com/lzy123-web/eeg-agent-harness/issues/26#issuecomment-6382639080)。明确“保留/任务专有化/重构”清单见设计文档；本地初版虽然连续与事件走同一 `run/_reconcile`，但仍继承 event-only 类与 Epoch 默认结构，因此**尚未达到共同机制验收**。

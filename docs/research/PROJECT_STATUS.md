@@ -7,8 +7,8 @@
 - 已完成变更：`v3.py`、`v3_agent.py`、`v3_application.py`、`v3_validation.py`、`agent_cli.py` 与新增自动化测试；长期规则和四份既有研究文档同步。相同能力不同窗口有独立实例/结果，完全同参数才可共享；事件 producer 只有全 scope 一致才共享；缺参等待澄清、整体不适用零调用拒绝；状态变化只撤销受影响证据。
 - 实际验证：合成双窗 PSD 经独立 SciPy Welch/积分核对，事件条件 alpha 功率经逐 Epoch 独立聚合核对；混合连续与事件经真实 Registry/Executor 执行且无未授权筛选；合成 22 导结合本地既有权重做一次真实模型输出结构检查，缺权重/错 Profile 均零调用拒绝。Fake 三案例完成。真实 DeepSeek 四轮开发检查累计 15 completion/32,066 tokens，首三轮误拒、协议/缺参分类失败保留，末轮双窗、跨族、澄清后继续均完成；只发送合成元数据/请求，不外发真实数据。请求 `deepseek-chat`，末轮响应报告 `deepseek-flash`；不能据此宣称稳定泛化或论文优势。完整回归末次 258 tests（14 skipped）通过；`compileall`、`pip check`、v3 本地权重门控 20/20 均通过。
 - 遗留问题：语言目标完备性和复杂共指未得到独立验证；用户确认后的部分执行尚未实现；数据版本分叉只作安全拒绝；大 EEG 全记录哈希有性能成本；严格模型训练来源仍“源码未提供”；正式同预算 Native/强动态 Expert 与消融需另行冻结协议。ASD 应用仍缺标签/参与者/范式、适龄参考和专业解释资料。
-- 下一任务入口：完成本轮最终测试、隐私扫描、提交/推送、核对 PR CI 并在 Issue #28 报告；后续才准备独立未见任务集和公平对照。旧 v2 章节以下保持历史原文。
-- Git Commit / 推送：功能与测试 `190f4ef`、研究文档 `ec284a1`、与远端等价树历史的安全合并 `ff6246c`、独立任务/来源核验 `124ded4`、事件数值 oracle `3df256d` 均已普通推送至 Draft PR #27 分支，未 force push/合并 main。[GitHub Actions #169](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40100707862) 对 `3df256d` 成功；最后新增前提/额外目标边界测试与状态同步待提交/核对 CI。
+- 下一任务入口：本轮只剩状态同步与 Issue #28 客观报告；下次开发先安全 fetch/merge 本地与远端等价树历史，再准备独立未见任务集和同预算强 Expert/Native 对照。旧 v2 章节以下保持历史原文。
+- Git Commit / 推送：`190f4ef`、`ec284a1`、安全合并 `ff6246c`、`124ded4`、`3df256d` 已普通推送至 Draft PR #27。最后测试本地提交 `d751913` 遇 HTTPS 网络故障，改用 GitHub 仓库接口逐文件校验相同 Git tree `0da7875`，以预期父 SHA 非强制发布等价远端提交 `192f81d`。两端 SHA 不同但文件树相同；下次本地开发前需安全 fetch/merge。未 force push/合并 main。[GitHub Actions #171](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40101242537) 对远端 `192f81d` **success**。本状态同步为后续纯文档提交，不改变功能或历史实验。
 
 ## 2026-10-24 当前更新：Issue #26 多任务共同机制研发（旧章节保留历史原文）
 
