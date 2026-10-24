@@ -1,0 +1,2640 @@
+{
+  "protocol_id": "eeg-intent-compiler-v1-real-agent-check",
+  "protocol_sha256": "b14fcb611ac2f8c854fb5b543860f2e76597be4b4e13ddf576f6ce95d544af9f",
+  "generated_at_utc": "2026-10-24T02:54:56.554678+00:00",
+  "input_data": "deterministic synthetic EEG only",
+  "raw_eeg_sent_to_llm": false,
+  "gold_visible_to_runtime": false,
+  "requested_model": "deepseek-flash",
+  "budget": {
+    "max_requests": 4,
+    "max_tokens": 12000,
+    "request_count": 4,
+    "total_tokens": 10162
+  },
+  "cases": [
+    {
+      "case_id": "I10",
+      "request": "Report absolute PSD band power for SYNTH-C1 from 0 to 2 seconds.",
+      "requested_model": "deepseek-flash",
+      "response_models": [
+        "deepseek-flash",
+        "deepseek-flash"
+      ],
+      "provider_requests": 2,
+      "provider_tokens": 3078,
+      "result": {
+        "method": "ciedg_with_eeg_intent_compiler_v1",
+        "stop_reason": "completed",
+        "interpretation": {
+          "success": true,
+          "disposition": "execute",
+          "intent": {
+            "analysis_type": "psd",
+            "objectives": [],
+            "parameters": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            },
+            "explicit_evidence": {
+              "channels": "SYNTH-C1",
+              "start": "0",
+              "end": "2 seconds"
+            },
+            "semantic_evidence": {
+              "spectral_power": "absolute PSD band power"
+            },
+            "unknown_slots": [
+              "band_definitions"
+            ],
+            "forbidden_operations": [],
+            "source_stage": "current",
+            "output_boundary": "Descriptive absolute PSD band power for channel SYNTH-C1 over the 0-2 s continuous window only; no clinical interpretation.",
+            "rationale": "用户请求连续时间窗内单通道的绝对 PSD 频带功率，属于 psd 分析，使用 channels/start/end 槽位；未指定具体频带定义，故记入 unknown_slots。"
+          },
+          "missing_slots": [],
+          "error": null
+        },
+        "ledger": {
+          "context_id": "intent-agent-I10",
+          "analysis_type": "psd",
+          "obligations": [
+            {
+              "obligation_id": "analysis",
+              "kind": "analysis_type",
+              "expected": "psd",
+              "source_quote": ""
+            },
+            {
+              "obligation_id": "source",
+              "kind": "source_stage",
+              "expected": "current",
+              "source_quote": ""
+            },
+            {
+              "obligation_id": "parameter:channels",
+              "kind": "parameter",
+              "expected": {
+                "name": "channels",
+                "value": [
+                  "SYNTH-C1"
+                ]
+              },
+              "source_quote": "SYNTH-C1"
+            },
+            {
+              "obligation_id": "parameter:start",
+              "kind": "parameter",
+              "expected": {
+                "name": "start",
+                "value": 0
+              },
+              "source_quote": "0"
+            },
+            {
+              "obligation_id": "parameter:end",
+              "kind": "parameter",
+              "expected": {
+                "name": "end",
+                "value": 2
+              },
+              "source_quote": "2 seconds"
+            },
+            {
+              "obligation_id": "evidence",
+              "kind": "successful_tools",
+              "expected": [
+                "psd"
+              ],
+              "source_quote": ""
+            }
+          ],
+          "forbidden_tools": []
+        },
+        "plan_check": {
+          "valid": true,
+          "code": null,
+          "violations": [],
+          "planned_tools": [
+            "psd"
+          ]
+        },
+        "execution": {
+          "status": "completed",
+          "plan": {
+            "task_id": "point1-task",
+            "status": "ready",
+            "steps": [
+              {
+                "step_id": "invoke",
+                "tool_name": "psd",
+                "arguments": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 0,
+                  "end": 2
+                },
+                "depends_on": [],
+                "purpose": "requested tool operation"
+              }
+            ],
+            "reason": null,
+            "state_summary": {
+              "context_id": "intent-agent-I10",
+              "profile_id": "edf_native"
+            }
+          },
+          "tool_results": [
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "success": true,
+              "data": {
+                "SYNTH-C1": {
+                  "delta": "5.42e-12",
+                  "theta": "4.35e-12",
+                  "alpha": "9.56e-11",
+                  "beta": "7.97e-13",
+                  "gamma": "3.96e-14"
+                }
+              },
+              "error": null,
+              "duration_ms": 10.084
+            }
+          ],
+          "planning_trace": [
+            {
+              "event": "plan_created",
+              "status": "ready",
+              "reason": null
+            },
+            {
+              "event": "obligations_checked",
+              "valid": true,
+              "code": null,
+              "violations": [],
+              "planned_tools": [
+                "psd"
+              ]
+            },
+            {
+              "event": "step_executed",
+              "step_id": "invoke",
+              "success": true,
+              "error_code": null
+            }
+          ],
+          "execution_trace": {
+            "task_id": "intent-agent-I10",
+            "profile_id": "edf_native",
+            "source": {
+              "kind": "synthetic",
+              "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+            },
+            "started_at_utc": "2026-10-24T02:54:47.697840+00:00",
+            "ended_at_utc": "2026-10-24T02:54:49.926676+00:00",
+            "termination_reason": "completed",
+            "events": [
+              {
+                "sequence": 1,
+                "request_id": "invoke",
+                "tool_name": "psd",
+                "arguments": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 0,
+                  "end": 2
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "SYNTH-C1"
+                  ]
+                },
+                "duration_ms": 10.084,
+                "error": null
+              }
+            ]
+          },
+          "replans": 0,
+          "duration_ms": 10.193
+        },
+        "evidence_check": {
+          "closed": true,
+          "violations": [],
+          "successful_tools": [
+            "psd"
+          ],
+          "termination_status": "completed"
+        },
+        "answer_check": {
+          "valid": true,
+          "code": null,
+          "required_tools": [
+            "psd"
+          ],
+          "cited_tools": [
+            "psd"
+          ],
+          "references": [
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "path": [
+                "SYNTH-C1",
+                "delta"
+              ],
+              "value": "5.42e-12"
+            },
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "path": [
+                "SYNTH-C1",
+                "theta"
+              ],
+              "value": "4.35e-12"
+            },
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "path": [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              "value": "9.56e-11"
+            },
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "path": [
+                "SYNTH-C1",
+                "beta"
+              ],
+              "value": "7.97e-13"
+            },
+            {
+              "request_id": "invoke",
+              "tool_name": "psd",
+              "path": [
+                "SYNTH-C1",
+                "gamma"
+              ],
+              "value": "3.96e-14"
+            }
+          ]
+        },
+        "final_answer": "证据受限结果：psd.SYNTH-C1.delta=5.42e-12；psd.SYNTH-C1.theta=4.35e-12；psd.SYNTH-C1.alpha=9.56e-11；psd.SYNTH-C1.beta=7.97e-13；psd.SYNTH-C1.gamma=3.96e-14。以上仅对应已执行工具及当前科学条件，不构成临床诊断。",
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 2,
+          "usage": {
+            "prompt_tokens": 2572,
+            "completion_tokens": 506,
+            "total_tokens": 3078,
+            "prompt_cache_hit_tokens": 1152,
+            "prompt_cache_miss_tokens": 1420
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "tool_calls"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "I01",
+      "request": "For target events, inspect 0–1 s epochs, remove empirically flagged trials with my permission, then report the retained trial count and absolute band power.",
+      "requested_model": "deepseek-flash",
+      "response_models": [
+        "deepseek-flash",
+        "deepseek-flash"
+      ],
+      "provider_requests": 2,
+      "provider_tokens": 7084,
+      "result": {
+        "method": "ciedg_with_eeg_intent_compiler_v1",
+        "stop_reason": "completed",
+        "interpretation": {
+          "success": true,
+          "disposition": "execute",
+          "intent": {
+            "analysis_type": "event_workflow",
+            "objectives": [
+              "epoch_quality",
+              "trial_selection",
+              "epoch_summary",
+              "event_bandpower"
+            ],
+            "parameters": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1,
+              "selection_authorized": true
+            },
+            "explicit_evidence": {
+              "labels": "target events",
+              "tmin": "0–1 s",
+              "tmax": "0–1 s",
+              "selection_authorized": "remove empirically flagged trials with my permission"
+            },
+            "semantic_evidence": {
+              "event_locked": "target events, inspect 0–1 s epochs",
+              "quality_measurement": "inspect 0–1 s epochs",
+              "trial_selection": "remove empirically flagged trials with my permission",
+              "epoch_summary": "report the retained trial count",
+              "spectral_power": "absolute band power"
+            },
+            "unknown_slots": [
+              "channels",
+              "band_definitions",
+              "quality_thresholds"
+            ],
+            "forbidden_operations": [],
+            "source_stage": "current",
+            "output_boundary": "Report epoch quality inspection, empirically flagged trial removal (authorized), retained trial count, and absolute band power for target events in 0–1 s epochs; no rereferencing, no clinical interpretation.",
+            "rationale": "User requests an event-locked workflow on \"target\" labels with 0–1 s epochs, authorized removal of empirically flagged trials, reporting of retained trial count and absolute band power. Absolute band power at events is not ERP/ERD-ERS. Channels and band definitions are unspecified and left unknown; no rereferencing authorized."
+          },
+          "missing_slots": [],
+          "error": null
+        },
+        "ledger": {
+          "context_id": "intent-agent-I01",
+          "analysis_type": "event_workflow",
+          "obligations": [
+            {
+              "obligation_id": "analysis",
+              "kind": "analysis_type",
+              "expected": "event_workflow",
+              "source_quote": ""
+            },
+            {
+              "obligation_id": "source",
+              "kind": "source_stage",
+              "expected": "current",
+              "source_quote": ""
+            },
+            {
+              "obligation_id": "parameter:labels",
+              "kind": "parameter",
+              "expected": {
+                "name": "labels",
+                "value": [
+                  "target"
+                ]
+              },
+              "source_quote": "target events"
+            },
+            {
+              "obligation_id": "parameter:tmin",
+              "kind": "parameter",
+              "expected": {
+                "name": "tmin",
+                "value": 0
+              },
+              "source_quote": "0–1 s"
+            },
+            {
+              "obligation_id": "parameter:tmax",
+              "kind": "parameter",
+              "expected": {
+                "name": "tmax",
+                "value": 1
+              },
+              "source_quote": "0–1 s"
+            },
+            {
+              "obligation_id": "parameter:selection_authorized",
+              "kind": "parameter",
+              "expected": {
+                "name": "selection_authorized",
+                "value": true
+              },
+              "source_quote": "remove empirically flagged trials with my permission"
+            },
+            {
+              "obligation_id": "objectives",
+              "kind": "objectives",
+              "expected": [
+                "epoch_quality",
+                "trial_selection",
+                "epoch_summary",
+                "event_bandpower"
+              ],
+              "source_quote": ""
+            },
+            {
+              "obligation_id": "evidence",
+              "kind": "successful_tools",
+              "expected": [
+                "list_events",
+                "create_epochs",
+                "epoch_quality",
+                "select_quality_epochs",
+                "epoch_summary",
+                "event_bandpower"
+              ],
+              "source_quote": ""
+            }
+          ],
+          "forbidden_tools": []
+        },
+        "plan_check": {
+          "valid": true,
+          "code": null,
+          "violations": [],
+          "planned_tools": [
+            "list_events",
+            "create_epochs",
+            "epoch_quality",
+            "select_quality_epochs",
+            "epoch_summary",
+            "event_bandpower"
+          ]
+        },
+        "execution": {
+          "status": "completed",
+          "plan": {
+            "task_id": "point1-task",
+            "status": "ready",
+            "steps": [
+              {
+                "step_id": "observe-events",
+                "tool_name": "list_events",
+                "arguments": {},
+                "depends_on": [],
+                "purpose": "record visible event state"
+              },
+              {
+                "step_id": "produce-artifact",
+                "tool_name": "create_epochs",
+                "arguments": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1
+                },
+                "depends_on": [
+                  "observe-events"
+                ],
+                "purpose": "produce one shared Epoch artifact for all requested objectives"
+              },
+              {
+                "step_id": "measure-quality",
+                "tool_name": "epoch_quality",
+                "arguments": {
+                  "artifact_id": {
+                    "$result": "produce-artifact",
+                    "path": [
+                      "artifact_id"
+                    ]
+                  }
+                },
+                "depends_on": [
+                  "produce-artifact"
+                ],
+                "purpose": "measure quality on the current effective Epoch state"
+              },
+              {
+                "step_id": "select-quality",
+                "tool_name": "select_quality_epochs",
+                "arguments": {
+                  "artifact_id": {
+                    "$result": "produce-artifact",
+                    "path": [
+                      "artifact_id"
+                    ]
+                  }
+                },
+                "depends_on": [
+                  "measure-quality"
+                ],
+                "purpose": "apply explicitly authorized empirical selection"
+              },
+              {
+                "step_id": "summarise-epochs",
+                "tool_name": "epoch_summary",
+                "arguments": {
+                  "artifact_id": {
+                    "$result": "select-quality",
+                    "path": [
+                      "artifact_id"
+                    ]
+                  }
+                },
+                "depends_on": [
+                  "select-quality"
+                ],
+                "purpose": "summarise the current effective Epoch artifact"
+              },
+              {
+                "step_id": "analyse-events",
+                "tool_name": "event_bandpower",
+                "arguments": {
+                  "artifact_id": {
+                    "$result": "select-quality",
+                    "path": [
+                      "artifact_id"
+                    ]
+                  }
+                },
+                "depends_on": [
+                  "select-quality"
+                ],
+                "purpose": "analyse the selected artifact only when selection is an authorized objective"
+              }
+            ],
+            "reason": null,
+            "state_summary": {
+              "context_id": "intent-agent-I01",
+              "profile_id": "edf_native"
+            }
+          },
+          "tool_results": [
+            {
+              "request_id": "v11-observe_events-a1",
+              "tool_name": "list_events",
+              "success": true,
+              "data": {
+                "event_count": 3,
+                "labels": {
+                  "target": 3
+                },
+                "time_reference": "seconds_from_record_start",
+                "first_onset_seconds": 1.0,
+                "last_onset_seconds": 7.0,
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                }
+              },
+              "error": null,
+              "duration_ms": 0.279
+            },
+            {
+              "request_id": "v11-create_epochs-a1",
+              "tool_name": "create_epochs",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                "valid_epoch_count": 3,
+                "rejected_epoch_count": 0,
+                "shape": [
+                  3,
+                  2,
+                  128
+                ],
+                "channel_names": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "sfreq": 128.0,
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "baseline": null,
+                "reference": "synthetic native reference",
+                "event_labels": [
+                  "target",
+                  "target",
+                  "target"
+                ],
+                "event_onsets_seconds": [
+                  1.0,
+                  4.0,
+                  7.0
+                ],
+                "rejected": [],
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+                },
+                "parameters": {
+                  "selected_labels": [
+                    "target"
+                  ],
+                  "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                  "sampling_alignment": "round(seconds * sfreq)",
+                  "event_source": {
+                    "kind": "synthetic",
+                    "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                  }
+                }
+              },
+              "error": null,
+              "duration_ms": 2.331
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "success": true,
+              "data": {
+                "evidence_id": "evidence-bd55ec00c8205534",
+                "evidence_type": "epoch_quality",
+                "profile_id": "edf_native",
+                "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                "epoch_counts": {
+                  "requested_or_boundary_checked": 3,
+                  "created": 3,
+                  "boundary_rejected": 0,
+                  "quality_flagged": 1,
+                  "quality_usable": 2
+                },
+                "condition_counts_before_quality": {
+                  "target": 3
+                },
+                "condition_counts_quality_usable": {
+                  "target": 2
+                },
+                "quality_flag_reasons": {
+                  "HIGH_AMPLITUDE": 2
+                },
+                "flagged_epoch_indices": [
+                  1
+                ],
+                "usable_fraction_of_created": 0.6666666666666666,
+                "thresholds": {
+                  "flatline_delta_volts": 1e-08,
+                  "flatline_fraction": 0.95,
+                  "high_amplitude_volts": 0.0002,
+                  "high_amplitude_fraction": 0.01,
+                  "line_noise_ratio": 0.2
+                },
+                "threshold_status": "empirical_not_clinically_calibrated",
+                "validity": "screening_suggestion_only; no automatic deletion performed"
+              },
+              "error": null,
+              "duration_ms": 2.28
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "valid_epoch_count": 2,
+                "rejected_epoch_count": 0,
+                "shape": [
+                  2,
+                  2,
+                  128
+                ],
+                "channel_names": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "sfreq": 128.0,
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "baseline": null,
+                "reference": "synthetic native reference",
+                "event_labels": [
+                  "target",
+                  "target"
+                ],
+                "event_onsets_seconds": [
+                  1.0,
+                  7.0
+                ],
+                "rejected": [],
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+                },
+                "parameters": {
+                  "selected_labels": [
+                    "target"
+                  ],
+                  "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                  "sampling_alignment": "round(seconds * sfreq)",
+                  "event_source": {
+                    "kind": "synthetic",
+                    "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                  },
+                  "quality_selection_evidence_id": "evidence-bd55ec00c8205534",
+                  "excluded_epoch_indices": [
+                    1
+                  ]
+                },
+                "selection": {
+                  "input_epoch_count": 3,
+                  "excluded_epoch_count": 1,
+                  "output_epoch_count": 2,
+                  "evidence_id": "evidence-bd55ec00c8205534"
+                }
+              },
+              "error": null,
+              "duration_ms": 1.46
+            },
+            {
+              "request_id": "v11-epoch_summary-a1",
+              "tool_name": "epoch_summary",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "valid_epoch_count": 2,
+                "rejected_epoch_count": 0,
+                "shape": [
+                  2,
+                  2,
+                  128
+                ],
+                "channel_names": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "sfreq": 128.0,
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "baseline": null,
+                "reference": "synthetic native reference",
+                "event_labels": [
+                  "target",
+                  "target"
+                ],
+                "event_onsets_seconds": [
+                  1.0,
+                  7.0
+                ],
+                "rejected": [],
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+                },
+                "parameters": {
+                  "selected_labels": [
+                    "target"
+                  ],
+                  "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                  "sampling_alignment": "round(seconds * sfreq)",
+                  "event_source": {
+                    "kind": "synthetic",
+                    "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                  },
+                  "quality_selection_evidence_id": "evidence-bd55ec00c8205534",
+                  "excluded_epoch_indices": [
+                    1
+                  ]
+                }
+              },
+              "error": null,
+              "duration_ms": 0.409
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 2,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.87817631882316e-26,
+                        "theta": 1.5051023261804092e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509649221875517e-25,
+                        "gamma": 5.392362418373117e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.381097170554217e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.3053552456894275e-26,
+                        "beta": 9.976668195112122e-26,
+                        "gamma": 3.423910533115516e-25
+                      }
+                    }
+                  }
+                }
+              },
+              "error": null,
+              "duration_ms": 4.312
+            }
+          ],
+          "planning_trace": [
+            {
+              "event": "static_preflight_reused",
+              "status": "ready"
+            },
+            {
+              "event": "obligations_checked",
+              "valid": true,
+              "code": null,
+              "violations": [],
+              "planned_tools": [
+                "list_events",
+                "create_epochs",
+                "epoch_quality",
+                "select_quality_epochs",
+                "epoch_summary",
+                "event_bandpower"
+              ]
+            },
+            {
+              "event": "goal_contract_graph_compiled",
+              "active_goals": [
+                "observe_events",
+                "create_epochs",
+                "epoch_quality",
+                "trial_selection",
+                "epoch_summary",
+                "event_bandpower"
+              ],
+              "dependencies": {
+                "epoch_quality": [
+                  "create_epochs"
+                ],
+                "create_epochs": [
+                  "observe_events"
+                ],
+                "observe_events": [],
+                "trial_selection": [
+                  "epoch_quality"
+                ],
+                "epoch_summary": [
+                  "trial_selection"
+                ],
+                "event_bandpower": [
+                  "trial_selection"
+                ]
+              }
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-observe_events-a1",
+              "kind": "observe_events",
+              "tool_name": "list_events",
+              "arguments": {},
+              "purpose": "satisfy residual goal observe_events from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {}
+                },
+                "artifacts": {
+                  "created": null,
+                  "created_fingerprint": null,
+                  "selected": null,
+                  "selected_fingerprint": null,
+                  "effective": null,
+                  "effective_fingerprint": null
+                },
+                "quality": null,
+                "selection_mode": null,
+                "goals": {
+                  "epoch_quality": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "trial_selection": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "epoch_summary": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-observe_events-a1",
+              "goal": "observe_events",
+              "success": true,
+              "error_code": null
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-create_epochs-a1",
+              "kind": "create_epochs",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "purpose": "satisfy residual goal create_epochs from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {
+                    "observe_events": {
+                      "goal": "observe_events",
+                      "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "tool_name": "list_events",
+                      "request_id": "v11-observe_events-a1",
+                      "dependency_tokens": {},
+                      "input_binding": null,
+                      "output_binding": null,
+                      "mode": null
+                    }
+                  }
+                },
+                "artifacts": {
+                  "created": null,
+                  "created_fingerprint": null,
+                  "selected": null,
+                  "selected_fingerprint": null,
+                  "effective": null,
+                  "effective_fingerprint": null
+                },
+                "quality": null,
+                "selection_mode": null,
+                "goals": {
+                  "epoch_quality": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "trial_selection": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "epoch_summary": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1,
+                  "create_epochs": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-create_epochs-a1",
+              "goal": "create_epochs",
+              "success": true,
+              "error_code": null
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-epoch_quality-a1",
+              "kind": "epoch_quality",
+              "tool_name": "epoch_quality",
+              "arguments": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+              },
+              "purpose": "satisfy residual goal epoch_quality from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {
+                    "observe_events": {
+                      "goal": "observe_events",
+                      "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "tool_name": "list_events",
+                      "request_id": "v11-observe_events-a1",
+                      "dependency_tokens": {},
+                      "input_binding": null,
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "create_epochs": {
+                      "goal": "create_epochs",
+                      "token_id": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4",
+                      "semantic_id": "goal-token:7840271219d1c203fa3070215cf44bb869a6a7d3b3ac38a50a766d2849d199b8",
+                      "tool_name": "create_epochs",
+                      "request_id": "v11-create_epochs-a1",
+                      "dependency_tokens": {
+                        "observe_events": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085"
+                      },
+                      "input_binding": null,
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "mode": null
+                    }
+                  }
+                },
+                "artifacts": {
+                  "created": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "selected": null,
+                  "selected_fingerprint": null,
+                  "effective": null,
+                  "effective_fingerprint": null
+                },
+                "quality": null,
+                "selection_mode": null,
+                "goals": {
+                  "epoch_quality": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "trial_selection": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "epoch_summary": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1,
+                  "create_epochs": 1,
+                  "epoch_quality": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-epoch_quality-a1",
+              "goal": "epoch_quality",
+              "success": true,
+              "error_code": null
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-trial_selection-a1",
+              "kind": "trial_selection",
+              "tool_name": "select_quality_epochs",
+              "arguments": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                "expected_quality_evidence_id": "evidence-bd55ec00c8205534"
+              },
+              "purpose": "satisfy residual goal trial_selection from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {
+                    "observe_events": {
+                      "goal": "observe_events",
+                      "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "tool_name": "list_events",
+                      "request_id": "v11-observe_events-a1",
+                      "dependency_tokens": {},
+                      "input_binding": null,
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "create_epochs": {
+                      "goal": "create_epochs",
+                      "token_id": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4",
+                      "semantic_id": "goal-token:7840271219d1c203fa3070215cf44bb869a6a7d3b3ac38a50a766d2849d199b8",
+                      "tool_name": "create_epochs",
+                      "request_id": "v11-create_epochs-a1",
+                      "dependency_tokens": {
+                        "observe_events": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085"
+                      },
+                      "input_binding": null,
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "mode": null
+                    },
+                    "epoch_quality": {
+                      "goal": "epoch_quality",
+                      "token_id": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5",
+                      "semantic_id": "goal-token:3fbfa5174caabe548e088bc932072df34ab806760d9a21207f523929ba583967",
+                      "tool_name": "epoch_quality",
+                      "request_id": "v11-epoch_quality-a1",
+                      "dependency_tokens": {
+                        "create_epochs": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "output_binding": null,
+                      "mode": null
+                    }
+                  }
+                },
+                "artifacts": {
+                  "created": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "selected": null,
+                  "selected_fingerprint": null,
+                  "effective": null,
+                  "effective_fingerprint": null
+                },
+                "quality": {
+                  "request_id": "v11-epoch_quality-a1",
+                  "evidence_id": "evidence-bd55ec00c8205534",
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "epoch_counts": {
+                    "requested_or_boundary_checked": 3,
+                    "created": 3,
+                    "boundary_rejected": 0,
+                    "quality_flagged": 1,
+                    "quality_usable": 2
+                  },
+                  "condition_counts_quality_usable": {
+                    "target": 2
+                  },
+                  "threshold_status": "empirical_not_clinically_calibrated"
+                },
+                "selection_mode": null,
+                "goals": {
+                  "epoch_quality": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                  },
+                  "trial_selection": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "epoch_summary": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1,
+                  "create_epochs": 1,
+                  "epoch_quality": 1,
+                  "trial_selection": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-trial_selection-a1",
+              "goal": "trial_selection",
+              "success": true,
+              "error_code": null
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-epoch_summary-a1",
+              "kind": "epoch_summary",
+              "tool_name": "epoch_summary",
+              "arguments": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "expected_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+              },
+              "purpose": "satisfy residual goal epoch_summary from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {
+                    "observe_events": {
+                      "goal": "observe_events",
+                      "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "tool_name": "list_events",
+                      "request_id": "v11-observe_events-a1",
+                      "dependency_tokens": {},
+                      "input_binding": null,
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "create_epochs": {
+                      "goal": "create_epochs",
+                      "token_id": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4",
+                      "semantic_id": "goal-token:7840271219d1c203fa3070215cf44bb869a6a7d3b3ac38a50a766d2849d199b8",
+                      "tool_name": "create_epochs",
+                      "request_id": "v11-create_epochs-a1",
+                      "dependency_tokens": {
+                        "observe_events": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085"
+                      },
+                      "input_binding": null,
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "mode": null
+                    },
+                    "epoch_quality": {
+                      "goal": "epoch_quality",
+                      "token_id": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5",
+                      "semantic_id": "goal-token:3fbfa5174caabe548e088bc932072df34ab806760d9a21207f523929ba583967",
+                      "tool_name": "epoch_quality",
+                      "request_id": "v11-epoch_quality-a1",
+                      "dependency_tokens": {
+                        "create_epochs": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "trial_selection": {
+                      "goal": "trial_selection",
+                      "token_id": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8",
+                      "semantic_id": "goal-token:8ea56ffb55abf8f6d0954d0f23600b96b488de21b69e8c3b5df7b643381e4533",
+                      "tool_name": "select_quality_epochs",
+                      "request_id": "v11-trial_selection-a1",
+                      "dependency_tokens": {
+                        "epoch_quality": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                        "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                      },
+                      "mode": "derived"
+                    }
+                  }
+                },
+                "artifacts": {
+                  "created": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "selected": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "selected_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                  "effective": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "effective_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                },
+                "quality": {
+                  "request_id": "v11-epoch_quality-a1",
+                  "evidence_id": "evidence-bd55ec00c8205534",
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "epoch_counts": {
+                    "requested_or_boundary_checked": 3,
+                    "created": 3,
+                    "boundary_rejected": 0,
+                    "quality_flagged": 1,
+                    "quality_usable": 2
+                  },
+                  "condition_counts_quality_usable": {
+                    "target": 2
+                  },
+                  "threshold_status": "empirical_not_clinically_calibrated"
+                },
+                "selection_mode": "derived",
+                "goals": {
+                  "epoch_quality": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                  },
+                  "trial_selection": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+                  },
+                  "epoch_summary": {
+                    "status": "pending",
+                    "evidence": null
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1,
+                  "create_epochs": 1,
+                  "epoch_quality": 1,
+                  "trial_selection": 1,
+                  "epoch_summary": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-epoch_summary-a1",
+              "goal": "epoch_summary",
+              "success": true,
+              "error_code": null
+            },
+            {
+              "event": "contract_frontier_planned",
+              "request_id": "v11-event_bandpower-a1",
+              "kind": "event_bandpower",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "expected_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+              },
+              "purpose": "satisfy residual goal event_bandpower from declared contract",
+              "state_before": {
+                "context_id": "intent-agent-I01",
+                "profile_id": "edf_native",
+                "immutable_task": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1,
+                  "objectives": [
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "selection_authorized": true
+                },
+                "graph": {
+                  "active_goals": [
+                    "observe_events",
+                    "create_epochs",
+                    "epoch_quality",
+                    "trial_selection",
+                    "epoch_summary",
+                    "event_bandpower"
+                  ],
+                  "dependencies": {
+                    "epoch_quality": [
+                      "create_epochs"
+                    ],
+                    "create_epochs": [
+                      "observe_events"
+                    ],
+                    "observe_events": [],
+                    "trial_selection": [
+                      "epoch_quality"
+                    ],
+                    "epoch_summary": [
+                      "trial_selection"
+                    ],
+                    "event_bandpower": [
+                      "trial_selection"
+                    ]
+                  },
+                  "evidence": {
+                    "observe_events": {
+                      "goal": "observe_events",
+                      "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                      "tool_name": "list_events",
+                      "request_id": "v11-observe_events-a1",
+                      "dependency_tokens": {},
+                      "input_binding": null,
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "create_epochs": {
+                      "goal": "create_epochs",
+                      "token_id": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4",
+                      "semantic_id": "goal-token:7840271219d1c203fa3070215cf44bb869a6a7d3b3ac38a50a766d2849d199b8",
+                      "tool_name": "create_epochs",
+                      "request_id": "v11-create_epochs-a1",
+                      "dependency_tokens": {
+                        "observe_events": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085"
+                      },
+                      "input_binding": null,
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "mode": null
+                    },
+                    "epoch_quality": {
+                      "goal": "epoch_quality",
+                      "token_id": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5",
+                      "semantic_id": "goal-token:3fbfa5174caabe548e088bc932072df34ab806760d9a21207f523929ba583967",
+                      "tool_name": "epoch_quality",
+                      "request_id": "v11-epoch_quality-a1",
+                      "dependency_tokens": {
+                        "create_epochs": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "output_binding": null,
+                      "mode": null
+                    },
+                    "trial_selection": {
+                      "goal": "trial_selection",
+                      "token_id": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8",
+                      "semantic_id": "goal-token:8ea56ffb55abf8f6d0954d0f23600b96b488de21b69e8c3b5df7b643381e4533",
+                      "tool_name": "select_quality_epochs",
+                      "request_id": "v11-trial_selection-a1",
+                      "dependency_tokens": {
+                        "epoch_quality": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                        "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                      },
+                      "output_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                        "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                      },
+                      "mode": "derived"
+                    },
+                    "epoch_summary": {
+                      "goal": "epoch_summary",
+                      "token_id": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19",
+                      "semantic_id": "goal-token:eb2b612574f3d989f438795c528a9234902f7f826b1aeb8f4b823bc46c2e21d3",
+                      "tool_name": "epoch_summary",
+                      "request_id": "v11-epoch_summary-a1",
+                      "dependency_tokens": {
+                        "trial_selection": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+                      },
+                      "input_binding": {
+                        "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                        "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                      },
+                      "output_binding": null,
+                      "mode": null
+                    }
+                  }
+                },
+                "artifacts": {
+                  "created": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "selected": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "selected_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                  "effective": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "effective_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                },
+                "quality": {
+                  "request_id": "v11-epoch_quality-a1",
+                  "evidence_id": "evidence-bd55ec00c8205534",
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "epoch_counts": {
+                    "requested_or_boundary_checked": 3,
+                    "created": 3,
+                    "boundary_rejected": 0,
+                    "quality_flagged": 1,
+                    "quality_usable": 2
+                  },
+                  "condition_counts_quality_usable": {
+                    "target": 2
+                  },
+                  "threshold_status": "empirical_not_clinically_calibrated"
+                },
+                "selection_mode": "derived",
+                "goals": {
+                  "epoch_quality": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                  },
+                  "trial_selection": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+                  },
+                  "epoch_summary": {
+                    "status": "satisfied",
+                    "evidence": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19"
+                  },
+                  "event_bandpower": {
+                    "status": "pending",
+                    "evidence": null
+                  }
+                },
+                "attempts": {
+                  "observe_events": 1,
+                  "create_epochs": 1,
+                  "epoch_quality": 1,
+                  "trial_selection": 1,
+                  "epoch_summary": 1,
+                  "event_bandpower": 1
+                },
+                "retries": 0,
+                "repairs": 0,
+                "blocked": null
+              }
+            },
+            {
+              "event": "contract_frontier_executed",
+              "request_id": "v11-event_bandpower-a1",
+              "goal": "event_bandpower",
+              "success": true,
+              "error_code": null
+            }
+          ],
+          "execution_trace": {
+            "task_id": "intent-agent-I01",
+            "profile_id": "edf_native",
+            "source": {
+              "kind": "synthetic",
+              "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+            },
+            "started_at_utc": "2026-10-24T02:54:51.205480+00:00",
+            "ended_at_utc": "2026-10-24T02:54:54.146554+00:00",
+            "termination_reason": "v11_completed",
+            "events": [
+              {
+                "sequence": 1,
+                "request_id": "v11-observe_events-a1",
+                "tool_name": "list_events",
+                "arguments": {},
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "event_count",
+                    "labels",
+                    "time_reference",
+                    "first_onset_seconds",
+                    "last_onset_seconds",
+                    "source"
+                  ]
+                },
+                "duration_ms": 0.279,
+                "error": null
+              },
+              {
+                "sequence": 2,
+                "request_id": "v11-create_epochs-a1",
+                "tool_name": "create_epochs",
+                "arguments": {
+                  "labels": [
+                    "target"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "artifact_id",
+                    "artifact_fingerprint",
+                    "valid_epoch_count",
+                    "rejected_epoch_count",
+                    "shape",
+                    "channel_names",
+                    "sfreq",
+                    "tmin",
+                    "tmax",
+                    "baseline",
+                    "reference",
+                    "event_labels",
+                    "event_onsets_seconds",
+                    "rejected",
+                    "source",
+                    "parameters"
+                  ]
+                },
+                "duration_ms": 2.331,
+                "error": null
+              },
+              {
+                "sequence": 3,
+                "request_id": "v11-epoch_quality-a1",
+                "tool_name": "epoch_quality",
+                "arguments": {
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "evidence_id",
+                    "evidence_type",
+                    "profile_id",
+                    "source_stage",
+                    "artifact_id",
+                    "artifact_fingerprint",
+                    "epoch_counts",
+                    "condition_counts_before_quality",
+                    "condition_counts_quality_usable",
+                    "quality_flag_reasons",
+                    "flagged_epoch_indices",
+                    "usable_fraction_of_created",
+                    "thresholds",
+                    "threshold_status",
+                    "validity"
+                  ]
+                },
+                "duration_ms": 2.28,
+                "error": null
+              },
+              {
+                "sequence": 4,
+                "request_id": "v11-trial_selection-a1",
+                "tool_name": "select_quality_epochs",
+                "arguments": {
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                  "expected_artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                  "expected_quality_evidence_id": "evidence-bd55ec00c8205534"
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "artifact_id",
+                    "artifact_fingerprint",
+                    "valid_epoch_count",
+                    "rejected_epoch_count",
+                    "shape",
+                    "channel_names",
+                    "sfreq",
+                    "tmin",
+                    "tmax",
+                    "baseline",
+                    "reference",
+                    "event_labels",
+                    "event_onsets_seconds",
+                    "rejected",
+                    "source",
+                    "parameters",
+                    "selection"
+                  ]
+                },
+                "duration_ms": 1.46,
+                "error": null
+              },
+              {
+                "sequence": 5,
+                "request_id": "v11-epoch_summary-a1",
+                "tool_name": "epoch_summary",
+                "arguments": {
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "expected_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "artifact_id",
+                    "artifact_fingerprint",
+                    "valid_epoch_count",
+                    "rejected_epoch_count",
+                    "shape",
+                    "channel_names",
+                    "sfreq",
+                    "tmin",
+                    "tmax",
+                    "baseline",
+                    "reference",
+                    "event_labels",
+                    "event_onsets_seconds",
+                    "rejected",
+                    "source",
+                    "parameters"
+                  ]
+                },
+                "duration_ms": 0.409,
+                "error": null
+              },
+              {
+                "sequence": 6,
+                "request_id": "v11-event_bandpower-a1",
+                "tool_name": "event_bandpower",
+                "arguments": {
+                  "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                  "expected_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                },
+                "validation_passed": true,
+                "output_summary": {
+                  "type": "object",
+                  "keys": [
+                    "artifact_id",
+                    "artifact_fingerprint",
+                    "method",
+                    "interpretation",
+                    "frequency_resolution_hz",
+                    "conditions"
+                  ]
+                },
+                "duration_ms": 4.312,
+                "error": null
+              }
+            ]
+          },
+          "replans": 0,
+          "duration_ms": 13.594,
+          "scientific_state": {
+            "context_id": "intent-agent-I01",
+            "profile_id": "edf_native",
+            "immutable_task": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1,
+              "objectives": [
+                "epoch_quality",
+                "trial_selection",
+                "epoch_summary",
+                "event_bandpower"
+              ],
+              "selection_authorized": true
+            },
+            "graph": {
+              "active_goals": [
+                "observe_events",
+                "create_epochs",
+                "epoch_quality",
+                "trial_selection",
+                "epoch_summary",
+                "event_bandpower"
+              ],
+              "dependencies": {
+                "epoch_quality": [
+                  "create_epochs"
+                ],
+                "create_epochs": [
+                  "observe_events"
+                ],
+                "observe_events": [],
+                "trial_selection": [
+                  "epoch_quality"
+                ],
+                "epoch_summary": [
+                  "trial_selection"
+                ],
+                "event_bandpower": [
+                  "trial_selection"
+                ]
+              },
+              "evidence": {
+                "observe_events": {
+                  "goal": "observe_events",
+                  "token_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                  "semantic_id": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085",
+                  "tool_name": "list_events",
+                  "request_id": "v11-observe_events-a1",
+                  "dependency_tokens": {},
+                  "input_binding": null,
+                  "output_binding": null,
+                  "mode": null
+                },
+                "create_epochs": {
+                  "goal": "create_epochs",
+                  "token_id": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4",
+                  "semantic_id": "goal-token:7840271219d1c203fa3070215cf44bb869a6a7d3b3ac38a50a766d2849d199b8",
+                  "tool_name": "create_epochs",
+                  "request_id": "v11-create_epochs-a1",
+                  "dependency_tokens": {
+                    "observe_events": "goal-token:41216accdab0363899325d3f1a2f9d89d9794d4a457daf5c3f82c309fa207085"
+                  },
+                  "input_binding": null,
+                  "output_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                    "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                  },
+                  "mode": null
+                },
+                "epoch_quality": {
+                  "goal": "epoch_quality",
+                  "token_id": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5",
+                  "semantic_id": "goal-token:3fbfa5174caabe548e088bc932072df34ab806760d9a21207f523929ba583967",
+                  "tool_name": "epoch_quality",
+                  "request_id": "v11-epoch_quality-a1",
+                  "dependency_tokens": {
+                    "create_epochs": "goal-token:9115da3df6a579ffa06188bfd59499834189c33cc9f0c7e87150b6281eecc7e4"
+                  },
+                  "input_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                    "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                  },
+                  "output_binding": null,
+                  "mode": null
+                },
+                "trial_selection": {
+                  "goal": "trial_selection",
+                  "token_id": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8",
+                  "semantic_id": "goal-token:8ea56ffb55abf8f6d0954d0f23600b96b488de21b69e8c3b5df7b643381e4533",
+                  "tool_name": "select_quality_epochs",
+                  "request_id": "v11-trial_selection-a1",
+                  "dependency_tokens": {
+                    "epoch_quality": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+                  },
+                  "input_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                    "fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8"
+                  },
+                  "output_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                    "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                  },
+                  "mode": "derived"
+                },
+                "epoch_summary": {
+                  "goal": "epoch_summary",
+                  "token_id": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19",
+                  "semantic_id": "goal-token:eb2b612574f3d989f438795c528a9234902f7f826b1aeb8f4b823bc46c2e21d3",
+                  "tool_name": "epoch_summary",
+                  "request_id": "v11-epoch_summary-a1",
+                  "dependency_tokens": {
+                    "trial_selection": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+                  },
+                  "input_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                    "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                  },
+                  "output_binding": null,
+                  "mode": null
+                },
+                "event_bandpower": {
+                  "goal": "event_bandpower",
+                  "token_id": "goal-token:d41181386965ca827e7881d9b558864590a261363277febc5219ef553ae22c76",
+                  "semantic_id": "goal-token:ca29b6c2a843e7f86c064fe3ffd08c3459c257f0134989a7c10bd07a0d461364",
+                  "tool_name": "event_bandpower",
+                  "request_id": "v11-event_bandpower-a1",
+                  "dependency_tokens": {
+                    "trial_selection": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+                  },
+                  "input_binding": {
+                    "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                    "fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+                  },
+                  "output_binding": null,
+                  "mode": null
+                }
+              }
+            },
+            "artifacts": {
+              "created": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+              "created_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+              "selected": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+              "selected_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+              "effective": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+              "effective_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e"
+            },
+            "quality": {
+              "request_id": "v11-epoch_quality-a1",
+              "evidence_id": "evidence-bd55ec00c8205534",
+              "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+              "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+              "epoch_counts": {
+                "requested_or_boundary_checked": 3,
+                "created": 3,
+                "boundary_rejected": 0,
+                "quality_flagged": 1,
+                "quality_usable": 2
+              },
+              "condition_counts_quality_usable": {
+                "target": 2
+              },
+              "threshold_status": "empirical_not_clinically_calibrated"
+            },
+            "selection_mode": "derived",
+            "goals": {
+              "epoch_quality": {
+                "status": "satisfied",
+                "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+              },
+              "trial_selection": {
+                "status": "satisfied",
+                "evidence": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+              },
+              "epoch_summary": {
+                "status": "satisfied",
+                "evidence": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19"
+              },
+              "event_bandpower": {
+                "status": "satisfied",
+                "evidence": "goal-token:d41181386965ca827e7881d9b558864590a261363277febc5219ef553ae22c76"
+              }
+            },
+            "attempts": {
+              "observe_events": 1,
+              "create_epochs": 1,
+              "epoch_quality": 1,
+              "trial_selection": 1,
+              "epoch_summary": 1,
+              "event_bandpower": 1
+            },
+            "retries": 0,
+            "repairs": 0,
+            "blocked": null
+          },
+          "evidence_check": {
+            "closed": true,
+            "violations": [],
+            "successful_tools": [
+              "list_events",
+              "create_epochs",
+              "epoch_quality",
+              "select_quality_epochs",
+              "epoch_summary",
+              "event_bandpower"
+            ],
+            "selection_mode": "derived",
+            "effective_artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+            "effective_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+            "termination_status": "completed",
+            "goal_status": {
+              "epoch_quality": {
+                "status": "satisfied",
+                "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+              },
+              "trial_selection": {
+                "status": "satisfied",
+                "evidence": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+              },
+              "epoch_summary": {
+                "status": "satisfied",
+                "evidence": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19"
+              },
+              "event_bandpower": {
+                "status": "satisfied",
+                "evidence": "goal-token:d41181386965ca827e7881d9b558864590a261363277febc5219ef553ae22c76"
+              }
+            }
+          },
+          "required_answer_tools": [
+            "epoch_quality",
+            "select_quality_epochs",
+            "epoch_summary",
+            "event_bandpower"
+          ],
+          "release_results": [
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "success": true,
+              "data": {
+                "evidence_id": "evidence-bd55ec00c8205534",
+                "evidence_type": "epoch_quality",
+                "profile_id": "edf_native",
+                "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602",
+                "artifact_fingerprint": "sha256:228ddebc872cebf1c069f59ef809bfdd69c40c553efe9015739bdf05c95863c8",
+                "epoch_counts": {
+                  "requested_or_boundary_checked": 3,
+                  "created": 3,
+                  "boundary_rejected": 0,
+                  "quality_flagged": 1,
+                  "quality_usable": 2
+                },
+                "condition_counts_before_quality": {
+                  "target": 3
+                },
+                "condition_counts_quality_usable": {
+                  "target": 2
+                },
+                "quality_flag_reasons": {
+                  "HIGH_AMPLITUDE": 2
+                },
+                "flagged_epoch_indices": [
+                  1
+                ],
+                "usable_fraction_of_created": 0.6666666666666666,
+                "thresholds": {
+                  "flatline_delta_volts": 1e-08,
+                  "flatline_fraction": 0.95,
+                  "high_amplitude_volts": 0.0002,
+                  "high_amplitude_fraction": 0.01,
+                  "line_noise_ratio": 0.2
+                },
+                "threshold_status": "empirical_not_clinically_calibrated",
+                "validity": "screening_suggestion_only; no automatic deletion performed"
+              },
+              "error": null,
+              "duration_ms": 2.28
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "valid_epoch_count": 2,
+                "rejected_epoch_count": 0,
+                "shape": [
+                  2,
+                  2,
+                  128
+                ],
+                "channel_names": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "sfreq": 128.0,
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "baseline": null,
+                "reference": "synthetic native reference",
+                "event_labels": [
+                  "target",
+                  "target"
+                ],
+                "event_onsets_seconds": [
+                  1.0,
+                  7.0
+                ],
+                "rejected": [],
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+                },
+                "parameters": {
+                  "selected_labels": [
+                    "target"
+                  ],
+                  "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                  "sampling_alignment": "round(seconds * sfreq)",
+                  "event_source": {
+                    "kind": "synthetic",
+                    "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                  },
+                  "quality_selection_evidence_id": "evidence-bd55ec00c8205534",
+                  "excluded_epoch_indices": [
+                    1
+                  ]
+                },
+                "selection": {
+                  "input_epoch_count": 3,
+                  "excluded_epoch_count": 1,
+                  "output_epoch_count": 2,
+                  "evidence_id": "evidence-bd55ec00c8205534"
+                }
+              },
+              "error": null,
+              "duration_ms": 1.46
+            },
+            {
+              "request_id": "v11-epoch_summary-a1",
+              "tool_name": "epoch_summary",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "valid_epoch_count": 2,
+                "rejected_epoch_count": 0,
+                "shape": [
+                  2,
+                  2,
+                  128
+                ],
+                "channel_names": [
+                  "SYNTH-C1",
+                  "SYNTH-C2"
+                ],
+                "sfreq": 128.0,
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "baseline": null,
+                "reference": "synthetic native reference",
+                "event_labels": [
+                  "target",
+                  "target"
+                ],
+                "event_onsets_seconds": [
+                  1.0,
+                  7.0
+                ],
+                "rejected": [],
+                "source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "e09b8b846788e4d609ea3b9f5cb093033022c6f768e780b95d719dc17b2a221c"
+                },
+                "parameters": {
+                  "selected_labels": [
+                    "target"
+                  ],
+                  "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                  "sampling_alignment": "round(seconds * sfreq)",
+                  "event_source": {
+                    "kind": "synthetic",
+                    "reference_sha256": "cf10fbf522aaee4bc1c5cca25db56604e01e07c0f478c02193f1086ef87a0ba3"
+                  },
+                  "quality_selection_evidence_id": "evidence-bd55ec00c8205534",
+                  "excluded_epoch_indices": [
+                    1
+                  ]
+                }
+              },
+              "error": null,
+              "duration_ms": 0.409
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "success": true,
+              "data": {
+                "artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+                "artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 2,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.87817631882316e-26,
+                        "theta": 1.5051023261804092e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509649221875517e-25,
+                        "gamma": 5.392362418373117e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.381097170554217e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.3053552456894275e-26,
+                        "beta": 9.976668195112122e-26,
+                        "gamma": 3.423910533115516e-25
+                      }
+                    }
+                  }
+                }
+              },
+              "error": null,
+              "duration_ms": 4.312
+            }
+          ]
+        },
+        "evidence_check": {
+          "closed": true,
+          "violations": [],
+          "successful_tools": [
+            "list_events",
+            "create_epochs",
+            "epoch_quality",
+            "select_quality_epochs",
+            "epoch_summary",
+            "event_bandpower"
+          ],
+          "selection_mode": "derived",
+          "effective_artifact_id": "epochs-76083a19-a903-4908-908d-e56afcd84602-quality-selected",
+          "effective_artifact_fingerprint": "sha256:68807fbfcee9e822d1b2923c76e9e064c8373cc0751fbddaf048ac9ce5c8960e",
+          "termination_status": "completed",
+          "goal_status": {
+            "epoch_quality": {
+              "status": "satisfied",
+              "evidence": "goal-token:debd5799801116624fe613b7c2a16196c88ec516ed4d647dc2b95e5abf9e91e5"
+            },
+            "trial_selection": {
+              "status": "satisfied",
+              "evidence": "goal-token:b1495727695a8ef2c9597cdbdd3885c826236707d8691c4af8710723c9098cd8"
+            },
+            "epoch_summary": {
+              "status": "satisfied",
+              "evidence": "goal-token:ba88222dda2ef224a7d0fef0a10e660b1b49af7989544d374a720aa86203ea19"
+            },
+            "event_bandpower": {
+              "status": "satisfied",
+              "evidence": "goal-token:d41181386965ca827e7881d9b558864590a261363277febc5219ef553ae22c76"
+            }
+          }
+        },
+        "answer_check": {
+          "valid": true,
+          "code": null,
+          "required_tools": [
+            "epoch_quality",
+            "select_quality_epochs",
+            "epoch_summary",
+            "event_bandpower"
+          ],
+          "cited_tools": [
+            "epoch_quality",
+            "epoch_summary",
+            "event_bandpower",
+            "select_quality_epochs"
+          ],
+          "references": [
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "epoch_counts",
+                "created"
+              ],
+              "value": 3
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "epoch_counts",
+                "quality_flagged"
+              ],
+              "value": 1
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "condition_counts_quality_usable",
+                "target"
+              ],
+              "value": 2
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "quality_flag_reasons",
+                "HIGH_AMPLITUDE"
+              ],
+              "value": 2
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "validity"
+              ],
+              "value": "screening_suggestion_only; no automatic deletion performed"
+            },
+            {
+              "request_id": "v11-epoch_quality-a1",
+              "tool_name": "epoch_quality",
+              "path": [
+                "threshold_status"
+              ],
+              "value": "empirical_not_clinically_calibrated"
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "path": [
+                "parameters",
+                "selected_labels",
+                "0"
+              ],
+              "value": "target"
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "path": [
+                "parameters",
+                "excluded_epoch_indices",
+                "0"
+              ],
+              "value": 1
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "path": [
+                "selection",
+                "input_epoch_count"
+              ],
+              "value": 3
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "path": [
+                "selection",
+                "excluded_epoch_count"
+              ],
+              "value": 1
+            },
+            {
+              "request_id": "v11-trial_selection-a1",
+              "tool_name": "select_quality_epochs",
+              "path": [
+                "selection",
+                "output_epoch_count"
+              ],
+              "value": 2
+            },
+            {
+              "request_id": "v11-epoch_summary-a1",
+              "tool_name": "epoch_summary",
+              "path": [
+                "valid_epoch_count"
+              ],
+              "value": 2
+            },
+            {
+              "request_id": "v11-epoch_summary-a1",
+              "tool_name": "epoch_summary",
+              "path": [
+                "tmin"
+              ],
+              "value": 0.0
+            },
+            {
+              "request_id": "v11-epoch_summary-a1",
+              "tool_name": "epoch_summary",
+              "path": [
+                "tmax"
+              ],
+              "value": 1.0
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "path": [
+                "interpretation"
+              ],
+              "value": "absolute event-window bandpower; not baseline-normalized ERD/ERS"
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "path": [
+                "method"
+              ],
+              "value": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs"
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "path": [
+                "conditions",
+                "target",
+                "epoch_count"
+              ],
+              "value": 2
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "path": [
+                "conditions",
+                "target",
+                "channels",
+                "SYNTH-C1",
+                "alpha"
+              ],
+              "value": 1.9999999920083944e-10
+            },
+            {
+              "request_id": "v11-event_bandpower-a1",
+              "tool_name": "event_bandpower",
+              "path": [
+                "conditions",
+                "target",
+                "channels",
+                "SYNTH-C2",
+                "theta"
+              ],
+              "value": 1.1250000063467436e-10
+            }
+          ]
+        },
+        "final_answer": "证据受限结果：epoch_quality.epoch_counts.created=3；epoch_quality.epoch_counts.quality_flagged=1；epoch_quality.condition_counts_quality_usable.target=2；epoch_quality.quality_flag_reasons.HIGH_AMPLITUDE=2；epoch_quality.validity=screening_suggestion_only; no automatic deletion performed；epoch_quality.threshold_status=empirical_not_clinically_calibrated；select_quality_epochs.parameters.selected_labels.0=target；select_quality_epochs.parameters.excluded_epoch_indices.0=1；select_quality_epochs.selection.input_epoch_count=3；select_quality_epochs.selection.excluded_epoch_count=1；select_quality_epochs.selection.output_epoch_count=2；epoch_summary.valid_epoch_count=2；epoch_summary.tmin=0；epoch_summary.tmax=1；event_bandpower.interpretation=absolute event-window bandpower; not baseline-normalized ERD/ERS；event_bandpower.method=whole-Epoch Welch PSD followed by arithmetic mean across Epochs；event_bandpower.conditions.target.epoch_count=2；event_bandpower.conditions.target.channels.SYNTH-C1.alpha=1.99999999201e-10；event_bandpower.conditions.target.channels.SYNTH-C2.theta=1.12500000635e-10。以上仅对应已执行工具及当前科学条件，不构成临床诊断。 质量分支实际筛除 1 个 Epoch，保留 2 个 Epoch；质量阈值仅为未临床校准的经验性筛查条件。",
+        "llm": {
+          "provider_model": "deepseek-flash",
+          "request_count": 4,
+          "usage": {
+            "prompt_tokens": 8613,
+            "completion_tokens": 1549,
+            "total_tokens": 10162,
+            "prompt_cache_hit_tokens": 2304,
+            "prompt_cache_miss_tokens": 6309
+          },
+          "finish_reasons": [
+            "tool_calls",
+            "tool_calls",
+            "tool_calls",
+            "tool_calls"
+          ]
+        }
+      }
+    }
+  ]
+}

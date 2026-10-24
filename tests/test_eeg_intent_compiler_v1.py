@@ -8,8 +8,10 @@ from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.evidence_phase import build_quality_selection_record
 from eeg_harness.research.intent_compiler.compiler import validate_intent_v1
+from eeg_harness.research.intent_compiler.agent import IntentCompilerAgentV1
 from eeg_harness.research.intent_compiler.protocol import FROZEN_SHA256, load_protocol
 from eeg_harness.research.intent_compiler.scoring import intent_from_dict
+from eeg_harness.research.integrated_method.fake import Point1FakeLLM
 from eeg_harness.tools import build_default_registry
 
 
@@ -65,6 +67,21 @@ class IntentCompilerProtocolTest(unittest.TestCase):
         request = "Check quality for target epochs 0 to 1; do not remove trials."
         decision, _ = validate_intent_v1(intent_from_dict(base), request, context())
         self.assertNotEqual("execute", decision.disposition)
+
+    def test_fake_llm_runs_through_real_agent_executor_and_answer_gate(self):
+        run = IntentCompilerAgentV1(Point1FakeLLM(), context()).run(
+            "检查 target 事件后 0 到 1 秒的质量，允许筛除异常试次，"
+            "报告保留试次数并计算绝对频带功率"
+        )
+        rendered = run.to_dict()
+        self.assertEqual("completed", rendered["stop_reason"])
+        self.assertTrue(rendered["evidence_check"]["closed"])
+        self.assertTrue(rendered["answer_check"]["valid"])
+        tools = [item["tool_name"] for item in rendered["execution"]["tool_results"]]
+        self.assertEqual([
+            "list_events", "create_epochs", "epoch_quality",
+            "select_quality_epochs", "epoch_summary", "event_bandpower",
+        ], tools)
 
 
 if __name__ == "__main__":

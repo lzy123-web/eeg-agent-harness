@@ -53,6 +53,10 @@ def score_raw_fields(case, intent):
     }
     expected_forbidden = set(gold.get("forbidden_operations", ()))
     expected_concepts = expected_semantic_concepts(gold)
+    safety_parameter_checks = {
+        key: intent.parameters.get(key) == gold.get("parameters", {}).get(key)
+        for key in ("selection_authorized", "rereference_authorized")
+    }
     semantic_spans_exact = all(
         _exact_span(case["request"], quote)
         for quote in intent.semantic_evidence.values()
@@ -66,6 +70,7 @@ def score_raw_fields(case, intent):
         "analysis_type": intent.analysis_type == gold["analysis_type"],
         "objectives": set(intent.objectives) == set(gold["objectives"]),
         "parameters": all(parameter_checks.values()),
+        "safety_parameters": all(safety_parameter_checks.values()),
         "forbidden_operations": set(intent.forbidden_operations) == expected_forbidden,
         "semantic_concepts": set(intent.semantic_evidence) == expected_concepts,
         "semantic_spans_exact": semantic_spans_exact,
@@ -76,6 +81,7 @@ def score_raw_fields(case, intent):
         "all_fields_correct": all(checks.values()),
         "checks": checks,
         "parameter_checks": parameter_checks,
+        "safety_parameter_checks": safety_parameter_checks,
         "raw_unknown_slots": list(intent.unknown_slots),
     }
 

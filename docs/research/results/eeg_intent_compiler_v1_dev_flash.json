@@ -86,6 +86,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": true,
           "forbidden_operations": true,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -97,6 +98,10 @@
           "tmin": true,
           "tmax": true,
           "selection_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
         },
         "raw_unknown_slots": [
           "channels",
@@ -209,6 +214,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": true,
           "forbidden_operations": true,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -219,6 +225,10 @@
           "labels": true,
           "tmin": true,
           "tmax": true,
+          "rereference_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
           "rereference_authorized": true
         },
         "raw_unknown_slots": [
@@ -343,6 +353,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": false,
           "forbidden_operations": false,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -353,6 +364,10 @@
           "labels": true,
           "tmin": true,
           "tmax": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
+          "rereference_authorized": true
         },
         "raw_unknown_slots": [
           "channels",
@@ -461,6 +476,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": false,
           "forbidden_operations": false,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -472,6 +488,10 @@
           "tmin": true,
           "tmax": true,
           "reference_channels": true,
+          "rereference_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
           "rereference_authorized": true
         },
         "raw_unknown_slots": [
@@ -592,6 +612,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": false,
           "forbidden_operations": false,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -603,6 +624,10 @@
           "tmin": true,
           "tmax": true,
           "reference_channels": true,
+          "rereference_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
           "rereference_authorized": true
         },
         "raw_unknown_slots": [
@@ -695,6 +720,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": true,
           "forbidden_operations": true,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -705,6 +731,10 @@
           "channels": true,
           "start": true,
           "end": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
         },
         "raw_unknown_slots": [
           "frequency_bands"
@@ -803,6 +833,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": false,
           "forbidden_operations": false,
           "semantic_concepts": true,
           "semantic_spans_exact": true,
@@ -813,6 +844,10 @@
           "labels": true,
           "tmin": true,
           "tmax": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
+          "rereference_authorized": true
         },
         "raw_unknown_slots": [
           "channels",
@@ -909,6 +944,7 @@
           "analysis_type": true,
           "objectives": true,
           "parameters": true,
+          "safety_parameters": false,
           "forbidden_operations": false,
           "semantic_concepts": false,
           "semantic_spans_exact": true,
@@ -919,6 +955,10 @@
           "labels": true,
           "tmin": true,
           "tmax": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
+          "rereference_authorized": true
         },
         "raw_unknown_slots": [
           "channels"

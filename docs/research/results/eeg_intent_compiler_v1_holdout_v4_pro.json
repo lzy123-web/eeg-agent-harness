@@ -1,0 +1,1017 @@
+{
+  "protocol_id": "eeg-intent-compiler-v1",
+  "protocol_sha256": "b14fcb611ac2f8c854fb5b543860f2e76597be4b4e13ddf576f6ce95d544af9f",
+  "generated_at_utc": "2026-10-24T02:53:42.962405+00:00",
+  "input_data": "deterministic synthetic EEG only",
+  "raw_eeg_sent_to_llm": false,
+  "gold_visible_to_runtime": false,
+  "same_payload_v0_v1": true,
+  "requested_model": "deepseek-v4-pro",
+  "budget": {
+    "max_requests": 10,
+    "max_tokens": 24000,
+    "request_count": 9,
+    "total_tokens": 15829
+  },
+  "summary": {
+    "cases": 9,
+    "raw_all_fields_correct": 3,
+    "base_model_field_error": 6,
+    "v0_correct": 2,
+    "v1_correct": 3,
+    "v0_correct_given_raw_correct": 2,
+    "v1_correct_given_raw_correct": 2,
+    "raw_correct_denominator": 3,
+    "v0_false_reject": 3,
+    "v1_false_reject": 2,
+    "v0_dangerous_accept": 0,
+    "v1_dangerous_accept": 1
+  },
+  "cases": [
+    {
+      "case_id": "H01",
+      "split": "holdout",
+      "language": "en",
+      "request": "With my approval, discard marked target epochs in the 0–1 s post-event interval, then return how many remain and their absolute spectral power.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1386,
+        "completion_tokens": 386,
+        "total_tokens": 1772,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1386
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "trial_selection",
+          "epoch_summary",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "selection_authorized": true
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1 s",
+          "selection_authorized": "With my approval"
+        },
+        "semantic_evidence": {
+          "trial_selection": "discard marked target epochs",
+          "epoch_summary": "return how many remain",
+          "event_bandpower": "absolute spectral power",
+          "event_locked": "post-event interval"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "The user authorizes discarding marked target epochs (trial_selection authorized), requests a count of remaining epochs (epoch_summary), and absolute spectral power (event_bandpower) within the 0-1 s post-event window. This is an event-locked workflow using target labels with tmin=0, tmax=1."
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": true,
+          "objectives": false,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": false,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "labels": true,
+          "tmin": true,
+          "tmax": true,
+          "selection_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "objectives"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "INTENT_OBJECTIVE_MISMATCH"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_summary",
+          "event_locked",
+          "trial_selection"
+        ],
+        "unverified_concepts": {
+          "event_bandpower": "role_frame_not_satisfied"
+        },
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [
+          "epoch_quality"
+        ],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H03",
+      "split": "holdout",
+      "language": "en",
+      "request": "Assess quality for target epochs from 0 to 1 s but keep every trial; report the unchanged count and absolute band power.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1383,
+        "completion_tokens": 410,
+        "total_tokens": 1793,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 103
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_quality",
+          "epoch_summary",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "selection_authorized": false
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1",
+          "selection_authorized": "keep every trial"
+        },
+        "semantic_evidence": {
+          "quality_measurement": "Assess quality for target epochs",
+          "event_locked": "target epochs from 0 to 1 s",
+          "epoch_summary": "report the unchanged count",
+          "spectral_power": "absolute band power",
+          "trial_selection": "keep every trial"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [
+          "trial_selection"
+        ],
+        "source_stage": "current",
+        "output_boundary": "target epochs 0 to 1 s",
+        "rationale": "User requests quality assessment on target epochs (0-1s), keeping every trial (no selection), reporting the unchanged count (epoch_summary), and absolute band power (event_bandpower). No rereference mentioned. Selection is negated, so it goes to forbidden_operations and selection_authorized=false."
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": false,
+          "forbidden_operations": true,
+          "semantic_concepts": false,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "labels": true,
+          "tmin": true,
+          "tmax": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": false,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": true,
+        "expected_disposition": "execute",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_summary",
+          "event_locked",
+          "quality_measurement",
+          "spectral_power"
+        ],
+        "unverified_concepts": {
+          "trial_selection": "role_frame_not_satisfied"
+        },
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H04",
+      "split": "holdout",
+      "language": "en",
+      "request": "I permit target epochs from 0 to 1 s to be re-referenced against SYNTH-C1; then report transformed quality and absolute power.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1387,
+        "completion_tokens": 432,
+        "total_tokens": 1819,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 107
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_rereference",
+          "epoch_quality",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "reference_channels": [
+            "SYNTH-C1"
+          ],
+          "rereference_authorized": true
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1",
+          "reference_channels": "SYNTH-C1"
+        },
+        "semantic_evidence": {
+          "epoch_rereference": "re-referenced against SYNTH-C1",
+          "event_locked": "target epochs",
+          "quality_measurement": "transformed quality",
+          "spectral_power": "absolute power"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "target epochs from 0 to 1 s re-referenced against SYNTH-C1, then quality and absolute power",
+        "rationale": "User explicitly authorizes re-referencing target epochs (0-1s) against SYNTH-C1, then requests transformed quality and absolute power. Event windows require event_workflow with labels target and tmin/tmax 0/1. Objectives: epoch_rereference, epoch_quality, event_bandpower. Rereference is authorized with exact reference_channels."
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": false,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "labels": true,
+          "tmin": true,
+          "tmax": true,
+          "reference_channels": true,
+          "rereference_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "rereference_authorized"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "MISSING_OR_UNGROUNDED_INTENT_SLOT"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_rereference",
+          "event_locked",
+          "quality_measurement",
+          "spectral_power"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {
+          "epoch_rereference": {
+            "valid": false,
+            "operation_span_exact": true,
+            "authorization_span_exact": false,
+            "same_sentence_scope": false
+          }
+        }
+      }
+    },
+    {
+      "case_id": "H05",
+      "split": "holdout",
+      "language": "en",
+      "request": "Treat SYNTH-C2 as a candidate reference for target 0–1 s epochs and calculate post-reference absolute power if appropriate.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1382,
+        "completion_tokens": 453,
+        "total_tokens": 1835,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 102
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_rereference",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "reference_channels": [
+            "SYNTH-C2"
+          ],
+          "rereference_authorized": true
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1",
+          "reference_channels": "SYNTH-C2",
+          "rereference_authorized": "Treat SYNTH-C2 as a candidate reference"
+        },
+        "semantic_evidence": {
+          "event_locked": "target",
+          "epoch_rereference": "Treat SYNTH-C2 as a candidate reference",
+          "spectral_power": "absolute power"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "0–1 s post-target epochs",
+        "rationale": "The user references target epochs (0–1 s), names SYNTH-C2 as a candidate reference for rereferencing, and asks for absolute power afterward. This is an event-locked workflow. Rereference is authorized only because the user explicitly named SYNTH-C2 as the reference — but note absolute event bandpower is not ERP/ERD-ERS; event bandpower uses event_workflow. Absolute band power on events is supported as event_bandpower. The rereference objective plus spectral power objective combine consistently into event_workflow."
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": false,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "labels": true,
+          "tmin": true,
+          "tmax": true,
+          "reference_channels": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": false
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [
+          "rereference_authorized"
+        ],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [
+          "rereference_authorized"
+        ],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_rereference",
+          "spectral_power"
+        ],
+        "unverified_concepts": {
+          "event_locked": "role_frame_not_satisfied"
+        },
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H06",
+      "split": "holdout",
+      "language": "zh",
+      "request": "分析 0 到 1 秒的事件相关 Epoch 绝对频带功率。",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1375,
+        "completion_tokens": 350,
+        "total_tokens": 1725,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 95
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "event_bandpower"
+        ],
+        "parameters": {
+          "tmin": 0,
+          "tmax": 1
+        },
+        "explicit_evidence": {
+          "tmin": "0",
+          "tmax": "1 秒"
+        },
+        "semantic_evidence": {
+          "event_locked": "事件相关 Epoch",
+          "spectral_power": "绝对频带功率"
+        },
+        "unknown_slots": [
+          "labels",
+          "channels"
+        ],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "用户要求分析事件相关 Epoch 的绝对频带功率，涉及事件锁时和频带功率两个概念。时间窗为 0 到 1 秒。事件标签和通道未在用户原文中给出，不能替用户补全，故放入 unknown_slots。绝对频带功率属于频带功率而非 ERP/ERD-ERS，故使用 event_bandpower 且不涉及 ERP 概念。"
+      },
+      "raw_score": {
+        "all_fields_correct": true,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "tmin": true,
+          "tmax": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": [
+          "labels",
+          "channels"
+        ]
+      },
+      "v0_decision": {
+        "correct": true,
+        "expected_disposition": "clarify",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [
+          "labels"
+        ],
+        "actual_missing_slots": [
+          "labels"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "MISSING_OR_UNGROUNDED_INTENT_SLOT"
+      },
+      "v1_decision": {
+        "correct": true,
+        "expected_disposition": "clarify",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [
+          "labels"
+        ],
+        "actual_missing_slots": [
+          "labels"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "MISSING_OR_UNGROUNDED_INTENT_SLOT"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "event_locked",
+          "spectral_power"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [
+          "channels"
+        ],
+        "required_unknown_slots": [
+          "labels"
+        ],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H10",
+      "split": "holdout",
+      "language": "zh",
+      "request": "计算 target 事件的 ERD/ERS 并判断认知激活。",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1370,
+        "completion_tokens": 367,
+        "total_tokens": 1737,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 90
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": null,
+          "tmax": null
+        },
+        "explicit_evidence": {
+          "labels": "target"
+        },
+        "semantic_evidence": {
+          "event_locked": "target 事件",
+          "spectral_power": "ERD/ERS"
+        },
+        "unknown_slots": [
+          "tmin",
+          "tmax"
+        ],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "用户要求对 target 事件计算 ERD/ERS（事件锁定的相对频带功率变化）。这属于事件相关频带功率分析。ERD/ERS 需要事件锁定的时间窗（tmin/tmax），但用户未提供具体时间窗，因此 tmin/tmax 归入 unknown_slots。用户额外要求\"判断认知激活\"属于对 ERD/ERS 结果的解释性推断，未注册为可用分析，因此不作为正向目标。需要补充 tmin/tmax 才能完成事件频带功率计算。"
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": false,
+          "objectives": false,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": false,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {},
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": [
+          "tmin",
+          "tmax"
+        ]
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "reject",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "reject",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "objectives"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_OBJECTIVE_MISMATCH"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "event_locked"
+        ],
+        "unverified_concepts": {
+          "spectral_power": "role_frame_not_satisfied"
+        },
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H11",
+      "split": "holdout",
+      "language": "en",
+      "request": "Calculate PSD band power on SYNTH-C2 between 1 and 3 seconds.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1374,
+        "completion_tokens": 295,
+        "total_tokens": 1669,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 94
+      },
+      "raw_intent": {
+        "analysis_type": "psd",
+        "objectives": [],
+        "parameters": {
+          "channels": [
+            "SYNTH-C2"
+          ],
+          "start": 1,
+          "end": 3
+        },
+        "explicit_evidence": {
+          "channels": "SYNTH-C2",
+          "start": "1",
+          "end": "3 seconds"
+        },
+        "semantic_evidence": {
+          "spectral_power": "PSD band power"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "User requests PSD band power on a specific channel over a continuous time window (1-3 seconds). No event/label mentioned, so this is a continuous PSD analysis using channels/start/end."
+      },
+      "raw_score": {
+        "all_fields_correct": true,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "channels": true,
+          "start": true,
+          "end": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": true,
+        "expected_disposition": "execute",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_decision": {
+        "correct": true,
+        "expected_disposition": "execute",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "spectral_power"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H13",
+      "split": "holdout",
+      "language": "en",
+      "request": "Assess quality on the raw source signal rather than the current processed branch.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1371,
+        "completion_tokens": 243,
+        "total_tokens": 1614,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 91
+      },
+      "raw_intent": {
+        "analysis_type": "record_quality",
+        "objectives": [
+          "epoch_quality"
+        ],
+        "parameters": {},
+        "explicit_evidence": {},
+        "semantic_evidence": {
+          "quality_measurement": "Assess quality"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "raw",
+        "output_boundary": "",
+        "rationale": "User explicitly requests quality assessment on the raw source signal, not the current processed branch. Quality measurement maps to record_quality analysis with source_stage=raw."
+      },
+      "raw_score": {
+        "all_fields_correct": false,
+        "checks": {
+          "analysis_type": true,
+          "objectives": false,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {},
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "reject",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "objectives"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_OBJECTIVE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "reject",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "source_stage"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "UNGROUNDED_SOURCE_STAGE"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "quality_measurement"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      }
+    },
+    {
+      "case_id": "H14",
+      "split": "holdout",
+      "language": "en",
+      "request": "Report quality before re-referencing target 0–1 s epochs, then I authorize re-referencing to SYNTH-C2 and want post-reference absolute power.",
+      "requested_model": "deepseek-v4-pro",
+      "response_model": "deepseek-v4-pro",
+      "usage": {
+        "prompt_tokens": 1390,
+        "completion_tokens": 475,
+        "total_tokens": 1865,
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 110
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_quality",
+          "epoch_rereference",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "rereference_authorized": true,
+          "reference_channels": [
+            "SYNTH-C2"
+          ]
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1",
+          "rereference_authorized": "I authorize re-referencing",
+          "reference_channels": "SYNTH-C2"
+        },
+        "semantic_evidence": {
+          "quality_measurement": "Report quality",
+          "event_locked": "epochs",
+          "epoch_rereference": "re-referencing to SYNTH-C2",
+          "spectral_power": "absolute power"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "User requests quality measurement on target epochs, then authorizes re-referencing to SYNTH-C2, then absolute bandpower after re-reference. This combines into an event_workflow with epoch_quality, epoch_rereference, and event_bandpower objectives. The re-reference is explicitly authorized with the exact channel name SYNTH-C2 given. Note: \"0-1 s\" is a clearly continuous window... but it's applied to \"epochs\" (event) → event-based window labels tmin=0 tmax=1. The user explicitly said 0-1 s epochs, so event anchor is correct."
+      },
+      "raw_score": {
+        "all_fields_correct": true,
+        "checks": {
+          "analysis_type": true,
+          "objectives": true,
+          "parameters": true,
+          "safety_parameters": true,
+          "forbidden_operations": true,
+          "semantic_concepts": true,
+          "semantic_spans_exact": true,
+          "parameter_evidence_grounded": true,
+          "source_stage": true
+        },
+        "parameter_checks": {
+          "labels": true,
+          "tmin": true,
+          "tmax": true,
+          "reference_channels": true,
+          "rereference_authorized": true
+        },
+        "safety_parameter_checks": {
+          "selection_authorized": true,
+          "rereference_authorized": true
+        },
+        "raw_unknown_slots": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [
+          "analysis_stage"
+        ],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [
+          "analysis_stage"
+        ],
+        "actual_missing_slots": [],
+        "dangerous_accept": true,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_rereference",
+          "event_locked",
+          "quality_measurement",
+          "spectral_power"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {
+          "epoch_rereference": {
+            "valid": true,
+            "operation_span_exact": true,
+            "authorization_span_exact": true,
+            "same_sentence_scope": true
+          }
+        }
+      }
+    }
+  ]
+}
