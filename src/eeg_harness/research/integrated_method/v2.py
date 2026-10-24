@@ -1,6 +1,5 @@
 """Opt-in multi-task goal graph over the existing EEG Executor and frozen v1.1 graph core."""
 
-from collections import Counter
 from dataclasses import dataclass, field, replace
 import hashlib
 import json
@@ -13,10 +12,8 @@ from ...planning import Plan, PlanStep, StateAwareConstrainedPlanner, TaskSpec
 from .agent import Point1RunResult
 from .contracts import Obligation, ObligationLedger, _forbidden_tools
 from .intent import IntentSpec
-from .v11 import (
-    ArtifactBinding, ContractGraphResidualPlanner, ConstraintCarryingEEGAgentV11,
-    GOAL_CONTRACTS, GoalContract,
-)
+from .v11 import ArtifactBinding, ConstraintCarryingEEGAgentV11, GOAL_CONTRACTS, GoalContract
+from .v2_graph import SharedEvidenceGraphCore
 from .v1 import DynamicPlanningRunResult
 
 
@@ -120,6 +117,24 @@ def compile_multitask(context, request: MultiTaskRequest):
                                   reason="A required goal is explicitly forbidden"), {
             "valid": False, "code": "FORBIDDEN_OPERATION", "planned_tools": [],
         }
+    # The goal graph is not an alternative tool registry: bind every goal's
+    # input/output type and applicability to the same ToolSpec used by Executor.
+    for goal in active:
+        contract = MULTITASK_CONTRACTS[goal]
+        spec = context.executor.registry.get(contract.tool_name)
+        expected_input = "epochs" if contract.input_policy in {
+            "source_epochs", "effective_epochs",
+        } else None
+        expected_output = "epochs" if contract.role in {"producer", "transition"} else None
+        if (spec is None or spec.consumes_artifact != expected_input
+                or spec.produces_artifact != expected_output):
+            return _reject(context, task, "GOAL_TOOL_CONTRACT_MISMATCH",
+                           "Goal input/output type disagrees with the registered tool", forbidden)
+        if (("*" not in spec.compatible_profiles
+             and context.profile.profile_id not in spec.compatible_profiles)
+                or not context.profile.supports_tool(spec.name)):
+            return _reject(context, task, "INCOMPATIBLE_PROFILE",
+                           "Goal tool is not applicable to the current EEG Profile", forbidden)
     planner = StateAwareConstrainedPlanner(context)
     steps = []
     for goal in objectives:
@@ -169,16 +184,12 @@ def _reject(context, task, code, reason, forbidden):
     }
 
 
-class MultiTaskContractGraphPlanner(ContractGraphResidualPlanner):
-    """Extends v1.1 graph mechanics with versioned record/model bindings."""
+class MultiTaskContractGraphPlanner(SharedEvidenceGraphCore):
+    """One task-neutral graph with event-specific operations as an adapter."""
 
     def __init__(self, context, task, ledger, *, max_retries=1, max_repairs=2, max_tool_calls=16):
         if task.goal != "multitask_workflow":
             raise ValueError("Expected a multi-task workflow")
-        # Keep the frozen v1.1 constructor and its event-only public contract unchanged.
-        self.context, self.task, self.ledger = context, task, ledger
-        self.contracts = MULTITASK_CONTRACTS
-        self.requested_goals = tuple(task.arguments["objectives"])
         self.goal_arguments = {name: dict(values) for name, values in task.arguments["goal_arguments"].items()}
         self.labels = tuple(task.arguments.get("labels", ()))
         self.epoch_arguments = {
@@ -188,21 +199,21 @@ class MultiTaskContractGraphPlanner(ContractGraphResidualPlanner):
         if "baseline" in task.arguments:
             self.epoch_arguments["baseline"] = list(task.arguments["baseline"])
         self.selection_authorized = task.arguments.get("selection_authorized") is True
-        self.dependencies = self._compile_dependencies()
-        self.active_goals = tuple(sorted(
-            self.dependencies, key=lambda name: (self.contracts[name].priority, name),
-        ))
-        self.max_retries, self.max_repairs, self.max_tool_calls = (
-            int(max_retries), int(max_repairs), int(max_tool_calls),
+        super().__init__(
+            context, task, ledger, MULTITASK_CONTRACTS, max_retries=max_retries,
+            max_repairs=max_repairs, max_tool_calls=max_tool_calls,
         )
-        self.evidence, self.evidence_cache, self.results, self.transitions = {}, {}, [], []
-        self.attempts = Counter()
-        self.retries = self.repairs = 0
-        self.blocked = None
-        self._fingerprints = {}
         self._initial_model_digest = (
             self._model_digest() if "seizure_detection" in self.requested_goals else None
         )
+
+    def _dependencies_for(self, goal):
+        contract = self.contracts[goal]
+        dependencies = list(contract.base_dependencies)
+        if contract.input_policy == "effective_epochs" and "trial_selection" in self.requested_goals:
+            dependencies = [name for name in dependencies if name != "create_epochs"]
+            dependencies.append("trial_selection")
+        return tuple(dependencies)
 
     def _begin_frontier_snapshot(self):
         super()._begin_frontier_snapshot()
@@ -257,51 +268,99 @@ class MultiTaskContractGraphPlanner(ContractGraphResidualPlanner):
         if policy in {"record", "record_model"}:
             identity = f"record{'-model' if policy == 'record_model' else ''}:{self.context.task_id}"
             return ArtifactBinding(identity, self._artifact_fingerprint(identity))
-        return super()._input_binding(goal)
+        if policy == "source_epochs":
+            return self._source_binding()
+        if policy == "effective_epochs":
+            return self._effective_binding()
+        return None
+
+    def _source_binding(self):
+        token = self.evidence.get("create_epochs")
+        return None if token is None else token.output_binding
+
+    def _selection_mode(self):
+        token = self.evidence.get("trial_selection")
+        return None if token is None else token.mode
+
+    def _effective_binding(self):
+        if "trial_selection" in self.requested_goals:
+            token = self.evidence.get("trial_selection")
+            return None if token is None else token.output_binding
+        return self._source_binding()
+
+    def _resolve_without_tool(self, goal):
+        if goal != "trial_selection":
+            return False
+        quality = self.evidence.get("epoch_quality")
+        if quality is None:
+            return False
+        if not self.selection_authorized:
+            self._block("SELECTION_NOT_AUTHORIZED", "Trial selection requires authorization")
+            return False
+        usable = quality.result["data"]["condition_counts_quality_usable"]
+        missing = [label for label in self.labels if usable.get(label, 0) < 1]
+        if missing:
+            self._block("NO_USABLE_EPOCHS_FOR_CONDITION",
+                        "A requested condition lacks quality-usable Epochs", labels=missing)
+            return False
+        if quality.result["data"]["epoch_counts"]["quality_flagged"] != 0:
+            return False
+        source = self._source_binding()
+        self._materialize_evidence(
+            goal, input_binding=source, output_binding=source,
+            mode="identity", arguments={"selection_authorized": True},
+        )
+        self._record_transition("goal_satisfied_without_tool", goal=goal,
+                                reason="quality evidence flagged zero Epochs",
+                                artifact_id=source.artifact_id)
+        return True
 
     def _action_arguments(self, goal):
         if goal in RECORD_GOALS:
             return dict(self.goal_arguments.get(goal, {}))
-        return super()._action_arguments(goal)
+        if goal == "observe_events":
+            return {}
+        if goal == "create_epochs":
+            return dict(self.epoch_arguments)
+        binding = self._input_binding(goal)
+        arguments = {"artifact_id": binding.artifact_id,
+                     "expected_artifact_fingerprint": binding.fingerprint}
+        if goal == "trial_selection":
+            arguments["expected_quality_evidence_id"] = self.evidence[
+                "epoch_quality"
+            ].result["data"]["evidence_id"]
+        return arguments
 
-    def _required_answer_tools(self):
-        tools = []
-        for goal in self.active_goals:
-            contract = self.contracts[goal]
-            if not contract.answer_required:
-                continue
-            if goal == "trial_selection" and self._selection_mode() != "derived":
-                continue
-            if contract.tool_name:
-                tools.append(contract.tool_name)
-        return tuple(dict.fromkeys(tools))
-
-    def _evidence_check(self, status):
-        result = super()._evidence_check(status)
-        violations = list(result["violations"])
-        for goal, token in self.evidence.items():
-            if not self._binding_valid(token.input_binding):
-                violations.append(f"stale_input_binding:{goal}")
-            if not self._binding_valid(token.output_binding):
-                violations.append(f"stale_output_binding:{goal}")
-        result["violations"] = violations
-        result["closed"] = status == "completed" and not violations
-        return result
-
-    def state_dict(self):
-        state = super().state_dict()
-        state["immutable_task"] = {
-            "objectives": list(self.requested_goals),
-            "goal_arguments": self.goal_arguments,
-            "event_arguments": dict(self.epoch_arguments),
-            "selection_authorized": self.selection_authorized,
-        }
-        state["record_binding"] = self._artifact_fingerprint(f"record:{self.context.task_id}")
+    def _extra_state(self):
+        state = {"record_binding": self._artifact_fingerprint(f"record:{self.context.task_id}")}
+        if any(goal in EVENT_GOALS for goal in self.active_goals):
+            source = self._source_binding()
+            effective = self._effective_binding()
+            state["event_state"] = {
+                "source_epochs": None if source is None else source.to_dict(),
+                "effective_epochs": None if effective is None else effective.to_dict(),
+                "selection_mode": self._selection_mode(),
+            }
         if "seizure_detection" in self.requested_goals:
             state["model_input_binding"] = self._artifact_fingerprint(
                 f"record-model:{self.context.task_id}"
             )
         return state
+
+    def _evidence_check(self, status):
+        result = super()._evidence_check(status)
+        if any(goal in EVENT_GOALS for goal in self.active_goals):
+            effective = self._effective_binding()
+            for goal in self.requested_goals:
+                token = self.evidence.get(goal)
+                if (token is not None and self.contracts[goal].input_policy == "effective_epochs"
+                        and token.input_binding != effective):
+                    result["violations"].append(f"effective_artifact_mismatch:{goal}")
+            result["selection_mode"] = self._selection_mode()
+            result["effective_artifact_id"] = None if effective is None else effective.artifact_id
+            result["effective_artifact_fingerprint"] = None if effective is None else effective.fingerprint
+            result["closed"] = status == "completed" and not result["violations"]
+        return result
 
 
 def run_multitask(context, request, *, max_retries=1, max_repairs=2, max_tool_calls=16):

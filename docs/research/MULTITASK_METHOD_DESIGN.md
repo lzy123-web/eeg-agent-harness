@@ -1,5 +1,15 @@
 # 工作点一新版本：跨任务 EEG 目标—状态—证据图设计（Issue #26）
 
+## Issue #26 纠偏后的三项清单（2026-10-24）
+
+| 分类 | 内容与依据 |
+|---|---|
+| 保留 | 现有 `EEGRecord/EventSet/EpochSet`、Profile、`ToolRegistry/Executor/ExecutionContext`，旧 CIEDG 的目标依赖 token、内容与身份分离、失效传播及局部恢复思想；保留旧 v1.1 路径和历史实验原样。新版本已完成的记录内容绑定、跨族原子预检和本地模型输入核验继续保留。 |
+| 任务专有化 | `labels/tmin/tmax/baseline`、源/筛选后 Epoch、试次质量与授权筛选属于事件适配策略；通道窗与严格 22 导模型约束属于对应记录/模型策略。它们不能充当通用图的默认字段或默认前提。 |
+| 重构 | 初版 `MultiTaskContractGraphPlanner` 继承 event-only 的 `ContractGraphResidualPlanner`，虽然复用了同一个 frontier、失效与发布过程，却仍继承 `_compile_dependencies` 的 Epoch 筛选分支、`state_dict` 的 Epoch 默认结构、`next_action` 的筛选特例，以及按记录/事件分别预检的入口。不能把它直接称为已完成的共同机制；新版需把“目标依赖、输入类型、适用性、状态更新、失败与证据发布”移到任务中性的核心，事件语义变为适配策略。 |
+
+上述分类来自 [Issue #26 最新纠偏](https://github.com/lzy123-web/eeg-agent-harness/issues/26#issuecomment-6382639080) 与本地真实调用链审查。下文为初版设计记录；最终实现与局限以迭代/验证文档为准，不以保住旧 CIEDG 架构为目标。
+
 ## 要解决的具体缺陷
 
 冻结 v1.1 CIEDG 的依赖图仅接收 `event_workflow`；`ConstraintCarryingEEGAgentV11.run` 将连续信号与模型任务交给单工具 `ConstrainedPlanRunner`。于是同一 Harness 虽有多类工具，却没有对连续记录/模型输入和事件 Epoch 一致的剩余目标、输入版本、证据失效与恢复机制。PR #23 的 Epoch 只读 consumer 扩展没有解决此跨科学对象缺口，也未证明较强 Expert 更低维护成本。
@@ -44,4 +54,4 @@ release only answer-required evidence bound to current state
 5. `epoch_quality` 只是经验筛查证据，不能默认删试次；绝对 PSD 不能被称 ERP/ERD/ERS 或 ASD 评分。
 6. answer gate 由合同声明的 `answer_required` 目标决定，不再对连续/事件写两套结果发布路径；数值须指向真实 ToolResult 标量。
 
-新版本保留旧 v1.1 类和历史正式实验；如需共享方法，只能通过继承图的 `run/_reconcile/_materialize_evidence/_release_results`，不得改旧评测数据。事件与连续在新版共享 graph frontier、证据 token、输入绑定和结果门；模型若资源可用，也只作为合法调用协议证明，而非 ASD 应用模型。
+新版本保留旧 v1.1 类和历史正式实验；可提取并改造目标图机制，但不能以“只能继承旧事件类”为架构限制。事件与连续必须在新版共享任务中性的 frontier、证据 token、输入绑定、状态失效、错误边界和结果门；模型若资源可用，也只作为合法调用协议证明，而非 ASD 应用模型。

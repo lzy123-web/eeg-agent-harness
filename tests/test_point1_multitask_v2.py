@@ -1,5 +1,6 @@
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 import tempfile
 import unittest
@@ -112,6 +113,30 @@ class MultiTaskV2Test(unittest.TestCase):
         self.assertEqual(check["code"], "UNREQUESTED_PARAMETERS")
         self.assertEqual(run.status, "rejected")
         self.assertFalse(ctx.history)
+
+    def test_shared_contract_rejects_registered_input_type_mismatch(self):
+        ctx = context(build_synthetic_no_event_record())
+        registry = ctx.executor.registry
+        spec = registry.get("psd")
+        registry._tools["psd"] = replace(spec, consumes_artifact="epochs")
+        request = MultiTaskRequest(("psd",), goal_arguments={
+            "psd": {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+        })
+        _, _, check, run = run_multitask(ctx, request)
+        self.assertEqual(check["code"], "GOAL_TOOL_CONTRACT_MISMATCH")
+        self.assertEqual(run.status, "rejected")
+        self.assertFalse(ctx.history)
+
+    def test_shared_result_gate_rejects_wrong_declared_type(self):
+        ctx = context(build_synthetic_no_event_record())
+        registry = ctx.executor.registry
+        spec = registry.get("record_info")
+        registry._tools["record_info"] = replace(spec, handler=lambda *_: ["wrong-type"])
+        _, _, _, run = run_multitask(ctx, MultiTaskRequest(("record_info",)))
+        self.assertEqual(run.status, "scientifically_blocked")
+        self.assertEqual(run.scientific_state["blocked"]["code"], "TOOL_RESULT_TYPE_MISMATCH")
+        self.assertFalse(run.evidence_check["closed"])
+        self.assertFalse(run.release_results)
 
     def test_missing_window_or_forbidden_goal_rejects_before_execution(self):
         ctx = context(build_synthetic_no_event_record())
