@@ -59,3 +59,5 @@ Issue #16 的冻结协议、parsed-task holdout 与有界真实 DeepSeek 子集�
 
 - 阶段 A supplement SHA-256：`43e7fb634ff1eb246e2685a0831bf28c3bf08bed05f481bb36a8ebc5e45d49f2`。
 - 阶段 A：`6661b65`（协议 supplement）与 `ffe9ee3`（development evaluator）。
+- 阶段 B/C：`c880676`（唯一完整 holdout、invariant audit 与真实 DeepSeek 追加审计）。
+- 阶段 D/E：`743894f`（结果、逐例失败与工作点决策）。

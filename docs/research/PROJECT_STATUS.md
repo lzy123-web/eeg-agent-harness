@@ -533,4 +533,4 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `6661b65`：冻结 24 场景可执行 supplement 与运行手册。
 - `ffe9ee3`：锁定 development evaluator、Expert 与消融结果。
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
-- 最终报告/状态提交：待本文件提交后填写。
+- `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
