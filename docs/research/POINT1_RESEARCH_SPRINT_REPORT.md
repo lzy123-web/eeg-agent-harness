@@ -52,4 +52,4 @@ $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
 
 ## 5. 提交与公开边界
 
-预实现决策提交 `7b096e7`；本报告与章节草稿、状态文档提交 `2333c76`，已普通推送至独立分支；[Draft PR #31](https://github.com/lzy123-web/eeg-agent-harness/pull/31) 以 PR #27 原研究分支为 base，保持 Draft。仅文档、无密钥、权重、EDF、私人路径或生成轨迹进入 Git。远端 CI 结果须另行核实；不能把本地回归冒充 CI。不合并 main、不 force push。
+预实现决策提交 `7b096e7`；本报告与章节草稿、状态文档提交 `2333c76`，发布记录 `ea42c01`，均已普通推送至独立分支；[Draft PR #31](https://github.com/lzy123-web/eeg-agent-harness/pull/31) 以 PR #27 原研究分支为 base，保持 Draft。[`unit-tests` #191](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40120350077) 对 `ea42c01` 已 `success`，这是独立于本地回归的远端 CI。仅文档、无密钥、权重、EDF、私人路径或生成轨迹进入 Git。不合并 main、不 force push。
