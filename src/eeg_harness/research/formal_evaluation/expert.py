@@ -57,7 +57,7 @@ def run_strong_expert(case, context, *, max_tool_calls=16, max_repairs=2):
             "method": "strong_dynamic_expert", "status": "rejected",
             "plan": preflight.to_dict(), "tool_results": [], "release_results": [],
             "scientific_state": {"blocked": {
-                "code": preflight.error_code, "message": preflight.error_message,
+                "code": preflight.reason_code, "message": preflight.reason,
             }}, "planning_trace": [], "repairs": 0,
         }
 

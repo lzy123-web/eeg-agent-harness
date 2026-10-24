@@ -4,6 +4,8 @@ import unittest
 from eeg_harness.research.formal_evaluation.fixtures import (
     build_fixture, oracle_effective,
 )
+from eeg_harness.research.formal_evaluation.invariant_audit import audit_report
+from eeg_harness.research.formal_evaluation.e2e import audit_answer
 from eeg_harness.research.formal_evaluation.protocol import load_cases
 from eeg_harness.research.formal_evaluation.runner import ABLATIONS, run_suite
 from eeg_harness.research.formal_evaluation.scoring import wilson_interval
@@ -27,6 +29,33 @@ class FormalEvaluationInfrastructureTest(unittest.TestCase):
         self.assertEqual(16, len(report["rows"]))
         self.assertTrue(all(row["score"]["passed"] for row in report["rows"]))
         json.dumps(report, ensure_ascii=False, allow_nan=False)
+
+    def test_posthoc_invariant_audit_does_not_rewrite_primary_scores(self):
+        report = run_suite("development", methods=("CIEDG",))
+        before = [row["score"] for row in report["rows"]]
+        audit = audit_report(report, self.protocol["cases"])
+        self.assertFalse(audit["primary_scores_modified"])
+        self.assertEqual(before, [row["score"] for row in report["rows"]])
+        self.assertEqual(8, len(audit["rows"]))
+
+    def test_answer_audit_rejects_numbers_absent_from_request_and_evidence(self):
+        valid = audit_answer("功率为 2.0。", "分析 0 到 1 秒。", [{
+            "success": True, "data": {"power": 2.0},
+        }])
+        invalid = audit_answer("功率为 9.0。", "分析 0 到 1 秒。", [{
+            "success": True, "data": {"power": 2.0},
+        }])
+        self.assertTrue(valid["valid"])
+        self.assertFalse(invalid["valid"])
+
+    def test_answer_audit_ignores_identifiers_but_rejects_undisclosed_failure(self):
+        rows = [{"tool_name": "event_bandpower", "success": False, "data": None}]
+        identifier_only = audit_answer(
+            "artifact `epochs-12345678-abcd` 未完成，因为工具失败。", "", rows)
+        false_success = audit_answer(
+            "artifact `epochs-12345678-abcd` 已完成。", "", rows)
+        self.assertTrue(identifier_only["valid"])
+        self.assertFalse(false_success["valid"])
 
     def test_guard_ablation_is_penalized_for_unauthorized_transform(self):
         report = run_suite(
