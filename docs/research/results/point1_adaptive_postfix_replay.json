@@ -1,0 +1,2856 @@
+{
+  "protocol": "issue32-v1",
+  "split": "holdout",
+  "rows": [
+    {
+      "case_id": "H1",
+      "arm": "adaptive",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "p": {
+            "expected_alpha": "2.00e-10",
+            "observed_alpha": "2.00e-10"
+          },
+          "e": {
+            "expected_valid_trials": 3,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 4,
+      "tool_sequence": [
+        "list_events",
+        "create_epochs",
+        "event_bandpower",
+        "psd"
+      ],
+      "tool_duration_ms": 1.814,
+      "wall_ms": 2.169,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "99fc412d-83eb-4c88-927c-40a6de4e0da7",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 3,
+              "labels": {
+                "target": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 2.0,
+              "last_onset_seconds": 6.0,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.075
+          },
+          {
+            "request_id": "8c27bc4a-0de2-4b9e-8e4a-d905679efa5d",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-9188f456-c930-4dfc-9100-9d1a27853cd7",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "valid_epoch_count": 3,
+              "rejected_epoch_count": 0,
+              "shape": [
+                3,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0,
+                6.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.235
+          },
+          {
+            "request_id": "51297655-2632-4b43-b559-e0186b1122a4",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-9188f456-c930-4dfc-9100-9d1a27853cd7",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 3,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781761390696985e-26,
+                      "theta": 1.5051022748222774e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509648981134274e-25,
+                      "gamma": 5.392362522373334e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.381097010060055e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.30535538692429e-26,
+                      "beta": 9.976668601162352e-26,
+                      "gamma": 3.423910437460995e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 1.276
+          },
+          {
+            "request_id": "f1e41080-98f3-4064-8d08-c752a15b74b3",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.228
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "one event inventory checks every declared trial requirement",
+            "arguments": {}
+          },
+          {
+            "observation": "event_counts",
+            "counts": {
+              "target": 3
+            }
+          },
+          {
+            "action": "create_epochs",
+            "reason": "materialize authorized event scope to observe valid trials",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "observation": "valid_epoch_counts",
+            "counts": {
+              "target": 3
+            },
+            "rejected_count": 0
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "all declared event prerequisites are now satisfied",
+            "arguments": {
+              "artifact_id": "epochs-9188f456-c930-4dfc-9100-9d1a27853cd7",
+              "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+            }
+          },
+          {
+            "action": "psd",
+            "reason": "independent goal after all atomic event gates have passed",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "p",
+              "capability": "psd",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "request_id": "f1e41080-98f3-4064-8d08-c752a15b74b3",
+              "result": {
+                "SYNTH-C1": {
+                  "delta": "1.88e-26",
+                  "theta": "1.51e-25",
+                  "alpha": "2.00e-10",
+                  "beta": "2.35e-25",
+                  "gamma": "5.39e-25"
+                }
+              }
+            },
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "51297655-2632-4b43-b559-e0186b1122a4",
+              "result": {
+                "artifact_id": "epochs-9188f456-c930-4dfc-9100-9d1a27853cd7",
+                "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 3,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781761390696985e-26,
+                        "theta": 1.5051022748222774e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509648981134274e-25,
+                        "gamma": 5.392362522373334e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.381097010060055e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.30535538692429e-26,
+                        "beta": 9.976668601162352e-26,
+                        "gamma": 3.423910437460995e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H1-adaptive",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.083758+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.085079+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "99fc412d-83eb-4c88-927c-40a6de4e0da7",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.075,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "8c27bc4a-0de2-4b9e-8e4a-d905679efa5d",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.235,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "51297655-2632-4b43-b559-e0186b1122a4",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-9188f456-c930-4dfc-9100-9d1a27853cd7",
+                "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 1.276,
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "request_id": "f1e41080-98f3-4064-8d08-c752a15b74b3",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C1"
+                ]
+              },
+              "duration_ms": 0.228,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H1",
+      "arm": "fixed",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "p": {
+            "expected_alpha": "2.00e-10",
+            "observed_alpha": "2.00e-10"
+          },
+          "e": {
+            "expected_valid_trials": 3,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 4,
+      "tool_sequence": [
+        "psd",
+        "list_events",
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "tool_duration_ms": 1.428,
+      "wall_ms": 1.574,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "23303eba-9610-4a06-9360-7975ed1e77b7",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.221
+          },
+          {
+            "request_id": "6b91a4b5-2ea4-460e-a512-ac7177e35bca",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 3,
+              "labels": {
+                "target": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 2.0,
+              "last_onset_seconds": 6.0,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.068
+          },
+          {
+            "request_id": "f5638b5d-a15e-4a6a-8f0c-c53ada68b857",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-5c280e88-151c-4b4b-82c8-1f6faa9db671",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "valid_epoch_count": 3,
+              "rejected_epoch_count": 0,
+              "shape": [
+                3,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0,
+                6.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.156
+          },
+          {
+            "request_id": "5df14553-e153-4918-9d42-8606ae933daa",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-5c280e88-151c-4b4b-82c8-1f6faa9db671",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 3,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781761390696985e-26,
+                      "theta": 1.5051022748222774e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509648981134274e-25,
+                      "gamma": 5.392362522373334e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.381097010060055e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.30535538692429e-26,
+                      "beta": 9.976668601162352e-26,
+                      "gamma": 3.423910437460995e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.983
+          }
+        ],
+        "decisions": [
+          {
+            "action": "psd",
+            "reason": "fixed user-goal order",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          },
+          {
+            "action": "list_events",
+            "reason": "fixed plan inventory step",
+            "arguments": {}
+          },
+          {
+            "action": "create_epochs",
+            "reason": "fixed plan Epoch step",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "fixed plan event consumer",
+            "arguments": {
+              "artifact_id": "epochs-5c280e88-151c-4b4b-82c8-1f6faa9db671",
+              "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "p",
+              "capability": "psd",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "request_id": "23303eba-9610-4a06-9360-7975ed1e77b7",
+              "result": {
+                "SYNTH-C1": {
+                  "delta": "1.88e-26",
+                  "theta": "1.51e-25",
+                  "alpha": "2.00e-10",
+                  "beta": "2.35e-25",
+                  "gamma": "5.39e-25"
+                }
+              }
+            },
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "5df14553-e153-4918-9d42-8606ae933daa",
+              "result": {
+                "artifact_id": "epochs-5c280e88-151c-4b4b-82c8-1f6faa9db671",
+                "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 3,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781761390696985e-26,
+                        "theta": 1.5051022748222774e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509648981134274e-25,
+                        "gamma": 5.392362522373334e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.381097010060055e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.30535538692429e-26,
+                        "beta": 9.976668601162352e-26,
+                        "gamma": 3.423910437460995e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H1-fixed",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.086094+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.088094+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "23303eba-9610-4a06-9360-7975ed1e77b7",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C1"
+                ]
+              },
+              "duration_ms": 0.221,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "6b91a4b5-2ea4-460e-a512-ac7177e35bca",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.068,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "f5638b5d-a15e-4a6a-8f0c-c53ada68b857",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.156,
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "request_id": "5df14553-e153-4918-9d42-8606ae933daa",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-5c280e88-151c-4b4b-82c8-1f6faa9db671",
+                "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 0.983,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H1",
+      "arm": "strong_expert",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "p": {
+            "expected_alpha": "2.00e-10",
+            "observed_alpha": "2.00e-10"
+          },
+          "e": {
+            "expected_valid_trials": 3,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 4,
+      "tool_sequence": [
+        "list_events",
+        "create_epochs",
+        "event_bandpower",
+        "psd"
+      ],
+      "tool_duration_ms": 2.312,
+      "wall_ms": 2.466,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "df0a0525-ab92-485e-a03c-9320bbc3c310",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 3,
+              "labels": {
+                "target": 3
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 2.0,
+              "last_onset_seconds": 6.0,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.053
+          },
+          {
+            "request_id": "73cc113b-2f73-4bff-bec9-59753acdaf1a",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-89727bf6-471f-4fbe-91a6-be413e0b48ba",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "valid_epoch_count": 3,
+              "rejected_epoch_count": 0,
+              "shape": [
+                3,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0,
+                6.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.641
+          },
+          {
+            "request_id": "4b8df5b1-8e10-4dc6-b174-202f97f99587",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-89727bf6-471f-4fbe-91a6-be413e0b48ba",
+              "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 3,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781761390696985e-26,
+                      "theta": 1.5051022748222774e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509648981134274e-25,
+                      "gamma": 5.392362522373334e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.381097010060055e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.30535538692429e-26,
+                      "beta": 9.976668601162352e-26,
+                      "gamma": 3.423910437460995e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 1.403
+          },
+          {
+            "request_id": "6c662ea7-b9d6-4ad1-92f9-7fc6a0725ffe",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.215
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "expert inspects all event scopes before irreversible work",
+            "arguments": {}
+          },
+          {
+            "action": "create_epochs",
+            "reason": "expert checks actual valid trial support",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "expert releases only supported event analysis",
+            "arguments": {
+              "artifact_id": "epochs-89727bf6-471f-4fbe-91a6-be413e0b48ba",
+              "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+            }
+          },
+          {
+            "action": "psd",
+            "reason": "expert executes independent goal after risky prerequisite",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "p",
+              "capability": "psd",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "request_id": "6c662ea7-b9d6-4ad1-92f9-7fc6a0725ffe",
+              "result": {
+                "SYNTH-C1": {
+                  "delta": "1.88e-26",
+                  "theta": "1.51e-25",
+                  "alpha": "2.00e-10",
+                  "beta": "2.35e-25",
+                  "gamma": "5.39e-25"
+                }
+              }
+            },
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "4b8df5b1-8e10-4dc6-b174-202f97f99587",
+              "result": {
+                "artifact_id": "epochs-89727bf6-471f-4fbe-91a6-be413e0b48ba",
+                "artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 3,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781761390696985e-26,
+                        "theta": 1.5051022748222774e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509648981134274e-25,
+                        "gamma": 5.392362522373334e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.381097010060055e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.30535538692429e-26,
+                        "beta": 9.976668601162352e-26,
+                        "gamma": 3.423910437460995e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H1-strong_expert",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.088094+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.090936+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "df0a0525-ab92-485e-a03c-9320bbc3c310",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.053,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "73cc113b-2f73-4bff-bec9-59753acdaf1a",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.641,
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "request_id": "4b8df5b1-8e10-4dc6-b174-202f97f99587",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-89727bf6-471f-4fbe-91a6-be413e0b48ba",
+                "expected_artifact_fingerprint": "sha256:7dac15902dd4819d60df3e76e76911aa481016adabb621d7f932bed97ff799a3"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 1.403,
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "request_id": "6c662ea7-b9d6-4ad1-92f9-7fc6a0725ffe",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C1"
+                ]
+              },
+              "duration_ms": 0.215,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H2",
+      "arm": "adaptive",
+      "expected_code": "EPOCH_CREATION_FAILED",
+      "observed_status": "scientific_stop",
+      "observed_code": "EPOCH_CREATION_FAILED",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "list_events",
+        "create_epochs"
+      ],
+      "tool_duration_ms": 0.08,
+      "wall_ms": 0.159,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "EPOCH_CREATION_FAILED",
+        "reason": "Epoch construction failed; no event consumer can be released",
+        "tool_results": [
+          {
+            "request_id": "c309107d-acdc-429e-b7ed-8b0d93c07bb7",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 2,
+              "labels": {
+                "target": 2
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 7.2,
+              "last_onset_seconds": 7.7,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.058
+          },
+          {
+            "request_id": "8df3ecb2-ce54-4f86-8173-b7907a20abec",
+            "tool_name": "create_epochs",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "EPOCH_CREATION_FAILED",
+              "message": "No valid Epochs remain after boundary checks"
+            },
+            "duration_ms": 0.022
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "one event inventory checks every declared trial requirement",
+            "arguments": {}
+          },
+          {
+            "observation": "event_counts",
+            "counts": {
+              "target": 2
+            }
+          },
+          {
+            "action": "create_epochs",
+            "reason": "materialize authorized event scope to observe valid trials",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H2-adaptive",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "termination_reason": "EPOCH_CREATION_FAILED",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "c309107d-acdc-429e-b7ed-8b0d93c07bb7",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.058,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "8df3ecb2-ce54-4f86-8173-b7907a20abec",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "EPOCH_CREATION_FAILED"
+              },
+              "duration_ms": 0.022,
+              "error": {
+                "code": "EPOCH_CREATION_FAILED",
+                "message": "No valid Epochs remain after boundary checks"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H2",
+      "arm": "fixed",
+      "expected_code": "EPOCH_CREATION_FAILED",
+      "observed_status": "scientific_stop",
+      "observed_code": "EPOCH_CREATION_FAILED",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "list_events",
+        "create_epochs"
+      ],
+      "tool_duration_ms": 0.065,
+      "wall_ms": 0.129,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "EPOCH_CREATION_FAILED",
+        "reason": "Epoch creation failed",
+        "tool_results": [
+          {
+            "request_id": "b9cd5786-394c-4247-8b01-60c2cfa6f7dc",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 2,
+              "labels": {
+                "target": 2
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 7.2,
+              "last_onset_seconds": 7.7,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.047
+          },
+          {
+            "request_id": "f5788954-9842-4f34-891e-70acf574b0c6",
+            "tool_name": "create_epochs",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "EPOCH_CREATION_FAILED",
+              "message": "No valid Epochs remain after boundary checks"
+            },
+            "duration_ms": 0.018
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "fixed plan inventory step",
+            "arguments": {}
+          },
+          {
+            "action": "create_epochs",
+            "reason": "fixed plan Epoch step",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H2-fixed",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "termination_reason": "EPOCH_CREATION_FAILED",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "b9cd5786-394c-4247-8b01-60c2cfa6f7dc",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.047,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "f5788954-9842-4f34-891e-70acf574b0c6",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "EPOCH_CREATION_FAILED"
+              },
+              "duration_ms": 0.018,
+              "error": {
+                "code": "EPOCH_CREATION_FAILED",
+                "message": "No valid Epochs remain after boundary checks"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H2",
+      "arm": "strong_expert",
+      "expected_code": "EPOCH_CREATION_FAILED",
+      "observed_status": "scientific_stop",
+      "observed_code": "EPOCH_CREATION_FAILED",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "list_events",
+        "create_epochs"
+      ],
+      "tool_duration_ms": 0.055,
+      "wall_ms": 0.118,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "EPOCH_CREATION_FAILED",
+        "reason": "Epoch creation failed",
+        "tool_results": [
+          {
+            "request_id": "af9cf9b4-a098-4bdb-ac2f-8b6996a8c71a",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 2,
+              "labels": {
+                "target": 2
+              },
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": 7.2,
+              "last_onset_seconds": 7.7,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.039
+          },
+          {
+            "request_id": "d39b6896-c5cd-43b1-9246-22ba99a1896d",
+            "tool_name": "create_epochs",
+            "success": false,
+            "data": null,
+            "error": {
+              "code": "EPOCH_CREATION_FAILED",
+              "message": "No valid Epochs remain after boundary checks"
+            },
+            "duration_ms": 0.016
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "expert inspects all event scopes before irreversible work",
+            "arguments": {}
+          },
+          {
+            "action": "create_epochs",
+            "reason": "expert checks actual valid trial support",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H2-strong_expert",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "ac3fd2c50e995e53bcb2992328316bdb1b3004e5c927b68f29a3d4cd45dbf584"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.091939+00:00",
+          "termination_reason": "EPOCH_CREATION_FAILED",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "af9cf9b4-a098-4bdb-ac2f-8b6996a8c71a",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.039,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "d39b6896-c5cd-43b1-9246-22ba99a1896d",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": false,
+              "output_summary": {
+                "error_code": "EPOCH_CREATION_FAILED"
+              },
+              "duration_ms": 0.016,
+              "error": {
+                "code": "EPOCH_CREATION_FAILED",
+                "message": "No valid Epochs remain after boundary checks"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H3",
+      "arm": "adaptive",
+      "expected_code": "INSUFFICIENT_EVENT_COUNT",
+      "observed_status": "scientific_stop",
+      "observed_code": "INSUFFICIENT_EVENT_COUNT",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 1,
+      "tool_sequence": [
+        "list_events"
+      ],
+      "tool_duration_ms": 0.065,
+      "wall_ms": 0.173,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "INSUFFICIENT_EVENT_COUNT",
+        "reason": "Observed event count cannot meet the requested minimum",
+        "tool_results": [
+          {
+            "request_id": "bf20817e-340d-42bb-aa7f-9478d71bd20f",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 0,
+              "labels": {},
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": null,
+              "last_onset_seconds": null,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.065
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "one event inventory checks every declared trial requirement",
+            "arguments": {}
+          },
+          {
+            "observation": "event_counts",
+            "counts": {
+              "target": 0
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H3-adaptive",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.293506+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.293506+00:00",
+          "termination_reason": "INSUFFICIENT_EVENT_COUNT",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "bf20817e-340d-42bb-aa7f-9478d71bd20f",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.065,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H3",
+      "arm": "fixed",
+      "expected_code": "INSUFFICIENT_EVENT_COUNT",
+      "observed_status": "scientific_stop",
+      "observed_code": "INSUFFICIENT_EVENT_COUNT",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "psd",
+        "list_events"
+      ],
+      "tool_duration_ms": 0.362,
+      "wall_ms": 0.471,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "INSUFFICIENT_EVENT_COUNT",
+        "reason": "Raw event count below requested minimum",
+        "tool_results": [
+          {
+            "request_id": "b20695d9-c4e8-477a-8f55-a3c9bb953719",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.296
+          },
+          {
+            "request_id": "8dcc7491-c600-4ed0-9f86-dae7fdfb4218",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 0,
+              "labels": {},
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": null,
+              "last_onset_seconds": null,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.066
+          }
+        ],
+        "decisions": [
+          {
+            "action": "psd",
+            "reason": "fixed user-goal order",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          },
+          {
+            "action": "list_events",
+            "reason": "fixed plan inventory step",
+            "arguments": {}
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H3-fixed",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.294500+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.295499+00:00",
+          "termination_reason": "INSUFFICIENT_EVENT_COUNT",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "b20695d9-c4e8-477a-8f55-a3c9bb953719",
+              "tool_name": "psd",
+              "arguments": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "SYNTH-C1"
+                ]
+              },
+              "duration_ms": 0.296,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "8dcc7491-c600-4ed0-9f86-dae7fdfb4218",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.066,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H3",
+      "arm": "strong_expert",
+      "expected_code": "INSUFFICIENT_EVENT_COUNT",
+      "observed_status": "scientific_stop",
+      "observed_code": "INSUFFICIENT_EVENT_COUNT",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 1,
+      "tool_sequence": [
+        "list_events"
+      ],
+      "tool_duration_ms": 0.053,
+      "wall_ms": 0.143,
+      "raw_result": {
+        "status": "scientific_stop",
+        "code": "INSUFFICIENT_EVENT_COUNT",
+        "reason": "Raw event count below requested minimum",
+        "tool_results": [
+          {
+            "request_id": "7ca48d30-55ab-4005-92d3-79179a6ce51f",
+            "tool_name": "list_events",
+            "success": true,
+            "data": {
+              "event_count": 0,
+              "labels": {},
+              "time_reference": "seconds_from_record_start",
+              "first_onset_seconds": null,
+              "last_onset_seconds": null,
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.053
+          }
+        ],
+        "decisions": [
+          {
+            "action": "list_events",
+            "reason": "expert inspects all event scopes before irreversible work",
+            "arguments": {}
+          }
+        ],
+        "evidence_bundle": {
+          "status": "scientific_stop",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H3-strong_expert",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2b2584901a3e14682cd8ee4997966e823c7e915027b82f55d5a3b2fd71be2c0c"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.296478+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.296478+00:00",
+          "termination_reason": "INSUFFICIENT_EVENT_COUNT",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "7ca48d30-55ab-4005-92d3-79179a6ce51f",
+              "tool_name": "list_events",
+              "arguments": {},
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "event_count",
+                  "labels",
+                  "time_reference",
+                  "first_onset_seconds",
+                  "last_onset_seconds",
+                  "source"
+                ]
+              },
+              "duration_ms": 0.053,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H4",
+      "arm": "adaptive",
+      "expected_code": "INVALID_PARAMETERS",
+      "observed_status": "rejected",
+      "observed_code": "INVALID_PARAMETERS",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 0,
+      "tool_sequence": [],
+      "tool_duration_ms": 0,
+      "wall_ms": 0.029,
+      "raw_result": {
+        "status": "rejected",
+        "code": "INVALID_PARAMETERS",
+        "reason": "Unknown EEG channel(s): ABSENT",
+        "tool_results": [],
+        "decisions": [],
+        "evidence_bundle": {
+          "status": "rejected",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H4-adaptive",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.296478+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.296478+00:00",
+          "termination_reason": "INVALID_PARAMETERS",
+          "events": []
+        }
+      }
+    },
+    {
+      "case_id": "H4",
+      "arm": "fixed",
+      "expected_code": "INVALID_PARAMETERS",
+      "observed_status": "rejected",
+      "observed_code": "INVALID_PARAMETERS",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 0,
+      "tool_sequence": [],
+      "tool_duration_ms": 0,
+      "wall_ms": 0.021,
+      "raw_result": {
+        "status": "rejected",
+        "code": "INVALID_PARAMETERS",
+        "reason": "Unknown EEG channel(s): ABSENT",
+        "tool_results": [],
+        "decisions": [],
+        "evidence_bundle": {
+          "status": "rejected",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H4-fixed",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.296478+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.297421+00:00",
+          "termination_reason": "INVALID_PARAMETERS",
+          "events": []
+        }
+      }
+    },
+    {
+      "case_id": "H4",
+      "arm": "strong_expert",
+      "expected_code": "INVALID_PARAMETERS",
+      "observed_status": "rejected",
+      "observed_code": "INVALID_PARAMETERS",
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {},
+        "all_ok": true
+      },
+      "tool_calls": 0,
+      "tool_sequence": [],
+      "tool_duration_ms": 0,
+      "wall_ms": 0.02,
+      "raw_result": {
+        "status": "rejected",
+        "code": "INVALID_PARAMETERS",
+        "reason": "Unknown EEG channel(s): ABSENT",
+        "tool_results": [],
+        "decisions": [],
+        "evidence_bundle": {
+          "status": "rejected",
+          "publication": "none",
+          "goals": []
+        },
+        "trace": {
+          "task_id": "issue32-H4-strong_expert",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "2bf3ac43b6289482ae94ce066396c420e1506a947c5243ed556c8b017ed78d18"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.297421+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.297421+00:00",
+          "termination_reason": "INVALID_PARAMETERS",
+          "events": []
+        }
+      }
+    },
+    {
+      "case_id": "H5",
+      "arm": "adaptive",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "e": {
+            "expected_valid_trials": 2,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "tool_duration_ms": 1.174,
+      "wall_ms": 1.293,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "b0d4a90f-5abc-4a61-a6d6-2c1685283646",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-3c58d220-bcf5-4981-9251-7ca0e11c3498",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 0,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.168
+          },
+          {
+            "request_id": "f68a0604-603b-472b-bb73-42d1b02ed094",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-3c58d220-bcf5-4981-9251-7ca0e11c3498",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 2,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781763573417588e-26,
+                      "theta": 1.5051023261804092e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509649221875517e-25,
+                      "gamma": 5.392362439558346e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.3810970164798215e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.3053553805045236e-26,
+                      "beta": 9.976668514696122e-26,
+                      "gamma": 3.423910438022725e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 1.006
+          }
+        ],
+        "decisions": [
+          {
+            "action": "create_epochs",
+            "reason": "materialize authorized event scope to observe valid trials",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "observation": "valid_epoch_counts",
+            "counts": {
+              "target": 2
+            },
+            "rejected_count": 0
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "all declared event prerequisites are now satisfied",
+            "arguments": {
+              "artifact_id": "epochs-3c58d220-bcf5-4981-9251-7ca0e11c3498",
+              "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "f68a0604-603b-472b-bb73-42d1b02ed094",
+              "result": {
+                "artifact_id": "epochs-3c58d220-bcf5-4981-9251-7ca0e11c3498",
+                "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 2,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781763573417588e-26,
+                        "theta": 1.5051023261804092e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509649221875517e-25,
+                        "gamma": 5.392362439558346e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.3810970164798215e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.3053553805045236e-26,
+                        "beta": 9.976668514696122e-26,
+                        "gamma": 3.423910438022725e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H5-adaptive",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.297421+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.298939+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "b0d4a90f-5abc-4a61-a6d6-2c1685283646",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.168,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "f68a0604-603b-472b-bb73-42d1b02ed094",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-3c58d220-bcf5-4981-9251-7ca0e11c3498",
+                "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 1.006,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H5",
+      "arm": "fixed",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "e": {
+            "expected_valid_trials": 2,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "tool_duration_ms": 1.019,
+      "wall_ms": 1.103,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "fe4e2eaf-2a0c-47ce-8441-b1f4a0593dcd",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-c65a9882-ef37-4868-9f59-58938b52fa21",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 0,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.161
+          },
+          {
+            "request_id": "20ab4454-b8a3-4ef0-a0cb-83912ac3748b",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-c65a9882-ef37-4868-9f59-58938b52fa21",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 2,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781763573417588e-26,
+                      "theta": 1.5051023261804092e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509649221875517e-25,
+                      "gamma": 5.392362439558346e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.3810970164798215e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.3053553805045236e-26,
+                      "beta": 9.976668514696122e-26,
+                      "gamma": 3.423910438022725e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.858
+          }
+        ],
+        "decisions": [
+          {
+            "action": "create_epochs",
+            "reason": "fixed plan Epoch step",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "fixed plan event consumer",
+            "arguments": {
+              "artifact_id": "epochs-c65a9882-ef37-4868-9f59-58938b52fa21",
+              "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "20ab4454-b8a3-4ef0-a0cb-83912ac3748b",
+              "result": {
+                "artifact_id": "epochs-c65a9882-ef37-4868-9f59-58938b52fa21",
+                "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 2,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781763573417588e-26,
+                        "theta": 1.5051023261804092e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509649221875517e-25,
+                        "gamma": 5.392362439558346e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.3810970164798215e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.3053553805045236e-26,
+                        "beta": 9.976668514696122e-26,
+                        "gamma": 3.423910438022725e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H5-fixed",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.298939+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.299957+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "fe4e2eaf-2a0c-47ce-8441-b1f4a0593dcd",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.161,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "20ab4454-b8a3-4ef0-a0cb-83912ac3748b",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-c65a9882-ef37-4868-9f59-58938b52fa21",
+                "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 0.858,
+              "error": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "H5",
+      "arm": "strong_expert",
+      "expected_code": null,
+      "observed_status": "completed",
+      "observed_code": null,
+      "oracle": {
+        "status_ok": true,
+        "code_ok": true,
+        "publication_ok": true,
+        "numerical_ok": true,
+        "forbidden_ok": true,
+        "global_gate_ok": true,
+        "numeric_checks": {
+          "e": {
+            "expected_valid_trials": 2,
+            "expected_alpha": 1.9999999920083944e-10,
+            "observed_alpha": 1.9999999920083944e-10
+          }
+        },
+        "all_ok": true
+      },
+      "tool_calls": 2,
+      "tool_sequence": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "tool_duration_ms": 0.887,
+      "wall_ms": 0.974,
+      "raw_result": {
+        "status": "completed",
+        "code": null,
+        "reason": null,
+        "tool_results": [
+          {
+            "request_id": "ffdd1d45-bf10-400b-a561-030dac4c9652",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-f31a39d5-f1cb-43dc-bd60-0c45dff3597e",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "valid_epoch_count": 2,
+              "rejected_epoch_count": 0,
+              "shape": [
+                2,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "target",
+                "target"
+              ],
+              "event_onsets_seconds": [
+                2.0,
+                4.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "target"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.159
+          },
+          {
+            "request_id": "3975d15a-bc6f-457a-8bed-9b94daf37627",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-f31a39d5-f1cb-43dc-bd60-0c45dff3597e",
+              "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "target": {
+                  "epoch_count": 2,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 1.8781763573417588e-26,
+                      "theta": 1.5051023261804092e-25,
+                      "alpha": 1.9999999920083944e-10,
+                      "beta": 2.3509649221875517e-25,
+                      "gamma": 5.392362439558346e-25
+                    },
+                    "SYNTH-C2": {
+                      "delta": 1.3810970164798215e-26,
+                      "theta": 1.1250000063467436e-10,
+                      "alpha": 2.3053553805045236e-26,
+                      "beta": 9.976668514696122e-26,
+                      "gamma": 3.423910438022725e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.728
+          }
+        ],
+        "decisions": [
+          {
+            "action": "create_epochs",
+            "reason": "expert checks actual valid trial support",
+            "arguments": {
+              "labels": [
+                "target"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          {
+            "action": "event_bandpower",
+            "reason": "expert releases only supported event analysis",
+            "arguments": {
+              "artifact_id": "epochs-f31a39d5-f1cb-43dc-bd60-0c45dff3597e",
+              "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+            }
+          }
+        ],
+        "evidence_bundle": {
+          "status": "completed",
+          "publication": "all_goals",
+          "goals": [
+            {
+              "instance_id": "e",
+              "capability": "event_bandpower",
+              "parameters": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "request_id": "3975d15a-bc6f-457a-8bed-9b94daf37627",
+              "result": {
+                "artifact_id": "epochs-f31a39d5-f1cb-43dc-bd60-0c45dff3597e",
+                "artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2",
+                "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                "frequency_resolution_hz": 1.0,
+                "conditions": {
+                  "target": {
+                    "epoch_count": 2,
+                    "channels": {
+                      "SYNTH-C1": {
+                        "delta": 1.8781763573417588e-26,
+                        "theta": 1.5051023261804092e-25,
+                        "alpha": 1.9999999920083944e-10,
+                        "beta": 2.3509649221875517e-25,
+                        "gamma": 5.392362439558346e-25
+                      },
+                      "SYNTH-C2": {
+                        "delta": 1.3810970164798215e-26,
+                        "theta": 1.1250000063467436e-10,
+                        "alpha": 2.3053553805045236e-26,
+                        "beta": 9.976668514696122e-26,
+                        "gamma": 3.423910438022725e-25
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "trace": {
+          "task_id": "issue32-H5-strong_expert",
+          "profile_id": "edf_native",
+          "source": {
+            "kind": "synthetic",
+            "reference_sha256": "abf1174bf20deae9bdcecdf0bd5c2c50a7c5b07af3f11c696784c8575160fcec"
+          },
+          "started_at_utc": "2026-10-24T19:12:51.299957+00:00",
+          "ended_at_utc": "2026-10-24T19:12:51.300967+00:00",
+          "termination_reason": "completed",
+          "events": [
+            {
+              "sequence": 1,
+              "request_id": "ffdd1d45-bf10-400b-a561-030dac4c9652",
+              "tool_name": "create_epochs",
+              "arguments": {
+                "labels": [
+                  "target"
+                ],
+                "tmin": 0,
+                "tmax": 1
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "valid_epoch_count",
+                  "rejected_epoch_count",
+                  "shape",
+                  "channel_names",
+                  "sfreq",
+                  "tmin",
+                  "tmax",
+                  "baseline",
+                  "reference",
+                  "event_labels",
+                  "event_onsets_seconds",
+                  "rejected",
+                  "source",
+                  "parameters"
+                ]
+              },
+              "duration_ms": 0.159,
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "request_id": "3975d15a-bc6f-457a-8bed-9b94daf37627",
+              "tool_name": "event_bandpower",
+              "arguments": {
+                "artifact_id": "epochs-f31a39d5-f1cb-43dc-bd60-0c45dff3597e",
+                "expected_artifact_fingerprint": "sha256:3756999a085bc7d4594855b19a3d4eec4fe2dfed57af3a92fd74aa032cd631b2"
+              },
+              "validation_passed": true,
+              "output_summary": {
+                "type": "object",
+                "keys": [
+                  "artifact_id",
+                  "artifact_fingerprint",
+                  "method",
+                  "interpretation",
+                  "frequency_resolution_hz",
+                  "conditions"
+                ]
+              },
+              "duration_ms": 0.728,
+              "error": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
