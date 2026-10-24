@@ -576,5 +576,6 @@ python -m pip check
 
 - `392b184`：冻结 R3 科学数据契约与最小应用接入设计。
 - `5e5ca5f`：离线 R3 CIEDG 桥、固定子集数值核验、CLI、配置模板和合成回归。
-- `7ececdd`：验证、科学资料缺口、README 与本状态文档。
-- 本机 Git HTTPS 到 GitHub 连接重置/超时；已用授权 GitHub 仓库接口从同一基线提交等价内容到远端同名分支：研究契约 `e399e49`、应用代码 `87562fb`。远端 Git object 的提交 SHA 与本地不同，后续恢复直连时须先 fetch/核对并安全合并，禁止直接覆盖或强推。远端文档提交与 Draft PR/CI 以最终交付为准；当前不声称 CI 已通过。
+- `7ececdd`：验证、科学资料缺口、README 与本状态文档；`79cb7f2`：记录仓库接口发布与本地历史差异。
+- 本机 Git HTTPS 到 GitHub 连接重置/超时；已用授权 GitHub 仓库接口从同一基线提交等价内容到远端同名分支：研究契约 `e399e49`、应用代码 `87562fb`、文档 `ee1de1e`、LF 字节校准 `69a7866`。上一轮远端 tree `1dc180a` 与对应本地 tree **完全相同**；提交 SHA 不同，后续恢复直连时须先 fetch/核对并安全合并，禁止直接覆盖或强推。
+- Draft PR [#25](https://github.com/lzy123-web/eeg-agent-harness/pull/25) 以冻结研究分支为 base；GitHub Actions `unit-tests` run [40079097685](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40079097685) 在远端相同 tree 上为 `success`。该 CI 不含真实 R3 EDF，本地真实数据验证仍只由离线 CLI 完成。

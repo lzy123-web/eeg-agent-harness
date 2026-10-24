@@ -34,6 +34,8 @@ python -m pip check
 
 CLI 只在 stdout 给出 `tested/passed/failed` 聚合数字；详细报告固定在 `r3_outputs/` 内，本地存在但被 Git 忽略。配置模板没有个人绝对路径。合成应用回归新增 6 项，涵盖真实 Registry/Executor 链、独立频带 oracle、缺失标签预检、unsupported 拒绝、固定选样和私有输出边界。全量本地回归：**227 tests，215 passed、12 按资源/联网门槛跳过、0 failed**；`compileall` 与 `pip check` 通过。CI 只运行无私有资源回归，不宣称 CI 复现了本地真实 EDF。
 
+Draft PR #25 的 GitHub Actions `unit-tests` run [40079097685](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40079097685) 在相同代码/文档 tree 上完成，结论 `success`。公开 CI 仍不含任何真实 R3 数据。
+
 ## 失败与边界
 
 固定 4 份没有出现 IO、事件时间、状态、工具或 CIEDG 执行失败。这个小子集不能证明 69 份全部通过，也不能证明动作条件含义、坏道规则、采集参考、受试者映射、组别差异或 ASD 辅助评估。外部 LLM 未接收任何真实 EDF、路径、事件、特征或 trace。历史旧失败和冻结 CIEDG 实验没有修改。
