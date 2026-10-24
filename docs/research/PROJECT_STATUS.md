@@ -1,5 +1,17 @@
 # 项目状态
 
+## 2026-10-24 当前更新：Issue #26 多任务共同机制研发（旧章节保留历史原文）
+
+当前正式主线仍是多任务 EEG Agent Harness；CIEDG 是工作点一候选。ASD 儿童辅助评估报告为将来的综合应用，R3 仅是一种本地数据来源。Issue #26 最新评论要求从旧 event-only 假设中解耦；本轮在独立分支 `research/multitask-harness-method-v2` 实施 opt-in 新版，不修改旧 CIEDG、Issue #16 gold/results/trace 或 main。
+
+- 已完成：三类真实不同任务族的需求—能力—缺口矩阵；“保留/任务专有化/重构”清单；`SharedEvidenceGraphCore` 的统一目标前沿、输入绑定、失效/局部恢复、类型/来源核验和结果发布；连续/事件/模型策略；ASD 报告的证据需求与禁止解释边界；可复现开发验证和正式公平实验预案。旧版初始跨族实现 `b5cc2f7` 存在继承 event-only 结构的不足，后由 `6b660dd` 任务中性核心修订；失败/修订记录保留。
+- 实际验证：`python -m compileall -q src tests` 通过；`PYTHONPATH=src python -m unittest discover -s tests -q` 为 **236 项，OK，13 跳过**；提供本地只读 EDF/已有权重的新增模块测试 **15/15 OK**，模型输出 shape `[1]`。合成 PSD 经独立 SciPy Welch/积分 oracle 核对；Fake 自然语言连续/事件两例均完成并通过答案门。真实 DeepSeek 只使用合成 EEG：三次开发检查累计 10 completion/18,365 tokens；前两次事件请求安全澄清（模型错误提出未获原文支持的 `epoch_summary`），第三次连续/事件均完成，失败原始响应保留在被忽略的本地 `artifacts/`。请求名 `deepseek-chat`，最后一次响应实际报告 `deepseek-flash`；早期调用未记录响应身份，不倒填。
+- 遗留：自由语言多正向/跨族目标完备性尚未独立验证；一次事件成功不能掩盖两次语言层失败；质量阈值未儿童/范式校准；旧模型训练来源“源码未提供”，不用于 ASD 报告；R3 标签/参与者映射与采集方案仍未知；新图相较强动态 Expert 的独立效益尚未正式比较。无 ERP/ERD/ERS、无 ASD 报告生成器/诊断。
+- 下一阶段候选：先冻结跨族任务/状态/故障与独立 oracle，再用同工具、同状态信息、同预算的原生 Agent、旧 CIEDG、强动态 Expert 与消融做正式比较；ASD 综合应用需另取得权威范式、身份映射、适龄参考和专业复核方案。不应把这次开发集成绩写为论文增益。
+- Git：本分支本地提交 `343e4a7`（任务矩阵与初步设计）、`b5cc2f7`（初版跨族图）、`6b660dd`（任务中性核心修订）；最终文档/客户端身份记录提交与远端 Draft PR 状态在交付前补记。数据、权重、密钥、私有本地路径和生成产物不入 Git，不强推、不合并 main。
+
+以下原“当前阶段”等段落是此前里程碑留存，不再代表 Issue #26 最新状态。
+
 ## 当前阶段
 
 Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。

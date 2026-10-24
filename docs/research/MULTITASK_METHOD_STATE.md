@@ -10,3 +10,10 @@
 - 当前本地提交：`343e4a7`（矩阵/初步设计），`b5cc2f7`（初版跨族目标图）；均尚未推送。纠偏后不回滚正确初版，需实质重构事件默认核心并再测。
 - 下一精确入口：将 v2 的任务图推进为任务中性的目标/输入/依赖/适用性/状态与证据引擎，把 Epoch 语义收敛到适配层；新增验证证明无事件任务在没有任何 Epoch 默认字段时可运行，模型适用性/资源与事件状态共用失败和证据边界。随后完成 ASD 映射和运行记录。
 - Git/PR/CI：Draft PR 尚未创建；直连 GitHub 曾不可用，须先检查；禁止强推。
+
+## 纠偏实施后的安全检查点（2026-10-24）
+
+- `6b660dd` 已把共享 frontier/绑定校验/依赖失效/有界失败/证据发布迁到不默认 Epoch 的 `v2_graph.py::SharedEvidenceGraphCore`；`v2.py` 只保留记录、模型、源/有效 Epoch 的输入适配及授权筛选策略。编译/执行都核对 Registry 的输入输出类型及 Profile；旧 v1.1 不动。
+- 完整回归 `compileall` 与 236 tests（13 skipped）通过，`pip check` 通过；本地合法 EDF+权重门控 15/15；Fake 合成连续与事件链 2/2；真实 DeepSeek 三次开发检查累计 10 completion / 18,365 tokens，最初两次事件请求因 LLM 幻增未获支持的 `epoch_summary` 安全澄清，第三次两任务完成。实际响应模型 `deepseek-flash` 仅在第三次有日志支持。不能把第三次覆盖成稳定成功率。
+- 新增 `ASD_REPORT_REQUIREMENTS_AND_EVIDENCE.md`、`MULTITASK_METHOD_ITERATIONS.md`、`MULTITASK_METHOD_VALIDATION.md`、`MULTITASK_EVALUATION_PLAN.md`，均明确未验证部分；报告生成、ASD 诊断和正式比较尚未实现。
+- 下一精确入口：检查所有新增文件的隐私与研究表述，提交本阶段文档；安全检查远端历史后将分支推送并建 Draft PR，再查 CI。若 Git 网络不可用，只能在核对远端 SHA 的条件下使用等价文件树发布，不强推、不改 main；最后记录实际 PR/CI、更新 Issue。

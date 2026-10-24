@@ -2,6 +2,18 @@
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
 
+Issue #26 在独立研究分支新增 opt-in 的多任务共同证据图：连续无事件分析、事件→Epoch 分析和严格输入模型任务通过同一目标/输入类型/状态版本/失败/证据发布核心。事件专有窗口、质量筛选和 Epoch lineage 留在任务策略，通用图不默认 Epoch。旧 CIEDG 和 Baseline v1 路径保留；新方法仍是**研究候选，不是已证明优于强动态 Expert 的论文创新**。见 [任务矩阵](docs/research/MULTITASK_HARNESS_RESEARCH_MAP.md)、[设计与修订](docs/research/MULTITASK_METHOD_DESIGN.md)、[实际验证](docs/research/MULTITASK_METHOD_VALIDATION.md)、[ASD 证据需求](docs/research/ASD_REPORT_REQUIREMENTS_AND_EVIDENCE.md)。
+
+本地合成验证入口（只输出到被 Git 忽略的 `artifacts/`，不需要 EDF/权重/API）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.integrated_method.v2_validation
+python -m unittest discover -s tests -p test_point1_multitask_v2.py -q
+```
+
+如有合法的 OpenAI 兼容服务配置，可用同一模块加 `--real --max-requests 8 --max-total-tokens 12000` 做**仅合成数据**有界验证；请求/响应模型身份、tokens 与原始 assistant 响应存于忽略目录。不要对真实受试者运行此联网入口。`agent_cli --agent-mode point1-v2 --demo-synthetic --fake` 也可交互检查单次自然语言请求。
+
 Baseline v1.0 已完成冻结任务集、真实 DeepSeek 自主工具选择、本地 EDF+模型、两份匿名 R3 离线链和完整回归验收。首次严格真实 LLM 子集为 3/15；主要失败是安全但不必要的额外工具调用。通用最小调用修复后的 5 个 development 复测为 5/5，holdout 未复测，因此不得表述为总体可靠率。详见 `docs/research/BASELINE_V1_ACCEPTANCE.md`。
 
 Milestone 5 完成了约束规划强基线复核：在同等观察与恢复预算下，强 Expert DAG 与 Planner 的完成/拒绝结果持平，Planner 调用更多，因此当前“性能优势”为 No-Go；声明式扩展价值仅作 Conditional Go。详见 `docs/research/PLANNING_V2_EVALUATION.md`。

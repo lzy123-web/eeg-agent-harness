@@ -26,6 +26,20 @@ WINGS 已用语义约束表达科学组件与数据适配（[原论文](https://
 
 ## 核心契约与伪代码
 
+当前实现中任务中性核心为 `v2_graph.py::SharedEvidenceGraphCore`；它没有 `labels`、`Epoch` 或疾病默认字段。目标合同由 `v2.py::MULTITASK_CONTRACTS` 声明工具、作用对象策略、依赖、状态角色及答案需求；`compile_multitask` 对整个目标集预检，并与 Executor 使用的 `ToolSpec` 核对消费/产出 artifact 类型和 Profile。各目标实际返回值类型、产出 artifact 指纹在统一图中再次核查，然后才可生成可发布 token。`record` / `record_model` 输入绑定由记录内容、来源、参考、采样率、事件与本地权重哈希组成；`source_epochs` / `effective_epochs` 是事件策略，不是核心前提。
+
+核心与适配层关系：
+
+```text
+同一 TaskSpec / GoalContract / ToolSpec
+      → 整组目标静态适用性预检（record/window、event/epoch 或 model 条件）
+      → SharedEvidenceGraphCore：frontier → Context/Executor → 类型/来源门
+                             → 当前状态比对/依赖失效/有界恢复 → 证据发布
+      → Answer Gate（只引用当前有效结果）
+```
+
+未来新任务族可增加目标合同与输入策略，不应复制 graph runtime。旧 v1.1 继续单独存在以保护历史实验；这里的复用是**思想与数据结构**，不以继承 event-only 类作为强制条件。与旧方法/强动态 Expert 的不同不在于“有 DAG”或“有 ToolSpec”，而在于试验中的跨科学对象状态绑定与统一证据发布；是否有超出合理 Expert 的独立价值尚未正式证明。
+
 新 `MultiTaskRequest` 为 parsed-task 边界：`objectives`、每目标参数、共享事件参数、禁止操作。自然语言仍由已有 EvidenceBoundIntentInterpreter 解释，不在本轮开展 ESOCC 或自由语言目标完备性新研究。`compile` 只允许 Registry 现有工具对应的明示目标，未知目标/不受支持组合整体拒绝。
 
 ```text

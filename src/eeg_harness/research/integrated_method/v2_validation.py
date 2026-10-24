@@ -91,6 +91,7 @@ class JournaledBudgetClient:
             "request_index": self.request_count,
             "status": "received",
             "response_model_requested": self.model,
+            "response_model_reported": self.client.last_response_model,
             "finish_reason": self.client.last_finish_reason,
             "usage": dict(self.client.last_usage),
             "raw_assistant_message": response,
@@ -122,6 +123,7 @@ def run_suite(*, real=False, journal=None, max_requests=8, max_total_tokens=2400
         records.append({"case_id": case_id, "request": request, "result": result})
     return {
         "synthetic_only": True, "real_llm": bool(real), "requested_model": getattr(client, "model", None),
+        "response_models": list(getattr(getattr(client, "client", client), "response_models", [])),
         "request_count": getattr(client, "request_count", len(getattr(client, "calls", []))),
         "usage": dict(getattr(client, "total_usage", {})),
         "finish_reasons": list(getattr(client, "finish_reasons", [])),
