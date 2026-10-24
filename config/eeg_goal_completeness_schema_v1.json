@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/eeg-goal-completeness/contract-v1.schema.json",
+  "title": "Controlled EEG source-claim contract v1",
+  "type": "object",
+  "required": ["claims", "precedence", "runtime_supported", "expected_disposition"],
+  "properties": {
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id", "operation", "object_type", "target_label", "tmin", "tmax",
+          "input_stage", "output_stage", "polarity", "authorization", "supported", "parameters"
+        ],
+        "properties": {
+          "claim_id": {"type": "string", "minLength": 1},
+          "operation": {
+            "enum": [
+              "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
+              "epoch_rereference", "erd_ers", "functional_connectivity"
+            ]
+          },
+          "object_type": {"const": "event_epochs"},
+          "target_label": {"type": "string", "minLength": 1},
+          "tmin": {"type": "number"},
+          "tmax": {"type": "number"},
+          "input_stage": {"enum": ["source_epochs", "effective_epochs"]},
+          "output_stage": {
+            "oneOf": [
+              {"enum": ["source_epochs", "effective_epochs"]},
+              {"type": "null"}
+            ]
+          },
+          "polarity": {"enum": ["required", "forbidden"]},
+          "authorization": {"enum": ["not_required", "granted", "denied", "unspecified"]},
+          "supported": {"type": "boolean"},
+          "parameters": {"type": "object"},
+          "evidence_span": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "precedence": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [{"type": "string"}, {"type": "string"}],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "runtime_supported": {"type": "boolean"},
+    "expected_disposition": {"enum": ["accept", "clarify", "reject"]},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": false
+}
