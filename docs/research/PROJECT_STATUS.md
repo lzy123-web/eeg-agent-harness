@@ -573,3 +573,4 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `ef33345`：最终研究判断、README 与状态文档。
 - GitHub 研究分支快照：`7446f30`；Draft PR #18，base 为 `research/point1-integrated-method-v0`，未合并。
 - 本机到 GitHub smart-HTTP 端点持续 reset；远端使用 GitHub Git Data API 从同一 `bff8940` 创建内容等价快照，因此远端快照 SHA 与本地四个阶段提交不同，历史均未覆盖且未 force push。
+- GitHub Actions `unit-tests` run `40056766506` 对远端提交 `69f4f9f` 完成，结论 `success`。
