@@ -33,4 +33,3 @@ eeg-harness-intent-pilot = "eeg_harness.research.intent_alignment.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

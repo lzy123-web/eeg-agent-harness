@@ -116,4 +116,3 @@ def run_r3_ciedg_edf(edf_path, config, rules, tasks=("event_summary", "quality_b
 
 def application_config_snapshot(rules, tasks):
     return {"rules": asdict(rules), "tasks": list(tasks), "selection_performed": False}
-

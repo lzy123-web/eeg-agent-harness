@@ -351,4 +351,3 @@ python -m unittest discover -s tests -p test_r3_ciedg_application.py -v
 ```
 
 固定 4 份真实 EDF 的两类任务及 14 项逐例检查均通过；完整协议、独立数值核验和科学资料缺口见 `docs/research/R3_CIEDG_VALIDATION.md` 与 `docs/research/R3_ASD_APPLICATION_READINESS.md`。这属于应用接入，不是新增方法版本或第二创新点。
-

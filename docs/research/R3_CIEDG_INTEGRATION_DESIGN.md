@@ -32,4 +32,3 @@
 ## 维护与边界
 
 只新增 R3 应用 adapter、CLI、配置模板和测试；不修改冻结 CIEDG、原 R3 deterministic workflow、正式实验文件或通用 EEG 层。对真实输入发现的方法 bug 单独留痕，不以应用修补重新计为冻结方法的 unseen 结果。应用跑通不构成第二创新点。
-

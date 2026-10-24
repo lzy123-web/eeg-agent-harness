@@ -7,4 +7,3 @@
   "tasks": ["event_summary", "quality_bandpower"],
   "scientific_interpretation": "numeric_event_codes_only; paradigm_and_group_meaning_unverified"
 }
-

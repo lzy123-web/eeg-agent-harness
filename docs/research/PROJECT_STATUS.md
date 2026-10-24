@@ -578,4 +578,3 @@ python -m pip check
 - `5e5ca5f`：离线 R3 CIEDG 桥、固定子集数值核验、CLI、配置模板和合成回归。
 - `7ececdd`：验证、科学资料缺口、README 与本状态文档。
 - 本机 Git HTTPS 到 GitHub 连接重置/超时；已用授权 GitHub 仓库接口从同一基线提交等价内容到远端同名分支：研究契约 `e399e49`、应用代码 `87562fb`。远端 Git object 的提交 SHA 与本地不同，后续恢复直连时须先 fetch/核对并安全合并，禁止直接覆盖或强推。远端文档提交与 Draft PR/CI 以最终交付为准；当前不声称 CI 已通过。
-

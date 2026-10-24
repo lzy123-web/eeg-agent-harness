@@ -222,4 +222,3 @@ def validate_one_edf(edf_path, config, rules):
         "deterministic": deterministic,
         "context_bundles": {name: context.reproducibility_bundle() for name, context in contexts.items()},
     }
-
