@@ -52,4 +52,4 @@ $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
 
 ## 5. 提交与公开边界
 
-预实现决策提交 `7b096e7`；本报告与章节草稿、状态文档为后续单独提交（最终 SHA 以 Git 历史为准）。仅文档、无密钥、权重、EDF、私人路径或生成轨迹进入 Git。Issue #30 与 Draft PR 需在普通 push、PR 创建后用同一负面结论报告；不合并 main、不 force push。若网络/认证失败，记录本地提交与明确阻塞，不能声称已发布。
+预实现决策提交 `7b096e7`；本报告与章节草稿、状态文档提交 `2333c76`，已普通推送至独立分支；[Draft PR #31](https://github.com/lzy123-web/eeg-agent-harness/pull/31) 以 PR #27 原研究分支为 base，保持 Draft。仅文档、无密钥、权重、EDF、私人路径或生成轨迹进入 Git。远端 CI 结果须另行核实；不能把本地回归冒充 CI。不合并 main、不 force push。
