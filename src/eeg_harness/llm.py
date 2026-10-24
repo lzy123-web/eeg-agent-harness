@@ -88,6 +88,8 @@ class OpenAICompatibleClient:
         self.total_usage = {}
         self.last_finish_reason = None
         self.finish_reasons = []
+        self.last_response_model = None
+        self.response_models = []
         self.request_count = 0
 
     @classmethod
@@ -147,6 +149,9 @@ class OpenAICompatibleClient:
             self.total_usage[key] = self.total_usage.get(key, 0) + value
         self.last_finish_reason = choices[0].get("finish_reason")
         self.finish_reasons.append(self.last_finish_reason)
+        returned_model = response_body.get("model")
+        self.last_response_model = returned_model if isinstance(returned_model, str) else None
+        self.response_models.append(self.last_response_model)
         return message
 
     def complete(self, messages, tools, tool_choice="auto"):

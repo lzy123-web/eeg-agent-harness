@@ -24,6 +24,7 @@ class _Response:
 
 def _completion(message=None, finish_reason="stop", usage=None):
     return {
+        "model": "provider-resolved-model",
         "choices": [{
             "message": message or {"role": "assistant", "content": "ok"},
             "finish_reason": finish_reason,
@@ -56,6 +57,8 @@ class OpenAICompatibleProtocolTest(unittest.TestCase):
         self.assertNotIn("tools", captured["body"])
         self.assertEqual(self.client.total_usage["total_tokens"], 7)
         self.assertEqual(self.client.last_finish_reason, "stop")
+        self.assertEqual(self.client.last_response_model, "provider-resolved-model")
+        self.assertEqual(self.client.response_models, ["provider-resolved-model"])
 
     def test_multiple_tool_calls_and_empty_content_are_preserved(self):
         tool_calls = [

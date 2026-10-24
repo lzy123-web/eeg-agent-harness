@@ -1,0 +1,625 @@
+"""Deterministic tests of parameterized goals on the real Registry/Executor."""
+
+import json
+import os
+import contextlib
+import io
+from copy import deepcopy
+from pathlib import Path
+import unittest
+from dataclasses import replace
+
+import numpy as np
+from scipy.signal import welch
+
+from eeg_harness.context import ExecutionContext
+from eeg_harness.agent_cli import main as agent_main
+from eeg_harness.demo import (build_synthetic_event_record,
+                              build_synthetic_no_event_record, build_synthetic_tuev_record)
+from eeg_harness.executor import Executor
+from eeg_harness.pipeline import load_config
+from eeg_harness.profiles import EDF_NATIVE, TUEV_BIPOLAR_22
+from eeg_harness.research.integrated_method.v3 import (
+    GoalInstance, InstanceTaskRequest, capability_catalog, capability_inventory, run_instances,
+)
+from eeg_harness.research.integrated_method.v3_agent import InstanceGoalEEGAgent, _decode_arguments
+from eeg_harness.research.integrated_method.v3_application import render_auxiliary_evidence_note
+from eeg_harness.research.integrated_method.v3 import compile_instances, InstanceEvidenceGraph
+from eeg_harness.tooling import ToolRequest
+from eeg_harness.tools import build_default_registry
+
+
+CONFIG = load_config(Path(__file__).resolve().parents[1] / "config" / "baseline.json")
+
+
+def context(*, events=False, task_id="v3-test"):
+    record = build_synthetic_event_record() if events else build_synthetic_no_event_record()
+    return ExecutionContext(record, EDF_NATIVE, Executor(build_default_registry(), CONFIG), task_id)
+
+
+def goal(key, name, **params):
+    return GoalInstance(key, name, params)
+
+
+class FixtureLLM:
+    def __init__(self, payloads):
+        self.payloads = list(payloads)
+        self.messages = []
+
+    def complete(self, messages, tools, tool_choice="auto"):
+        self.messages.append((messages, tools))
+        payload = self.payloads.pop(0)
+        return {"tool_calls": [{"function": {
+            "name": "submit_eeg_goals", "arguments": json.dumps(payload, ensure_ascii=False),
+        }}]}
+
+
+class InstanceGoalTests(unittest.TestCase):
+    def test_real_llm_cli_rejects_non_synthetic_before_edf_read(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                agent_main(["--agent-mode", "point1-v3", "--edf", "not-read.edf",
+                            "--request", "请看记录信息"])
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_protocol_repair_is_one_syntactic_brace_only(self):
+        self.assertEqual(_decode_arguments('{"goals": []}}'), ({"goals": []},
+                                                                 "single_extra_final_brace"))
+        with self.assertRaises(json.JSONDecodeError):
+            _decode_arguments('{"goals": []}}}')
+
+    def test_catalog_grounded_in_registry_without_resource_load(self):
+        names = {item["name"] for item in capability_catalog(context())}
+        self.assertIn("psd", names)
+        self.assertNotIn("seizure_detection", names)
+        self.assertNotIn("event_bandpower", names)
+        status = {item["name"]: item["category"] for item in capability_inventory(context())}
+        self.assertEqual(status["psd"], "available_v3")
+        self.assertEqual(status["event_bandpower"], "v3_unavailable_for_current_context")
+        self.assertEqual(status["rereference_epochs"], "registered_not_migrated_to_v3")
+        no_weight = ExecutionContext(build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
+                                     Executor(build_default_registry(), CONFIG), "no-weight-catalog")
+        self.assertNotIn("seizure_detection", {item["name"] for item in capability_catalog(no_weight)})
+
+    def test_distinct_task_families_also_run_as_single_goal_requests(self):
+        cases = (
+            (False, goal("info", "record_info")),
+            (False, goal("amplitude", "amplitude", channels=["SYNTH-C1"], start=0, end=1)),
+            (True, goal("epochs", "epoch_summary", labels=["stimulus"], tmin=0, tmax=1)),
+        )
+        for events, instance in cases:
+            with self.subTest(capability=instance.capability):
+                result = run_instances(context(events=events), InstanceTaskRequest((instance,)))
+                self.assertEqual(result["status"], "completed")
+                self.assertEqual(result["evidence_bundle"]["goals"][0]["capability"],
+                                 instance.capability)
+
+    def test_repeated_psd_distinct_windows_and_independent_oracle(self):
+        ctx = context()
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("quality", "record_quality"),
+            goal("early", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("late", "psd", channels=["SYNTH-C1"], start=2, end=4),
+        ), ("selection",)))
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual([item["tool_name"] for item in result["tool_results"]],
+                         ["record_quality", "psd", "psd"])
+        bundle = result["evidence_bundle"]
+        self.assertEqual([item["instance_id"] for item in bundle["goals"]],
+                         ["quality", "early", "late"])
+        self.assertEqual([item["analysis_scope"] for item in bundle["goals"]],
+                         ["whole_record", "continuous_window", "continuous_window"])
+        self.assertNotEqual(bundle["goals"][1]["request_id"], bundle["goals"][2]["request_id"])
+        for index, start in ((1, 0), (2, 2)):
+            x = ctx.record.data[0, int(start * 128):int((start + 2) * 128)]
+            frequency, density = welch(x, fs=128.0, nperseg=128.0)
+            band = (frequency >= 8) & (frequency <= 13)
+            expected = "{:.2e}".format(np.trapz(density[band], frequency[band]))
+            self.assertEqual(bundle["goals"][index]["result"]["SYNTH-C1"]["alpha"], expected)
+        json.dumps(bundle, allow_nan=False)
+
+    def test_cross_family_shares_exact_event_scope_only(self):
+        ctx = context(events=True)
+        scope = {"labels": ["stimulus"], "tmin": 0, "tmax": 1}
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("continuous", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("quality", "epoch_quality", **scope),
+            goal("power", "event_bandpower", **scope),
+        ), ("selection",)))
+        self.assertEqual(result["status"], "completed")
+        tools = [item["tool_name"] for item in result["tool_results"]]
+        self.assertEqual(tools.count("list_events"), 1)
+        self.assertEqual(tools.count("create_epochs"), 1)
+        self.assertNotIn("select_quality_epochs", tools)
+        bundle = result["evidence_bundle"]
+        self.assertEqual(bundle["goals"][1]["input_binding"], bundle["goals"][2]["input_binding"])
+        self.assertTrue(bundle["goals"][0]["input_binding"]["artifact_id"].startswith("record:"))
+        artifact_id = bundle["goals"][2]["input_binding"]["artifact_id"]
+        epochs = ctx.artifacts[artifact_id]
+        values = []
+        for index, label in enumerate(epochs.event_labels):
+            if label != "stimulus":
+                continue
+            frequencies, density = welch(epochs.data[index, 0], fs=epochs.sfreq,
+                                         nperseg=min(epochs.data.shape[-1], round(epochs.sfreq)))
+            band = (frequencies >= 8) & (frequencies <= 13)
+            values.append(float(np.trapz(density[band], frequencies[band])))
+        observed = bundle["goals"][2]["result"]["conditions"]["stimulus"]["channels"]["SYNTH-C1"]["alpha"]
+        self.assertAlmostEqual(observed, float(np.mean(values)), places=12)
+        json.dumps(result, allow_nan=False)
+
+    def test_distinct_event_scopes_do_not_share_epoch_artifact(self):
+        result = run_instances(context(events=True), InstanceTaskRequest((
+            goal("a", "epoch_summary", labels=["stimulus"], tmin=0, tmax=1),
+            goal("b", "epoch_summary", labels=["control"], tmin=0, tmax=1),
+        )))
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(sum(item["tool_name"] == "create_epochs" for item in result["tool_results"]), 2)
+        first, second = result["evidence_bundle"]["goals"]
+        self.assertNotEqual(first["input_binding"]["artifact_id"], second["input_binding"]["artifact_id"])
+
+    def test_identical_instance_parameters_reuse_evidence_not_window_variant(self):
+        result = run_instances(context(), InstanceTaskRequest((
+            goal("a", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("b", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("c", "psd", channels=["SYNTH-C1"], start=2, end=4),
+        )))
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(sum(item["tool_name"] == "psd" for item in result["tool_results"]), 2)
+        a, b, c = result["evidence_bundle"]["goals"]
+        self.assertEqual(a["request_id"], b["request_id"])
+        self.assertNotEqual(a["request_id"], c["request_id"])
+        self.assertNotEqual(a["evidence_token"], b["evidence_token"])
+
+    def test_only_affected_event_evidence_invalidates_after_artifact_change(self):
+        ctx = context(events=True)
+        request = InstanceTaskRequest((
+            goal("continuous", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("event", "epoch_quality", labels=["stimulus"], tmin=0, tmax=1),
+        ))
+        compiled, failure = compile_instances(ctx, request)
+        self.assertIsNone(failure)
+        task, ledger, _, contracts, arguments, scopes, _ = compiled
+        graph = InstanceEvidenceGraph(ctx, task, ledger, contracts, arguments, scopes)
+        for _ in range(4):
+            action = graph.next_action()
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, action.kind))
+            self.assertTrue(result.success)
+            graph.results.append(result.to_dict())
+            graph.apply_result(action, result.to_dict())
+        self.assertIn("continuous", graph.evidence)
+        self.assertIn("event", graph.evidence)
+        continuous_token = graph.evidence["continuous"].token_id
+        source = graph.evidence[graph.dependencies["event"][0]].output_binding
+        ctx.artifacts[source.artifact_id].data[0, 0, 0] += 1e-6
+        action = graph.next_action()
+        self.assertTrue(action.kind.startswith("_epochs_"))
+        self.assertIn("continuous", graph.evidence)
+        self.assertEqual(graph.evidence["continuous"].token_id, continuous_token)
+        self.assertNotIn("event", graph.evidence)
+
+    def test_changed_scientific_configuration_invalidates_only_spectral_goals(self):
+        ctx = ExecutionContext(build_synthetic_event_record(), EDF_NATIVE,
+                               Executor(build_default_registry(), deepcopy(CONFIG)), "config-drift")
+        request = InstanceTaskRequest((
+            goal("info", "record_info"),
+            goal("continuous", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("summary", "epoch_summary", labels=["stimulus"], tmin=0, tmax=1),
+            goal("event", "event_bandpower", labels=["stimulus"], tmin=0, tmax=1),
+        ))
+        compiled, failure = compile_instances(ctx, request)
+        self.assertIsNone(failure)
+        task, ledger, _, contracts, arguments, scopes, _ = compiled
+        graph = InstanceEvidenceGraph(ctx, task, ledger, contracts, arguments, scopes)
+        while (action := graph.next_action()) is not None:
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, action.kind))
+            self.assertTrue(result.success)
+            graph.results.append(result.to_dict())
+            graph.apply_result(action, result.to_dict())
+        stable = {name: graph.evidence[name].token_id for name in ("info", "summary")}
+        stale = {name: graph.evidence[name].token_id for name in ("continuous", "event")}
+        ctx.executor.config["freq_bands"]["alpha"] = [9.0, 11.0]
+        action = graph.next_action()
+        self.assertIsNotNone(action)
+        self.assertEqual(action.kind, "continuous")
+        for name, token_id in stable.items():
+            self.assertEqual(graph.evidence[name].token_id, token_id)
+        for name in stale:
+            self.assertNotIn(name, graph.evidence)
+        while action is not None:
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, action.kind))
+            self.assertTrue(result.success)
+            graph.results.append(result.to_dict())
+            graph.apply_result(action, result.to_dict())
+            action = graph.next_action()
+        self.assertNotEqual(graph.evidence["continuous"].token_id, stale["continuous"])
+        self.assertNotEqual(graph.evidence["event"].token_id, stale["event"])
+        frequencies, density = welch(ctx.record.data[0, :256], fs=ctx.record.sfreq,
+                                     nperseg=ctx.record.sfreq)
+        alpha = (frequencies >= 9) & (frequencies <= 11)
+        expected = "{:.2e}".format(np.trapz(density[alpha], frequencies[alpha]))
+        self.assertEqual(graph.evidence["continuous"].result["data"]["SYNTH-C1"]["alpha"],
+                         expected)
+        source = graph.evidence[graph.dependencies["event"][0]].output_binding
+        epochs = ctx.artifacts[source.artifact_id]
+        per_epoch = []
+        for index, label in enumerate(epochs.event_labels):
+            if label == "stimulus":
+                f, d = welch(epochs.data[index, 0], fs=epochs.sfreq,
+                             nperseg=min(epochs.data.shape[-1], round(epochs.sfreq)))
+                band = (f >= 9) & (f <= 11)
+                per_epoch.append(float(np.trapz(d[band], f[band])))
+        observed = graph.evidence["event"].result["data"]["conditions"]["stimulus"]["channels"]["SYNTH-C1"]["alpha"]
+        self.assertAlmostEqual(observed, float(np.mean(per_epoch)), places=12)
+
+    def test_spectral_delivery_includes_actual_frequency_definition(self):
+        result = run_instances(context(), InstanceTaskRequest((
+            goal("p", "psd", channels=["SYNTH-C1"], start=0, end=2),
+        )))
+        self.assertEqual(result["status"], "completed")
+        delivered = result["evidence_bundle"]["goals"][0]
+        self.assertEqual(delivered["analysis_configuration"]["freq_bands"]["alpha"],
+                         CONFIG["freq_bands"]["alpha"])
+        self.assertEqual(delivered["sampling_rate_hz"], 128.0)
+        json.dumps(delivered, allow_nan=False)
+
+    def test_synthetic_application_consumes_bundle_without_reanalysis(self):
+        result = run_instances(context(), InstanceTaskRequest((
+            goal("p", "psd", channels=["SYNTH-C1"], start=0, end=2),
+        )))
+        note = render_auxiliary_evidence_note(result["evidence_bundle"])
+        self.assertIn("合成示例", note)
+        self.assertIn(result["evidence_bundle"]["goals"][0]["evidence_token"], note)
+        self.assertIn("不构成 ASD 诊断", note)
+        incomplete = dict(result["evidence_bundle"], expected_goal_count=2)
+        with self.assertRaises(ValueError):
+            render_auxiliary_evidence_note(incomplete)
+
+    def test_model_missing_resource_and_wrong_profile_rejected_atomically(self):
+        no_weight = ExecutionContext(build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
+                                     Executor(build_default_registry(), CONFIG), "no-weight")
+        request = InstanceTaskRequest((
+            goal("info", "record_info"),
+            goal("model", "seizure_detection", channels=["FP1-F7"], start=0, end=1),
+        ))
+        blocked = run_instances(no_weight, request)
+        self.assertEqual(blocked["status"], "rejected")
+        self.assertEqual(blocked["tool_results"], [])
+        incompatible = run_instances(context(), request)
+        self.assertEqual(incompatible["status"], "rejected")
+        self.assertEqual(incompatible["tool_results"], [])
+
+    @unittest.skipUnless(os.environ.get("EEG_HARNESS_MODEL_PATH"),
+                         "Set EEG_HARNESS_MODEL_PATH for local synthetic model test")
+    def test_existing_model_on_synthetic_verified_profile(self):
+        ctx = ExecutionContext(
+            build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
+            Executor(build_default_registry(), CONFIG,
+                     {"seizure_model": os.environ["EEG_HARNESS_MODEL_PATH"]}), "model-synth")
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("info", "record_info"),
+            goal("model", "seizure_detection", channels=["FP1-F7"], start=0, end=1),
+        )))
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(len(result["evidence_bundle"]["goals"][1]["result"]), 1)
+        self.assertIn("FP1-F7", result["evidence_bundle"]["goals"][1]["result"][0])
+
+    def test_atomic_preflight_rejects_bad_goal_without_partial_execution(self):
+        ctx = context()
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("good", "record_info"), goal("bad", "event_bandpower", labels=["stimulus"], tmin=0, tmax=1),
+        )))
+        self.assertEqual(result["status"], "rejected")
+        self.assertEqual(result["tool_results"], [])
+        self.assertEqual(ctx.trace.to_dict()["events"], [])
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual(result["evidence_bundle"]["published_goal_count"], 0)
+        self.assertEqual({item["instance_id"] for item in result["evidence_bundle"]["unfulfilled_goals"]},
+                         {"good", "bad"})
+
+    def test_runtime_failure_withholds_every_goal_from_public_bundle(self):
+        ctx = context()
+        registry = ctx.executor.registry
+        original = registry.get("psd")
+        calls = []
+        def handler(record, arguments, config, resources):
+            calls.append(arguments["start"])
+            if arguments["start"] == 2:
+                raise ValueError("injected second-window failure")
+            return original.handler(record, arguments, config, resources)
+        registry._tools["psd"] = replace(original, handler=handler)
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("first", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("second", "psd", channels=["SYNTH-C1"], start=2, end=4),
+        )), max_retries=0)
+        self.assertNotEqual(result["status"], "completed")
+        bundle = result["evidence_bundle"]
+        self.assertEqual(bundle["publication"], "none")
+        self.assertEqual(bundle["goals"], [])
+        self.assertEqual({item["instance_id"] for item in bundle["unfulfilled_goals"]},
+                         {"first", "second"})
+        self.assertIn(0, calls)
+        self.assertIn(2, calls)
+        json.dumps(result, allow_nan=False)
+
+    def test_missing_parameters_clarify_without_execution(self):
+        result = run_instances(context(), InstanceTaskRequest((goal("p", "psd", channels=["SYNTH-C1"]),)))
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["details"]["p"]["fields"], ["start", "end"])
+
+    def test_quality_scope_and_source_stage_preflight_are_atomic(self):
+        quality_partial = run_instances(context(), InstanceTaskRequest((
+            goal("good", "record_info"), goal("q", "record_quality", start=1),
+        )))
+        self.assertEqual(quality_partial["status"], "clarification_required")
+        self.assertEqual(quality_partial["tool_results"], [])
+        quality_range = run_instances(context(), InstanceTaskRequest((
+            goal("good", "record_info"), goal("q", "record_quality", start=0, end=100),
+        )))
+        self.assertEqual(quality_range["status"], "rejected")
+        self.assertEqual(quality_range["tool_results"], [])
+        raw_goal = GoalInstance("raw", "record_info", source_stage="raw")
+        raw_request = run_instances(context(), InstanceTaskRequest((raw_goal,)))
+        self.assertEqual(raw_request["details"]["raw"]["code"], "SOURCE_STAGE_UNAVAILABLE")
+
+    def test_independent_contexts_do_not_share_results(self):
+        first = context(task_id="v3-first")
+        second = context(task_id="v3-second")
+        request = InstanceTaskRequest((goal("p", "psd", channels=["SYNTH-C1"], start=0, end=2),))
+        a = run_instances(first, request)
+        second.record.data[0, :] *= 2
+        b = run_instances(second, request)
+        self.assertNotEqual(a["evidence_bundle"]["goals"][0]["result"],
+                            b["evidence_bundle"]["goals"][0]["result"])
+        self.assertNotEqual(a["evidence_bundle"]["goals"][0]["input_binding"],
+                            b["evidence_bundle"]["goals"][0]["input_binding"])
+
+    def test_fake_llm_clarification_resume_and_no_raw_array_in_prompt(self):
+        request = "请计算 SYNTH-C1 通道的频带功率。"
+        first = {"goals": [{"instance_id": "g1", "capability": "psd",
+                            "parameters": {"channels": ["SYNTH-C1"]},
+                            "request_quote": "频带功率", "concept_quote": "频带功率",
+                            "parameter_quotes": {"channels": "SYNTH-C1"}}],
+                 "forbidden_operations": [], "unsupported_requests": []}
+        second = {"goals": [{"instance_id": "g1", "capability": "psd",
+                             "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                             "request_quote": "频带功率",
+                             "concept_quote": "频带功率",
+                             "parameter_quotes": {"channels": "SYNTH-C1", "start": "0 秒", "end": "2 秒"}}],
+                  "forbidden_operations": [], "unsupported_requests": []}
+        fake = FixtureLLM([first, second])
+        agent = InstanceGoalEEGAgent(fake, context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("时间窗是 0 秒到 2 秒。")
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["evidence_bundle"]["goals"][0]["instance_id"], "g1")
+        self.assertNotIn("raw EEG", json.dumps(fake.messages[0][0], ensure_ascii=False))
+        self.assertEqual(len(fake.messages), 2)
+
+    def test_repeated_goal_windows_cannot_borrow_each_others_parameter_quotes(self):
+        request = "请分别计算 SYNTH-C1 的 0 秒到 2 秒和 2 秒到 4 秒的绝对频带功率。"
+        items = []
+        for key, anchor, start, end, quote in (
+            ("a", "0 秒到 2 秒", 2, 4, "2 秒到 4 秒"),
+            ("b", "2 秒到 4 秒", 0, 2, "0 秒到 2 秒"),
+        ):
+            items.append({"instance_id": key, "capability": "psd",
+                          "parameters": {"channels": ["SYNTH-C1"], "start": start, "end": end},
+                          "request_quote": anchor, "concept_quote": "绝对频带功率",
+                          "parameter_quotes": {"channels": "SYNTH-C1", "start": quote, "end": quote}})
+        result = InstanceGoalEEGAgent(FixtureLLM([{
+            "goals": items, "forbidden_operations": [], "unsupported_requests": [],
+        }]), context()).run(request)
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["tool_results"], [])
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual({item["instance_id"] for item in result["evidence_bundle"]["unfulfilled_goals"]},
+                         {"g1", "g2"})
+
+    def test_resume_freezes_all_confirmed_goals_and_forbidden_operations(self):
+        request = ("请测量整段记录质量，不要筛选试次；再计算 SYNTH-C1 0 秒到 2 秒"
+                   "及 2 秒起的两段绝对频带功率。")
+        def item(key, anchor, params, quotes):
+            return {"instance_id": key, "capability": "psd", "parameters": params,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        first = {"goals": [
+            {"instance_id": "q", "capability": "record_quality", "parameters": {},
+             "request_quote": "整段记录质量", "concept_quote": "记录质量", "parameter_quotes": {}},
+            item("early", "0 秒到 2 秒", {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                 {"channels": "SYNTH-C1", "start": "0 秒到 2 秒", "end": "0 秒到 2 秒"}),
+            item("late", "2 秒起", {"channels": ["SYNTH-C1"], "start": 2},
+                 {"channels": "SYNTH-C1", "start": "2 秒起"}),
+        ], "forbidden_operations": ["selection"], "unsupported_requests": []}
+        changed = json.loads(json.dumps(first))
+        changed["goals"][1]["parameters"]["start"] = 2
+        changed["goals"][1]["parameters"]["end"] = 4
+        changed["goals"][1]["parameter_quotes"]["start"] = "2 秒到 4 秒"
+        changed["goals"][1]["parameter_quotes"]["end"] = "2 秒到 4 秒"
+        changed["goals"][2]["parameters"]["end"] = 4
+        changed["goals"][2]["parameter_quotes"]["end"] = "4 秒"
+        changed["forbidden_operations"] = []
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, changed]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段到 4 秒。")
+        self.assertEqual(result["code"], "GOAL_SET_CHANGED_ON_RESUME")
+        self.assertEqual(result["tool_results"], [])
+        self.assertEqual(agent.context.trace.to_dict()["events"], [])
+
+    def test_multi_goal_clarification_fills_only_unique_missing_slot(self):
+        request = "请计算 SYNTH-C1 的 0 秒到 2 秒及 2 秒起两段绝对频带功率，不要筛选试次。"
+        def entry(key, anchor, parameters, quotes):
+            return {"instance_id": key, "capability": "psd", "parameters": parameters,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        early = entry("a", "0 秒到 2 秒", {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                      {"channels": "SYNTH-C1", "start": "0 秒到 2 秒", "end": "0 秒到 2 秒"})
+        late = entry("b", "2 秒起", {"channels": ["SYNTH-C1"], "start": 2},
+                     {"channels": "SYNTH-C1", "start": "2 秒起"})
+        payload = lambda second: {"goals": [early, second], "forbidden_operations": ["selection"],
+                                  "unsupported_requests": []}
+        completed_late = json.loads(json.dumps(late))
+        completed_late["parameters"]["end"] = 4
+        completed_late["parameter_quotes"]["end"] = "4 秒"
+        agent = InstanceGoalEEGAgent(FixtureLLM([payload(late), payload(completed_late)]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段到 4 秒。")
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual(result["evidence_bundle"]["published_goal_count"], 2)
+        self.assertEqual(len(result["evidence_bundle"]["goals"]), 2)
+
+    def test_resume_rejects_swap_even_when_capability_sequence_is_unchanged(self):
+        request = "请计算 SYNTH-C1 0 秒到 2 秒和 2 秒到 4 秒两段绝对频带功率，第二段通道待补。"
+        def entry(key, anchor, start, end, channels=None):
+            params = {"start": start, "end": end}
+            quotes = {"start": anchor, "end": anchor}
+            if channels:
+                params["channels"] = channels
+                quotes["channels"] = "SYNTH-C1"
+            return {"instance_id": key, "capability": "psd", "parameters": params,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        first = {"goals": [entry("a", "0 秒到 2 秒", 0, 2, ["SYNTH-C1"]),
+                           entry("b", "2 秒到 4 秒", 2, 4)],
+                 "forbidden_operations": [], "unsupported_requests": []}
+        second = json.loads(json.dumps(first))
+        second["goals"][0]["parameters"].update(start=2, end=4)
+        second["goals"][0]["parameter_quotes"].update(start="2 秒到 4 秒", end="2 秒到 4 秒")
+        second["goals"][1]["parameters"].update(start=0, end=2, channels=["SYNTH-C1"])
+        second["goals"][1]["parameter_quotes"].update(start="0 秒到 2 秒", end="0 秒到 2 秒",
+                                                       channels="SYNTH-C1")
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, second]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段也是 SYNTH-C1。")
+        self.assertEqual(result["code"], "GOAL_SET_CHANGED_ON_RESUME")
+        self.assertEqual(result["tool_results"], [])
+
+    def test_fake_llm_rejects_ungrounded_goal(self):
+        fake = FixtureLLM([{"goals": [{"instance_id": "g1", "capability": "amplitude",
+                                   "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                                   "request_quote": "频带功率",
+                                   "concept_quote": "频带功率",
+                                   "parameter_quotes": {"channels": "SYNTH-C1", "start": "0 秒", "end": "2 秒"}}],
+                            "forbidden_operations": [], "unsupported_requests": []}])
+        result = InstanceGoalEEGAgent(fake, context()).run(
+            "计算 SYNTH-C1 的 0 秒到 2 秒频带功率")
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["tool_results"], [])
+
+    def test_internal_epoch_prerequisite_is_allowed_but_extra_output_goal_is_not(self):
+        request = "请测量 stimulus 事件后 0 秒到 1 秒的试次质量。"
+        valid = {"instance_id": "q", "capability": "epoch_quality",
+                 "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                 "request_quote": "stimulus 事件后 0 秒到 1 秒的试次质量",
+                 "concept_quote": "试次质量",
+                 "parameter_quotes": {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}}
+        payload = lambda goals: {"goals": goals, "forbidden_operations": [],
+                                 "unsupported_requests": []}
+        completed = InstanceGoalEEGAgent(FixtureLLM([payload([valid])]),
+                                         context(events=True)).run(request)
+        self.assertEqual(completed["status"], "completed")
+        self.assertEqual([item["tool_name"] for item in completed["tool_results"]],
+                         ["list_events", "create_epochs", "epoch_quality"])
+        extra = {**valid, "instance_id": "invented", "capability": "epoch_summary",
+                 "concept_quote": "试次"}
+        rejected = InstanceGoalEEGAgent(FixtureLLM([payload([valid, extra])]),
+                                        context(events=True)).run(request)
+        self.assertEqual(rejected["status"], "clarification_required")
+        self.assertEqual(rejected["tool_results"], [])
+
+    def test_coreferential_event_scope_only_inherits_equal_grounded_scope(self):
+        request = ("请对 stimulus 事件后 0 秒到 1 秒的试次测量质量，"
+                   "并计算同一事件试次的绝对频带功率。")
+        quality = {"instance_id": "q", "capability": "epoch_quality",
+                   "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                   "request_quote": "stimulus 事件后 0 秒到 1 秒的试次测量质量",
+                   "concept_quote": "测量质量",
+                   "parameter_quotes": {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}}
+        power = {"instance_id": "p", "capability": "event_bandpower",
+                 "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                 "request_quote": "同一事件试次的绝对频带功率",
+                 "concept_quote": "绝对频带功率",
+                 "parameter_quotes": {"labels": "同一事件试次", "tmin": "0 秒", "tmax": "1 秒"}}
+        payload = lambda items: {"goals": items, "forbidden_operations": [],
+                                 "unsupported_requests": []}
+        accepted = InstanceGoalEEGAgent(FixtureLLM([payload([quality, power])]),
+                                        context(events=True)).run(request)
+        self.assertEqual(accepted["status"], "completed")
+        self.assertEqual(accepted["evidence_bundle"]["goals"][1]["parameter_sources"],
+                         {"labels": "g1"})
+        wrong = dict(power)
+        wrong["parameters"] = {"labels": ["control"], "tmin": 0, "tmax": 1}
+        rejected = InstanceGoalEEGAgent(FixtureLLM([payload([quality, wrong])]),
+                                        context(events=True)).run(request)
+        self.assertEqual(rejected["status"], "clarification_required")
+        self.assertEqual(rejected["tool_results"], [])
+
+    def test_event_goal_can_inherit_prior_equal_scope_in_same_sentence(self):
+        request = ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数，测量这些试次的质量"
+                   "并计算各条件绝对频带功率；只测量，不筛除试次。")
+        scope = {"labels": ["stimulus"], "tmin": 0, "tmax": 1}
+        quotes = {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}
+        payload = {"goals": [
+            {"instance_id": "a", "capability": "epoch_summary", "parameters": scope,
+             "request_quote": "stimulus 事件后 0 秒到 1 秒的试次数",
+             "concept_quote": "试次数", "parameter_quotes": quotes},
+            {"instance_id": "b", "capability": "epoch_quality", "parameters": scope,
+             "request_quote": "测量这些试次的质量", "concept_quote": "质量",
+             "parameter_quotes": quotes},
+            {"instance_id": "c", "capability": "event_bandpower", "parameters": scope,
+             "request_quote": "计算各条件绝对频带功率", "concept_quote": "绝对频带功率",
+             "parameter_quotes": quotes},
+        ], "forbidden_operations": ["selection"], "unsupported_requests": []}
+        result = InstanceGoalEEGAgent(FixtureLLM([payload]), context(events=True)).run(request)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual([item["capability"] for item in result["evidence_bundle"]["goals"]],
+                         ["epoch_summary", "epoch_quality", "event_bandpower"])
+        self.assertEqual(result["evidence_bundle"]["goals"][2]["scope_source"], "g2")
+
+    def test_implicit_event_scope_refuses_different_scope_or_sentence(self):
+        first = {"instance_id": "a", "capability": "epoch_summary",
+                 "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                 "request_quote": "stimulus 事件后 0 秒到 1 秒的试次数",
+                 "concept_quote": "试次数",
+                 "parameter_quotes": {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}}
+        for request, second in (
+            ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数，并计算 control 条件的绝对频带功率。",
+             {"labels": ["control"], "tmin": 0, "tmax": 1}),
+            ("请汇总 stimulus 事件后 0 秒到 1 秒的试次数。另计算各条件绝对频带功率。",
+             {"labels": ["stimulus"], "tmin": 0, "tmax": 1}),
+        ):
+            with self.subTest(request=request):
+                payload = {"goals": [first, {
+                    "instance_id": "b", "capability": "event_bandpower",
+                    "parameters": second,
+                    "request_quote": "计算 control 条件的绝对频带功率" if "control" in request else
+                                     "计算各条件绝对频带功率",
+                    "concept_quote": "绝对频带功率",
+                    "parameter_quotes": {"labels": "control" if "control" in request else "stimulus",
+                                         "tmin": "0 秒", "tmax": "1 秒"},
+                }], "forbidden_operations": [], "unsupported_requests": []}
+                result = InstanceGoalEEGAgent(FixtureLLM([payload]), context(events=True)).run(request)
+                self.assertEqual(result["status"], "clarification_required")
+                self.assertEqual(result["tool_results"], [])
+
+    def test_resume_allows_punctuation_only_quote_expansion(self):
+        first = {"goals": [{"instance_id": "a", "capability": "psd",
+                            "parameters": {"channels": ["SYNTH-C2"]},
+                            "request_quote": "请计算 SYNTH-C2 导联的绝对频带功率",
+                            "concept_quote": "绝对频带功率",
+                            "parameter_quotes": {"channels": "SYNTH-C2"}}],
+                 "forbidden_operations": [], "unsupported_requests": []}
+        second = json.loads(json.dumps(first))
+        second["goals"][0]["request_quote"] += "。"
+        second["goals"][0]["parameters"].update(start=1, end=3)
+        second["goals"][0]["parameter_quotes"].update(start="1 秒", end="3 秒")
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, second]), context())
+        self.assertEqual(agent.run("请计算 SYNTH-C2 导联的绝对频带功率。")
+                         ["status"], "clarification_required")
+        result = agent.resume("窗口是 1 秒到 3 秒。")
+        self.assertEqual(result["status"], "completed")
+
+
+if __name__ == "__main__":
+    unittest.main()

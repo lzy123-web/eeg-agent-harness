@@ -1,5 +1,55 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
+
+- 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。
+- 实际工作：只读检查旧 CIEDG/v3、形式化审视共同执行图、对照旧 Issue #16 与 PR #23 负结果及 C1–C8 开发验收；查阅 EEGAgent AAAI 原论文、CogEEGAgent arXiv 正文、WINGS、Pegasus 与 W3C PROV-O 原始/官方资料。未修改算法、工具、Prompt、实验结果或科学真值；未调用付费 LLM，未读取/外发私有 EEG。
+- 研究判断：**REFINE 一次且设停线**。当前 v3 是成熟工作流机制的 EEG 实例化候选，不足以直接 KEEP 为已证明独立创新。审查文件只提出一项待导师批准的最小“声明式科学状态投影合同”，要求以后与同规则强 Expert、typed workflow 及全图重放公平比较；若无可复现的跨族额外价值，则降为 Harness 工程并停止包装为新规划算法。本轮没有实施该方案或运行新实验。
+- 验证：本轮仅检查文档引用、源码定位与 `git diff --check`；历史结果原样引用而非重跑。Issue #16 为 24/24 vs 24/24、109 vs 109 calls，PR #23 为 7/7、各 37 calls、42 vs 41 方法特定 LOC；v3 C1–C8 是合成开发集，不能当正式比较。
+- 未解决：跨任务状态投影的完整科学声明、相对成熟 typed workflow 的差异、v3 未迁移筛选/重参考、自然语言目标遗漏、独立真实数据泛化。下一步仅在用户/导师审核方向后确定，不自动进入实现或第二工作点。
+- Git：本地文档提交为 `ab27029`、`0805650`。命令行 GitHub HTTPS fetch/push 连续连接失败；逐 blob 与完整 Git tree 核对相同内容后，使用远端原 head `c1edcb1` 为预期父提交、`force=false` 发布等价远端 `313a89b`、`14ca445` 到 Draft PR #27，未合并 main。两端提交 SHA 因发布接口不同而分叉、**内容树相同**；本地 fetch 仍失败，后续网络恢复须安全 fetch/merge，不得重置或强推。本条记录同步另成纯文档提交。
+
+## 2026-10-25 当前更新：PR #27 多任务开发验收与科学配置证据修订
+
+- 当前阶段：通用多任务 Harness 的有限跨族验收与方法缺口诊断；仍在 `research/multitask-harness-method-v2` / Draft PR #27，旧 CIEDG/Issue #16 正式实验未改，未合并 main。按最新 [审查评论 6386061605](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6386061605) 先冻结 C1–C8 请求、目标、合成记录与数值 oracle，再开发验证；见 `MULTITASK_ACCEPTANCE_PROTOCOL.md` / `MULTITASK_ACCEPTANCE_REPORT.md`。
+- 本轮变更：Registry `ToolSpec.config_keys` 声明 PSD 与事件条件功率对频带配置的依赖；共同目标图将实际配置纳入证据 identity、语义身份及失效判定，C8 改频带只重算相关频谱目标。逐目标 bundle 和合成应用摘要披露采样率、频带定义、输入/依赖绑定与限制。语义接口只修复边界标点误拒与同句、等值、已落地事件 scope 的来源引用；保留不同 scope/跨句拒绝。无新 Executor、模型训练或 ASD 解释。
+- 验证命令：设置 `PYTHONPATH=src`，运行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`、`python -m eeg_harness.research.integrated_method.v3_acceptance`。当前已有依赖环境与本地既有权重下 compileall/pip check 通过，273 tests / OK / 13 skipped；不设权重时 273 tests / OK / 15 skipped。Fake C1–C5 目标类型/参数匹配，C6/C7 零工具安全拒绝；C8 两频谱数值由独立 Welch 调用重算，记录信息/试次数保留。实际本地权重仅对合成 22 导模型适用性/一窗输出做验证，不推断性能。
+- 真实 DeepSeek（只有合成数据）：首轮 C1–C6 7 completion / 15,416 tokens，C1/C3/C4 完成、C2 安全澄清、C5 澄清续接误拒、C6 安全拒绝；针对 C2/C5 一次复测 3 completion / 6,410 tokens，C5 完成，C2 因模型遗漏事件 `labels` 仍安全澄清。请求 `deepseek-chat`、10 个响应均报告 `deepseek-flash`；原始输出保存在被 Git 忽略的本地 `artifacts/`，失败未覆盖。不是未见成功率或强专家对照。
+- 遗留：语言编译仍会遗漏作用域参数/目标；开放请求的完备性无独立证明。v3 的连续/事件/严格模型能力只在合成与本地既有权重条件下验证；旧版筛选/重参考未迁入当前入口；ERP/ERD-ERS、Sleep/MDD、ASD 诊断不支持。应用端只有研究性分析证据摘要，缺授权儿童映射、年龄/范式/事件释义、适龄参考、行为临床资料和专业审核。候选工作点一的额外论文价值仍需跨族任务、同规则强动态 Expert/Native、公平预算和维护成本对照，不能由本轮证明。
+- 下一步候选：冻结独立跨族扩展集和评价器，优先检验分析配置/数据来源变动下的正确失效与恢复、任务扩展维护量；另用独立错误集衡量自然语言参数遗漏/安全误拒，不在当前 C2 文句上反复调 Prompt。停止无界增加事件词表或以旧成功覆盖失败。
+- Git：`83ea94b` 冻结验收协议，`d563044` 跨任务配置证据、语言接口边界与测试，`2aeaec0` 中文报告与状态；均以普通 push 发布到原 Draft PR #27。GitHub Actions [`unit-tests` #181](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40110954338) 对 `2aeaec0` 已 `success`。本条 CI 状态同步为纯文档后续提交；禁止强推、覆盖 PR 历史或合并 main。
+
+## 2026-10-24 当前更新：PR #27 阶段审查后的跨任务接口验收
+
+- 继续在 `research/multitask-harness-method-v2` 与 Draft PR #27；已读审查评论 [6385322359](https://github.com/lzy123-web/eeg-agent-harness/pull/27#issuecomment-6385322359)。保留 v3 目标实例、共享证据图、旧 v1/v2/CIEDG 与历史正式实验；未增加事件工具或第二研究点。
+- 代码：`v3_agent.py` 对有不同值的同名参数做目标锚点—参数引文归属校验；澄清续接冻结已确认目标顺序、能力、引文、参数、来源阶段和禁止操作，只补可唯一归属的缺项。`v3.py` 的目录只公开当前 Profile、事件与资源满足的 v3 能力，`capability_inventory` 区分当前可用、当前不可用、内部前提和旧入口未迁移；`evidence_bundle` 明示整单 expected/published/publication，失败不发布部分结果；合成应用拒绝不完整证据包。原 Registry/Executor/数值算法未改。
+- 先复现后修订：旧链可完成互换的双 PSD 窗口；旧续接不锁禁止操作。新增故障注入证明第二工具失败时不能把第一结果当完整交付。增量测试与方法理由见 `MULTITASK_METHOD_ITERATIONS.md` / `MULTITASK_METHOD_VALIDATION.md`。
+- 本地验证：`PYTHONPATH=src python -m compileall -q src tests`、`PYTHONPATH=src python -m unittest discover -s tests -q`、`python -m pip check` 均通过；263 tests、14 skipped、249 实际执行无失败；Fake 三例 2 个直接完成、1 个缺参澄清后完成。提交和远端 CI 待本轮收尾更新；**本轮未调用真实 DeepSeek**，不能把此前开发集末轮成功移作新验证。
+- 仍未解决：开放语言目标遗漏、复杂跨句/多处同值参数归属、否定操作被模型整体遗漏的独立发现、多个同名缺项的安全续接、自由形式最终报告与临床解释；旧版筛选/重参考不等于 v3 支持。下一候选是在冻结的跨任务开发集之外制定独立未见测试与公平强动态 Expert 对照，不提前宣称方法优势。
+- Git：本地功能提交 `ae15882`、状态提交 `425332c`；HTTPS 一度失败，经远端父 SHA、逐 blob 和相同 Git tree 校验，以 `expected_sha`、`force=false` 发布等价远端 `abc110c`、`1eaed2a`。恢复直连后 fetch 发现本地/远端内容树同为 `eef79fe4`，以普通 `--no-ff` merge `f451b7c` 安全汇合，未改写历史。功能与状态提交的 GitHub Actions #40106247323 / #40106328276 均 success；当前合并/本次状态同步仍需最终普通 push 与 CI 核对。未强推、未合并 main，未上传密钥或真实 EEG/派生结果。
+
+## 2026-10-24 当前更新：Issue #28 能力驱动多目标实例（opt-in v3）
+
+当前阶段为工作点一通用多任务共同机制继续研发，不改旧 CIEDG/历史正式结果。Draft PR #27 的研究分支上新增 Registry-backed 能力目录、`GoalInstance` 参数/来源作用域、自然语言多目标编译、同一 `SharedEvidenceGraphCore` 内部前提与逐目标证据包。独立的合成应用示例仅消费证据包，不重新处理 EEG、不生成诊断或能力分数。`record_info/record_quality/amplitude/psd`、事件质量/汇总/条件功率与合法模型输入可分别或在适用 Profile 内组合；事件筛选、重参考、ERP/ERD-ERS、ASD 解释仍不属于新入口已支持目标。
+
+- 已完成变更：`v3.py`、`v3_agent.py`、`v3_application.py`、`v3_validation.py`、`agent_cli.py` 与新增自动化测试；长期规则和四份既有研究文档同步。相同能力不同窗口有独立实例/结果，完全同参数才可共享；事件 producer 只有全 scope 一致才共享；缺参等待澄清、整体不适用零调用拒绝；状态变化只撤销受影响证据。
+- 实际验证：合成双窗 PSD 经独立 SciPy Welch/积分核对，事件条件 alpha 功率经逐 Epoch 独立聚合核对；混合连续与事件经真实 Registry/Executor 执行且无未授权筛选；合成 22 导结合本地既有权重做一次真实模型输出结构检查，缺权重/错 Profile 均零调用拒绝。Fake 三案例完成。真实 DeepSeek 四轮开发检查累计 15 completion/32,066 tokens，首三轮误拒、协议/缺参分类失败保留，末轮双窗、跨族、澄清后继续均完成；只发送合成元数据/请求，不外发真实数据。请求 `deepseek-chat`，末轮响应报告 `deepseek-flash`；不能据此宣称稳定泛化或论文优势。完整回归末次 258 tests（14 skipped）通过；`compileall`、`pip check`、v3 本地权重门控 20/20 均通过。
+- 遗留问题：语言目标完备性和复杂共指未得到独立验证；用户确认后的部分执行尚未实现；数据版本分叉只作安全拒绝；大 EEG 全记录哈希有性能成本；严格模型训练来源仍“源码未提供”；正式同预算 Native/强动态 Expert 与消融需另行冻结协议。ASD 应用仍缺标签/参与者/范式、适龄参考和专业解释资料。
+- 下一任务入口：本轮只剩 Issue #28 客观报告；本地与远端等价树历史已安全 merge，后续再准备独立未见任务集和同预算强 Expert/Native 对照。旧 v2 章节以下保持历史原文。
+- Git Commit / 推送：`190f4ef`、`ec284a1`、安全合并 `ff6246c`、`124ded4`、`3df256d` 已普通推送至 Draft PR #27。最后测试本地提交 `d751913` 遇 HTTPS 网络故障，改用 GitHub 仓库接口逐文件校验相同 Git tree `0da7875`，以预期父 SHA 非强制发布等价远端提交 `192f81d`。两端 SHA 不同但文件树相同，已在本地安全 fetch/merge，未 force push/合并 main。[GitHub Actions #171](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40101242537) 对远端 `192f81d` **success**。本状态同步为后续纯文档提交，不改变功能或历史实验。
+
+## 2026-10-24 当前更新：Issue #26 多任务共同机制研发（旧章节保留历史原文）
+
+当前正式主线仍是多任务 EEG Agent Harness；CIEDG 是工作点一候选。ASD 儿童辅助评估报告为将来的综合应用，R3 仅是一种本地数据来源。Issue #26 最新评论要求从旧 event-only 假设中解耦；本轮在独立分支 `research/multitask-harness-method-v2` 实施 opt-in 新版，不修改旧 CIEDG、Issue #16 gold/results/trace 或 main。
+
+- 已完成：三类真实不同任务族的需求—能力—缺口矩阵；“保留/任务专有化/重构”清单；`SharedEvidenceGraphCore` 的统一目标前沿、输入绑定、失效/局部恢复、类型/来源核验和结果发布；连续/事件/模型策略；ASD 报告的证据需求与禁止解释边界；可复现开发验证和正式公平实验预案。旧版初始跨族实现 `b5cc2f7` 存在继承 event-only 结构的不足，后由 `6b660dd` 任务中性核心修订；失败/修订记录保留。
+- 实际验证：`python -m compileall -q src tests` 通过；`PYTHONPATH=src python -m unittest discover -s tests -q` 为 **238 项，OK，13 跳过**；提供本地只读 EDF/已有权重的新版模块测试 **17/17 OK**，模型输出 shape `[1]`。合成 PSD 经独立 SciPy Welch/积分 oracle 核对；record 与 Epoch 内容变化均触发同一新版图的证据失效/前沿恢复；Fake 自然语言连续/事件两例均完成并通过答案门。真实 DeepSeek 只使用合成 EEG：三次开发检查累计 10 completion/18,365 tokens；前两次事件请求安全澄清（模型错误提出未获原文支持的 `epoch_summary`），第三次连续/事件均完成，失败原始响应保留在被忽略的本地 `artifacts/`。请求名 `deepseek-chat`，最后一次响应实际报告 `deepseek-flash`；早期调用未记录响应身份，不倒填。新版非 Fake CLI 在读取 EDF 前要求 `--demo-synthetic`。
+- 遗留：自由语言多正向/跨族目标完备性尚未独立验证；一次事件成功不能掩盖两次语言层失败；质量阈值未儿童/范式校准；旧模型训练来源“源码未提供”，不用于 ASD 报告；R3 标签/参与者映射与采集方案仍未知；新图相较强动态 Expert 的独立效益尚未正式比较。无 ERP/ERD/ERS、无 ASD 报告生成器/诊断。
+- 下一阶段候选：先冻结跨族任务/状态/故障与独立 oracle，再用同工具、同状态信息、同预算的原生 Agent、旧 CIEDG、强动态 Expert 与消融做正式比较；ASD 综合应用需另取得权威范式、身份映射、适龄参考和专业复核方案。不应把这次开发集成绩写为论文增益。
+- Git：`343e4a7`（矩阵/初步设计）、`b5cc2f7`（初版）、`6b660dd`（任务中性核心）、`38c502b`（研究文档）、`49f6af9`（联网 CLI 隐私门）、`c76cbfd`（Epoch 失效测试）均已普通推送至独立研究分支；[Draft PR #27](https://github.com/lzy123-web/eeg-agent-harness/pull/27) 指向旧研究分支，不合并 main。GitHub Actions #157、#159、[最新功能提交 #161](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40083915694) 均成功；Issue #26 已报告真实结果/失败/边界。数据、权重、密钥、私有本地路径和生成产物不入 Git，不强推。本状态同步为后续纯文档提交，不改变实验结果。
+
+以下原“当前阶段”等段落是此前里程碑留存，不再代表 Issue #26 最新状态。
+
 ## 当前阶段
 
 Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。
