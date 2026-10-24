@@ -301,6 +301,27 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertEqual(result["status"], "clarification_required")
         self.assertEqual(result["tool_results"], [])
 
+    def test_internal_epoch_prerequisite_is_allowed_but_extra_output_goal_is_not(self):
+        request = "请测量 stimulus 事件后 0 秒到 1 秒的试次质量。"
+        valid = {"instance_id": "q", "capability": "epoch_quality",
+                 "parameters": {"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+                 "request_quote": "stimulus 事件后 0 秒到 1 秒的试次质量",
+                 "concept_quote": "试次质量",
+                 "parameter_quotes": {"labels": "stimulus", "tmin": "0 秒", "tmax": "1 秒"}}
+        payload = lambda goals: {"goals": goals, "forbidden_operations": [],
+                                 "unsupported_requests": []}
+        completed = InstanceGoalEEGAgent(FixtureLLM([payload([valid])]),
+                                         context(events=True)).run(request)
+        self.assertEqual(completed["status"], "completed")
+        self.assertEqual([item["tool_name"] for item in completed["tool_results"]],
+                         ["list_events", "create_epochs", "epoch_quality"])
+        extra = {**valid, "instance_id": "invented", "capability": "epoch_summary",
+                 "concept_quote": "试次"}
+        rejected = InstanceGoalEEGAgent(FixtureLLM([payload([valid, extra])]),
+                                        context(events=True)).run(request)
+        self.assertEqual(rejected["status"], "clarification_required")
+        self.assertEqual(rejected["tool_results"], [])
+
     def test_coreferential_event_scope_only_inherits_equal_grounded_scope(self):
         request = ("请对 stimulus 事件后 0 秒到 1 秒的试次测量质量，"
                    "并计算同一事件试次的绝对频带功率。")
