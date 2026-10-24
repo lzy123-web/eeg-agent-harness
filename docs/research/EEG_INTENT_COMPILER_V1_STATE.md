@@ -22,10 +22,12 @@
 - 旧四例原始 payload 离线 replay：S02 execute、S06 execute、R05 正确澄清 reference_channels、R11 execute。
 - 未授权/否定筛选回归：v1 不执行。
 - 协议与 LLM metadata 单测：10/10 通过。
+- 同载荷开发诊断：`deepseek-flash` 8 请求、14,628 tokens；严格字段全对 3/8，v0/v1 端到端分别 4/8、7/8；在 raw-correct 子集分别 1/3、3/3；均无 dangerous accept。
+- I14 保留为基座 schema 错误：错误概念名和额外禁止项，未放宽编译器迎合。
+- scorer 已修正为直接评价模型字段、语义概念与证据；I13 否定名词化由有界作用域规则规范化。
 
 ## 下一步
 
-1. 建立独立 scorer 与固定 payload old-vs-new replay。
-2. 在 development 调试 frame/作用域机制，记录至少一轮机制级修订。
-3. 冻结后仅打开一次 holdout；运行 Flash/Pro 同条件对照和少量真实 Agent 链。
-4. 全回归、论文判断、提交、Draft PR 与 Issue 评论。
+1. 冻结当前实现和 evaluator，仅打开一次预选 holdout 子集。
+2. 运行 Flash/Pro 同条件对照和少量真实 Agent 链。
+3. 全回归、论文判断、提交、Draft PR 与 Issue 评论。

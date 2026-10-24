@@ -40,7 +40,8 @@ CONCEPT_TO_OBJECTIVE = {
 }
 
 NEGATED_SELECTION = re.compile(
-    r"(?:do not|don't|without|no)\s+(?:remove|discard|exclude|reject|filter)|"
+    r"(?:do not|don't|without|no)(?:\s+[\w-]+){0,4}\s+"
+    r"(?:remov\w*|discard\w*|exclud\w*|reject\w*|filter\w*|drop\w*)|"
     r"(?:keep|retain)\s+(?:every|all)|(?:不要|不授权|禁止|不得).{0,12}(?:筛|剔除|排除|删除)",
     re.IGNORECASE,
 )
