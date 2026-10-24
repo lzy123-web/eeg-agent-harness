@@ -571,4 +571,6 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 
 - `2b51749`：冻结可扩展性审计与实验协议。
 - `eba1fd0`：隔离 extension、真实 Registry/Executor 实验、测试与原始 JSON。
-- 最终研究文档、Draft PR、CI 与 Issue 评论将在收尾提交后补记。
+- `bf29ed3`：结果、局限与可扩展性主张 NO-GO 决策。
+- Draft PR #23：base 为 `research/point1-integrated-method-v0`，保持 Draft，未合并 main。
+- GitHub Actions `unit-tests` run `40075969727` 对 `bf29ed3` 完成，结论 `success`；Issue #22 已评论实际结果和停止判断。

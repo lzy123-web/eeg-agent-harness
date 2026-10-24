@@ -16,7 +16,7 @@
 - [x] 实现隔离 registered tool、CIEDG+extension 与 Expert+extension。
 - [x] 运行独立 oracle、故障恢复、公平成本测量和全仓回归。
 - [x] 形成结果与研究决策。
-- [ ] 创建 Draft PR、确认 CI 并评论 Issue。
+- [x] 创建 Draft PR #23、确认 CI 并评论 Issue #22。
 
 ## 已冻结设计
 
@@ -43,5 +43,8 @@
 
 - `2b51749`：冻结审计、协议、指标和停止条件。
 - `eba1fd0`：隔离工具、两种扩展、7 场景实验、测试与原始 JSON。
-- 最终文档提交、Draft PR、CI 与 Issue 评论待完成后补记。
+- `bf29ed3`：结果、局限与可扩展性主张 NO-GO 决策。
+- Draft PR：#23，base 为 `research/point1-integrated-method-v0`；未合并 main。
+- GitHub Actions：`unit-tests` run `40075969727` 对 `bf29ed3` 成功。
+- Issue #22：脱敏结果、决策、PR 与验证信息已评论。
 
