@@ -39,3 +39,9 @@
 - 真实 Agent 两例（连续 PSD、授权质量筛选多步骤）均 completed、Evidence Gate valid；4 请求、10,162 tokens。
 - 全部联网：31 chat requests、56,776 tokens，另 1 次 `/models`；仅合成元数据，无波形外发。
 - 完整回归：`compileall`、`pip check` 通过；230 tests 中 218 passed、12 resource-gated skipped、0 failed。
+
+## GitHub 交付
+
+- Draft PR：#18；base `research/point1-integrated-method-v0`，保持 Draft、未合并。
+- 远端快照：`7446f30`；Issue #17 已评论真实结果与 No-Go/Keep 判断。
+- 本地阶段提交：`9d21f3b`、`76d164a`、`cd06e65`、`ef33345`。因 smart-HTTP 连接 reset，远端通过 Git Data API 从同一 base 写入内容等价快照；未 force push、未覆盖历史。
