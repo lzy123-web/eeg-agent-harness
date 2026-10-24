@@ -187,6 +187,18 @@ class IntentScopeProtocolTest(unittest.TestCase):
         self.assertEqual("clarify", decision.disposition)
         self.assertIn("unsupported_transition_composition", diagnostics["violations"])
 
+    def test_diagnostics_are_json_serializable(self):
+        request, intent = legal_request_and_intent()
+        graph = GoalScopeGraph(
+            (GoalScope("epoch_rereference", "source_epochs", "重参考到 SYNTH-C2"),
+             GoalScope("epoch_quality", "effective_epochs", "转换后检查质量"),
+             GoalScope("event_bandpower", "effective_epochs", "计算绝对频带功率")),
+            (ScopeRelation("epoch_rereference", "epoch_quality", request),
+             ScopeRelation("epoch_quality", "event_bandpower", request)),
+        )
+        _, diagnostics = validate_scope_graph(intent, graph, request)
+        json.dumps(diagnostics, ensure_ascii=False, allow_nan=False)
+
 
 class IntentScopeAgentTest(unittest.TestCase):
     def test_no_transform_reuses_v1_without_second_model_call(self):

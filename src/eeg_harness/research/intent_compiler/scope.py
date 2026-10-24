@@ -154,7 +154,7 @@ def _capability_certificate(objectives):
         for goal in objectives - {"epoch_rereference"}:
             expected[goal] = "effective_epochs"
             required_edges.add(("epoch_rereference", goal))
-    return {"input_states": expected, "required_edges": required_edges}, None
+    return {"input_states": expected, "required_edges": sorted(required_edges)}, None
 
 
 def _has_cycle(nodes, edges):
