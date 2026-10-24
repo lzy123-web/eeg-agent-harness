@@ -25,3 +25,4 @@
 - 提交前扫描新增差异，未发现密钥、私有资源绝对路径、真实 EEG/权重或生成产物。GitHub Actions `unit-tests` 运行 #157 对应 `38c502b` 已成功。
 - 发布后补充的隐私边界：新版真实 LLM CLI 必须显式 `--demo-synthetic`，在 EDF 读取前拒绝其它输入；新增回归测试。仅限制 CLI，程序化调用方仍需自行遵守授权。此检查在 Draft PR 上作为后续非强推提交。
 - 补充后本地 `compileall`、237 tests（13 skipped）通过；本地 EDF+权重门控新版 16/16。下一步提交/推送此补充并核实末轮 CI、Issue 评论及状态。
+- 针对“共同状态机制”再加一个受控反例：新版图中间 Epoch 内容变化会同时撤销 producer 与下游质量证据，并恢复至 `create_epochs` 前沿，不只是 record 状态可失效。最后本地 `compileall`、238 tests（13 skipped）和本地资源门控 17/17 通过；待补充提交/CI。

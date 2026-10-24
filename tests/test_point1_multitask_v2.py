@@ -219,6 +219,31 @@ class MultiTaskV2Test(unittest.TestCase):
                             for item in runner.transitions))
         self.assertNotEqual(before, runner._record_digest())
 
+    def test_epoch_content_change_uses_same_graph_invalidation_core(self):
+        ctx = context()
+        request = MultiTaskRequest(
+            ("epoch_quality", "event_bandpower"),
+            event_arguments={"labels": ["stimulus"], "tmin": 0, "tmax": 1},
+        )
+        task, ledger, plan, check = compile_multitask(ctx, request)
+        self.assertTrue(check["valid"])
+        runner = MultiTaskContractGraphPlanner(ctx, task, ledger)
+        for expected in ("observe_events", "create_epochs", "epoch_quality"):
+            action = runner.next_action()
+            self.assertEqual(action.kind, expected)
+            result = ctx.execute(ToolRequest(action.tool_name, action.arguments, expected))
+            self.assertTrue(result.success)
+            rendered = result.to_dict()
+            runner.results.append(rendered)
+            runner.apply_result(action, rendered)
+        source_id = runner.evidence["create_epochs"].output_binding.artifact_id
+        ctx.artifacts[source_id].data[0, 0, 0] += 1e-6
+        action = runner.next_action()
+        self.assertEqual(action.kind, "create_epochs")
+        self.assertNotIn("epoch_quality", runner.evidence)
+        self.assertTrue(any(item["event"] == "evidence_graph_invalidated"
+                            for item in runner.transitions))
+
     def test_unsupported_goal_rejects_without_crash(self):
         ctx = context()
         _, _, check, run = run_multitask(ctx, MultiTaskRequest(("asd_diagnosis",)))

@@ -25,9 +25,9 @@
 
 - 合成无事件 PSD 的 alpha 数值由独立 `scipy.signal.welch` + 频带积分 oracle 核对，与原工具格式化输出完全一致；非自比较 Harness 输出。
 - 新版事件路径真实调用 Registry/Executor，工具顺序、闭合 token、无筛选行为在测试中断言。合成质量筛选 identity 转换按 `epoch_quality` 证据解析，不擅自造新 Epoch。
-- 记录内容变化使先前 `record_info` token 失效并要求重新执行；两个 `EEGRecord/ExecutionContext` 交替使用，证据隔离。模型文件在预检后变化被拒绝，避免旧 loader 按路径缓存掩盖资源变更。
+- 记录内容变化使先前 `record_info` token 失效并要求重新执行；**同一新版图**内 Epoch 内容改变使 `create_epochs` 及下游质量证据失效并重新进入前沿。两个 `EEGRecord/ExecutionContext` 交替使用，证据隔离。模型文件在预检后变化被拒绝，避免旧 loader 按路径缓存掩盖资源变更。
 - 故障注入：PSD 的注册输入类型篡改为 Epoch 后预检 `GOAL_TOOL_CONTRACT_MISMATCH`；工具成功返回错误类型后图级 `TOOL_RESULT_TYPE_MISMATCH`，不发布答案；无请求目标却传事件参数被 `UNREQUESTED_PARAMETERS` 拒绝。生产工具未改。
-- 最终 `compileall` 通过；完整 `unittest discover` 为 **237 tests, OK (skipped=13)**；本地 EDF+真实权重门控的新版测试 **16/16 OK**。默认跳过包含资源/联网可选项，不等同这些功能已在 CI 验证。PR 首轮 GitHub Actions `unit-tests` #157 已成功；补充隐私门后的末轮 CI 另行核实。
+- 最终 `compileall` 通过；完整 `unittest discover` 为 **238 tests, OK (skipped=13)**；本地 EDF+真实权重门控的新版测试 **17/17 OK**。默认跳过包含资源/联网可选项，不等同这些功能已在 CI 验证。PR 首轮 GitHub Actions `unit-tests` #157 已成功；补充隐私门和事件失效测试后的末轮 CI 另行核实。
 - Fake 两个自然语言请求均完成、证据闭合、答案门通过；合成连续执行工具 `psd`，事件执行工具 `list_events/create_epochs/epoch_quality/event_bandpower`。详细 synthetic-only JSON 本地留档，不进入 Git。
 
 ## 真实 DeepSeek：有界、保留失败，不作为正式成功率
