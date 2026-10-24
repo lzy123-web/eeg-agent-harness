@@ -1,0 +1,16 @@
+{
+  "protocol_id": "point1-extensibility-v1",
+  "frozen_at": "2026-10-24",
+  "data": "deterministic synthetic EEG only",
+  "methods": ["CIEDG+extension", "strong_dynamic_expert+extension"],
+  "budgets": {"max_tool_calls": 16, "max_repairs": 2, "max_retries": 1},
+  "cases": [
+    {"id":"X01","family":"selection","fixture":{"labels":["target","target","target"],"anomalous":[]},"task":{"objectives":["epoch_variance"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0}},"forbidden_tools":["select_quality_epochs","rereference_epochs"],"fault":"none"},
+    {"id":"X02","family":"selection","fixture":{"labels":["target","target","target"],"anomalous":[1]},"task":{"objectives":["epoch_quality","trial_selection","epoch_variance"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},"forbidden_tools":["rereference_epochs"],"fault":"none"},
+    {"id":"X03","family":"selection","fixture":{"labels":["target","target","target"],"anomalous":[1]},"task":{"objectives":["epoch_quality","epoch_variance"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0}},"forbidden_tools":["select_quality_epochs","rereference_epochs"],"fault":"none"},
+    {"id":"X04","family":"rereference","fixture":{"labels":["target","target","target"],"anomalous":[]},"task":{"objectives":["epoch_rereference","epoch_variance"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"rereference_authorized":true,"reference_channels":["SYNTH-C2"]}},"forbidden_tools":["select_quality_epochs"],"fault":"none"},
+    {"id":"X05","family":"selection","fixture":{"labels":["target","target","target"],"anomalous":[1]},"task":{"objectives":["epoch_quality","trial_selection","epoch_variance","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},"forbidden_tools":["rereference_epochs"],"fault":"effective_artifact_expiry"},
+    {"id":"X06","family":"rereference","fixture":{"labels":["target","target","target"],"anomalous":[]},"task":{"objectives":["epoch_rereference","epoch_variance","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"rereference_authorized":true,"reference_channels":["SYNTH-C2"]}},"forbidden_tools":["select_quality_epochs"],"fault":"source_content_change"},
+    {"id":"X07","family":"selection","fixture":{"labels":["target","target","target"],"anomalous":[]},"task":{"objectives":["epoch_variance"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0}},"forbidden_tools":["select_quality_epochs","rereference_epochs"],"fault":"one_shot_variance_failure"}
+  ]
+}
