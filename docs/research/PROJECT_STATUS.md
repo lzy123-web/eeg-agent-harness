@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #30 工作点一科研停线
+
+- 当前阶段：在独立 `research/point1-sprint` 分支核查 PR #27 已审代码树与 Issue #29 的 REFINE 假设。远端 `fb5b85b` 与本地等树分叉已通过 `git fetch` + 非强制 `--no-ff` merge 为 `2a54367`；未重置/强推/合并 main。
+- 完成：先于任何核心改动提交 `POINT1_RESEARCH_SPRINT_DECISION.md`（`7b096e7`），以五个跨连续/事件/模型的预写反例比较当前分散合同、统一状态投影、typed workflow 和同规则 Expert。判定投影只是可取的工程收束，**作为独立新算法 NO-GO**。再审质量驱动策略与专业协同两条 EEG-specific 转向；前者已有目标相关质量先行工作及本仓库旧 Pilot 强 Expert 持平，且缺跨范式校准真值；后者缺非普通 typed constraint 可表达的独立冲突真值。两者均未满足可区分 PoC 门槛，按 Issue 停止新增方法，不修改旧 CIEDG/v3/正式结果。
+- 交付：`POINT1_RESEARCH_SPRINT_METHOD_CHAPTER.md` 批判性第三章草稿、`POINT1_RESEARCH_SPRINT_REPORT.md`（证据账/失败归因/停线）、本状态。没有声称本轮开展新的公平实验、消融或 LLM 实测；外部 API 0 completion，真实 EEG 未读取/外发，未接入第二点/ASD/R3。
+- 实际验证：现存 Python 3.10 `eegagent` 环境 MNE 1.6.1、NumPy 1.24.4、SciPy 1.10.1；本地环境新增 pytest 8.4.2 仅供检查。PowerShell `PYTHONPATH=src` 下 `pytest tests/test_point1_multitask_v3.py -q` 为 **29 passed / 1 skipped**，`pytest tests/test_multitask_acceptance.py -q` 为 **4 passed / 1 skipped**；`compileall -q src tests` 通过；`unittest discover -s tests -q` 为 **273 tests OK / 15 skipped**。起初 base 环境缺 MNE、`eegagent` 缺 pytest，混合 site-packages 无效；这些失败保留于报告，不计成功。此为未退化检查，不是新方法实验证据。
+- 未解决：自然语言目标遗漏、科学合同漏声明的检测、质量指标跨范式校准、独立真实冲突真值、新版与成熟 typed workflow/强 Expert 公平比较；v3 仍不支持旧版筛选/重参考的迁移。下一精确入口：导师先确认是否能提供/制定**目标相关质量或冲突的独立真值**及最近邻判别指标；在此之前停止把图/投影写成已成立创新，保留通用 Harness 系统资产。
+- Git：预实现决策 `7b096e7`、章节草稿/报告/状态 `2333c76`、发布记录 `ea42c01`，均已普通推送至 `origin/research/point1-sprint`；新 [Draft PR #31](https://github.com/lzy123-web/eeg-agent-harness/pull/31) 以原 PR #27 研究分支为 base，仍为 Draft。[`unit-tests` #191](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40120350077) 对 `ea42c01` 已 `success`；Issue #30 和 PR #31 已留负结果评论。旧 PR #27 保持 Draft 与原分支，旧实验不变。禁止 force push、merge main、上传密钥/EDF/权重/私人路径。
+
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
 - 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。

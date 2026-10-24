@@ -1,5 +1,12 @@
 # 多任务 Harness 方法研发状态（Issue #26 / #28）
 
+## 2026-10-25 Issue #30：投影创新 NO-GO，Pivot 候选暂不立项
+
+- PR #27 远端与本地等树分叉经非强制 merge 安全汇合；新分支 `research/point1-sprint` 不改冻结 CIEDG/v3。预实现门槛见 `POINT1_RESEARCH_SPRINT_DECISION.md`（`7b096e7`）：EEG 读/写投影与获得相同领域合同的 typed DAG/强 Expert 在预写五个跨族例中可等价表达，故不能以“新规划算法”继续实施。
+- 两个候选转向为目标相关质量/可观测性与专业协同冲突。前者旧强 Expert Pilot 持平且缺跨范式独立校准；后者未证明区别于单一 typed constraint，也缺独立冲突真值。均未满足有判别力的最小 PoC 条件，本轮按 Issue 停线，不为充实方法而写新模块。
+- 章节草稿与结果见 `POINT1_RESEARCH_SPRINT_METHOD_CHAPTER.md`、`POINT1_RESEARCH_SPRINT_REPORT.md`。现存代码回归：29 passed/1 skipped、4 passed/1 skipped、273 unittest OK/15 skipped，compileall 通过；只是未退化，不是新实验。未调用付费模型或读取真实 EEG。
+- 下一恢复点：与导师确定可获得的目标相关质量/跨范式真值或独立冲突真值，再预注册强 Expert/typed workflow 同合同判别实验；若无，工作点一诚实收缩为系统工程与负结果。Git 最终发布/PR/CI 状态见 `PROJECT_STATUS.md` 最新节。
+
 ## 2026-10-25 Issue #29：停止编码、等待方法论审核
 
 - `POINT1_METHOD_RESEARCH_REVIEW.md` 独立核查 CIEDG/v3、历史负结果与 EEGAgent/CogEEGAgent/WINGS/Pegasus/PROV-O 原始资料。结论为有停线的 **REFINE**，不是创新性已确证的 KEEP；只提出一项未来可审查的状态投影合同，本轮未实现、未调用付费模型或运行新基准。
