@@ -536,3 +536,38 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
 - `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
 - `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。
+
+## Issue #17：EEG 科学意图编译与模型归因（2026-10-24）
+
+### 实现
+
+- 新分支 `research/eeg-intent-compiler-v1`，起点 `bff8940`；冻结 CIEDG 和 Issue #16 结果未修改。
+- 新增 30 例中英协议、同载荷 v0/v1 evaluator、类型化 Claim–Evidence + Requirement Projection + 先决条件闭包 + 授权作用域 compiler，以及 opt-in 真实 Agent adapter。
+- OpenAI-compatible client 记录 response body 的模型标识；不把请求别名假定为实际后端版本。
+- scorer 分开评价基座字段、validator 决策、误拒和 dangerous accept；开发期修复了一次归因器漏评，未根据 holdout 修改方法或 gold。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 历史失败归因 | S02/S06 为短语 anchor 误拒与先决目标问题；R05 应澄清 reference channel；R11 为答案 evidence path 失败 |
+| 当前模型发现 | `/models` 返回 `deepseek-flash`、`deepseek-v4-pro`；旧 `deepseek-chat` 实际后端未知 |
+| 开发 8 例 | Flash：raw 严格 3/8；v0/v1 4/8、7/8；8 请求、14,628 tokens |
+| holdout 9 例 | Flash v0/v1 2/9、5/9；Pro 2/9、3/9；两者 v1 均有 H14 dangerous accept |
+| 真实 Agent | PSD 与授权质量筛选两例均 completed、evidence closed、answer valid；4 请求、10,162 tokens |
+| 联网总量 | 31 chat requests、56,776 tokens + 1 次 `/models`；仅合成元数据，不外发波形 |
+| 完整回归 | `compileall`、`pip check` 通过；230 tests：218 passed、12 resource-gated skipped、0 failed |
+
+### 研究判断与遗留问题
+
+- 决策为 **工程 Keep，独立论文贡献 No-Go / 证据不足**。v1 减少一部分 v0 误拒，但 H14 混合转换阶段被错误合并执行，尚不能替代安全路径。
+- 模型替换没有解决意图问题：Pro 严格字段略多，但端到端 v1 更低，并出现候选参考误判授权。
+- 当前 gold 仅单人审核、holdout 仅 9 例单次采样、服务端没有权重哈希；不做统计或泛化主张。
+- 若继续，必须在新预注册协议中把前/后转换阶段表示为类型化时序关系，并用独立双人标注；不得在本次 holdout 上追加词表调参。
+
+### 本轮提交
+
+- `9d21f3b`：冻结协议、失败归因和方法设计。
+- `76d164a`：同载荷 evaluator、开发集诊断与归因修复。
+- `cd06e65`：冻结 holdout 的 Flash/Pro 对照、真实 Agent 闭环与原始结果。
+- 最终研究判断、状态和交付文档提交将在推送后补充。

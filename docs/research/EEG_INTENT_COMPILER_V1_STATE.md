@@ -28,6 +28,14 @@
 
 ## 下一步
 
-1. 冻结当前实现和 evaluator，仅打开一次预选 holdout 子集。
-2. 运行 Flash/Pro 同条件对照和少量真实 Agent 链。
-3. 全回归、论文判断、提交、Draft PR 与 Issue 评论。
+1. 候选与 evaluator 已冻结；一次性 holdout 已完成，不后验调参。
+2. 完成全回归、敏感信息检查、提交、Draft PR 与 Issue 评论。
+3. H14 dangerous accept 固定为未来新预注册协议的回归反例；本分支不继续补规则。
+
+## Holdout 与真实 Agent
+
+- 9 例同条件对照：Flash v0/v1 为 2/9、5/9；V4 Pro 为 2/9、3/9；v1 两模型均有 H14 dangerous accept。
+- 严格 raw-correct：Flash 2/9，Pro 3/9。换模型没有消除意图错误。
+- 真实 Agent 两例（连续 PSD、授权质量筛选多步骤）均 completed、Evidence Gate valid；4 请求、10,162 tokens。
+- 全部联网：31 chat requests、56,776 tokens，另 1 次 `/models`；仅合成元数据，无波形外发。
+- 完整回归：`compileall`、`pip check` 通过；230 tests 中 218 passed、12 resource-gated skipped、0 failed。
