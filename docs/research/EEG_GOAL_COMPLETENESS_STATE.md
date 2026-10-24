@@ -73,5 +73,5 @@
 - Issue #21 受控协议与 matcher 原型提交：`13f73ed`。
 - dry run 原始结果与 NO-GO 决策提交：`3196ed7`。
 - 本地验证：`compileall`、`pip check` 通过；249 tests：237 passed、12 resource-gated skipped、0 failed。
-- 最终状态提交、远端 head 与 CI run 将在推送后补记。
+- 回归状态提交：`6a89d21`；GitHub Actions `unit-tests` run `40064384919` 成功。
 - 分支普通推送到 Draft PR #18；不 force push、不合并 main。

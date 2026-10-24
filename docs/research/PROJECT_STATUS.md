@@ -708,4 +708,5 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 
 - `13f73ed`：结构化协议、冻结 manifest、DSL/matcher/evaluator、专项测试与协议文档。
 - `3196ed7`：dry run 原始结果、失败记录、研究决策与状态更新。
-- 最终状态提交与远端 CI 状态将在推送后补记。
+- `6a89d21`：本地完整回归状态；GitHub Actions `unit-tests` run `40064384919` 成功。
+- 研究分支已普通推送至 Draft PR #18；未 force push、未合并 main。
