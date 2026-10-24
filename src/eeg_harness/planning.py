@@ -148,7 +148,7 @@ class OperationContract:
 
 
 def build_operation_contracts(registry):
-    """Build contracts for the eight registered tools without loading models."""
+    """Build operation contracts from registry metadata without loading models."""
 
     contracts = {}
     for spec in registry.list_specs():
@@ -399,8 +399,177 @@ class StateAwareConstrainedPlanner:
             state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
         )
 
+    def _plan_quality_selection(self, task, state):
+        """Plan measure-before-select while reusing one real Epoch artifact."""
+        arguments = dict(task.arguments)
+        if arguments.pop("selection_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch selection requires explicit user authorization",
+            )
+        failure = self._validate_epoch_goal(task, arguments, state, "epoch_quality")
+        if failure:
+            return _reject(task, state, failure[0], failure[1])
+        epoch_args = {
+            "labels": list(arguments["labels"]),
+            "tmin": arguments["tmin"], "tmax": arguments["tmax"],
+        }
+        if "baseline" in arguments:
+            epoch_args["baseline"] = list(arguments["baseline"])
+        reference = {"$result": "produce-artifact", "path": ["artifact_id"]}
+        steps = (
+            PlanStep("observe-events", "list_events", {}, purpose="record visible event state"),
+            PlanStep("produce-artifact", "create_epochs", epoch_args, ("observe-events",), "produce one declared Epoch artifact"),
+            PlanStep("measure-quality", "epoch_quality", {"artifact_id": reference}, ("produce-artifact",), "measure quality before any selection"),
+            PlanStep("select-quality", "select_quality_epochs", {"artifact_id": reference}, ("measure-quality",), "apply explicitly authorized empirical selection"),
+        )
+        return Plan(
+            task.task_id, "ready", steps,
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
+    def _plan_quality_selected_bandpower(self, task, state):
+        """Measure, select, then analyse the derived Epoch artifact."""
+        base = self._plan_quality_selection(task, state)
+        if base.status != "ready":
+            return base
+        selected_reference = {"$result": "select-quality", "path": ["artifact_id"]}
+        steps = base.steps + (
+            PlanStep(
+                "analyse-selected", "event_bandpower",
+                {"artifact_id": selected_reference}, ("select-quality",),
+                "analyse only the explicitly authorized quality-selected artifact",
+            ),
+        )
+        return Plan(
+            task.task_id, "ready", steps,
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
+    def _plan_event_workflow(self, task, state):
+        """Compose a shared Epoch DAG from positive atomic objectives."""
+
+        arguments = dict(task.arguments)
+        objectives = tuple(arguments.pop("objectives", ()))
+        supported = {
+            "epoch_quality", "trial_selection", "epoch_summary", "event_bandpower",
+            "epoch_rereference",
+        }
+        if not objectives or len(objectives) != len(set(objectives)) or not set(objectives) <= supported:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Event workflow requires unique supported atomic objectives",
+            )
+        selection = "trial_selection" in objectives
+        if selection and arguments.pop("selection_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch selection requires explicit user authorization",
+            )
+        arguments.pop("selection_authorized", None)
+        rereference = "epoch_rereference" in objectives
+        if selection and rereference:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Combining trial selection and Epoch re-referencing is not validated",
+            )
+        if rereference and arguments.pop("rereference_authorized", False) is not True:
+            return _reject(
+                task, state, "UNSATISFIABLE_CONSTRAINTS",
+                "Epoch re-referencing requires explicit user authorization",
+            )
+        arguments.pop("rereference_authorized", None)
+        if rereference:
+            reference_channels = tuple(arguments.get("reference_channels", ()))
+            if not reference_channels:
+                return _reject(
+                    task, state, "UNSATISFIABLE_CONSTRAINTS",
+                    "Epoch re-referencing requires explicit reference channels",
+                )
+            if state.profile_id != "edf_native":
+                return _reject(
+                    task, state, "PROFILE_INCOMPATIBLE",
+                    "Epoch re-referencing is not validated for this Profile",
+                )
+            missing_reference = [
+                name for name in reference_channels if name not in state.channel_names
+            ]
+            if missing_reference:
+                return _reject(
+                    task, state, "INVALID_CHANNEL",
+                    "Reference channels are absent: " + ", ".join(missing_reference),
+                )
+        consumer = (
+            "event_bandpower" if "event_bandpower" in objectives else
+            "epoch_summary" if "epoch_summary" in objectives else
+            "epoch_quality"
+        )
+        failure = self._validate_epoch_goal(task, arguments, state, consumer)
+        if failure:
+            return _reject(task, state, failure[0], failure[1])
+        epoch_args = {
+            "labels": list(arguments["labels"]),
+            "tmin": arguments["tmin"], "tmax": arguments["tmax"],
+        }
+        if "baseline" in arguments:
+            epoch_args["baseline"] = list(arguments["baseline"])
+        source_reference = {"$result": "produce-artifact", "path": ["artifact_id"]}
+        steps = [
+            PlanStep("observe-events", "list_events", {}, purpose="record visible event state"),
+            PlanStep(
+                "produce-artifact", "create_epochs", epoch_args, ("observe-events",),
+                "produce one shared Epoch artifact for all requested objectives",
+            ),
+        ]
+        analysis_reference = source_reference
+        last_dependency = "produce-artifact"
+        if rereference:
+            steps.append(PlanStep(
+                "rereference-epochs", "rereference_epochs", {
+                    "artifact_id": source_reference,
+                    "reference_channels": list(reference_channels),
+                }, ("produce-artifact",), "apply explicitly authorized Epoch reference",
+            ))
+            analysis_reference = {"$result": "rereference-epochs", "path": ["artifact_id"]}
+            last_dependency = "rereference-epochs"
+        quality_needed = "epoch_quality" in objectives or selection
+        if quality_needed:
+            steps.append(PlanStep(
+                "measure-quality", "epoch_quality", {"artifact_id": analysis_reference},
+                (last_dependency,), "measure quality on the current effective Epoch state",
+            ))
+        last_dependency = "measure-quality" if quality_needed else last_dependency
+        if selection:
+            steps.append(PlanStep(
+                "select-quality", "select_quality_epochs", {"artifact_id": source_reference},
+                ("measure-quality",), "apply explicitly authorized empirical selection",
+            ))
+            analysis_reference = {"$result": "select-quality", "path": ["artifact_id"]}
+            last_dependency = "select-quality"
+        if "epoch_summary" in objectives:
+            steps.append(PlanStep(
+                "summarise-epochs", "epoch_summary", {"artifact_id": analysis_reference},
+                (last_dependency,), "summarise the current effective Epoch artifact",
+            ))
+        if "event_bandpower" in objectives:
+            steps.append(PlanStep(
+                "analyse-events", "event_bandpower", {"artifact_id": analysis_reference},
+                (last_dependency,),
+                "analyse the selected artifact only when selection is an authorized objective",
+            ))
+        return Plan(
+            task.task_id, "ready", tuple(steps),
+            state_summary={"context_id": state.context_id, "profile_id": state.profile_id},
+        )
+
     def plan(self, task, state=None):
         state = state or EEGStateSnapshot.from_context(self.context)
+        if task.goal == "event_workflow":
+            return self._plan_event_workflow(task, state)
+        if task.goal == "quality_selected_bandpower":
+            return self._plan_quality_selected_bandpower(task, state)
+        if task.goal == "quality_selection":
+            return self._plan_quality_selection(task, state)
         if task.goal == "tool":
             return self._plan_tool(task, state)
         if task.goal in self.contracts and self.contracts[task.goal].consumes_artifact:
@@ -454,10 +623,11 @@ class PlanningRunResult:
 
 
 class ConstrainedPlanRunner:
-    def __init__(self, context, max_replans=1):
+    def __init__(self, context, max_replans=1, plan_validator=None):
         self.context = context
         self.planner = StateAwareConstrainedPlanner(context)
         self.max_replans = max_replans
+        self.plan_validator = plan_validator
 
     def run(self, task):
         return self.execute_plan(task, self.planner.plan(task))
@@ -467,6 +637,16 @@ class ConstrainedPlanRunner:
 
         started = time.perf_counter()
         planning_trace = [{"event": "plan_created", "status": plan.status, "reason": plan.reason_code}]
+        validation = self.plan_validator(plan) if self.plan_validator and plan.status == "ready" else None
+        if validation is not None:
+            planning_trace.append({"event": "obligations_checked", **dict(validation)})
+        if validation is not None and not validation.get("valid", False):
+            self.context.trace.finish("constraint_rejected")
+            return PlanningRunResult(
+                "rejected", plan.to_dict(), (), tuple(planning_trace),
+                self.context.trace.to_dict(), 0,
+                round((time.perf_counter() - started) * 1000, 3),
+            )
         if plan.status != "ready":
             self.context.trace.finish("preflight_rejected")
             return PlanningRunResult(
@@ -503,13 +683,20 @@ class ConstrainedPlanRunner:
                 break
             replans += 1
             current_plan = self.planner.plan(task, EEGStateSnapshot.from_context(self.context))
+            validation = (
+                self.plan_validator(current_plan)
+                if self.plan_validator and current_plan.status == "ready" else None
+            )
             planning_trace.append({
                 "event": "replanned",
                 "attempt": replans,
                 "status": current_plan.status,
                 "reason": current_plan.reason_code,
+                "obligations_valid": None if validation is None else validation.get("valid", False),
             })
-            if current_plan.status != "ready":
+            if current_plan.status != "ready" or (
+                validation is not None and not validation.get("valid", False)
+            ):
                 self.context.trace.finish("replan_rejected")
                 status = "rejected_after_replan"
                 break

@@ -2,9 +2,10 @@
 
 import numpy as np
 from dataclasses import replace
+from uuid import uuid4
 from scipy.signal import welch
 
-from .events import create_epoch_set
+from .events import ArtifactConsistencyError, create_epoch_set
 from .legacy.features import compute_amplitude, compute_psd
 from .legacy.seizure import seizureNormalModel_OneSecond
 from .provenance import source_reference
@@ -89,9 +90,15 @@ def _create_epochs(record, arguments, config, resources):
 def _get_epoch_artifact(arguments, resources):
     artifact_id = arguments["artifact_id"]
     try:
-        return resources["artifact_store"][artifact_id]
+        artifact = resources["artifact_store"][artifact_id]
     except KeyError as exc:
         raise LookupError(f"Epoch artifact not found: {artifact_id}") from exc
+    expected = arguments.get("expected_artifact_fingerprint")
+    if expected is not None and artifact.content_fingerprint() != expected:
+        raise ArtifactConsistencyError(
+            "Epoch artifact content does not match the expected fingerprint"
+        )
+    return artifact
 
 
 def _epoch_summary(record, arguments, config, resources):
@@ -138,6 +145,7 @@ def _event_bandpower(record, arguments, config, resources):
         }
     return {
         "artifact_id": epochs.artifact_id,
+        "artifact_fingerprint": epochs.content_fingerprint(),
         "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
         "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
         "frequency_resolution_hz": float(epochs.sfreq / min(epoch_samples, int(round(epochs.sfreq)))),
@@ -168,6 +176,11 @@ def _select_quality_epochs(record, arguments, config, resources):
     evidence = epoch_quality(
         epochs, record.metadata.get("profile_id", "unknown")
     )
+    expected_evidence = arguments.get("expected_quality_evidence_id")
+    if expected_evidence is not None and evidence["evidence_id"] != expected_evidence:
+        raise ArtifactConsistencyError(
+            "Current Epoch quality evidence does not match expected_quality_evidence_id"
+        )
     excluded = set(evidence["flagged_epoch_indices"])
     kept = [index for index in range(epochs.data.shape[0]) if index not in excluded]
     if not kept:
@@ -191,6 +204,48 @@ def _select_quality_epochs(record, arguments, config, resources):
         "excluded_epoch_count": len(excluded),
         "output_epoch_count": len(kept),
         "evidence_id": evidence["evidence_id"],
+    }
+    return output
+
+
+def _rereference_epochs(record, arguments, config, resources):
+    epochs = _get_epoch_artifact(arguments, resources)
+    reference_channels = tuple(arguments["reference_channels"])
+    if not reference_channels:
+        raise ValueError("At least one explicit reference channel is required")
+    if len(reference_channels) != len(set(reference_channels)):
+        raise ValueError("Reference channels must be unique")
+    channel_index = {name: index for index, name in enumerate(epochs.channel_names)}
+    missing = [name for name in reference_channels if name not in channel_index]
+    if missing:
+        raise ValueError("Reference channels are absent from Epoch artifact: " + ", ".join(missing))
+    indices = [channel_index[name] for name in reference_channels]
+    reference_signal = epochs.data[:, indices, :].mean(axis=1, keepdims=True)
+    transformed_data = (epochs.data - reference_signal).astype(epochs.data.dtype, copy=False)
+    source_fingerprint = epochs.content_fingerprint()
+    reference = "explicit average of " + ", ".join(reference_channels)
+    transformed = replace(
+        epochs,
+        data=transformed_data.copy(),
+        reference=reference,
+        artifact_id=f"epochs-{uuid4()}",
+        parameters={
+            **dict(epochs.parameters),
+            "rereference": {
+                "method": "subtract_explicit_reference_channel_mean",
+                "reference_channels": list(reference_channels),
+                "source_artifact_fingerprint": source_fingerprint,
+            },
+        },
+    )
+    resources["artifact_store"][transformed.artifact_id] = transformed
+    output = transformed.summary()
+    output["transformation"] = {
+        "operation": "epoch_rereference",
+        "reference_channels": list(reference_channels),
+        "source_artifact_id": epochs.artifact_id,
+        "source_artifact_fingerprint": source_fingerprint,
+        "output_reference": reference,
     }
     return output
 
@@ -283,8 +338,31 @@ def build_default_registry():
     )
     artifact_schema = {
         "type": "object",
-        "properties": {"artifact_id": {"type": "string"}},
+        "properties": {
+            "artifact_id": {"type": "string"},
+            "expected_artifact_fingerprint": {"type": "string"},
+        },
         "required": ["artifact_id"],
+        "additionalProperties": False,
+    }
+    selection_schema = {
+        "type": "object",
+        "properties": {
+            **artifact_schema["properties"],
+            "expected_quality_evidence_id": {"type": "string"},
+        },
+        "required": ["artifact_id"],
+        "additionalProperties": False,
+    }
+    rereference_schema = {
+        "type": "object",
+        "properties": {
+            **artifact_schema["properties"],
+            "reference_channels": {
+                "type": "array", "items": {"type": "string"}, "minItems": 1,
+            },
+        },
+        "required": ["artifact_id", "reference_channels"],
         "additionalProperties": False,
     }
     registry.register(
@@ -308,6 +386,23 @@ def build_default_registry():
             handler=_event_bandpower,
             consumes_artifact="epochs",
             preconditions={"min_artifact_duration_seconds": 1.0},
+        )
+    )
+    registry.register(
+        ToolSpec(
+            name="rereference_epochs",
+            description=(
+                "Create a new Epoch artifact by subtracting the mean of explicitly named "
+                "existing reference channels from every EEG channel. This changes the "
+                "scientific reference state and requires explicit user authorization."
+            ),
+            parameters=rereference_schema,
+            return_type="object",
+            compatible_profiles=("edf_native",),
+            handler=_rereference_epochs,
+            consumes_artifact="epochs",
+            produces_artifact="epochs",
+            state_effect="stores_session_artifact",
         )
     )
     registry.register(
@@ -346,7 +441,7 @@ def build_default_registry():
         ToolSpec(
             name="select_quality_epochs",
             description="Create a derived Epoch artifact excluding only epochs flagged by declared empirical quality rules.",
-            parameters=artifact_schema,
+            parameters=selection_schema,
             return_type="object",
             compatible_profiles=("*",),
             handler=_select_quality_epochs,

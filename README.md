@@ -10,6 +10,10 @@ Milestone 6 增加了显式 EEG 质量证据与自适应分析 Pilot。受控合
 
 Issue #8 对收缩后的研究点一完成了独立 research spike：18 个冻结科学语义任务上，强 Expert DAG、通用语义 Planner 与候选 EEG Planner 的合法完成、正确拒绝和 holdout 均完全持平，调用数也相同；候选没有显示独立增益，结论为 **No-Go**。这不否定显式科学状态/lineage 的工程价值，但禁止把当前实现写成已成立的论文创新。详见 `docs/research/POINT1_PILOT_EVALUATION.md`。
 
+Issue #10 在不改写 Baseline v1 默认路径的前提下，新增 opt-in 的 Constraint-Carrying EEG Plan（CCEP）初版：意图原文证据、科学 obligation、Planner/恢复校验、实际 ToolResult 与 artifact lineage 贯穿为一个可检查闭环。它已用 Fake LLM 和真实 DeepSeek+合成 EEG 跑通单步 PSD、事件多步与缺参澄清，但仍是**创新性未证明的方法候选**。详见 `docs/research/POINT1_INTEGRATION_ACCEPTANCE.md`。
+
+Issue #13 在同一 opt-in 研究路径上增加 CCEP v1 的 Lineage-aware Residual Scientific Planning（LRSP）：事件任务按实际质量证据逐步生成剩余 frontier，clean/异常/全坏/禁止筛选状态会改变后续动作；瞬态失败只重试未完成 frontier，Epoch 内容 fingerprint 与质量 evidence 显式绑定。Fake 与真实 DeepSeek 的固定三例合成链均跑通，但尚未与同规则动态 Expert 做冻结正式比较，**不能宣称方法优于强基线或创新已经成立**。详见 `docs/research/POINT1_V1_RESEARCH_DESIGN.md` 与 `docs/research/POINT1_V1_ITERATION_LOG.md`。
+
 它不包含已被证明为论文创新的规划方法、证据驱动自适应分析、ASD 综合评估、RAG 或新模型训练；当前 Planner 仅为研究先导原型。“具有多个工具”不等于“已在多个 EEG 数据集上验证”。Milestone 3 增加了独立 R3 应用适配器，但其任务标签含义、参与者分组与临床解释仍未验证。
 
 ## 架构
@@ -34,6 +38,8 @@ Natural Language → LLM/Fake LLM → ToolRegistry → Executor → EEG Tools
 - `planning.py`、`planning_evaluation.py`：研究用状态/声明式工具契约、有限重规划与冻结公平对照；不替代 Executor。
 - `planning_agent.py`、`nl_evaluation.py`：可选自然语言结构化目标桥与明确标记的人工 Fake 对照。
 - `quality.py`、`adaptive.py`：不生成总分的质量测量、证据要求和受限自适应 Pilot。
+- `research/integrated_method/`：opt-in 的 CCEP 意图契约、obligation ledger、计划/恢复验证和 Evidence Gate；复用原 Planner、Executor 与工具。
+- `research/integrated_method/v1.py`：opt-in 的 LRSP 动态科学状态、剩余目标、内容 lineage 与局部恢复；当前只为事件质量/选择/bandpower 任务增加动态语义。
 
 ## Profile
 
@@ -91,6 +97,19 @@ Fake LLM Agent：
 & $python -m eeg_harness.agent_cli --fake --profile tuev_bipolar_22 `
   --request '检查癫痫活动' --output artifacts\fake_agent.json
 ```
+
+CCEP v1 合成事件链（不改变默认 Agent）：
+
+```powershell
+& $python -m eeg_harness.agent_cli --fake --demo-synthetic --profile edf_native `
+  --agent-mode point1-v1 `
+  --request '检查 stimulus 事件后 0 秒到 1 秒的质量，允许筛除异常试次，随后计算绝对频带功率'
+
+& $python -m eeg_harness.research.integrated_method.v1_evaluation `
+  --output artifacts\point1_v1_fake_traces.json
+```
+
+真实 LLM 评估只从环境变量读取配置；代码与文档不含密钥。固定评估仅使用合成 EEG，且设总请求与 Token 上限。
 
 可复现的事件分析 Demo 使用明确标记的合成 MNE RawArray，不伪装成真实 EDF 或 ASD 数据：
 
@@ -154,6 +173,12 @@ $env:EEG_HARNESS_LLM_MAX_TOKENS = '768'
 & $python -m eeg_harness.agent_cli --demo-synthetic `
   --request '分析 SYNTH-C1 从 0 到 2 秒的频带功率'
 
+# 工作点一集成方法初版（opt-in，不替换 native 基线）
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1 `
+  --max-rounds 4 --max-tool-calls 8 `
+  --request '计算 SYNTH-C1 从 1 秒到 3 秒的绝对频带功率' `
+  --output artifacts\point1_psd.json
+
 # 四项有界真实 LLM 验收，输出目录被 Git 忽略
 & $python -m eeg_harness.real_llm_evaluation `
   --output artifacts\real_llm_acceptance.json
@@ -179,7 +204,7 @@ $env:EEG_HARNESS_TEST_EDF = $env:EEG_HARNESS_EDF_PATH
 & $python -m unittest discover -s tests -v
 ```
 
-2026-10-22 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：123 项通过、1 项真实联网测试按设计跳过。无私有资源模式 112 项通过、12 项按设计跳过；GitHub Actions 不下载 EDF、权重或使用 API 密钥。
+2026-10-23 使用现有 EEGAgent EDF/权重及显式 R3 样例运行：167 项中除 1 项真实联网 opt-in 测试外均通过；两项 R3 本地资源测试也以显式样例单独通过。清除私有资源后 167 项中 155 项通过、12 项按设计跳过；`compileall` 与 `pip check` 通过。GitHub Actions 不下载 EDF、权重或使用 API 密钥。
 
 真实 DeepSeek 合成验收另行执行：4/4 案例通过，其中 3 个完成真实 Tool Calling 闭环，1 个正确拒绝临床诊断；共 9 次模型请求、5 次工具调用、16,041 tokens。逐例脱敏结果见 `docs/research/results/real_llm_baseline_v1.json`，解释边界见 `docs/research/REAL_LLM_BASELINE_REPORT.md`。
 
@@ -224,6 +249,81 @@ Baseline v1 冻结自然语言验收使用 30 项任务，Fake/Mock 协议链 30
 - R3 `event_bandpower` 是整段 Epoch 的 Welch 绝对频带功率后按条件求均值，不是 baseline-normalized ERD/ERS，也不支持临床或组间结论。
 - 未取得权威参与者映射和标签说明，因此没有执行 ASD/TD 组间比较或受试者级真实统计。
 - `legacy/register_data.py` 仅为来源对照保留，正式运行时不依赖它。
+- CCEP 已增加意图—任务类型一致性、质量筛选派生 Epoch 的五工具链和证据寻址回答；真实模型只在有界合成请求上验证，未与公平强基线完成新的正式比较，不得宣称方法优势或多数据集验证。
+
+## Issue #14：LRSP v1.1 契约索引证据依赖图
+
+`point1-v11` 是 opt-in 研究模式。它把事件目标编译为 `GoalContract` 依赖闭包，并用绑定输入/输出内容版本及上游 token 的 `GoalEvidence` 管理动态失效。`epoch_summary` 和 `event_bandpower` 可共享 original/identity/derived effective Epoch；内容等价的 artifact 重建可恢复已完成纯 consumer，内容改变则强制重算。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python'
+
+# 三个确定性合成任务，不联网
+& $python -m eeg_harness.research.integrated_method.v11_evaluation `
+  --output artifacts\point1_v11_fake.json
+
+# 单请求 CLI；使用 Fake 时加 --fake，真实服务由通用环境变量配置
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1-v11 --fake `
+  --request '检查 target 事件后 0 秒到 1 秒的质量，允许筛除异常试次，汇总筛选后的试次数，并计算绝对频带功率'
+```
+
+固定三例 Fake 与真实 DeepSeek 均为 3/3 completed；真实调用共 6 请求、18,253 tokens，仅使用合成 EEG。小型同规则强 Expert 诊断在科学输出和 6 次工具调用上持平，因此当前结论是 Conditional Keep、创新性未证实，尚未进入正式公平实验。详见 `docs/research/POINT1_V11_INTEGRATION.md` 与 `docs/research/POINT1_V11_RESEARCH_DECISION.md`。
+
+## Issue #15：CIEDG 第二状态转换泛化门槛
+
+`point1-transfer` 在不改变 Baseline v1、CCEP v0、LRSP v1/v1.1 默认行为的前提下，把 CIEDG 扩展到用户明确授权的 Epoch 重参考。当前只支持 `edf_native`、显式存在的参考通道；不默认 average reference，也不在已验证双极模型 Profile 上转换。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python'
+
+# 确定性合成校准，不联网
+& $python -m eeg_harness.research.integrated_method.transfer_evaluation `
+  --output artifacts\point1_transfer_fake.json
+
+# 单请求真实 Agent；加 --fake 可离线运行
+& $python -m eeg_harness.agent_cli --demo-synthetic --agent-mode point1-transfer --fake `
+  --request '对 target 事件后 0 秒到 1 秒的 Epoch，允许以 SYNTH-C2 作为参考通道重参考，检查转换后质量，汇总试次数并计算绝对频带功率'
+```
+
+工具实现通过独立 NumPy/MNE oracle。不同 ID、相同内容的恢复会保留历史 ToolResult，并以明确的 semantic reuse view 绑定当前谱系。正常与 artifact 丢失 calibration 中，CIEDG 与同规则强动态 Expert 科学输出及调用数持平；这证明迁移可行，不证明相对优势。详见 `docs/research/POINT1_TRANSFER_DESIGN.md`、`POINT1_TRANSFER_VALIDATION.md` 和 `POINT1_FREEZE_DECISION.md`。
+
+## Issue #16：工作点一正式实验
+
+CIEDG 已冻结并完成 24 个登记场景的公平实验。parsed-task 主评分中，CIEDG 与同规则 Strong Dynamic Expert 均为 24/24、109 次工具调用；没有观察到相对优势。全图重放为 121 次；去除 EEG scientific guards 后 4/24 发生未经授权或范围不明的转换。追加不变量审计确认 S09 没有正确实例化 effective artifact 内容等价条件，因此该例标记 protocol-invalid，不用于语义复用结论。
+
+真实 `deepseek-chat` 只在 4 个分层合成场景上运行：22 requests、59,515 tokens；追加审计后 CIEDG 1/4、Native 0/4。失败来自意图过度澄清、科学状态、恢复和最终回答证据，而不是用 Fake 冒充成功。当前研究判断为 **Conditional-Go**：可将“可审计 EEG 状态—证据依赖与有界恢复”作为限定工作点，但不得声称优于强 Expert、端到端成熟或多数据集验证。
+
+完整协议、逐例结果、评价器缺陷留痕和论文判断见：
+
+- `docs/research/POINT1_FORMAL_EVAL_RUNBOOK.md`
+- `docs/research/POINT1_FORMAL_EVAL_RESULTS.md`
+- `docs/research/POINT1_WORKPOINT1_DECISION.md`
+
+## Issue #12：CCEP Evidence Phase
+
+本轮将事件分析统一为 `event_workflow` 与质量、筛选、频带功率三个原子目标。以下两条链共用真实 Registry/Executor 和同一个 Epoch artifact lineage：
+
+- 禁止筛选：`list_events → create_epochs → epoch_quality → event_bandpower`；
+- 明确授权筛选：`list_events → create_epochs → epoch_quality → select_quality_epochs → event_bandpower`。
+
+独立造数与 Welch oracle 已验证实际异常 Epoch 被剔除后试次数从 3 变为 2、原 artifact 不变、派生波形及筛选前后各频带值正确。冻结共享任务比较中，Strong route+preflight 与 CCEP 均为 18/18 正确、10/10 科学完成，没有观察到 CCEP 增量优势。两个真实 DeepSeek holdout 中 Native 为 2/2，CCEP 为 1/2；失败是执行前安全误拒，结果没有用于事后调 Prompt。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$python = 'python' # 或替换为已安装项目依赖的 Python 解释器
+
+# 无联网、可重复的共享解析任务比较
+& $python -m eeg_harness.research.evidence_phase.evaluation `
+  --output artifacts\point1_evidence_shared.json
+
+# 真实模型实验仅可使用合成 EEG，并须通过环境变量提供服务配置
+& $python -m eeg_harness.research.evidence_phase.real_evaluation `
+  --output artifacts\point1_evidence_real.json
+```
+
+实验报告见 `docs/research/POINT1_EVIDENCE_PHASE_RESULTS.md`，方法决策见 `docs/research/POINT1_METHOD_DECISION.md`。当前结论是：CCEP 作为可审计安全骨架可保留，但“优于强基线”的论文主张为 No-Go。
 
 ## Issue #9：科学意图对齐研究验证
 

@@ -1,0 +1,67 @@
+{
+  "method": "constraint_carrying_eeg_plan_v0",
+  "stop_reason": "clarification_required",
+  "interpretation": {
+    "success": true,
+    "disposition": "clarify",
+    "intent": {
+      "analysis_type": "quality_selected_bandpower",
+      "parameters": {
+        "selection_authorized": false
+      },
+      "explicit_evidence": {},
+      "semantic_evidence": {
+        "quality_measurement": "检查 stimulus 事件前 -0.2 秒到后 0.8 秒的质量",
+        "event_locked": "stimulus 事件前 -0.2 秒到后 0.8 秒",
+        "spectral_power": "计算该事件窗的绝对频带功率",
+        "trial_selection": "不要筛选或剔除试次"
+      },
+      "unknown_slots": [
+        "labels",
+        "tmin",
+        "tmax",
+        "channels"
+      ],
+      "forbidden_operations": [
+        "trial_rejection",
+        "trial_filtering",
+        "event_bandpower_as_erp",
+        "erp_erd_ers_analysis",
+        "clinical_diagnosis"
+      ],
+      "source_stage": "current",
+      "output_boundary": "仅报告 stimulus 事件锁定窗（-0.2 至 0.8 秒）的事件质量测量与绝对频带功率；不进行试次筛选或剔除，不涉及 ERP/ERD-ERS 解释或临床诊断。",
+      "rationale": "用户要求对 stimulus 事件锁定窗（-0.2~0.8 s）进行质量检查并计算绝对频带功率，且明确不筛选/剔除试次，因此对应 quality_selected_bandpower 组合，selection_authorized=false。事件标签在记录中为 \"stimulus\"，但用户未明确以记录标签复述之外的形式指定标签字符串，且未在原文中给出通道与精确 tmin/tmax 数值边界（\"前 -0.2 秒到后 0.8 秒\"为相对描述），故列入 unknown_slots 而不自行补全。"
+    },
+    "missing_slots": [
+      "labels",
+      "tmin",
+      "tmax",
+      "selection_authorized"
+    ],
+    "error": {
+      "code": "MISSING_OR_UNGROUNDED_INTENT_SLOT",
+      "message": "Required EEG intent slots are unknown or lack exact user-language evidence."
+    }
+  },
+  "ledger": null,
+  "plan_check": null,
+  "execution": null,
+  "evidence_check": null,
+  "answer_check": null,
+  "final_answer": "需要补充或明确以下科学参数：labels、tmin、tmax、selection_authorized。在此之前不会猜测或执行分析。",
+  "llm": {
+    "provider_model": "deepseek-flash",
+    "request_count": 1,
+    "usage": {
+      "prompt_tokens": 1207,
+      "completion_tokens": 502,
+      "total_tokens": 1709,
+      "prompt_cache_hit_tokens": 1024,
+      "prompt_cache_miss_tokens": 183
+    },
+    "finish_reasons": [
+      "tool_calls"
+    ]
+  }
+}

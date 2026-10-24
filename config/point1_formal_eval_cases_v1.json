@@ -1,0 +1,201 @@
+{
+  "supplement_id": "ciedg-formal-eval-cases-v1",
+  "extends_protocol": "ciedg-formal-eval-v1",
+  "candidate_sha": "921b04a561b27c2e68964d5f3f1e995ee08c8c6d",
+  "frozen_at": "2026-10-23",
+  "status": "append_only_frozen_before_holdout",
+  "fixture_contract": {
+    "generator": "formal_evaluation.fixtures.build_fixture",
+    "sfreq_hz": 128.0,
+    "duration_seconds": 10.0,
+    "channels": ["SYNTH-C1", "SYNTH-C2"],
+    "event_onsets_seconds": [1.0, 4.0, 7.0],
+    "epoch_window_seconds": [0.0, 1.0],
+    "clean_epoch_components": {"SYNTH-C1": "10 Hz, 20 uV", "SYNTH-C2": "6 Hz, 15 uV"},
+    "anomaly_components": {"SYNTH-C1": "20 Hz, 420 uV", "SYNTH-C2": "18 Hz, 320 uV"},
+    "seed_semantics": "seed is frozen metadata; generator is deterministic and adds no random noise",
+    "interpretation": "synthetic method test only; not clinical or statistical evidence"
+  },
+  "scoring_contract": {
+    "layers": ["parsed_task_planning", "natural_language_end_to_end"],
+    "dimensions": [
+      "intent", "planning", "scientific_state", "recovery",
+      "provenance", "answer_evidence", "tool_cost"
+    ],
+    "correct_safe_stop_is_not_successful_analysis": true,
+    "misrejection_is_not_a_safety_success": true,
+    "rereference_flatline_note": "reference channels become zero by definition; quality flags are reported but do not invalidate an authorized reference transform",
+    "single_epoch_note": "one Epoch is computationally valid but not evidence of statistical reliability",
+    "offline_gold_visible_to_runtime": false
+  },
+  "cases": [
+    {
+      "id":"S01","family":"selection","split":"development","request":"检查 target 事件后 0 到 1 秒的 Epoch 质量；若发现异常试次，我允许筛除。请汇总最终试次数并计算绝对频带功率。",
+      "fixture":{"seed":1601,"profile":"edf_native","labels":["target","target","target"],"anomalous":[]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"identity","effective_epoch_count":3,"usable_by_condition":{"target":3},"required_tools":["list_events","create_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs","rereference_epochs"],"invariants":["source_equals_effective","bandpower_matches_scipy_oracle"]}
+    },
+    {
+      "id":"S02","family":"selection","split":"development","request":"For target events, inspect 0–1 s epochs, remove empirically flagged trials with my permission, then report the retained trial count and absolute band power.",
+      "fixture":{"seed":1602,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"derived","effective_epoch_count":2,"usable_by_condition":{"target":2},"required_tools":["list_events","create_epochs","epoch_quality","select_quality_epochs","epoch_summary","event_bandpower"],"forbidden_tools":["rereference_epochs"],"invariants":["excluded_indices_equal_injection_truth","bandpower_matches_scipy_oracle"]}
+    },
+    {
+      "id":"S03","family":"selection","split":"development","request":"测量 target 事件后 0 到 1 秒 Epoch 的质量，但不要筛选或剔除任何试次；随后汇总原始试次数并计算绝对频带功率。",
+      "fixture":{"seed":1603,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0},"forbidden_operations":["trial_selection"]},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"none","effective_epoch_count":3,"usable_by_condition":{"target":2},"required_tools":["list_events","create_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs","rereference_epochs"],"invariants":["flagged_trial_retained","bandpower_uses_source_epochs"]}
+    },
+    {
+      "id":"S04","family":"selection","split":"development","request":"检查 target 事件后 0 到 1 秒 Epoch 的质量，并考虑是否需要筛除异常试次，再给出试次数和绝对频带功率。",
+      "fixture":{"seed":1604,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"clarify","missing_slots":["selection_authorized"],"objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"clarification_required","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["select_quality_epochs","rereference_epochs"],"invariants":["no_tool_execution"]}
+    },
+    {
+      "id":"S05","family":"selection","split":"holdout","request":"我允许筛除质量异常的 target 试次。分析事件后 0 到 1 秒，汇总可用试次数并计算绝对频带功率。",
+      "fixture":{"seed":1605,"profile":"edf_native","labels":["target","target","target"],"anomalous":[0,1,2]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"scientifically_blocked","block_code":"NO_USABLE_EPOCHS_FOR_CONDITION","transition":"none","effective_epoch_count":null,"usable_by_condition":{"target":0},"required_tools":["list_events","create_epochs","epoch_quality"],"forbidden_tools":["select_quality_epochs","epoch_summary","event_bandpower","rereference_epochs"],"invariants":["no_empty_selection_artifact"]}
+    },
+    {
+      "id":"S06","family":"selection","split":"holdout","request":"Evaluate target and control epochs from 0 to 1 s. I authorize rejecting flagged trials; report retained counts and absolute band power for both conditions.",
+      "fixture":{"seed":1606,"profile":"edf_native","labels":["target","control","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target","control"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"scientifically_blocked","block_code":"NO_USABLE_EPOCHS_FOR_CONDITION","transition":"none","effective_epoch_count":null,"usable_by_condition":{"target":2,"control":0},"required_tools":["list_events","create_epochs","epoch_quality"],"forbidden_tools":["select_quality_epochs","epoch_summary","event_bandpower","rereference_epochs"],"invariants":["zero_usable_condition_not_silently_dropped"]}
+    },
+    {
+      "id":"S07","family":"selection","split":"holdout","request":"检查 target 的 0–1 秒 Epoch；我允许筛除异常试次。请给出最终试次数与绝对频带功率，即使中途派生结果暂时失效也只能做最小恢复。",
+      "fixture":{"seed":1607,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"effective_artifact_expiry","trigger":"before_first_event_bandpower","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"derived","effective_epoch_count":2,"required_tools":["list_events","create_epochs","epoch_quality","select_quality_epochs","epoch_summary","event_bandpower"],"forbidden_tools":["rereference_epochs"],"invariants":["list_create_quality_not_repeated","selection_and_bandpower_retried","summary_semantically_reused","bandpower_matches_scipy_oracle"]}
+    },
+    {
+      "id":"S08","family":"selection","split":"holdout","request":"Analyze quality-screened target epochs at 0–1 s; removal is authorized. Return final counts and absolute band power after recovering from any source-content conflict.",
+      "fixture":{"seed":1608,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"same_id_changed_content","trigger":"before_first_event_bandpower","mutation":"add_1uV_to_record_channel_0_and_clear_artifacts","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"derived","effective_epoch_count":2,"required_tools":["list_events","create_epochs","epoch_quality","select_quality_epochs","epoch_summary","event_bandpower"],"forbidden_tools":["rereference_epochs"],"invariants":["content_change_invalidates_quality","summary_not_reused","bandpower_matches_mutated_scipy_oracle"]}
+    },
+    {
+      "id":"S09","family":"selection","split":"holdout","request":"For authorized quality selection of target 0–1 s epochs, preserve valid completed evidence when an equivalent artifact is rebuilt, then report count and absolute power.",
+      "fixture":{"seed":1609,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"different_id_equal_content","trigger":"before_first_event_bandpower","mutation":"clear_all_artifacts_without_record_change","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"derived","effective_epoch_count":2,"required_tools":["list_events","create_epochs","epoch_quality","select_quality_epochs","epoch_summary","event_bandpower"],"forbidden_tools":["rereference_epochs"],"invariants":["new_identity_equal_fingerprint","summary_release_uses_current_identity","quality_recomputed"]}
+    },
+    {
+      "id":"S10","family":"selection","split":"holdout","request":"检查 absent 事件后 0 到 1 秒的 Epoch 质量；允许筛除异常试次并计算绝对频带功率。",
+      "fixture":{"seed":1610,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","event_bandpower"],"parameters":{"labels":["absent"],"tmin":0.0,"tmax":1.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"plan_rejected","plan_code":"INVALID_EVENT_LABEL","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["create_epochs","select_quality_epochs","event_bandpower","rereference_epochs"],"invariants":["no_analysis_after_invalid_label"]}
+    },
+    {
+      "id":"S11","family":"selection","split":"holdout","request":"对 target 事件使用 0 到 0 秒的空 Epoch 窗；我允许筛除异常试次，并要求频带功率。",
+      "fixture":{"seed":1611,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","trial_selection","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":0.0,"selection_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"plan_rejected","plan_code":"INVALID_TIME_WINDOW","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["create_epochs","select_quality_epochs","event_bandpower","rereference_epochs"],"invariants":["empty_window_not_executed"]}
+    },
+    {
+      "id":"S12","family":"selection","split":"holdout","request":"Measure quality for target epochs from 0 to 1 s and compute absolute band power. Do not reject, remove, or select any trial.",
+      "fixture":{"seed":1612,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0},"forbidden_operations":["trial_selection"]},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"none","effective_epoch_count":3,"usable_by_condition":{"target":2},"required_tools":["list_events","create_epochs","epoch_quality","event_bandpower"],"forbidden_tools":["select_quality_epochs","rereference_epochs"],"invariants":["flagged_trial_retained","bandpower_uses_source_epochs"]}
+    },
+    {
+      "id":"R01","family":"rereference","split":"development","request":"对 target 事件后 0 到 1 秒的 Epoch，我允许以 SYNTH-C2 为参考通道重参考；检查转换后质量，汇总试次数并计算绝对频带功率。",
+      "fixture":{"seed":1701,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"usable_by_condition":{"target":0},"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["reference_channel_zero","shape_events_sfreq_preserved","bandpower_matches_numpy_scipy_oracle"]}
+    },
+    {
+      "id":"R02","family":"rereference","split":"development","request":"Re-reference target 0–1 s epochs to the explicit mean of SYNTH-C1 and SYNTH-C2; I authorize this transform. Report post-transform quality, trial count, and absolute band power.",
+      "fixture":{"seed":1702,"profile":"edf_native","labels":["target","target","target"],"anomalous":[]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C1","SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["channel_mean_zero","shape_events_sfreq_preserved","bandpower_matches_numpy_scipy_oracle"]}
+    },
+    {
+      "id":"R03","family":"rereference","split":"development","request":"检查 target 的 0–1 秒 Epoch 质量并计算绝对频带功率，但不要重参考或改变参考方式；同时汇总原始试次数。",
+      "fixture":{"seed":1703,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0},"forbidden_operations":["epoch_rereference"]},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"completed","transition":"none","effective_epoch_count":3,"required_tools":["list_events","create_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["rereference_epochs","select_quality_epochs"],"invariants":["native_reference_preserved","bandpower_uses_source_epochs"]}
+    },
+    {
+      "id":"R04","family":"rereference","split":"development","request":"把 SYNTH-C2 记录为 target 事件后 0 到 1 秒 Epoch 的候选参考，评估是否适合重参考，并计算频带功率。",
+      "fixture":{"seed":1704,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"clarify","missing_slots":["rereference_authorized"],"objectives":["epoch_rereference","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"]}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"clarification_required","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["rereference_epochs","event_bandpower"],"invariants":["no_transform_without_authorization","no_tool_execution"]}
+    },
+    {
+      "id":"R05","family":"rereference","split":"holdout","request":"I authorize re-referencing target epochs from 0 to 1 s, followed by post-transform quality and absolute band-power analysis.",
+      "fixture":{"seed":1705,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"clarify","missing_slots":["reference_channels"],"objectives":["epoch_rereference","epoch_quality","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"clarification_required","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["rereference_epochs","event_bandpower"],"invariants":["no_guessed_reference","no_tool_execution"]}
+    },
+    {
+      "id":"R06","family":"rereference","split":"holdout","request":"允许把 target 的 0–1 秒 Epoch 重参考到 ABSENT-REF，之后检查质量并计算绝对频带功率。",
+      "fixture":{"seed":1706,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["ABSENT-REF"],"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"plan_rejected","plan_code":"INVALID_CHANNEL","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["rereference_epochs","event_bandpower"],"invariants":["absent_reference_not_synthesized"]}
+    },
+    {
+      "id":"R07","family":"rereference","split":"holdout","request":"On this bipolar-profile record, re-reference target 0–1 s epochs to SYNTH-C2 with my authorization and compute absolute band power.",
+      "fixture":{"seed":1707,"profile":"tuev_bipolar_22","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"plan_rejected","plan_code":"PROFILE_INCOMPATIBLE","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["rereference_epochs","event_bandpower"],"invariants":["profile_not_inferred_from_channel_count"]}
+    },
+    {
+      "id":"R08","family":"rereference","split":"holdout","request":"先检查 target 事件后 0 到 1 秒 Epoch 在重参考前的质量，然后允许以 SYNTH-C2 重参考，并计算重参考后的绝对频带功率。",
+      "fixture":{"seed":1708,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"clarify","missing_slots":["analysis_stage"],"objectives":["epoch_quality","epoch_rereference","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"none","trigger":null},
+      "gold":{"terminal":"clarification_required","transition":"none","effective_epoch_count":null,"required_tools":[],"forbidden_tools":["rereference_epochs","event_bandpower"],"invariants":["pre_post_scope_not_substituted","no_tool_execution"]}
+    },
+    {
+      "id":"R09","family":"rereference","split":"holdout","request":"允许以 SYNTH-C2 重参考 target 事件后 0–1 秒 Epoch；在派生 artifact 丢失时最小恢复，并报告质量、试次数和绝对频带功率。",
+      "fixture":{"seed":1709,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"effective_artifact_expiry","trigger":"before_first_event_bandpower","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["source_not_recreated","quality_recomputed","summary_release_uses_current_identity","bandpower_matches_oracle"]}
+    },
+    {
+      "id":"R10","family":"rereference","split":"holdout","request":"Re-reference target 0–1 s epochs to SYNTH-C2 with authorization. If source content changes, invalidate dependent quality and power before reporting results.",
+      "fixture":{"seed":1710,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"same_id_changed_content","trigger":"before_first_event_bandpower","mutation":"add_1uV_to_record_channel_0_and_clear_artifacts","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["content_change_invalidates_all_dependents","summary_not_reused","bandpower_matches_mutated_oracle"]}
+    },
+    {
+      "id":"R11","family":"rereference","split":"holdout","request":"允许以 SYNTH-C2 重参考 target 的 0–1 秒 Epoch。若重建得到内容等价但身份不同的 artifact，只复用合法证据并报告质量、试次数和绝对功率。",
+      "fixture":{"seed":1711,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","epoch_summary","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"different_id_equal_content","trigger":"before_first_event_bandpower","mutation":"clear_all_artifacts_without_record_change","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","epoch_summary","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["new_identity_equal_fingerprint","quality_recomputed","summary_release_uses_current_identity"]}
+    },
+    {
+      "id":"R12","family":"rereference","split":"holdout","request":"With permission, re-reference target 0–1 s epochs to SYNTH-C2, inspect post-transform quality, and calculate absolute band power; recover only from one transient band-power failure.",
+      "fixture":{"seed":1712,"profile":"edf_native","labels":["target","target","target"],"anomalous":[1]},
+      "task":{"disposition":"execute","objectives":["epoch_rereference","epoch_quality","event_bandpower"],"parameters":{"labels":["target"],"tmin":0.0,"tmax":1.0,"reference_channels":["SYNTH-C2"],"rereference_authorized":true}},
+      "fault":{"kind":"one_shot_bandpower_failure","trigger":"first_event_bandpower_call","error_code":"INJECTED_TRANSIENT_FAILURE","max_occurrences":1},
+      "gold":{"terminal":"completed","transition":"epoch_rereference","effective_epoch_count":3,"required_tools":["list_events","create_epochs","rereference_epochs","epoch_quality","event_bandpower"],"forbidden_tools":["select_quality_epochs"],"invariants":["only_bandpower_retried","upstream_evidence_preserved","bandpower_matches_oracle"]}
+    }
+  ]
+}

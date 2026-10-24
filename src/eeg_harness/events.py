@@ -1,6 +1,8 @@
 """Generic event and epoch data structures with explicit EEG time semantics."""
 
 from dataclasses import dataclass, field
+import hashlib
+import json
 from typing import Any, Mapping, Optional
 from uuid import uuid4
 
@@ -14,6 +16,12 @@ class EventError(ValueError):
 
 
 class EpochError(ValueError):
+    pass
+
+
+class ArtifactConsistencyError(ValueError):
+    """An artifact no longer matches the version declared by its consumer."""
+
     pass
 
 
@@ -90,6 +98,7 @@ class EpochSet:
     baseline: Optional[tuple[Optional[float], Optional[float]]]
     rejected: tuple[RejectedEpoch, ...]
     source: str
+    reference: str = "unspecified"
     artifact_id: str = field(default_factory=lambda: f"epochs-{uuid4()}")
     parameters: Mapping[str, Any] = field(default_factory=dict)
 
@@ -99,9 +108,33 @@ class EpochSet:
             raise ValueError(f"Epoch data must have shape [epochs, channels, times], got {data.shape}")
         object.__setattr__(self, "data", data)
 
+    def content_fingerprint(self):
+        """Bind scientific metadata and array content without exposing samples."""
+        metadata = {
+            "dtype": str(self.data.dtype),
+            "shape": list(self.data.shape),
+            "sfreq": self.sfreq,
+            "channel_names": list(self.channel_names),
+            "tmin": self.tmin,
+            "tmax": self.tmax,
+            "event_labels": list(self.event_labels),
+            "event_onsets_seconds": list(self.event_onsets_seconds),
+            "baseline": self.baseline,
+            "reference": self.reference,
+            "rejected": [item.to_dict() for item in self.rejected],
+            "parameters": dict(self.parameters),
+        }
+        digest = hashlib.sha256()
+        digest.update(json.dumps(
+            metadata, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        ).encode("utf-8"))
+        digest.update(np.ascontiguousarray(self.data).tobytes())
+        return f"sha256:{digest.hexdigest()}"
+
     def summary(self):
         return {
             "artifact_id": self.artifact_id,
+            "artifact_fingerprint": self.content_fingerprint(),
             "valid_epoch_count": int(self.data.shape[0]),
             "rejected_epoch_count": len(self.rejected),
             "shape": list(self.data.shape),
@@ -110,6 +143,7 @@ class EpochSet:
             "tmin": self.tmin,
             "tmax": self.tmax,
             "baseline": list(self.baseline) if self.baseline is not None else None,
+            "reference": self.reference,
             "event_labels": list(self.event_labels),
             "event_onsets_seconds": list(self.event_onsets_seconds),
             "rejected": [item.to_dict() for item in self.rejected],
@@ -203,11 +237,12 @@ def create_epoch_set(record, labels, tmin, tmax, baseline=None):
         baseline=resolved_baseline,
         rejected=tuple(rejected),
         source=record.source,
+        reference=record.reference,
         parameters={
             "selected_labels": [labels] if isinstance(labels, str) else list(labels),
             "window_semantics": "[event_onset+tmin, event_onset+tmax)",
             "sampling_alignment": "round(seconds * sfreq)",
-            "event_source": record.events.source,
+            "event_source": source_reference(record.events.source),
         },
     )
 

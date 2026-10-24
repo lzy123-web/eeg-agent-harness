@@ -1,0 +1,1221 @@
+{
+  "source_experiment_id": "ciedg-formal-parsed-task-holdout-v1",
+  "primary_scores_modified": false,
+  "audit_basis": "append-only frozen gold invariants and immutable recorded traces",
+  "rows": [
+    {
+      "case_id": "S05",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S05",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S05",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S05",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S05",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S05",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_empty_selection_artifact": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S06",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "zero_usable_condition_not_silently_dropped": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S07",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": true,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": true,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S07",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": true,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": true,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S07",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": true,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": false,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "summary_semantically_reused"
+      ]
+    },
+    {
+      "case_id": "S07",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": true,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": false,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "summary_semantically_reused"
+      ]
+    },
+    {
+      "case_id": "S07",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": false,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": false,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "list_create_quality_not_repeated",
+        "summary_semantically_reused"
+      ]
+    },
+    {
+      "case_id": "S07",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "list_create_quality_not_repeated": true,
+        "selection_and_bandpower_retried": true,
+        "summary_semantically_reused": true,
+        "bandpower_matches_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S08",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_quality": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_scipy_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S09",
+      "method": "CIEDG",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S09",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S09",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S09",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S09",
+      "method": "whole_plan_replay",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S09",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": false,
+      "protocol_notes": [
+        "fault_did_not_create_different_effective_identity_with_equal_fingerprint"
+      ],
+      "invariants": {
+        "new_identity_equal_fingerprint": false,
+        "summary_release_uses_current_identity": true,
+        "quality_recomputed": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "new_identity_equal_fingerprint"
+      ]
+    },
+    {
+      "case_id": "S10",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S10",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S10",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S10",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S10",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S10",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_analysis_after_invalid_label": null
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S11",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "empty_window_not_executed": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "S12",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "flagged_trial_retained": true,
+        "bandpower_uses_source_epochs": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R05",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "no_guessed_reference": false,
+        "no_tool_execution": false
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "no_guessed_reference",
+        "no_tool_execution"
+      ]
+    },
+    {
+      "case_id": "R06",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R06",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R06",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R06",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R06",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R06",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "absent_reference_not_synthesized": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R07",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "profile_not_inferred_from_channel_count": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": true,
+        "no_tool_execution": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R08",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "pre_post_scope_not_substituted": false,
+        "no_tool_execution": false
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "pre_post_scope_not_substituted",
+        "no_tool_execution"
+      ]
+    },
+    {
+      "case_id": "R09",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R09",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R09",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R09",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R09",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": false,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": false,
+      "failed_invariants": [
+        "source_not_recreated"
+      ]
+    },
+    {
+      "case_id": "R09",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "source_not_recreated": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R10",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "content_change_invalidates_all_dependents": true,
+        "summary_not_reused": true,
+        "bandpower_matches_mutated_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R11",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "new_identity_equal_fingerprint": true,
+        "quality_recomputed": true,
+        "summary_release_uses_current_identity": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "CIEDG",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "strong_dynamic_expert",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "without_dependency_invalidation",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "without_semantic_evidence_reuse",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "whole_plan_replay",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    },
+    {
+      "case_id": "R12",
+      "method": "without_eeg_scientific_guards",
+      "protocol_valid": true,
+      "protocol_notes": [],
+      "invariants": {
+        "only_bandpower_retried": true,
+        "upstream_evidence_preserved": true,
+        "bandpower_matches_oracle": true
+      },
+      "passed_all_audited_invariants": true,
+      "failed_invariants": []
+    }
+  ],
+  "protocol_invalid_cases": [
+    "S09"
+  ],
+  "valid_rows": 90,
+  "valid_rows_passing_all_audited_invariants": 84
+}

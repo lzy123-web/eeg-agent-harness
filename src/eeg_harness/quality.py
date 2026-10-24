@@ -130,6 +130,7 @@ def record_quality(record, profile_id, *, channels=None, start=None, end=None,
 
 def epoch_quality(epochs, profile_id, *, thresholds=None):
     thresholds = {**DEFAULT_THRESHOLDS, **(thresholds or {})}
+    artifact_fingerprint = epochs.content_fingerprint()
     bad_indices = []
     reasons = Counter()
     line_validity = ("unknown", "Epoch provenance does not establish raw line-noise observability")
@@ -159,12 +160,14 @@ def epoch_quality(epochs, profile_id, *, thresholds=None):
     return {
         "evidence_id": _evidence_id("epoch_quality", profile_id, {
             "artifact_id": epochs.artifact_id,
+            "artifact_fingerprint": artifact_fingerprint,
             "thresholds": thresholds,
         }),
         "evidence_type": "epoch_quality",
         "profile_id": profile_id,
         "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
         "artifact_id": epochs.artifact_id,
+        "artifact_fingerprint": artifact_fingerprint,
         "epoch_counts": {
             "requested_or_boundary_checked": total,
             "created": original_valid,

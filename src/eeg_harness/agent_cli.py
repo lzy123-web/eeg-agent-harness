@@ -15,6 +15,11 @@ from .planning_agent import NaturalLanguagePlanningAgent
 from .pipeline import load_config
 from .profiles import get_profile
 from .tools import build_default_registry
+from .research.integrated_method.agent import ConstraintCarryingEEGAgent
+from .research.integrated_method.fake import Point1FakeLLM
+from .research.integrated_method.v1 import ConstraintCarryingEEGAgentV1
+from .research.integrated_method.v11 import ConstraintCarryingEEGAgentV11
+from .research.integrated_method.transfer import ConstraintCarryingEEGAgentTransfer
 
 
 def build_parser():
@@ -34,6 +39,12 @@ def build_parser():
     parser.add_argument(
         "--planning", action="store_true",
         help="Interpret a structured goal and run the constrained Planner",
+    )
+    parser.add_argument(
+        "--agent-mode", choices=(
+            "native", "planning", "point1", "point1-v1", "point1-v11", "point1-transfer",
+        ), default="native",
+        help="Select the opt-in Agent runtime; point1 enables the integrated research method",
     )
     parser.add_argument("--max-rounds", type=int, default=6)
     parser.add_argument("--max-tool-calls", type=int, default=8)
@@ -60,13 +71,30 @@ def main(argv=None):
         profile,
         Executor(build_default_registry(), load_config(args.config), resources),
     )
+    mode = "planning" if args.planning else args.agent_mode
     if args.fake:
-        client = DeterministicGoalFakeLLM() if args.planning else DemoFakeLLM()
+        client = (
+            Point1FakeLLM() if mode in {
+                "point1", "point1-v1", "point1-v11", "point1-transfer",
+            } else
+            DeterministicGoalFakeLLM() if mode == "planning" else DemoFakeLLM()
+        )
     else:
         client = OpenAICompatibleClient.from_env()
-    agent = NaturalLanguagePlanningAgent(client, context) if args.planning else EEGAgent(
-        client, context, max_rounds=args.max_rounds, max_tool_calls=args.max_tool_calls
-    )
+    if mode == "point1-transfer":
+        agent = ConstraintCarryingEEGAgentTransfer(client, context)
+    elif mode == "point1-v11":
+        agent = ConstraintCarryingEEGAgentV11(client, context)
+    elif mode == "point1-v1":
+        agent = ConstraintCarryingEEGAgentV1(client, context)
+    elif mode == "point1":
+        agent = ConstraintCarryingEEGAgent(client, context)
+    elif mode == "planning":
+        agent = NaturalLanguagePlanningAgent(client, context)
+    else:
+        agent = EEGAgent(
+            client, context, max_rounds=args.max_rounds, max_tool_calls=args.max_tool_calls
+        )
     result = agent.run(args.request).to_dict()
     rendered = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)
     if args.output:

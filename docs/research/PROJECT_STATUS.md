@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存在性为 **Conditional Go**；最小意图契约相对原生方法未显示优势，方法结论为 **NO-GO / 证据不足**。Baseline v1.0 与 Issue #8 历史结果保持不变。
+Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -67,7 +67,7 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 
 ## 实际验证结果
 
-最新验证日期：2026-10-22。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
+最新验证日期：2026-10-24。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
 
 | 检查项 | 结果 |
 |---|---|
@@ -172,6 +172,47 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 
 改造前结果保存在本地忽略目录 `artifacts/before_explicit_record.json`，改造后结果保存在 `artifacts/after_explicit_record.json`；两者仅用于本轮本地回归，没有进入 Git。比较时排除生成时间和运行耗时，确定性字段全部相同。
 
+## Issue #10：工作点一集成方法初版
+
+### 实际代码变更
+
+- 新增 opt-in `research/integrated_method`：Evidence-bound `IntentSpec`、obligation ledger、计划/恢复校验、Evidence Gate 与最终证据回答。
+- 复用 `StateAwareConstrainedPlanner`、`ConstrainedPlanRunner`、`ExecutionContext`、`Executor` 与现有工具；没有创建第二套 EEG Core 或执行器。
+- `planning.py` 增加可选 plan validator hook，并将授权质量筛选实现为同一 Epoch artifact 上的“先质量证据、后筛选”。默认 native/planning 路径保持不变。
+- CLI 新增 `--agent-mode point1`；Fake LLM 用于确定性回归，真实 OpenAI 兼容客户端用于合成 EEG 联网验收。
+- follow-up 新增覆盖当前分析类型的科学概念契约：模型声明类型必须与用户原文 span 中的概念集合独立解析结果一致，不使用离线 gold。
+- 新增质量证据→授权筛选→派生 Epoch→事件频带功率五工具链，Evidence Gate 校验两级 artifact lineage。
+- 最终回答改为证据寻址：LLM 只选择成功 ToolResult 的 request id 与相对 `data` 的 JSON path，运行时解析实际标量并确定性渲染。
+
+### 验证结果
+
+| 项目 | 结果 |
+|---|---|
+| Fake 单步 | PSD 完成，1 次工具调用，ledger 与 trace 闭合。 |
+| Fake 多步 | `list_events → create_epochs → event_bandpower` 完成，artifact lineage 闭合。 |
+| 真实 DeepSeek 首轮 | 3/3 安全澄清、0 工具误执行；暴露任意参数 schema 导致的别名/任务类型漂移。 |
+| 真实 DeepSeek 修复后 | PSD 与事件链完成；缺事件 label 正确澄清且 0 工具调用。 |
+| 联网预算 | 两轮合计 8 请求、10,477 tokens；只使用合成 EEG 元数据和派生结果。 |
+| 针对性回归 | 集成+规划 24/24 通过。 |
+| 本地资源全回归 | 161 项中 160 通过、1 项联网 opt-in 测试跳过；`pip check`/`compileall` 通过。 |
+| 无私有资源回归 | 161 项中 149 通过、12 项资源/联网测试按设计跳过。 |
+| GitHub CI | Draft PR #11 run `39814383931` 的安装、compileall 与无资源 unittest 步骤均为 success。 |
+| follow-up Fake | 集成方法与 Planner 定向 30/30；单步、事件和质量筛选后分析轨迹均按新回答协议生成。 |
+| follow-up DeepSeek | 4 条不同合成请求、5 次执行，真实总消耗 9 次 Provider 请求、19,275 tokens（含首次失败 2 请求/4,925 tokens）；PSD 对抗及两条授权复杂链完成，禁止筛选请求 0 工具澄清。首次复杂链的错误 `data` 路径被安全阻止，接口说明修复后重测完成；其完整未跟踪 JSON 被覆盖，仓库仅保留明确标注的观测失败摘要，不伪造原始响应。 |
+| follow-up 完整回归 | `pip check`/`compileall` 通过；167 项有资源测试除 1 项联网 opt-in 外均通过，R3 两项显式资源测试另行通过；无资源 155 通过、12 跳过。 |
+| follow-up GitHub CI | Draft PR #11 run `39892152377` 对 `30ae956` 执行公开无资源 `unit-tests`，结论 `success`。 |
+
+真实 LLM 的中文回答存在服务侧历史乱码，因此只确认结构化调用、工具执行和终止语义，不宣称中文可读性通过。方法当前是可运行候选，创新性和相对优势均未证明。完整报告见 `POINT1_INTEGRATION_ACCEPTANCE.md`，后续公平对照和消融见 `POINT1_FUTURE_EXPERIMENTS.md`。
+
+### 本轮提交
+
+- `cb91166`：研究问题、文献差异与方法蓝图。
+- `9f55415`：CCEP 最小集成主干。
+- `fbf20e6`：事件链、质量证据与受约束恢复。
+- `c35b541`：真实模型 schema 失败修复与脱敏轨迹。
+- `e1c1b03`：科学来源、数值证据、参数闭合和回答失败审查修复。
+- 最终文档本地归档：`de6ac8e`、`d021eb2`。本机 HTTPS 传输中断后，六份最终文档通过受认证 GitHub Contents API 同步到 Draft PR #11，远端内容完整但 SHA 与本地归档不同；后续按状态文件的非强制 merge 步骤收敛历史。
+
 ## 未解决问题
 
 1. 当前仅有 `tuev_bipolar_22` 与 `edf_native`；Sleep 2 导、MDD 19 导及完整 ERP/evoked 尚无已验证 Profile/工具。
@@ -203,13 +244,20 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 26. 原型只覆盖 low-pass、联合重采样、Epoch/显式索引筛选等最小语义；未验证真实触发漂移、复杂参考、ICA、坏段传播或 BIDS derivative lineage。
 27. Issue #9 仅观察到 1 个自然意图错误，且后续分析因窗口前提失败；没有“错误链全成功”的自然样本。
 28. Stage C 只有 2 个 holdout、单次 DeepSeek 路由决策；词汇 alias 归一在结果后修正并已披露，不能作统计或泛化结论。
+29. CCEP 只有单步 PSD、事件多步与缺参三类真实模型验收；没有新的冻结强基线比较，不能声称创新或优势。
+30. 当前原文数值校验不支持中文数字、单位换算、范围共指或复杂多意图。
+31. 默认 EEGRecord 没有 raw/processed 双分支；raw obligation 只能在来源未显式可观测时安全拒绝。
+32. `deepseek-flash` 当前返回的中文文本存在乱码，结构化链路成功不能替代自然语言质量验收。
+33. 科学概念契约尚未覆盖否定作用域、开放同义词、单位换算和多意图组合；“禁止筛选但做质量+功率”目前安全澄清，尚不能自动分解为合法替代计划。
+34. 证据寻址回答保证数值和条件可追溯，但固定模板的可读性、跨值归纳与复杂科学表述尚未验证。
+35. 概念词表、Prompt、schema 和 Validator 本身不是独立创新；CCEP 的潜在贡献仅是 obligation 在意图、派生状态、恢复和回答发布之间的持续保持，仍需公平强基线证据。
 
 ## 下一步候选任务
 
 按优先级排列：
 
-1. 按 Issue #9 的方法 NO-GO 停止扩展当前最小意图契约；不得围绕单个错误继续添加特例规则。
-2. 若继续评估自然语言层，应建立全新未见 holdout、多次重复、独立标注和不同模型，不把本轮 1 个 development 错误或 2 个已暴露 holdout 当作泛化证据。
+1. 按 `POINT1_FUTURE_EXPERIMENTS.md` 冻结全新任务、独立科学 oracle、强 Expert/Generic/Native 公平基线和统计计划，再评价 CCEP；不得围绕本轮三个验收请求添加特例。
+2. 将自然语言解析共享实验与端到端实验分开，使用未见 holdout、多次重复、独立标注和不同模型。
 3. 建立资源 manifest，记录权重 SHA-256、来源状态、输入契约和许可状态，并扩展 CI Python/平台矩阵。
 4. 获取合法的带事件公开数据后建立真实事件回归；实验室真实数据外发必须先获得明确治理授权。
 5. Sleep、MDD、ERP 和 ASD 继续后置，必须各自完成 Profile、资源、许可和验证后再接入。
@@ -272,3 +320,219 @@ Milestone 10（Issue #9）：科学意图对齐研究验证已完成。问题存
 - Issue #9 阶段 B Commit：`57a2b4d`（`eval: run real DeepSeek intent-alignment pilot`）。
 - Issue #9 阶段 C Commit：`631b9b5`（`research: compare minimal intent contract on holdout`）。
 - Issue #9 阶段 D Commit：`84ed297`（`docs: conclude intent-alignment study objectively`）。
+- Issue #10 follow-up 历史收敛：`1bd8e7c`（普通 merge，无文件差异）、`f041146`（记录恢复完成）。
+- Issue #10 follow-up 意图类型一致性：`ceabfc4`。
+- Issue #10 follow-up 派生质量状态链：`8796c82`。
+- Issue #10 follow-up 证据寻址回答：`339aab5`。
+- Issue #10 follow-up Fake/真实验证与交付：`3866818`。
+- Issue #10 follow-up 失败证据留痕：`1d0d392`。
+
+## Issue #12：CCEP Evidence Phase（2026-10-23）
+
+### 已完成
+
+- 增加独立合成异常 Epoch 真值与 SciPy Welch oracle，通过真实 Registry/Executor 验证筛选前后波形、试次数、artifact 不变性和全部频带值。
+- 将固定复合事件类型收敛为 `event_workflow` 与三个原子目标，支持“测质量但禁止筛选，再计算未筛选功率”和“明确授权筛选后计算功率”。
+- 冻结 24 项（12 development / 12 holdout）独立协议、权限、oracle、预算和规范化 SHA-256，再运行公平比较。
+- 保存共享解析任务对照和两个真实 DeepSeek holdout 的脱敏逐例结果；失败结果没有删除或用于事后调 Prompt。
+- 新增研究报告 `POINT1_EVIDENCE_PHASE_RESULTS.md` 与方法决策 `POINT1_METHOD_DECISION.md`。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立 Epoch oracle | 异常索引 `[1]`；3→2；原 artifact 未变；派生波形逐样本相等；筛选前后全部频带与独立 oracle 一致 |
+| 全部异常 | `TOOL_EXECUTION_FAILED`；无空派生 artifact；后续功率不执行 |
+| 定向 Evidence Phase | 10/10 通过 |
+| 冻结共享任务 | Strong 18/18、CCEP 18/18；科学完成均 10/10；各 55 工具调用、2 重规划 |
+| 真实 DeepSeek holdout | Native 2/2；CCEP 1/2；13 请求、34,263 tokens；仅合成 EEG |
+| CCEP Evidence Gate | 禁止筛选例通过；授权筛选例在意图层安全澄清，0 工具、无数值发布 |
+| 有本地 EDF/权重回归 | `pip check`、`compileall` 通过；180 项中 177 通过、3 项按设计跳过 |
+| 无私有资源回归 | 180 项中 168 通过、12 项按设计跳过 |
+| GitHub CI | Draft PR #11 run `39906771336` 对 `2d5d9cf` 的公开无资源 `unit-tests` 成功 |
+
+### 研究判断与遗留问题
+
+- CCEP v0 的跨意图、计划、派生状态、恢复和回答 obligation 是实际运行机制，不是单一 Prompt；但本轮没有发现相对同规则强专家的增量收益。
+- 真实小样本中 CCEP 因意图 schema 服从问题误拒一例，完成率未超过 Native。当前“CCEP 优于强基线”结论为 **No-Go**；作为 opt-in 安全骨架为 **Conditional Keep**。
+- 质量阈值仍未临床校准；真实 LLM 只有两个 holdout；Native 最终回答只做逐例人工数值审核；不能外推真实 EEG、临床或多数据集能力。
+- 下一入口应是预先提出并冻结“一次性 preflight 会因执行中状态变化/恢复失效”的动态假设，不再围绕本次 holdout 堆 Prompt 或 validator。
+
+### 本轮提交
+
+- `f5283cb`：真实 Epoch 筛选与独立 oracle。
+- `caed65d`：事件原子目标组合。
+- `06ab4e9`：冻结 Evidence Phase 协议。
+- `aa6b20a`：共享任务公平比较。
+- `b705638`：真实 DeepSeek holdout。
+- 最终文档与状态提交：`2d5d9cf`；GitHub Actions run `39906771336` 成功。
+
+## Issue #13：CCEP v1 动态科学状态与增量约束规划（2026-10-23）
+
+### 方法与实现
+
+- 比较 partial replanning、scientific-state residual goals、guarded conditional DAG 与 LLM feedback replanning 后，选择 LRSP；guarded DAG 保留为未来强动态基线。
+- 新增 opt-in `ConstraintCarryingEEGAgentV1`，冻结一次 Intent/ledger，每轮只从实际 artifact、质量 evidence、每条件计数和剩余目标生成一个 frontier action。
+- clean 数据走 identity transition；实际异常且用户授权时才创建派生 Epoch；任一请求条件无 usable Epoch 时在选择前安全停止；禁止筛选时分析原 artifact。
+- transient failure 只重试当前 frontier，保留已经有效的事件、Epoch、质量和选择结果。
+- `EpochSet` 新增内容 fingerprint；质量 evidence 绑定 artifact ID/fingerprint/阈值；下游工具可检查 expected fingerprint/evidence ID。
+- 最终回答在 LLM evidence path 校验后，由运行时确定性披露 derived/identity/no-selection 分支与经验阈值边界。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立 oracle | one-bad 场景实际 3→2；派生数组逐样本一致；全部通道/频带值与独立 SciPy oracle 一致 |
+| 状态分支 | one-bad=`derived`；clean=`identity` 且无伪 artifact；禁止筛选=原 artifact；all-bad=质量后安全停止 |
+| residual recovery | 一次受控 bandpower transient：list/create/quality/select 各 1 次，bandpower 2 次，完成 |
+| 初版失败探针 | 同 ID 内容改变后仍执行 `select_quality`，`detected=false`；结果已保留在迭代日志 |
+| 修订后 | 同一探针回到 `measure_quality`；过期 evidence ID 被结构化拒绝 |
+| Fake 固定三例 | 3/3 completed，6 次协议调用，完整轨迹已保存 |
+| 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、15,363 tokens；仅合成 EEG；不外推准确率 |
+| 全仓无私有资源回归 | 190 tests：178 passed、12 resource-gated skipped；0 failed |
+| 敏感信息检查 | v1 代码、文档与结果未发现密钥、本地私密路径或原始 EEG 数组 |
+| GitHub CI | `unit-tests` run `39926245053` 对提交 `7e0ac46` 完成，结论 `success` |
+
+### 研究判断与遗留问题
+
+- LRSP 已经是实际运行机制，不是单一 Prompt：工具状态会改变动作，内容 lineage 会撤销旧完成项，恢复不重放无关步骤。
+- guarded dynamic Expert 能表达当前同类分支，因此本轮没有证明 CCEP v1 的相对优势或新颖性。当前为“可运行研究候选 / 创新性未证实”。
+- 动态语义仅覆盖事件质量、选择和绝对频带功率；阈值未临床校准；artifact store 无跨进程事务；检查后并发变化目前安全失败但不自动恢复。
+- 下一步只能在预冻结同信息、同规则、同预算的 guarded Expert/Native/LRSP 协议上比较，并将语言解析错误与运行时规划错误分开。
+
+### 本轮提交
+
+- `b85eef2`：冻结研究设计与恢复状态。
+- `d96c764`：接入 LRSP、Fake/oracle/局部恢复测试。
+- `36c4adf`：内容 fingerprint、quality evidence binding 与回答条件修订。
+- `df334d1`：固定 Fake/真实 DeepSeek 合成轨迹与有界评估入口。
+- 最终审查与文档提交：`347bc0d`。
+- 状态留痕提交：`7e0ac46`；GitHub Actions run `39926245053` 成功。
+
+## Issue #14：CCEP/LRSP v1.1 契约索引证据依赖图（2026-10-23）
+
+### 方法与实现
+
+- 审计 LRSP v1 固定 Epoch 流程，比较过程式扩展、完整动态 plan repair 和契约索引依赖图，选择 CIEDG。
+- 新增 opt-in `ConstraintCarryingEEGAgentV11`；从请求目标生成依赖闭包，使用绑定 artifact fingerprint、参数和上游 token 的 `GoalEvidence` 管理完成与失效。
+- `epoch_summary` 与 `event_bandpower` 成为两个共享 effective Epoch 的 consumer；禁止筛选、identity、derived 和多条件零 usable 均由真实状态决定。
+- 原型暴露“内容相同的 artifact 重建导致 summary 重放”；修订后增加仅限纯 consumer 的 semantic evidence cache，内容变化反例不会错误复用。
+- 新增同规则过程式 strong expert 与 fingerprint 微基准，只作为小型诊断，不冒充正式对比实验。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 双 consumer + 独立 oracle | selected Epoch 3→2；summary 与 bandpower 共用同一 artifact；波形和全部频带值一致 |
+| 禁止筛选 | 测量质量后两个 consumer 均使用 original 3 Epoch；未调用筛选 |
+| 多条件零 usable | `NO_USABLE_EPOCHS_FOR_CONDITION`；筛选与下游 consumer 均未执行 |
+| 内容等价 repair | selection 2 次；summary 从原型 2 次降为 1 次；任务完成 |
+| 内容改变 repair | cache miss；create/summary 均重算，未发布陈旧证据 |
+| 强 Expert 小诊断 | 相同 6 次调用、相同试次数与频带数值；未观察候选优势 |
+| Fake 固定三例 | 3/3 completed，6 次协议调用 |
+| 真实 DeepSeek 固定三例 | 3/3 completed，6 请求、18,253 tokens；Evidence Gate/answer check 均通过；仅合成 EEG |
+| 全仓回归 | `compileall`、`pip check` 通过；199 tests：187 passed、12 gated skipped、0 failed |
+| GitHub CI | Draft PR #11 `unit-tests` run `39930738446` 对 `53b5869` 完成，结论 `success` |
+
+### 研究判断与遗留问题
+
+- CIEDG 是真实运行时机制，不是只加 Prompt/Schema；它将科学目标、状态版本、证据依赖与局部恢复连接起来。
+- 当前结论为 **Conditional Keep / 创新性未证实**。强 Expert 无故障诊断持平，不能宣称成功率、成本或科学正确性优势。
+- 尚未冻结强动态 Expert 的故障恢复正式套件；quality evidence ID 含随机 artifact ID；当前只有 event Epoch 状态族和两个 consumer；全数组 fingerprint 的大规模成本未知。
+- 尚不具备直接进入正式大规模公平实验的条件。下一入口是冻结独立协议、实现同恢复预算强 Expert、分层指标，并增加一个不同且科学合法的状态转移族。
+
+### 本轮提交
+
+- `037d2c1`：方法审计、候选比较与设计冻结。
+- `c11bb95`：CIEDG 原型、双 consumer 与真实 Agent 集成。
+- `ea497ac`：内容寻址 evidence 恢复、反例、多条件与 strong expert 诊断。
+- 阶段 D 交付提交：`df59826`（有界 Fake/DeepSeek、完整回归与研究判断）。
+- 状态留痕提交：`53b5869`；Issue #14 与 Draft PR #11 已评论，CI run `39930738446` 成功。
+
+## Issue #15：CIEDG 第二科学状态转换与方法冻结（2026-10-23）
+
+### 实现与算法迭代
+
+- 比较显式重参考、重采样、基线校正和 CSD 后，选择“用户授权的显式 Epoch 参考通道减法”；仅开放给 `edf_native`，不默认 average reference，不触碰已验证 TUEV 双极模型链。
+- `EpochSet.reference` 进入内容 fingerprint；新增惰性、真实 Registry/Executor 工具 `rereference_epochs`，保持 shape、sfreq、通道顺序和事件，改变信号、reference、identity 与 fingerprint。
+- transfer Agent 复用 CIEDG goal/role/transition graph；质量、summary、bandpower 绑定 current effective Epoch。
+- 受控 artifact 丢失暴露“内容等价但来源身份不同”问题：修订为不可变历史 ToolResult + 当前谱系 release view；质量证据重算，纯 summary consumer 可语义复用。
+- 真实 DeepSeek 首次回答引用非标量对象，被 Evidence Gate 拒绝；新增通用 scalar evidence manifest 后一次 development case 复测通过。该项明确归为工程可靠性，不作为研究贡献。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 独立科学 oracle | NumPy 逐元素一致；MNE 最大绝对差约 `2.91e-11`（容差 `5e-11`） |
+| 属性变化 | shape/sfreq/events/window 保持；reference/data/fingerprint 改变；单参考通道为零 |
+| 结构化拒绝 | 缺通道、过期 fingerprint、不兼容 Profile、缺授权/缺参数均拒绝或澄清 |
+| 最小恢复 | list/create 各 1；rereference/quality/bandpower 各 2；summary 执行 1 次并安全发布到新谱系 |
+| 强动态 Expert | 正常与 artifact 丢失两例：调用序列及科学输出持平，无候选优势 |
+| Fake calibration | 2/2 completed，science signature 2/2 相同；非正式实验 |
+| 首次真实 DeepSeek | 2 例工具链成功、0/2 回答发布；4 请求、13,038 tokens；失败保留 |
+| 修订后真实 DeepSeek | 1 个 development 正常例 completed、answer valid、与 Expert 相同；2 请求、7,641 tokens |
+| 联网总预算 | 6 请求、20,679 tokens；仅 synthetic EEG，无波形外发 |
+| 完整回归 | compileall、pip check 通过；210 tests：198 passed、12 resource-gated skipped、0 failed |
+| 正式协议 | 24 例冻结（selection/rereference 各 12；development 8、holdout 16），尚未执行 |
+
+### 研究判断与遗留问题
+
+- 决策为 **Freeze / 进入正式公平实验，创新性与优势未证实**。第二 transformation family 证明机制有限迁移可行，但不证明比强 Expert 更好。
+- 候选论文机制是 EEG 科学属性/角色索引的目标—证据依赖、内容/身份分离、失效和局部恢复；重参考工具、Prompt/Schema、scalar manifest 属于工程实现。
+- 暂不支持重参考与筛选组合、转换前后双分支、自动参考选择、TUEV 重参考或真实数据泛化；经验质量阈值对参考通道 flatline 的解释仍需在正式报告中披露。
+- 下一步只执行 `config/point1_formal_eval_protocol_v1.json` 的公平比较与消融；不新增第三种状态转换来追逐优势。
+
+### 本轮提交
+
+- `a5dacf8`：候选转换比较与迁移设计。
+- `6bc4df2`：真实重参考、CIEDG transfer 与 provenance 修复。
+- `953a8b5`：同规则强动态 Expert、Fake calibration 与冻结协议。
+- `3306e94`：真实 DeepSeek 失败保留、标量 evidence 地址修复与有界复测。
+- `81aecd7`：最终审查、冻结决策和 README；GitHub Actions `unit-tests` run `39959623831` 成功。
+
+## Issue #16：CIEDG 正式公平实验（2026-10-24）
+
+### 冻结协议与实现
+
+- Candidate 固定为 `921b04a561b27c2e68964d5f3f1e995ee08c8c6d`；本轮没有修改 CIEDG、Planner、EEG 状态转换或 scientific gold。
+- 在原 24 个登记 ID 上补齐自然语言请求、合成 EEG fixture、故障、合法终止、必需/禁止工具和科学不变量；supplement SHA-256 为 `43e7fb634ff1eb246e2685a0831bf28c3bf08bed05f481bb36a8ebc5e45d49f2`。
+- 新增独立 fixture/oracle/scorer、同规则 Strong Dynamic Expert、四个预登记消融、append-only invariant audit 和真实 LLM audit。
+- holdout 打开后的 evaluator 缺陷不回写原始结果；所有原始 trace、失败与追加审计均保留。
+
+### 实际结果
+
+| 检查 | 结果 |
+|---|---|
+| 24 场景主评分 | CIEDG 24/24、Strong Expert 24/24；均 109 次工具调用 |
+| Whole-plan replay | 24/24，121 次调用；比 CIEDG 多 12 次 |
+| 无 dependency invalidation | 24/24，112 次调用 |
+| 无 semantic evidence reuse | 24/24，112 次调用 |
+| 无 EEG scientific guards | 20/24；4 个未经授权/范围不明转换 |
+| 协议追加审计 | S09 未形成 equal effective fingerprint，标为 protocol-invalid；其余有效 holdout CIEDG/Expert 均 15/15 invariant 通过 |
+| 真实 DeepSeek 子集 | 4 场景 × CIEDG/Native；22 requests、59,515 tokens；追加审计后 CIEDG 1/4、Native 0/4 |
+| 数据隐私 | 仅确定性合成 EEG；不发送波形，不保存密钥/认证头/本地密钥路径 |
+| 完整回归 | `compileall`、`pip check` 通过；221 tests：209 passed、12 resource-gated skipped、0 failed |
+| GitHub CI | `unit-tests` run `40053581867` 对提交 `a326837` 完成，结论 `success` |
+
+### 失败分类
+
+- Intent：CIEDG S02/S06 对模型多报 unknown slots 采取 fail-closed 澄清；Native S02 未识别已有筛选授权。
+- Planning/scientific state：Native S06 静默丢失零 usable 的 control 条件。
+- Recovery：Native R11 未从 `ARTIFACT_NOT_FOUND` 恢复。
+- Answer evidence：CIEDG R11 工具链完成但 evidence-answer schema 校验失败；Native R05/R11 含无证据或与失败状态矛盾的陈述。
+- Protocol：S09 只能证明 source 等价，不能证明 selection effective artifact 等价。
+
+### 研究判断与遗留问题
+
+- CIEDG 的 guard、依赖失效、内容/身份分离与局部恢复是实际运行机制；但与同规则强专家完全持平，创新性不能用成功率优势表述。
+- 论文可有限主张“可审计 EEG 科学状态—证据依赖与有界恢复”；若论文要求显著优于强 Expert，则本次是 No-Go。
+- 当前不再新增状态转换或 Planner。后续只允许预注册复现、统计功效扩展、真实数据本地验证和论文写作。
+- 真实 LLM 意图与答案边界尚不稳定；不能用 Fake 或 parsed-task 结果替代端到端成功。
+
+### 本轮提交
+
+- `6661b65`：冻结 24 场景可执行 supplement 与运行手册。
+- `ffe9ee3`：锁定 development evaluator、Expert 与消融结果。
+- `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
+- `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
+- `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。

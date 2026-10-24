@@ -1,0 +1,29 @@
+{
+  "record_type": "observed_failure_summary",
+  "raw_response_preserved": false,
+  "reason": "The untracked full JSON was overwritten by the bounded rerun before commit; only fields observed in the development log are retained.",
+  "input_scope": "deterministic synthetic EEG only",
+  "analysis_type": "quality_selected_bandpower",
+  "stop_reason": "completed_without_llm_answer",
+  "executed_tools": [
+    "list_events",
+    "create_epochs",
+    "epoch_quality",
+    "select_quality_epochs",
+    "event_bandpower"
+  ],
+  "evidence_closed": true,
+  "answer_check": {
+    "valid": false,
+    "code": "ANSWER_EVIDENCE_MISMATCH",
+    "observed_invalid_path_prefix": "data",
+    "observed_error": "'data'"
+  },
+  "provider": {
+    "model": "deepseek-flash",
+    "request_count": 2,
+    "total_tokens": 4925
+  },
+  "corrective_action": "Clarify that answer paths are relative to ToolResult.data; keep fail-closed validation and rerun once.",
+  "scientific_claim": "No biomedical or method-performance conclusion is drawn from this protocol failure."
+}

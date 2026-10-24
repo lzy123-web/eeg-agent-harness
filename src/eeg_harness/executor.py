@@ -6,7 +6,7 @@ from pathlib import Path
 import time
 
 from .legacy.seizure import ModelResourceError
-from .events import EpochError, EventError
+from .events import ArtifactConsistencyError, EpochError, EventError
 from .profiles import ProfileValidationError
 from .tooling import ToolResult
 
@@ -123,6 +123,8 @@ class Executor:
             return fail("EVENT_DATA_ERROR", exc)
         except EpochError as exc:
             return fail("EPOCH_CREATION_FAILED", exc)
+        except ArtifactConsistencyError as exc:
+            return fail("ARTIFACT_STATE_CONFLICT", exc)
         except LookupError as exc:
             return fail("ARTIFACT_NOT_FOUND", exc)
         except (TypeError, ValueError, KeyError) as exc:
