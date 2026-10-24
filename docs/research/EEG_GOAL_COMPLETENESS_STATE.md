@@ -71,5 +71,7 @@
 - 方法比较与研究决策提交：`07b7065`。
 - 本状态与项目总状态提交：`0d144cc`；GitHub Actions `unit-tests` run `40061585223` 成功。
 - Issue #21 受控协议与 matcher 原型提交：`13f73ed`。
-- dry run、研究决策、最终回归与远端 CI 将在本轮后续提交补记。
+- dry run 原始结果与 NO-GO 决策提交：`3196ed7`。
+- 本地验证：`compileall`、`pip check` 通过；249 tests：237 passed、12 resource-gated skipped、0 failed。
+- 最终状态提交、远端 head 与 CI run 将在推送后补记。
 - 分支普通推送到 Draft PR #18；不 force push、不合并 main。

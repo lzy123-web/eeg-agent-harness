@@ -690,6 +690,8 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 | exact disposition | 24/24；16 个合法 accept 中 0 个多余澄清 |
 | 数据与模型 | 无 EEG 波形、无 LLM、无 API 请求 |
 | 结果标签 | `controlled synthetic, not independently annotated real NL` |
+| 专项测试 | 9 passed、0 failed |
+| 完整回归 | `compileall`、`pip check` 通过；249 tests：237 passed、12 resource-gated skipped、0 failed |
 
 首次测试曾发现 selection 参数不一致、测试查找错误、合法 selection 链被误标成双分支，以及 fault 终止断言错误；均作为协议/实现
 缺陷记录并在最终 hash 冻结前修正，不能视为方法性能提升。
@@ -705,4 +707,5 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 ### 本轮提交
 
 - `13f73ed`：结构化协议、冻结 manifest、DSL/matcher/evaluator、专项测试与协议文档。
-- dry run 结果、决策文档、完整回归和远端 CI 状态将在后续提交补记。
+- `3196ed7`：dry run 原始结果、失败记录、研究决策与状态更新。
+- 最终状态提交与远端 CI 状态将在推送后补记。
