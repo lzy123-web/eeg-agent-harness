@@ -1,0 +1,4415 @@
+{
+  "protocol": "eeg_goal_completeness_controlled_gold_v1",
+  "seed": 21021,
+  "ontology": {
+    "version": "eeg_goal_claims_v1",
+    "supported_operations": [
+      "epoch_quality",
+      "epoch_rereference",
+      "epoch_summary",
+      "event_bandpower",
+      "trial_selection"
+    ],
+    "unsupported_operations": [
+      "erd_ers",
+      "functional_connectivity"
+    ],
+    "stages": [
+      "source_epochs",
+      "effective_epochs"
+    ],
+    "authorization": [
+      "not_required",
+      "granted",
+      "denied",
+      "unspecified"
+    ]
+  },
+  "annotation": {
+    "origin": "single-author deterministic templates from structured contracts",
+    "independent_human_annotation": false,
+    "llm_generated_or_scored": false,
+    "validity_scope": "closed controlled grammar only"
+  },
+  "split_policy": {
+    "development_families": [
+      "dev_en_direct",
+      "dev_zh_direct"
+    ],
+    "holdout_families": [
+      "holdout_en_sequence",
+      "holdout_zh_sequence"
+    ],
+    "families_disjoint": true
+  },
+  "cases": [
+    {
+      "id": "GD01",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD01",
+      "request": "For target event epochs from 0 to 1 seconds, perform these clauses in order: measure epoch quality on source epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "epoch_quality",
+          "contract": {
+            "claims": [],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD02",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD02",
+      "request": "针对 target 事件后 0 到 1 秒的 Epoch，按顺序执行：在源 Epoch上测量 Epoch 质量；在源 Epoch上计算绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在源 Epoch上测量 Epoch 质量"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在源 Epoch上计算绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "relation_missing",
+          "fault_target": null,
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD03",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD03",
+      "request": "For target event epochs from 0 to 1 seconds, perform these clauses in order: measure epoch quality on source epochs; do not remove any trial from source epochs; compute absolute band power on source epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": null,
+            "polarity": "forbidden",
+            "authorization": "denied",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "do not remove any trial from source epochs"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "compute absolute band power on source epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "denied",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD04",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD04",
+      "request": "针对 target 事件后 0 到 1 秒的 Epoch，按顺序执行：在源 Epoch上测量 Epoch 质量；经明确授权，从源 Epoch 移除质量标记试次；在有效 Epoch上报告试次数。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在源 Epoch上测量 Epoch 质量"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "经明确授权，从源 Epoch 移除质量标记试次"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上报告试次数"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD05",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD05",
+      "request": "For control event epochs from 0 to 1 seconds, perform these clauses in order: measure epoch quality on source epochs; with explicit authorization, remove quality-flagged trials from source epochs; compute absolute band power on effective epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "with explicit authorization, remove quality-flagged trials from source epochs"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "compute absolute band power on effective epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "stage_conflict",
+          "fault_target": "event_bandpower",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD06",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD06",
+      "request": "针对 target 事件后 0 到 1 秒的 Epoch，按顺序执行：经明确授权，将源 Epoch 重参考到 SYNTH-C2；在有效 Epoch上测量 Epoch 质量；在有效 Epoch上计算绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "经明确授权，将源 Epoch 重参考到 SYNTH-C2"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上测量 Epoch 质量"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上计算绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "denied",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD07",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD07",
+      "request": "For target event epochs from 0 to 1 seconds, perform these clauses in order: measure epoch quality on source epochs; with explicit authorization, re-reference source epochs to SYNTH-C2; compute absolute band power on effective epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "with explicit authorization, re-reference source epochs to SYNTH-C2"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "compute absolute band power on effective epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "relation_missing",
+          "fault_target": null,
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD08",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD08",
+      "request": "针对 target 事件后 0 到 1 秒的 Epoch，按顺序执行：要求将源 Epoch 重参考到 SYNTH-C2，但未授予执行授权；在有效 Epoch上计算绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "unspecified",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "要求将源 Epoch 重参考到 SYNTH-C2，但未授予执行授权"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上计算绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "unspecified",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD09",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD09",
+      "request": "For target event epochs from 0 to 1 seconds, perform these clauses in order: do not re-reference source epochs to SYNTH-C2; measure epoch quality on source epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": null,
+            "polarity": "forbidden",
+            "authorization": "denied",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "do not re-reference source epochs to SYNTH-C2"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "denied",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD10",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD10",
+      "request": "针对 target 事件后 0 到 1 秒的 Epoch，按顺序执行：在源 Epoch 上计算 ERD/ERS。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "erd_ers",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": false,
+            "parameters": {},
+            "evidence_span": "在源 Epoch 上计算 ERD/ERS"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": false,
+        "expected_disposition": "reject",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "erd_ers",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": false,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": false,
+            "expected_disposition": "reject",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "extra_operation",
+          "fault_target": "epoch_quality",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "erd_ers",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": false,
+                "parameters": {}
+              },
+              {
+                "claim_id": "cx",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": false,
+            "expected_disposition": "reject",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD11",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "prototype_id": "GD11",
+      "request": "For target event epochs from 0 to 1 seconds, perform these clauses in order: measure epoch quality on source epochs; request removal of quality-flagged trials without granting authorization; report the trial count on effective epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "measure epoch quality on source epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "unspecified",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "request removal of quality-flagged trials without granting authorization"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "report the trial count on effective epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "unspecified",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GD12",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "prototype_id": "GD12",
+      "request": "针对 control 事件后 -0.2 到 0.8 秒的 Epoch，按顺序执行：在源 Epoch上测量 Epoch 质量；经明确授权，从源 Epoch 移除质量标记试次；在有效 Epoch上报告试次数；在有效 Epoch上计算绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在源 Epoch上测量 Epoch 质量"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "经明确授权，从源 Epoch 移除质量标记试次"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上报告试次数"
+          },
+          {
+            "claim_id": "c4",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.2,
+            "tmax": 0.8,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "在有效 Epoch上计算绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ],
+          [
+            "c3",
+            "c4"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "extra_operation",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "cx",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.2,
+                "tmax": 0.8,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH01",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH01",
+      "request": "Using target event epochs in the 0–1 second window, keep this sequence: obtain absolute band power from untouched epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from untouched epochs"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "stage_conflict",
+          "fault_target": "event_bandpower",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH02",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH02",
+      "request": "使用 target 事件 0–1 秒窗内的 Epoch，并保持以下顺序：使用 未转换 Epoch 评估 Epoch 质量；从 未转换 Epoch 报告保留试次数。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "使用 未转换 Epoch 评估 Epoch 质量"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 未转换 Epoch 报告保留试次数"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "epoch_summary",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH03",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH03",
+      "request": "Using control event epochs in the 0–1 second window, keep this sequence: keep every trial in the untouched epochs; state the retained trial count from untouched epochs; obtain absolute band power from untouched epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": null,
+            "polarity": "forbidden",
+            "authorization": "denied",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "keep every trial in the untouched epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "state the retained trial count from untouched epochs"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from untouched epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "denied",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH04",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH04",
+      "request": "使用 target 事件 0–1 秒窗内的 Epoch，并保持以下顺序：使用 未转换 Epoch 评估 Epoch 质量；我明确允许从未转换 Epoch 剔除质量标记试次；从 转换后 Epoch 报告保留试次数；从 转换后 Epoch 获得绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "使用 未转换 Epoch 评估 Epoch 质量"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "我明确允许从未转换 Epoch 剔除质量标记试次"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 报告保留试次数"
+          },
+          {
+            "claim_id": "c4",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 获得绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ],
+          [
+            "c3",
+            "c4"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "relation_missing",
+          "fault_target": null,
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH05",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH05",
+      "request": "Using control event epochs in the 0–1 second window, keep this sequence: assess epoch quality using untouched epochs; I explicitly permit dropping quality-flagged trials from the untouched epochs; obtain absolute band power from resulting epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "assess epoch quality using untouched epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "I explicitly permit dropping quality-flagged trials from the untouched epochs"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from resulting epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "event_bandpower",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH06",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH06",
+      "request": "使用 target 事件 0–1 秒窗内的 Epoch，并保持以下顺序：我明确允许把未转换 Epoch 改为 SYNTH-C2 参考；从 转换后 Epoch 报告保留试次数；从 转换后 Epoch 获得绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "我明确允许把未转换 Epoch 改为 SYNTH-C2 参考"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 报告保留试次数"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 获得绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "stage_conflict",
+          "fault_target": "epoch_summary",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH07",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH07",
+      "request": "Using target event epochs in the 0–1 second window, keep this sequence: obtain absolute band power from untouched epochs; assess epoch quality using untouched epochs; I explicitly permit dropping quality-flagged trials from the untouched epochs; state the retained trial count from resulting epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from untouched epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "assess epoch quality using untouched epochs"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "I explicitly permit dropping quality-flagged trials from the untouched epochs"
+          },
+          {
+            "claim_id": "c4",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "state the retained trial count from resulting epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ],
+          [
+            "c3",
+            "c4"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c4",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "relation_missing",
+          "fault_target": null,
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c4",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH08",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH08",
+      "request": "使用 target 事件 0–1 秒窗内的 Epoch，并保持以下顺序：考虑使用 SYNTH-C2 参考，但没有授予修改权限；使用 转换后 Epoch 评估 Epoch 质量。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "unspecified",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "考虑使用 SYNTH-C2 参考，但没有授予修改权限"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "使用 转换后 Epoch 评估 Epoch 质量"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "unspecified",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH09",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH09",
+      "request": "Using target event epochs in the 0–1 second window, keep this sequence: keep the untouched reference and forbid changing it to SYNTH-C2; obtain absolute band power from untouched epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": null,
+            "polarity": "forbidden",
+            "authorization": "denied",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "keep the untouched reference and forbid changing it to SYNTH-C2"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from untouched epochs"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": null,
+                "polarity": "forbidden",
+                "authorization": "denied",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "omit_operation",
+          "fault_target": "epoch_rereference",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c2",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH10",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH10",
+      "request": "使用 target 事件 0–1 秒窗内的 Epoch，并保持以下顺序：在未转换 Epoch 上计算功能连接。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "functional_connectivity",
+            "object_type": "event_epochs",
+            "target_label": "target",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": false,
+            "parameters": {},
+            "evidence_span": "在未转换 Epoch 上计算功能连接"
+          }
+        ],
+        "precedence": [],
+        "runtime_supported": false,
+        "expected_disposition": "reject",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "functional_connectivity",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": false,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": false,
+            "expected_disposition": "reject",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "extra_operation",
+          "fault_target": "epoch_quality",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "functional_connectivity",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": false,
+                "parameters": {}
+              },
+              {
+                "claim_id": "cx",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "target",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [],
+            "runtime_supported": false,
+            "expected_disposition": "reject",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH11",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "prototype_id": "GH11",
+      "request": "Using control event epochs in the 0–1 second window, keep this sequence: assess epoch quality using untouched epochs; consider dropping quality-flagged trials, but no permission is granted; obtain absolute band power from resulting epochs.",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "source_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "assess epoch quality using untouched epochs"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "unspecified",
+            "supported": true,
+            "parameters": {
+              "criterion": "quality_flagged"
+            },
+            "evidence_span": "consider dropping quality-flagged trials, but no permission is granted"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": 0.0,
+            "tmax": 1.0,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "obtain absolute band power from resulting epochs"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "runtime_supported": false,
+        "expected_disposition": "clarify",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "unspecified",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "authorization_conflict",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "source_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c2",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              },
+              {
+                "claim_id": "c3",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": 0.0,
+                "tmax": 1.0,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ]
+            ],
+            "runtime_supported": false,
+            "expected_disposition": "clarify",
+            "metadata": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "GH12",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "prototype_id": "GH12",
+      "request": "使用 control 事件 -0.1–0.9 秒窗内的 Epoch，并保持以下顺序：我明确允许把未转换 Epoch 改为 SYNTH-C2 参考；使用 转换后 Epoch 评估 Epoch 质量；从 转换后 Epoch 报告保留试次数；从 转换后 Epoch 获得绝对频带功率。",
+      "gold_strength": "controlled_strong_gold",
+      "source_contract": {
+        "claims": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.1,
+            "tmax": 0.9,
+            "input_stage": "source_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "granted",
+            "supported": true,
+            "parameters": {
+              "reference_channels": [
+                "SYNTH-C2"
+              ]
+            },
+            "evidence_span": "我明确允许把未转换 Epoch 改为 SYNTH-C2 参考"
+          },
+          {
+            "claim_id": "c2",
+            "operation": "epoch_quality",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.1,
+            "tmax": 0.9,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "使用 转换后 Epoch 评估 Epoch 质量"
+          },
+          {
+            "claim_id": "c3",
+            "operation": "epoch_summary",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.1,
+            "tmax": 0.9,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 报告保留试次数"
+          },
+          {
+            "claim_id": "c4",
+            "operation": "event_bandpower",
+            "object_type": "event_epochs",
+            "target_label": "control",
+            "tmin": -0.1,
+            "tmax": 0.9,
+            "input_stage": "effective_epochs",
+            "output_stage": "effective_epochs",
+            "polarity": "required",
+            "authorization": "not_required",
+            "supported": true,
+            "parameters": {},
+            "evidence_span": "从 转换后 Epoch 获得绝对频带功率"
+          }
+        ],
+        "precedence": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ],
+          [
+            "c3",
+            "c4"
+          ]
+        ],
+        "runtime_supported": true,
+        "expected_disposition": "accept",
+        "metadata": {
+          "ontology": "eeg_goal_claims_v1"
+        }
+      },
+      "candidates": [
+        {
+          "id": "exact",
+          "fault_type": "none",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {
+              "ontology": "eeg_goal_claims_v1"
+            }
+          }
+        },
+        {
+          "id": "fault",
+          "fault_type": "extra_operation",
+          "fault_target": "trial_selection",
+          "contract": {
+            "claims": [
+              {
+                "claim_id": "c1",
+                "operation": "epoch_rereference",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "reference_channels": [
+                    "SYNTH-C2"
+                  ]
+                }
+              },
+              {
+                "claim_id": "c2",
+                "operation": "epoch_quality",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c3",
+                "operation": "epoch_summary",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "c4",
+                "operation": "event_bandpower",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "effective_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "not_required",
+                "supported": true,
+                "parameters": {}
+              },
+              {
+                "claim_id": "cx",
+                "operation": "trial_selection",
+                "object_type": "event_epochs",
+                "target_label": "control",
+                "tmin": -0.1,
+                "tmax": 0.9,
+                "input_stage": "source_epochs",
+                "output_stage": "effective_epochs",
+                "polarity": "required",
+                "authorization": "granted",
+                "supported": true,
+                "parameters": {
+                  "criterion": "quality_flagged"
+                }
+              }
+            ],
+            "precedence": [
+              [
+                "c1",
+                "c2"
+              ],
+              [
+                "c2",
+                "c3"
+              ],
+              [
+                "c3",
+                "c4"
+              ]
+            ],
+            "runtime_supported": true,
+            "expected_disposition": "accept",
+            "metadata": {}
+          }
+        }
+      ]
+    }
+  ]
+}

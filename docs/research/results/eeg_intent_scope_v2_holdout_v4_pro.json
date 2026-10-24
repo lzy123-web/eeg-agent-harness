@@ -1,0 +1,338 @@
+{
+  "protocol_id": "eeg-intent-scope-compiler-v2",
+  "protocol_sha256": "e6d47bd3c38eaf0efa26e8b7e8bcab32bf535b5faf5d774ffae2db80b1c1d250",
+  "generated_at_utc": "2026-10-24T03:40:11.301660+00:00",
+  "input_data": "deterministic synthetic EEG metadata only",
+  "raw_eeg_sent_to_llm": false,
+  "gold_visible_to_runtime": false,
+  "requested_model": "deepseek-v4-pro",
+  "budget": {
+    "max_requests": 4,
+    "max_tokens": 12000,
+    "request_count": 3,
+    "total_tokens": 4716
+  },
+  "summary": {
+    "cases": 2,
+    "v0_correct": 0,
+    "v0_dangerous_accept": 1,
+    "v0_false_reject": 1,
+    "v1_correct": 1,
+    "v1_dangerous_accept": 1,
+    "v1_false_reject": 0,
+    "v2_correct": 0,
+    "v2_dangerous_accept": 1,
+    "v2_false_reject": 1,
+    "raw_core_correct": 1
+  },
+  "cases": [
+    {
+      "case_id": "SH01",
+      "split": "holdout",
+      "language": "en",
+      "request": "Obtain quality evidence from untouched target epochs at 0–1 s. Afterwards I approve SYNTH-C2 re-referencing, and spectral power must use that new reference.",
+      "scope_class": "unsupported_multi_branch",
+      "requested_model": "deepseek-v4-pro",
+      "response_models": [
+        "deepseek-v4-pro"
+      ],
+      "usage": {
+        "prompt_cache_miss_tokens": 112,
+        "completion_tokens": 379,
+        "total_tokens": 1771,
+        "prompt_tokens": 1392,
+        "prompt_cache_hit_tokens": 1280
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_quality"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1"
+        },
+        "semantic_evidence": {
+          "quality_measurement": "Obtain quality evidence",
+          "event_locked": "target epochs at 0–1 s"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [
+          "trial_selection"
+        ],
+        "source_stage": "current",
+        "output_boundary": "",
+        "rationale": "The user's immediate actionable request is to obtain quality evidence (epoch_quality) from untouched target epochs at 0–1 s. This is an event-locked workflow since it mentions target epochs/events. The words \"untouched\" imply no selection/sealing has been applied yet (forbidden_operations: trial_selection). The re-referencing and spectral power mention is conditional on later approval, not part of this intent's objectives; rereference is mentioned but not yet authorized, and spectral power is future/conditional."
+      },
+      "raw_core_score": {
+        "analysis_type": true,
+        "objectives": false,
+        "core_correct": false
+      },
+      "raw_scope": null,
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [
+          "analysis_stage"
+        ],
+        "actual_missing_slots": [],
+        "dangerous_accept": true,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [
+          "analysis_stage"
+        ],
+        "actual_missing_slots": [],
+        "dangerous_accept": true,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v2_decision": {
+        "correct": false,
+        "expected_disposition": "clarify",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [
+          "analysis_stage"
+        ],
+        "actual_missing_slots": [],
+        "dangerous_accept": true,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "event_locked",
+          "quality_measurement"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {}
+      },
+      "v2_diagnostics": null
+    },
+    {
+      "case_id": "SH03",
+      "split": "holdout",
+      "language": "en",
+      "request": "After I authorize using SYNTH-C2 to re-reference target epochs from 0 to 1 s, compute quality and absolute power exclusively on the re-referenced epochs.",
+      "scope_class": "single_post_rereference",
+      "requested_model": "deepseek-v4-pro",
+      "response_models": [
+        "deepseek-v4-pro",
+        "deepseek-v4-pro"
+      ],
+      "usage": {
+        "total_tokens": 2945,
+        "prompt_cache_miss_tokens": 976,
+        "prompt_cache_hit_tokens": 1280,
+        "completion_tokens": 689,
+        "prompt_tokens": 2256
+      },
+      "raw_intent": {
+        "analysis_type": "event_workflow",
+        "objectives": [
+          "epoch_rereference",
+          "epoch_quality",
+          "event_bandpower"
+        ],
+        "parameters": {
+          "labels": [
+            "target"
+          ],
+          "tmin": 0,
+          "tmax": 1,
+          "rereference_authorized": true,
+          "reference_channels": [
+            "SYNTH-C2"
+          ]
+        },
+        "explicit_evidence": {
+          "labels": "target",
+          "tmin": "0",
+          "tmax": "1",
+          "rereference_authorized": "authorize",
+          "reference_channels": "SYNTH-C2"
+        },
+        "semantic_evidence": {
+          "epoch_rereference": "re-reference target epochs",
+          "event_locked": "target epochs",
+          "quality_measurement": "compute quality",
+          "spectral_power": "absolute power"
+        },
+        "unknown_slots": [],
+        "forbidden_operations": [],
+        "source_stage": "current",
+        "output_boundary": "target epochs from 0 to 1 s",
+        "rationale": "User explicitly authorizes re-referencing target epochs (0-1s) using SYNTH-C2, then requests quality and absolute bandpower computed exclusively on the re-referenced epochs. All operations are event/workflow-based on target epochs. Both rereference authorization and reference channel are verbatim from user text."
+      },
+      "raw_core_score": {
+        "analysis_type": true,
+        "objectives": true,
+        "core_correct": true
+      },
+      "raw_scope": {
+        "scopes": [
+          {
+            "goal": "epoch_rereference",
+            "input_state": "source_epochs",
+            "evidence_quote": "After I authorize using SYNTH-C2 to re-reference target epochs from 0 to 1 s"
+          },
+          {
+            "goal": "epoch_quality",
+            "input_state": "effective_epochs",
+            "evidence_quote": "compute quality ... exclusively on the re-referenced epochs"
+          },
+          {
+            "goal": "event_bandpower",
+            "input_state": "effective_epochs",
+            "evidence_quote": "compute ... absolute power exclusively on the re-referenced epochs"
+          }
+        ],
+        "relations": [
+          {
+            "predecessor": "epoch_rereference",
+            "successor": "epoch_quality",
+            "evidence_quote": "compute quality ... exclusively on the re-referenced epochs"
+          },
+          {
+            "predecessor": "epoch_rereference",
+            "successor": "event_bandpower",
+            "evidence_quote": "compute ... absolute power exclusively on the re-referenced epochs"
+          }
+        ],
+        "unknown_scopes": []
+      },
+      "v0_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_type"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "INTENT_TYPE_MISMATCH"
+      },
+      "v1_decision": {
+        "correct": true,
+        "expected_disposition": "execute",
+        "actual_disposition": "execute",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [],
+        "dangerous_accept": false,
+        "false_reject": false,
+        "error_code": null
+      },
+      "v2_decision": {
+        "correct": false,
+        "expected_disposition": "execute",
+        "actual_disposition": "clarify",
+        "expected_missing_slots": [],
+        "actual_missing_slots": [
+          "analysis_stage"
+        ],
+        "dangerous_accept": false,
+        "false_reject": true,
+        "error_code": "UNSUPPORTED_OR_UNVERIFIED_GOAL_SCOPE"
+      },
+      "v1_diagnostics": {
+        "compiler": "typed_claim_evidence_requirement_projection_v1",
+        "verified_concepts": [
+          "epoch_rereference",
+          "event_locked",
+          "quality_measurement",
+          "spectral_power"
+        ],
+        "unverified_concepts": {},
+        "ignored_unknown_slots": [],
+        "required_unknown_slots": [],
+        "derived_objectives": [],
+        "authorization_checks": {
+          "epoch_rereference": {
+            "valid": true,
+            "operation_span_exact": true,
+            "authorization_span_exact": true,
+            "same_sentence_scope": true
+          }
+        }
+      },
+      "v2_diagnostics": {
+        "compiler": "typed_goal_state_relation_graph_v2",
+        "graph": {
+          "scopes": [
+            {
+              "goal": "epoch_rereference",
+              "input_state": "source_epochs",
+              "evidence_quote": "After I authorize using SYNTH-C2 to re-reference target epochs from 0 to 1 s"
+            },
+            {
+              "goal": "epoch_quality",
+              "input_state": "effective_epochs",
+              "evidence_quote": "compute quality ... exclusively on the re-referenced epochs"
+            },
+            {
+              "goal": "event_bandpower",
+              "input_state": "effective_epochs",
+              "evidence_quote": "compute ... absolute power exclusively on the re-referenced epochs"
+            }
+          ],
+          "relations": [
+            {
+              "predecessor": "epoch_rereference",
+              "successor": "epoch_quality",
+              "evidence_quote": "compute quality ... exclusively on the re-referenced epochs"
+            },
+            {
+              "predecessor": "epoch_rereference",
+              "successor": "event_bandpower",
+              "evidence_quote": "compute ... absolute power exclusively on the re-referenced epochs"
+            }
+          ],
+          "unknown_scopes": []
+        },
+        "capability_certificate": {
+          "input_states": {
+            "event_bandpower": "effective_epochs",
+            "epoch_quality": "effective_epochs",
+            "epoch_rereference": "source_epochs"
+          },
+          "required_edges": [
+            [
+              "epoch_rereference",
+              "epoch_quality"
+            ],
+            [
+              "epoch_rereference",
+              "event_bandpower"
+            ]
+          ]
+        },
+        "violations": [
+          "non_exact_scope_evidence:epoch_quality",
+          "non_exact_scope_evidence:event_bandpower",
+          "non_exact_relation_evidence:epoch_rereference:epoch_quality",
+          "non_exact_relation_evidence:epoch_rereference:event_bandpower"
+        ]
+      }
+    }
+  ]
+}

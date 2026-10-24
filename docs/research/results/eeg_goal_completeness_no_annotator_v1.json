@@ -1,0 +1,3422 @@
+{
+  "experiment": "eeg_goal_completeness_no_annotator_pilot_v1",
+  "generated_at_utc": "2026-10-24T04:52:08.582048+00:00",
+  "protocol_sha256": "94111eb7a025c0fc7bb4780e53d894cac2d5833c8c21f4ac613b9b073541381a",
+  "seed": 21021,
+  "scope_label": "controlled synthetic, not independently annotated real NL",
+  "uses_llm": false,
+  "uses_eeg_waveforms": false,
+  "summary": {
+    "controlled_requests": 24,
+    "development_requests": 12,
+    "holdout_requests": 12,
+    "candidate_pairs": 48,
+    "fault_pairs": 24,
+    "parser_contract_exact": 24,
+    "oracle_primary_fault_detected": 24,
+    "controlled_primary_fault_detected": 24,
+    "exact_candidate_disposition_correct": 24,
+    "exact_accept_total": 16,
+    "exact_accept_false_clarify": 0,
+    "fault_type_counts": {
+      "authorization_conflict": 7,
+      "extra_operation": 4,
+      "omit_operation": 6,
+      "relation_missing": 4,
+      "stage_conflict": 3
+    }
+  },
+  "validity": {
+    "demonstrates": [
+      "frozen controlled grammar round-trip consistency",
+      "typed matcher detection on known structured perturbations",
+      "JSON-serializable auditable diagnostics"
+    ],
+    "does_not_demonstrate": [
+      "free natural-language source extraction",
+      "independent human annotation agreement",
+      "ESOCC superiority over a strong semantic parser",
+      "real-user or real-EEG generalization"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "GD01",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD01",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "evidence_span": "measure epoch quality on source epochs"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_quality",
+            "evidence_span": "measure epoch quality on source epochs"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD02",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD02",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "relation_missing",
+      "expected_primary_issue": "missing_relation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD03",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD03",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "denied",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "denied",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GD04",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD04",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "evidence_span": "经明确授权，从源 Epoch 移除质量标记试次"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c2",
+            "operation": "trial_selection",
+            "evidence_span": "经明确授权，从源 Epoch 移除质量标记试次"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ],
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD05",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD05",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "stage_conflict",
+      "expected_primary_issue": "stage_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GD06",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD06",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "granted",
+            "candidate_value": "denied"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "granted",
+            "candidate_value": "denied"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GD07",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD07",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "relation_missing",
+      "expected_primary_issue": "missing_relation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD08",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD08",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GD09",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD09",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "evidence_span": "do not re-reference source epochs to SYNTH-C2"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "evidence_span": "do not re-reference source epochs to SYNTH-C2"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD10",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "erd_ers"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "erd_ers"
+        ],
+        "issue_types": [
+          "unsupported_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "erd_ers"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "erd_ers"
+        ],
+        "issue_types": [
+          "unsupported_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD10",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "extra_operation",
+      "expected_primary_issue": "extra_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "erd_ers"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_quality"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "erd_ers"
+        ],
+        "issue_types": [
+          "extra_operation",
+          "unsupported_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "erd_ers"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_quality"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "erd_ers"
+        ],
+        "issue_types": [
+          "extra_operation",
+          "unsupported_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GD11",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD11",
+      "split": "development",
+      "language": "en",
+      "template_family": "dev_en_direct",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GD12",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GD12",
+      "split": "development",
+      "language": "zh",
+      "template_family": "dev_zh_direct",
+      "candidate_id": "fault",
+      "fault_type": "extra_operation",
+      "expected_primary_issue": "extra_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "extra_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "extra_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH01",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH01",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "stage_conflict",
+      "expected_primary_issue": "stage_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower",
+            "source_value": "source_epochs",
+            "candidate_value": "effective_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower",
+            "source_value": "source_epochs",
+            "candidate_value": "effective_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower",
+            "source_value": "source_epochs",
+            "candidate_value": "effective_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower",
+            "source_value": "source_epochs",
+            "candidate_value": "effective_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GH02",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH02",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c2",
+            "operation": "epoch_summary",
+            "evidence_span": "从 未转换 Epoch 报告保留试次数"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c2",
+            "operation": "epoch_summary",
+            "evidence_span": "从 未转换 Epoch 报告保留试次数"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH03",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH03",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "trial_selection",
+            "source_value": "denied",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "trial_selection",
+            "source_value": "denied",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GH04",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH04",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "relation_missing",
+      "expected_primary_issue": "missing_relation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH05",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH05",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "evidence_span": "obtain absolute band power from resulting epochs"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c3",
+            "operation": "event_bandpower",
+            "evidence_span": "obtain absolute band power from resulting epochs"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c2",
+            "c3"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation",
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH06",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH06",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "stage_conflict",
+      "expected_primary_issue": "stage_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "stage_conflict",
+            "field": "input_stage",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          },
+          {
+            "type": "stage_conflict",
+            "field": "output_stage",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_summary",
+            "source_value": "effective_epochs",
+            "candidate_value": "source_epochs"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "stage_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GH07",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH07",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "relation_missing",
+      "expected_primary_issue": "missing_relation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [
+          [
+            "c1",
+            "c2"
+          ]
+        ],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_relation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH08",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH08",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GH09",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH09",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "omit_operation",
+      "expected_primary_issue": "missing_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "evidence_span": "keep the untouched reference and forbid changing it to SYNTH-C2"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [
+          {
+            "claim_id": "c1",
+            "operation": "epoch_rereference",
+            "evidence_span": "keep the untouched reference and forbid changing it to SYNTH-C2"
+          }
+        ],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "missing_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH10",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "functional_connectivity"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "functional_connectivity"
+        ],
+        "issue_types": [
+          "unsupported_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "functional_connectivity"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "functional_connectivity"
+        ],
+        "issue_types": [
+          "unsupported_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH10",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "extra_operation",
+      "expected_primary_issue": "extra_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "functional_connectivity"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_quality"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "functional_connectivity"
+        ],
+        "issue_types": [
+          "extra_operation",
+          "unsupported_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "reject",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "functional_connectivity"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "epoch_quality"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [
+          "functional_connectivity"
+        ],
+        "issue_types": [
+          "extra_operation",
+          "unsupported_operation"
+        ]
+      }
+    },
+    {
+      "case_id": "GH11",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          },
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH11",
+      "split": "holdout",
+      "language": "en",
+      "template_family": "holdout_en_sequence",
+      "candidate_id": "fault",
+      "fault_type": "authorization_conflict",
+      "expected_primary_issue": "authorization_conflict",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [
+          {
+            "type": "authorization_conflict",
+            "field": "authorization",
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "trial_selection",
+            "source_value": "unspecified",
+            "candidate_value": "granted"
+          }
+        ],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "authorization_conflict"
+        ]
+      }
+    },
+    {
+      "case_id": "GH12",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "exact",
+      "fault_type": "none",
+      "expected_primary_issue": null,
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      },
+      "controlled_parser": {
+        "disposition": "accept",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": []
+      }
+    },
+    {
+      "case_id": "GH12",
+      "split": "holdout",
+      "language": "zh",
+      "template_family": "holdout_zh_sequence",
+      "candidate_id": "fault",
+      "fault_type": "extra_operation",
+      "expected_primary_issue": "extra_operation",
+      "parser_exact": true,
+      "oracle_primary_detected": true,
+      "controlled_primary_detected": true,
+      "oracle": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "trial_selection"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "extra_operation"
+        ]
+      },
+      "controlled_parser": {
+        "disposition": "clarify",
+        "covered": [
+          {
+            "source_claim_id": "c2",
+            "candidate_claim_id": "c2",
+            "operation": "epoch_quality"
+          },
+          {
+            "source_claim_id": "c1",
+            "candidate_claim_id": "c1",
+            "operation": "epoch_rereference"
+          },
+          {
+            "source_claim_id": "c3",
+            "candidate_claim_id": "c3",
+            "operation": "epoch_summary"
+          },
+          {
+            "source_claim_id": "c4",
+            "candidate_claim_id": "c4",
+            "operation": "event_bandpower"
+          }
+        ],
+        "missing": [],
+        "extra": [
+          {
+            "claim_id": "cx",
+            "operation": "trial_selection"
+          }
+        ],
+        "conflicts": [],
+        "missing_relations": [],
+        "extra_relations": [],
+        "unsupported_operations": [],
+        "issue_types": [
+          "extra_operation"
+        ]
+      }
+    }
+  ]
+}

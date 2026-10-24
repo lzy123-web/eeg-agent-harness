@@ -536,3 +536,177 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
 - `743894f`：正式结果报告、逐例失败分析、Conditional-Go 决策、README 与状态更新。
 - `a326837`：最终实验状态与提交索引；GitHub Actions run `40053581867` 成功。
+
+## Issue #17：EEG 科学意图编译与模型归因（2026-10-24）
+
+### 实现
+
+- 新分支 `research/eeg-intent-compiler-v1`，起点 `bff8940`；冻结 CIEDG 和 Issue #16 结果未修改。
+- 新增 30 例中英协议、同载荷 v0/v1 evaluator、类型化 Claim–Evidence + Requirement Projection + 先决条件闭包 + 授权作用域 compiler，以及 opt-in 真实 Agent adapter。
+- OpenAI-compatible client 记录 response body 的模型标识；不把请求别名假定为实际后端版本。
+- scorer 分开评价基座字段、validator 决策、误拒和 dangerous accept；开发期修复了一次归因器漏评，未根据 holdout 修改方法或 gold。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| 历史失败归因 | S02/S06 为短语 anchor 误拒与先决目标问题；R05 应澄清 reference channel；R11 为答案 evidence path 失败 |
+| 当前模型发现 | `/models` 返回 `deepseek-flash`、`deepseek-v4-pro`；旧 `deepseek-chat` 实际后端未知 |
+| 开发 8 例 | Flash：raw 严格 3/8；v0/v1 4/8、7/8；8 请求、14,628 tokens |
+| holdout 9 例 | Flash v0/v1 2/9、5/9；Pro 2/9、3/9；两者 v1 均有 H14 dangerous accept |
+| 真实 Agent | PSD 与授权质量筛选两例均 completed、evidence closed、answer valid；4 请求、10,162 tokens |
+| 联网总量 | 31 chat requests、56,776 tokens + 1 次 `/models`；仅合成元数据，不外发波形 |
+| 完整回归 | `compileall`、`pip check` 通过；230 tests：218 passed、12 resource-gated skipped、0 failed |
+
+### 研究判断与遗留问题
+
+- 决策为 **工程 Keep，独立论文贡献 No-Go / 证据不足**。v1 减少一部分 v0 误拒，但 H14 混合转换阶段被错误合并执行，尚不能替代安全路径。
+- 模型替换没有解决意图问题：Pro 严格字段略多，但端到端 v1 更低，并出现候选参考误判授权。
+- 当前 gold 仅单人审核、holdout 仅 9 例单次采样、服务端没有权重哈希；不做统计或泛化主张。
+- 若继续，必须在新预注册协议中把前/后转换阶段表示为类型化时序关系，并用独立双人标注；不得在本次 holdout 上追加词表调参。
+
+### 本轮提交
+
+- `9d21f3b`：冻结协议、失败归因和方法设计。
+- `76d164a`：同载荷 evaluator、开发集诊断与归因修复。
+- `cd06e65`：冻结 holdout 的 Flash/Pro 对照、真实 Agent 闭环与原始结果。
+- `ef33345`：最终研究判断、README 与状态文档。
+- GitHub 研究分支快照：`7446f30`；Draft PR #18，base 为 `research/point1-integrated-method-v0`，未合并。
+- 本机到 GitHub smart-HTTP 端点持续 reset；远端使用 GitHub Git Data API 从同一 `bff8940` 创建内容等价快照，因此远端快照 SHA 与本地四个阶段提交不同，历史均未覆盖且未 force push。
+- GitHub Actions `unit-tests` run `40056766506` 对远端提交 `69f4f9f` 完成，结论 `success`。
+
+## Issue #19：EEG 目标—数据阶段关系验证（2026-10-24）
+
+### 实现与协议
+
+- 冻结 20 例独立双语协议（development 8、holdout 12），SHA-256
+  `e6d47bd3c38eaf0efa26e8b7e8bcab32bf535b5faf5d774ffae2db80b1c1d250`；旧 H14 只作开发回归。
+- 比较 per-goal slot、自由 NLI/Judge 和 typed relation graph 后，选择 opt-in TGSRG：目标—状态节点、先后 DAG、
+  exact evidence、授权隔离和实际 CIEDG capability certificate。
+- 冻结 v1 与 CIEDG 未修改；新增 v2 interpreter/Agent adapter、真实评估 CLI 和独立回归测试。
+- 开发期发现直接边证书会误拒合法传递链，改为 DAG 可达性检查；不是关键词或 Prompt 补丁。
+
+### 实际验证
+
+| 检查 | 结果 |
+|---|---|
+| Fake/raw H14 | 澄清 `analysis_stage`，真实 Agent trace 中 0 EEG 工具 |
+| 合法 post-reference | list/create/rereference/quality/bandpower 完成；Evidence closed、Answer valid |
+| Flash SH01/SH03 | v2 2/2；0 dangerous accept、0 false reject；4 requests、5,975 tokens |
+| Pro SH01/SH03 | v2 0/2；1 dangerous accept、1 false reject；3 requests、4,716 tokens |
+| 首次基础设施失败 | 5 例调用后报告序列化失败；9 requests，tokens 未恢复但上限 25,000；原样留痕且未重跑 |
+| 真实 Agent两例 | 5 requests、10,777 tokens；只使用合成 EEG |
+| 联网总量 | 21 requests；总 tokens 严格小于 46,468；无波形、密钥或私人路径入库 |
+| 回归 | `compileall`、`pip check` 通过；240 tests passed、12 resource-gated skipped、0 failed |
+
+### 失败归因与判断
+
+- SH01/Pro 的 raw Intent 只抽取 `epoch_quality`，漏掉重参考和功率：基座模型产生目标遗漏；Harness 的
+  “无 transition 不做 scope 检查”又允许该遗漏绕过安全 gate，两层都负有责任。
+- SH03/Pro 用省略号改写 exact evidence，候选安全误拒；属于 extraction/grounding 可靠性问题。
+- 预注册门槛要求任一 unseen dangerous accept 即停止，因此结论为
+  **NOT SAFE TO ADOPT / 工程原型保留 / 独立论文贡献 No-Go**。
+- TGSRG 的可审计 IR、能力投影和双阶段澄清有工程价值，但没有证明相对强基线优势、形式完备性或独立创新。
+- 不在本 holdout 上继续调参；若未来继续，须在新协议中解决目标集合完备性并增加独立 reviewer。
+
+### 本轮本地提交
+
+- `5110616`：冻结作用域设计与 20 例协议。
+- `c531c18`：TGSRG、真实 Agent adapter、评估 CLI 与测试。
+- `895295f`：序列化修复与 regression test，不改变决策。
+- `cda3964`：保留真实原始结果和基础设施失败。
+- `efe63c8`：结果、No-Go 判断、README 与项目状态。
+- `ece5a77`：普通 merge 协调远端 Issue #17 快照历史；合并前双方基线 tree 完全一致，未 force push。
+- 研究分支已推送到 Draft PR #18；状态留痕提交 `216cd67` 的 GitHub Actions `unit-tests`
+  run `40059679391` 成功。后续若仅追加本状态记录，远端 head 可继续前移；PR 保持 Draft、未合并 main。
+
+## Issue #20：EEG 科学目标完备性研究论证（2026-10-24）
+
+### 研究范围与事实核查
+
+- 本轮仅开展文献核查、问题建模、候选方法比较和研究决策；CIEDG、TGSRG、Intent compiler、历史协议、Prompt、结果与测试均冻结。
+- 复核 SH01/Pro：原文明确要求 source quality、授权重参考和 new-reference power，候选 Intent 仅保留 `epoch_quality`；v2 因候选
+  objectives 中没有 transition 而不进入 scope 检查，随后 Ledger/CIEDG 合法完成截断子任务。
+- 将结构合法性、soundness、目标 completeness、executability 与 answer faithfulness 分开；确认现有下游 verifier 无法从已截断
+  specification 中恢复缺失目标。
+- 核查 13 项论文/标准/官方文档，覆盖 PICARD、NL2Plan、VerifyLLM、PROV-O、IFEval、FollowBench、PDDL domain 评价、SWIRL、
+  EEGAgent、CogEEGAgent、EEG preprocessing 敏感性、COBIDAS-MEEG 与 MNE 操作语义。
+
+### 候选路线与决策
+
+- 比较三条主体路线：原文侧 SourceClaimLedger + typed coverage、受控 EEG 请求语言、round-trip/NLI/反事实 judge；另将风险选择性
+  澄清定义为组合策略，而非独立检测器。
+- 条件性首选是 ESOCC：从原文独立抽取 operation/object/stage/polarity/authorization/relation，再与候选 Intent 做确定性二部匹配，
+  对 missing/ambiguous/unsupported/unresolved claim 选择性澄清；不自动补写或执行遗漏目标。
+- 与既有方法的分工：ESOCC 检查 source-to-contract coverage；TGSRG 检查已登记目标的数据阶段关系；CIEDG 管理执行状态、证据失效
+  与恢复。此分层尚未通过新实验验证。
+- 最终决策为 **CONDITIONAL GO（只允许预注册有限域 Pilot）/ 当前第二创新点主张 NO-GO**。问题真实且有 EEG 风险结构，但 source
+  extractor 仍可能与 candidate parser 共漏；如果只是第二 LLM judge、词表或 schema 补丁，只属于工程修复。
+
+### 验证与边界
+
+| 检查 | 结果 |
+|---|---|
+| 新代码或 v3 | 未开发 |
+| 新 LLM/Fake 实验 | 未运行 |
+| 冻结结果/科学 gold | 未修改 |
+| 真实 EEG/隐私数据外发 | 无 |
+| 文档交付 | failure model、literature、design options、research decision、state 共 5 份 |
+| 文档检查 | Markdown 存在性、引用链接、`git diff --check` 与变更范围将在推送前核验 |
+
+### 下一步门槛
+
+- 先建立双人 EEG source-claim 标注规范与盲标 calibration；旧 SH01/H14 只作开发回归。
+- 新协议必须冻结 ontology、模型信息、Prompt、预算和停止规则；强对照包含受控语言/用户确认与独立 LLM judge。
+- 主指标为 dangerous accept、危险遗漏 recall、合法任务误澄清和交互/Token 成本；任一新 holdout 高风险遗漏被接受即不得宣称安全采用。
+- 若 joint miss 主导、相对强基线无增量或安全仅由大量误拒获得，则停止该方向并作为 CCEP 的工程限制报告。
+
+### 本轮提交
+
+- `f04d9f9`：问题模型与文献核查。
+- `07b7065`：三条主体路线、强基线、公平实验蓝图与 CONDITIONAL GO 决策。
+- `0d144cc`：Issue #20 状态与项目总状态；GitHub Actions `unit-tests` run `40061585223` 成功。
+- Draft PR #18 保持 Draft，不合并 main；本轮未 force push。
+
+## Issue #21：无标注者 EEG 目标完备性受控 Pilot（2026-10-24）
+
+### 协议与实现
+
+- 在无法取得两名 EEG 标注者的现实条件下，改用“先结构化合同、后确定性渲染文本”的受控真值；明确为单作者研究设计，
+  不报告 IAA、人类标注准确率或自由语言泛化。
+- 冻结 24 条请求（development/holdout 各 12，模板家族不重叠）、48 个 candidate 对、seed `21021` 和 manifest SHA-256
+  `94111eb7a025c0fc7bb4780e53d894cac2d5833c8c21f4ac613b9b073541381a`。
+- 新增独立 claim schema、闭合中英文 parser、typed matcher、离线 evaluator 与 9 项专项测试；只在
+  `research/goal_completeness` 中使用，没有替换 v0/v1/v2 或接入 Agent。
+- 故障覆盖漏操作、授权冲突、stage 冲突、缺 precedence 和额外操作；强受控语言 parser 是公平工程基线，oracle 只作上界。
+
+### 实际 dry run
+
+| 检查 | 结果 |
+|---|---|
+| 受控请求 / candidate 对 | 24 / 48 |
+| parser 与 source AST | 24/24 完全一致 |
+| 预置故障 | oracle 24/24；controlled parser 路径 24/24 |
+| exact disposition | 24/24；16 个合法 accept 中 0 个多余澄清 |
+| 数据与模型 | 无 EEG 波形、无 LLM、无 API 请求 |
+| 结果标签 | `controlled synthetic, not independently annotated real NL` |
+| 专项测试 | 9 passed、0 failed |
+| 完整回归 | `compileall`、`pip check` 通过；249 tests：237 passed、12 resource-gated skipped、0 failed |
+
+首次测试曾发现 selection 参数不一致、测试查找错误、合法 selection 链被误标成双分支，以及 fault 终止断言错误；均作为协议/实现
+缺陷记录并在最终 hash 冻结前修正，不能视为方法性能提升。
+
+### 研究判断
+
+- **ESOCC 作为独立第二创新点暂时 NO-GO。** 本轮验证 DSL/matcher 在闭合合同上自洽，没有验证自由自然语言 source extraction、
+  joint miss、真实用户表达或相对强基线优势。
+- typed matcher 和受控 manifest 保留为回归/校准基础设施；不创建 v3、不接生产 Agent、不继续扩模板刷规模。
+- 只有取得独立自然语言—workflow 标注、可迁移公开数据或明确标注为单人 spot-check 的新证据后，才考虑新预注册实验。
+- 论文资源优先回到冻结 CIEDG 的复现、边界论证和综合案例；目标完备性作为输入信任边界和未来工作陈述。
+
+### 本轮提交
+
+- `13f73ed`：结构化协议、冻结 manifest、DSL/matcher/evaluator、专项测试与协议文档。
+- `3196ed7`：dry run 原始结果、失败记录、研究决策与状态更新。
+- `6a89d21`：本地完整回归状态；GitHub Actions `unit-tests` run `40064384919` 成功。
+- 研究分支已普通推送至 Draft PR #18；未 force push、未合并 main。

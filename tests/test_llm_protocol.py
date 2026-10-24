@@ -22,14 +22,17 @@ class _Response:
         return json.dumps(self.payload).encode("utf-8")
 
 
-def _completion(message=None, finish_reason="stop", usage=None):
-    return {
+def _completion(message=None, finish_reason="stop", usage=None, model=None):
+    payload = {
         "choices": [{
             "message": message or {"role": "assistant", "content": "ok"},
             "finish_reason": finish_reason,
         }],
         "usage": usage or {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7},
     }
+    if model is not None:
+        payload["model"] = model
+    return payload
 
 
 class OpenAICompatibleProtocolTest(unittest.TestCase):
@@ -74,6 +77,15 @@ class OpenAICompatibleProtocolTest(unittest.TestCase):
         self.assertIsNone(message["content"])
         self.assertEqual(message["tool_calls"], tool_calls)
         self.assertEqual(self.client.last_finish_reason, "tool_calls")
+
+    def test_response_model_metadata_is_recorded_without_assuming_alias_identity(self):
+        with patch(
+            "eeg_harness.llm.request.urlopen",
+            return_value=_Response(_completion(model="provider-resolved-version")),
+        ):
+            self.client.complete([{"role": "user", "content": "x"}], [])
+        self.assertEqual("provider-resolved-version", self.client.last_response_model)
+        self.assertEqual(["provider-resolved-version"], self.client.response_models)
 
     def test_http_error_is_sanitized_without_provider_body(self):
         failure = error.HTTPError(
