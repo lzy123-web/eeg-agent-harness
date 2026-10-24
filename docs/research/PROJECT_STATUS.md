@@ -7,7 +7,7 @@
 - 先复现后修订：旧链可完成互换的双 PSD 窗口；旧续接不锁禁止操作。新增故障注入证明第二工具失败时不能把第一结果当完整交付。增量测试与方法理由见 `MULTITASK_METHOD_ITERATIONS.md` / `MULTITASK_METHOD_VALIDATION.md`。
 - 本地验证：`PYTHONPATH=src python -m compileall -q src tests`、`PYTHONPATH=src python -m unittest discover -s tests -q`、`python -m pip check` 均通过；263 tests、14 skipped、249 实际执行无失败；Fake 三例 2 个直接完成、1 个缺参澄清后完成。提交和远端 CI 待本轮收尾更新；**本轮未调用真实 DeepSeek**，不能把此前开发集末轮成功移作新验证。
 - 仍未解决：开放语言目标遗漏、复杂跨句/多处同值参数归属、否定操作被模型整体遗漏的独立发现、多个同名缺项的安全续接、自由形式最终报告与临床解释；旧版筛选/重参考不等于 v3 支持。下一候选是在冻结的跨任务开发集之外制定独立未见测试与公平强动态 Expert 对照，不提前宣称方法优势。
-- Git：本地功能提交 `ae15882`；HTTPS fetch/push 暂时失败，但远端基点 `6125d5c` 经接口核对未变。逐文件 Git blob SHA 与整棵 tree `ef98efb9` 核验一致后，以 `expected_sha=6125d5c`、`force=false` 发布等价远端功能提交 `abc110c` 到原 Draft PR #27 分支。两端功能文件 tree 一致但提交 SHA 不同；恢复命令行网络后须先 fetch/安全 merge，再继续推送。状态文档为随后独立同步提交；远端 CI 待核对。未强推、未合并 main，未上传密钥或真实 EEG/派生结果。
+- Git：本地功能提交 `ae15882`、状态提交 `425332c`；HTTPS 一度失败，经远端父 SHA、逐 blob 和相同 Git tree 校验，以 `expected_sha`、`force=false` 发布等价远端 `abc110c`、`1eaed2a`。恢复直连后 fetch 发现本地/远端内容树同为 `eef79fe4`，以普通 `--no-ff` merge `f451b7c` 安全汇合，未改写历史。功能与状态提交的 GitHub Actions #40106247323 / #40106328276 均 success；当前合并/本次状态同步仍需最终普通 push 与 CI 核对。未强推、未合并 main，未上传密钥或真实 EEG/派生结果。
 
 ## 2026-10-24 当前更新：Issue #28 能力驱动多目标实例（opt-in v3）
 

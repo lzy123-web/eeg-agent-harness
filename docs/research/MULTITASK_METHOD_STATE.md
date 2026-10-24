@@ -4,7 +4,7 @@
 
 - 已读审查评论 6385322359，确认旧 258 tests 应写作 244 执行/14 跳过，真实 DeepSeek 四轮仍只有先前 15 completion/32,066 tokens；本轮不追加付费调用，也不倒改历史结果。
 - 新增同类参数归属、澄清续接冻结、上下文可用能力目录与旧入口分类、整单证据交付门；仍复用 `SharedEvidenceGraphCore`、Registry/Executor。旧链双 PSD 互换参数引文曾实际错误完成，新测试先复现后修订；正常唯一缺项续接仍可完成。
-- 本地 complete：compileall、`pip check`、完整 263 tests/14 skipped（249 实际执行）、Fake 三固定场景均达预期。功能本地提交 `ae15882`；HTTPS 暂时失败，核对远端基点 `6125d5c`、全部新增 blob 与相同 tree `ef98efb9` 后，通过预期父 SHA、`force=false` 发布等价远端功能提交 `abc110c`。状态同步待单独提交；命令行网络恢复后须先 fetch/安全 merge 两端等价内容历史。当前切勿把文档中的历史 258 项当作新验证数。
+- 本地 complete：compileall、`pip check`、完整 263 tests/14 skipped（249 实际执行）、Fake 三固定场景均达预期。本地功能/状态提交 `ae15882`/`425332c`；HTTPS 暂时失败后，核对远端基点、所有新增 blob 与对应相同 tree，以预期父 SHA、`force=false` 发布等价远端 `abc110c`/`1eaed2a`。命令行恢复后 fetch 核实双方完整 tree 均为 `eef79fe4`，普通安全 merge `f451b7c` 汇合；远端功能/状态 CI 均 success。最终同步提交待普通 push/CI。当前切勿把文档中的历史 258 项当作新验证数。
 - 主要研究边界：这次是跨任务接口科学正确性和交付完整性加固，不证明新方法优于 Native/强专家，也没有验证所有参数归属/否定遗漏/开放目标完备性。v3 已迁移 8 项能力的上下文可用子集；筛选/重参考仍在旧入口，ERP/ERD-ERS/睡眠等不支持于此入口。
 
 ## Issue #28 当前安全检查点（2026-10-24）
