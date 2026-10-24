@@ -17,3 +17,11 @@
 - 完整回归 `compileall` 与 236 tests（13 skipped）通过，`pip check` 通过；本地合法 EDF+权重门控 15/15；Fake 合成连续与事件链 2/2；真实 DeepSeek 三次开发检查累计 10 completion / 18,365 tokens，最初两次事件请求因 LLM 幻增未获支持的 `epoch_summary` 安全澄清，第三次两任务完成。实际响应模型 `deepseek-flash` 仅在第三次有日志支持。不能把第三次覆盖成稳定成功率。
 - 新增 `ASD_REPORT_REQUIREMENTS_AND_EVIDENCE.md`、`MULTITASK_METHOD_ITERATIONS.md`、`MULTITASK_METHOD_VALIDATION.md`、`MULTITASK_EVALUATION_PLAN.md`，均明确未验证部分；报告生成、ASD 诊断和正式比较尚未实现。
 - 下一精确入口：检查所有新增文件的隐私与研究表述，提交本阶段文档；安全检查远端历史后将分支推送并建 Draft PR，再查 CI。若 Git 网络不可用，只能在核对远端 SHA 的条件下使用等价文件树发布，不强推、不改 main；最后记录实际 PR/CI、更新 Issue。
+
+## 发布检查点
+
+- 远端旧研究 base `bff894065b1647fc168f1c0ac4b226c16768e263` 与本地起点一致；新分支原先在远端不存在。普通 `git push -u` 成功，未强推，未改 main。
+- 已建 [Draft PR #27](https://github.com/lzy123-web/eeg-agent-harness/pull/27)，base 为旧已审查研究分支，head 为本分支；当前四个本地提交 `343e4a7`、`b5cc2f7`、`6b660dd`、`38c502b` 均已推送。
+- 提交前扫描新增差异，未发现密钥、私有资源绝对路径、真实 EEG/权重或生成产物。GitHub Actions `unit-tests` 运行 #157 对应 `38c502b` 已成功。
+- 发布后补充的隐私边界：新版真实 LLM CLI 必须显式 `--demo-synthetic`，在 EDF 读取前拒绝其它输入；新增回归测试。仅限制 CLI，程序化调用方仍需自行遵守授权。此检查在 Draft PR 上作为后续非强推提交。
+- 补充后本地 `compileall`、237 tests（13 skipped）通过；本地 EDF+权重门控新版 16/16。下一步提交/推送此补充并核实末轮 CI、Issue 评论及状态。

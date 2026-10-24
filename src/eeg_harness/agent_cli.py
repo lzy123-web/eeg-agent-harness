@@ -56,6 +56,8 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.agent_mode == "point1-v2" and not args.fake and not args.demo_synthetic:
+        parser.error("point1-v2 external LLM validation accepts only --demo-synthetic")
     if not args.demo_synthetic and not args.edf:
         parser.error("--edf or EEG_HARNESS_EDF_PATH is required")
     if args.demo_synthetic:

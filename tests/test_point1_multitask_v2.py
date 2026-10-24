@@ -1,5 +1,7 @@
 import json
 import os
+import contextlib
+import io
 from dataclasses import replace
 from pathlib import Path
 import tempfile
@@ -9,6 +11,7 @@ import numpy as np
 from scipy.signal import welch
 
 from eeg_harness.context import ExecutionContext
+from eeg_harness.agent_cli import main as agent_main
 from eeg_harness.demo import (
     build_synthetic_event_record, build_synthetic_no_event_record,
     build_synthetic_tuev_record,
@@ -38,6 +41,13 @@ def context(record=None, profile=EDF_NATIVE, resources=None, task_id="v2-test"):
 
 
 class MultiTaskV2Test(unittest.TestCase):
+    def test_real_llm_cli_rejects_non_synthetic_record_before_loading(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                agent_main(["--agent-mode", "point1-v2", "--edf", "not-read.edf",
+                            "--request", "请分析这个记录"])
+        self.assertEqual(caught.exception.code, 2)
+
     def test_no_event_continuous_multiple_goals_share_graph(self):
         ctx = context(build_synthetic_no_event_record())
         request = MultiTaskRequest(
