@@ -92,6 +92,29 @@ $env:PYTHONPATH = "$PWD\src"
 & $python -m eeg_harness.research.formal_evaluation.cli --split holdout --output <holdout.json>
 ```
 
-真实 DeepSeek 固定为 `deepseek-chat`、thinking disabled、单响应 max tokens 900、HTTP retry 1。当前 OpenAI-compatible client **未发送 temperature 字段**，因此温度是 provider default，不能虚构为 0；所有方法共享同一限制。服务日期与实际 usage 写入结果。
+真实 DeepSeek 固定为 `deepseek-chat`、thinking disabled、单响应 max tokens 1024、HTTP retry 1。本次分层子集另设 40 requests / 140,000 tokens 硬上限，低于协议总上限。当前 OpenAI-compatible client **未发送 temperature 字段**，因此温度是 provider default，不能虚构为 0；所有方法共享同一限制。服务日期与实际 usage 写入结果。
 
 API key 只临时进入进程环境；不得写入配置、结果、日志或 Issue。
+
+## 8. 已执行命令与追加审计
+
+```powershell
+& $python -m eeg_harness.research.formal_evaluation.cli `
+  --split holdout --include-ablations `
+  --output docs/research/results/point1_formal_holdout_v1.json
+
+& $python -m eeg_harness.research.formal_evaluation.audit_cli `
+  --input docs/research/results/point1_formal_holdout_v1.json `
+  --output docs/research/results/point1_formal_holdout_invariant_audit_v1.json
+
+& $python -m eeg_harness.research.formal_evaluation.e2e_cli `
+  --case-ids S02 S06 R05 R11 `
+  --max-requests 40 --max-total-tokens 140000 `
+  --output docs/research/results/point1_formal_real_llm_v1.json
+
+& $python -m eeg_harness.research.formal_evaluation.e2e_audit_cli `
+  --input docs/research/results/point1_formal_real_llm_v1.json `
+  --output docs/research/results/point1_formal_real_llm_audit_v1.json
+```
+
+主结果文件只追加、不覆盖。打开 holdout 后发现的 invariant 覆盖缺口与真实 LLM acceptance 缺口均通过独立 audit 文件修正解释，不回写原始记录或冻结 gold。

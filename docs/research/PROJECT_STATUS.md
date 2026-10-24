@@ -2,7 +2,7 @@
 
 ## 当前阶段
 
-Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交付。选定机制为 Lineage-aware Residual Scientific Planning（LRSP）；它已实际改变质量反馈后的后续动作并避免全计划重放，但尚未在冻结协议上优于同规则动态 Expert，当前结论为 **可运行研究候选 / 创新性未证实**。Baseline v1.0、CCEP v0 及 Issue #8–#12 历史结果保持不变。
+Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。parsed-task 层与同规则 Strong Dynamic Expert 完全持平；消融支持 scientific guard 和局部恢复的实际作用，但真实 DeepSeek 分层子集仍暴露显著意图/回答失败。当前结论为 **Conditional-Go：可作为“可审计状态—证据依赖与有界恢复”方法继续论文写作，但不得主张优于强专家或端到端成熟**。Baseline v1.0、CCEP/LRSP/CIEDG 历史结果保持不变。
 
 正式项目已成为可独立维护的 Python 工程；审计和复用源仍为本地相邻的原 EEGAgent 只读目录。本阶段没有修改原 EEGAgent 核心实现，也没有复制真实 EDF 或模型权重。
 
@@ -67,7 +67,7 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 
 ## 实际验证结果
 
-最新验证日期：2026-10-23。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
+最新验证日期：2026-10-24。本轮调用真实 DeepSeek API，但只使用确定性合成 EEG；未向外部服务发送真实受试者数据，未下载数据、未训练模型。
 
 | 检查项 | 结果 |
 |---|---|
@@ -489,3 +489,48 @@ Issue #13：CCEP v1 方法研发与真实 Agent 集成已完成本轮有界交�
 - `953a8b5`：同规则强动态 Expert、Fake calibration 与冻结协议。
 - `3306e94`：真实 DeepSeek 失败保留、标量 evidence 地址修复与有界复测。
 - `81aecd7`：最终审查、冻结决策和 README；GitHub Actions `unit-tests` run `39959623831` 成功。
+
+## Issue #16：CIEDG 正式公平实验（2026-10-24）
+
+### 冻结协议与实现
+
+- Candidate 固定为 `921b04a561b27c2e68964d5f3f1e995ee08c8c6d`；本轮没有修改 CIEDG、Planner、EEG 状态转换或 scientific gold。
+- 在原 24 个登记 ID 上补齐自然语言请求、合成 EEG fixture、故障、合法终止、必需/禁止工具和科学不变量；supplement SHA-256 为 `43e7fb634ff1eb246e2685a0831bf28c3bf08bed05f481bb36a8ebc5e45d49f2`。
+- 新增独立 fixture/oracle/scorer、同规则 Strong Dynamic Expert、四个预登记消融、append-only invariant audit 和真实 LLM audit。
+- holdout 打开后的 evaluator 缺陷不回写原始结果；所有原始 trace、失败与追加审计均保留。
+
+### 实际结果
+
+| 检查 | 结果 |
+|---|---|
+| 24 场景主评分 | CIEDG 24/24、Strong Expert 24/24；均 109 次工具调用 |
+| Whole-plan replay | 24/24，121 次调用；比 CIEDG 多 12 次 |
+| 无 dependency invalidation | 24/24，112 次调用 |
+| 无 semantic evidence reuse | 24/24，112 次调用 |
+| 无 EEG scientific guards | 20/24；4 个未经授权/范围不明转换 |
+| 协议追加审计 | S09 未形成 equal effective fingerprint，标为 protocol-invalid；其余有效 holdout CIEDG/Expert 均 15/15 invariant 通过 |
+| 真实 DeepSeek 子集 | 4 场景 × CIEDG/Native；22 requests、59,515 tokens；追加审计后 CIEDG 1/4、Native 0/4 |
+| 数据隐私 | 仅确定性合成 EEG；不发送波形，不保存密钥/认证头/本地密钥路径 |
+| 完整回归 | `compileall`、`pip check` 通过；221 tests：209 passed、12 resource-gated skipped、0 failed |
+
+### 失败分类
+
+- Intent：CIEDG S02/S06 对模型多报 unknown slots 采取 fail-closed 澄清；Native S02 未识别已有筛选授权。
+- Planning/scientific state：Native S06 静默丢失零 usable 的 control 条件。
+- Recovery：Native R11 未从 `ARTIFACT_NOT_FOUND` 恢复。
+- Answer evidence：CIEDG R11 工具链完成但 evidence-answer schema 校验失败；Native R05/R11 含无证据或与失败状态矛盾的陈述。
+- Protocol：S09 只能证明 source 等价，不能证明 selection effective artifact 等价。
+
+### 研究判断与遗留问题
+
+- CIEDG 的 guard、依赖失效、内容/身份分离与局部恢复是实际运行机制；但与同规则强专家完全持平，创新性不能用成功率优势表述。
+- 论文可有限主张“可审计 EEG 科学状态—证据依赖与有界恢复”；若论文要求显著优于强 Expert，则本次是 No-Go。
+- 当前不再新增状态转换或 Planner。后续只允许预注册复现、统计功效扩展、真实数据本地验证和论文写作。
+- 真实 LLM 意图与答案边界尚不稳定；不能用 Fake 或 parsed-task 结果替代端到端成功。
+
+### 本轮提交
+
+- `6661b65`：冻结 24 场景可执行 supplement 与运行手册。
+- `ffe9ee3`：锁定 development evaluator、Expert 与消融结果。
+- `c880676`：唯一完整 holdout、append-only invariant audit、真实 DeepSeek 原始结果与追加审计。
+- 最终报告/状态提交：待本文件提交后填写。

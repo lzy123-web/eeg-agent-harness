@@ -287,7 +287,19 @@ $python = 'python'
   --request '对 target 事件后 0 秒到 1 秒的 Epoch，允许以 SYNTH-C2 作为参考通道重参考，检查转换后质量，汇总试次数并计算绝对频带功率'
 ```
 
-工具实现通过独立 NumPy/MNE oracle。不同 ID、相同内容的恢复会保留历史 ToolResult，并以明确的 semantic reuse view 绑定当前谱系。正常与 artifact 丢失 calibration 中，CIEDG 与同规则强动态 Expert 科学输出及调用数持平；这证明迁移可行，不证明相对优势。正式 24 例协议已冻结但尚未执行。详见 `docs/research/POINT1_TRANSFER_DESIGN.md`、`POINT1_TRANSFER_VALIDATION.md` 和 `POINT1_FREEZE_DECISION.md`。
+工具实现通过独立 NumPy/MNE oracle。不同 ID、相同内容的恢复会保留历史 ToolResult，并以明确的 semantic reuse view 绑定当前谱系。正常与 artifact 丢失 calibration 中，CIEDG 与同规则强动态 Expert 科学输出及调用数持平；这证明迁移可行，不证明相对优势。详见 `docs/research/POINT1_TRANSFER_DESIGN.md`、`POINT1_TRANSFER_VALIDATION.md` 和 `POINT1_FREEZE_DECISION.md`。
+
+## Issue #16：工作点一正式实验
+
+CIEDG 已冻结并完成 24 个登记场景的公平实验。parsed-task 主评分中，CIEDG 与同规则 Strong Dynamic Expert 均为 24/24、109 次工具调用；没有观察到相对优势。全图重放为 121 次；去除 EEG scientific guards 后 4/24 发生未经授权或范围不明的转换。追加不变量审计确认 S09 没有正确实例化 effective artifact 内容等价条件，因此该例标记 protocol-invalid，不用于语义复用结论。
+
+真实 `deepseek-chat` 只在 4 个分层合成场景上运行：22 requests、59,515 tokens；追加审计后 CIEDG 1/4、Native 0/4。失败来自意图过度澄清、科学状态、恢复和最终回答证据，而不是用 Fake 冒充成功。当前研究判断为 **Conditional-Go**：可将“可审计 EEG 状态—证据依赖与有界恢复”作为限定工作点，但不得声称优于强 Expert、端到端成熟或多数据集验证。
+
+完整协议、逐例结果、评价器缺陷留痕和论文判断见：
+
+- `docs/research/POINT1_FORMAL_EVAL_RUNBOOK.md`
+- `docs/research/POINT1_FORMAL_EVAL_RESULTS.md`
+- `docs/research/POINT1_WORKPOINT1_DECISION.md`
 
 ## Issue #12：CCEP Evidence Phase
 
