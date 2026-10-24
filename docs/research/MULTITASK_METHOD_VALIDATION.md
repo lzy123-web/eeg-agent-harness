@@ -41,3 +41,23 @@
 | 增加响应模型身份记录后 | 完成 | 完成 | 4 / 8,203 | 两条链路均证据闭合、答案门通过；事件工具序列如上 |
 
 请求名 `deepseek-chat`；最后一次四个响应均报告 `deepseek-flash`。前两次 SDK 未记录服务端响应身份，不能倒填为已核实版本。工具结果外发仅限合成记录。第三次成功不覆盖前两次失败，不能据此声称 100% 端到端可靠性。失败层归因：模型意图多提出 `epoch_summary`，独立 grounding 正确拒绝；不是图调度/数值/答案证据失败。尚未通过自由语言组合目标的独立 holdout，也未验证临床解释。
+
+## Issue #28 v3 的独立开发验证（不替换上述 Issue #26 历史结果）
+
+复现命令（激活已有依赖环境后）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest tests.test_point1_multitask_v3 -q
+python -m unittest discover -s tests -q
+python -m eeg_harness.research.integrated_method.v3_validation
+```
+
+最后一个命令为 Fake 协议测试，只用 `build_synthetic_no_event_record` / `build_synthetic_event_record`；详细 JSON 和合成应用样张在 Git 忽略的 `artifacts/`。本地真实权重测试可临时设置 `EEG_HARNESS_MODEL_PATH` 后重跑 v3 模块测试，**只在本机对合成 22 导输入调用现有权重**；未发送模型结果给外部服务。真实联网检查在相同验证模块加 `--real --max-requests 8 --max-total-tokens 24000`，需临时配置 LLM 环境变量，绝不把 Key 放入命令/仓库。通用 `agent_cli --agent-mode point1-v3 --demo-synthetic[-no-events] --request ...` 可接自然语言；非合成 EDF 在联网前拒绝。此版 Fake 用固定协议场景，不假装可自由理解任意文本。
+
+确定性断言覆盖：Registry 能力发现不加载权重；整段质量/两 PSD 窗口三目标；独立 SciPy Welch+积分核对两个窗口数值；同参数结果只调用一次、不同参数必分别调用；事件目标相同完整 scope 共享一个 Epoch，不同标签产生两个 Epoch；连续与事件目标在同一图，禁止筛选未执行；中间 Epoch 内容变化撤销事件侧证据并保留连续侧；缺事件/窗口/来源阶段/资源与 Profile 不符时原子拒绝或澄清；结构化结果 JSON 可序列化；合成应用仅消费 bundle；Fake 缺参→继续及错误意图拒绝。独立 oracle 与工具同用 SciPy Welch 库、同频带配置，因此核对积分/切片调用链，不是完全独立的谱估计实现。现有模型路径测试只断言输出结构，不作性能/医学判断。
+
+四轮真实 DeepSeek 开发检查均为合成 EEG，共 15 completion / 32,066 tokens；首轮双窗误拒、第二轮范围/共指误拒、第三轮 Tool Calling 格式与缺参分类失败、末轮三例完成。各轮原始响应按到达顺序写本地忽略 JSONL；末轮 `deepseek-chat` 请求的四次实际响应均报告 `deepseek-flash`。末轮闭合目标数为双窗 3、混合 3、澄清后 1，实际工具分别为 `record_quality+psd+psd`、`list_events+create_epochs+psd+epoch_quality+event_bandpower`、`psd`，不把必要 producer 算成用户新增目标。此结果不代表未见请求成功率，也不证明相对强专家优势。
+
+本轮最终 `compileall`、`pip check` 与完整 `unittest discover` 已通过：**256 tests，OK，14 skipped**（资源/环境可选项）；v3 本地权重开启时 **18/18 OK**。CI 状态需以最终状态文档为准。生成产物不提交。

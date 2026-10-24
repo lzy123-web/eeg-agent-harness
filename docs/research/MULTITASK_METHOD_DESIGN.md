@@ -69,3 +69,38 @@ release only answer-required evidence bound to current state
 6. answer gate 由合同声明的 `answer_required` 目标决定，不再对连续/事件写两套结果发布路径；数值须指向真实 ToolResult 标量。
 
 新版本保留旧 v1.1 类和历史正式实验；可提取并改造目标图机制，但不能以“只能继承旧事件类”为架构限制。事件与连续必须在新版共享任务中性的 frontier、证据 token、输入绑定、状态失效、错误边界和结果门；模型若资源可用，也只作为合法调用协议证明，而非 ASD 应用模型。
+
+## Issue #28：能力声明→目标实例→共同执行→逐目标证据（opt-in v3）
+
+### 路线比较与研究定位
+
+| 路线 | 解释与编译 | 状态/证据边界 | 本轮判断 |
+|---|---|---|---|
+| 把每个分析名交给独立脚本/单工具 Agent | 最容易接入自然语言 | 同名不同参数易被覆盖；跨记录/Epoch 状态无共同失效和证据门 | 排除，不满足共同核心 |
+| 层级任务网络（HTN）按任务族写方法 | 子任务层级与显式前提清楚 | 每种组合都需人工设计方法，维护成本可能接近强专家；当前请求实例与产物身份仍需另建 | 后续公平对照可采用，不作为本轮主实现 |
+| Registry 支撑的能力目录 + 带参数/来源的目标实例图 | LLM 只解释用户正向目标；内部 `list_events/create_epochs` 由编译器补足；同能力可重复 | 复用已有 `SharedEvidenceGraphCore` 的绑定、失效、前沿、Executor 与证据 token；实例 ID 是发布键 | **选用**，改动有界且可检验 |
+
+这一路线借鉴成熟科学工作流的类型/约束思想（[WINGS 原始论文](https://doi.org/10.1109/MIS.2010.9)）、层级规划中任务分解思想（[ICAPS HPlan 论文](https://icaps22.icaps-conference.org/workshops/HPlan/papers/paper-12.pdf)）与来源关系（[W3C PROV-O](https://www.w3.org/TR/prov-o/)）；**图、ToolSpec、结构化 Tool Calling 和 JSON 证据本身不是新的算法贡献**。EEG 专用问题是不同科学对象（整段记录、明确连续窗、特定事件 Epoch、严格模型输入）的参数作用域及科学来源是否能在同一状态图中被正确保持；相对强动态 Expert 的优势尚未做公平实验。
+
+### 实际结构和不变量
+
+`v3.py::capability_catalog` 从当前 `ToolRegistry/ToolSpec` 和 Profile 枚举可见能力，再由小型 EEG 科学适配表给出必填用户参数与单位/类型。新增能力仍需在 Registry 中实现、在科学适配表中声明参数/单位并接受已有 Planner/Executor 前置条件；若涉及新数据对象，还需一项输入绑定策略。**这不等于零改动扩展**，但不应为每种组合新增路由或复制执行器。当前 v3 仅开放 record_info、record_quality、amplitude、psd、seizure_detection、epoch_quality、epoch_summary、event_bandpower；筛选/重参考仍留在旧受控方法，不伪装成 v3 已支持。
+
+`v3_agent.py::InstanceGoalEEGAgent` 用一次原生 Tool Calling 提交全部用户正向目标；`request_quote` 定位实例范围，`concept_quote` 独立定位科学操作，`parameter_quotes` 逐值引文。Harness 分配 `g1…gn` 稳定的任务内 ID；澄清后如果目标类型序列变化则拒绝无声替换。`v3.py::compile_instances` 先对整单进行能力/Profile/资源/窗口/事件/禁止操作检查，再将每个用户目标映射为自己的 `GoalContract`；同参数事件目标才共享内部 `list_events/create_epochs`，内部节点不是用户要发布的输出目标。缺参合并澄清；不支持/不适用整体零调用拒绝；本版不允许静默部分执行。
+
+```text
+Registry/ToolSpec + EEG 科学适配 → 可用能力目录
+自然语言 → 原生结构化 submit_eeg_goals → 目标实例 g1…gn / 引文 / 参数 / 禁止操作
+整单 preflight → 实例合同 + 参数完全一致时共享的内部 producer
+SharedEvidenceGraphCore → ExecutionContext → 原 Executor → 原 EEG 工具
+输入与权重/产物指纹 + 依赖 token → 仅闭合任务发布逐目标 evidence_bundle
+合成应用层只消费 bundle，不重算 EEG、不生成诊断
+```
+
+同一 `psd` 的两个窗口是两个实例；相同工具、实参、输入绑定及依赖语义的完全相同实例可共享已完成结果，但各保留独立 token。事件 `labels/tmin/tmax/baseline` 全部参与 producer scope 哈希，不同 scope 不复用 Epoch。连续质量默认整段；若用户给范围则严格检查两端，不把整段质量冒充窗口质量。明确 raw/processed 来源阶段与当前记录不符时拒绝，不发明另一版本。模型仍必须满足 `tuev_bipolar_22`、256 Hz、已有权重和窗口；资源哈希绑定输入。状态变化后共同核心只失效受影响的实例及后继；独立记录目标可保留。
+
+`evidence_bundle` 由实际 `ToolResult` 与 `GoalEvidence` 构造，每项含 ID、能力、参数、引文、来源/阶段、输入绑定、依赖证据、方法/单位、请求 ID、原始结果、研究限制；任务含未完成目标。仅证据闭合时发布数值，异常返回结构化未完成信息。回答文本只概括目标列表并指向 bundle，不让 LLM 回填自由编造的数值。应用层样张见 `v3_application.py`，临床栏目仍未建立。
+
+### 明确限制和待检验研究价值
+
+当前参数关联依赖 LLM 引文与局部同一事件共指；没有独立解决开放自然语言目标完备性，也没有对复杂跨句范围给出形式语义保证。严格引文可能误拒合法请求。`SharedEvidenceGraphCore` 的全记录哈希在大记录上有计算成本；v3 为不改旧 v2 行为而局部复用了相同的绑定实现，后续可在稳定后整理。新能力仍需科学前提和单位适配，并非自动扩展。正式比较应在冻结任务与故障集后，让 Native Agent 和强动态 Expert 拥有同一 ToolSpec、Profile、状态、预算和科学规则，再做实例身份、参数作用域、证据绑定、失效复用的消融；本轮合成开发例**不构成胜负证据**。

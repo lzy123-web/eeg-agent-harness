@@ -4,6 +4,16 @@
 
 Issue #26 在独立研究分支新增 opt-in 的多任务共同证据图：连续无事件分析、事件→Epoch 分析和严格输入模型任务通过同一目标/输入类型/状态版本/失败/证据发布核心。事件专有窗口、质量筛选和 Epoch lineage 留在任务策略，通用图不默认 Epoch。旧 CIEDG 和 Baseline v1 路径保留；新方法仍是**研究候选，不是已证明优于强动态 Expert 的论文创新**。见 [任务矩阵](docs/research/MULTITASK_HARNESS_RESEARCH_MAP.md)、[设计与修订](docs/research/MULTITASK_METHOD_DESIGN.md)、[实际验证](docs/research/MULTITASK_METHOD_VALIDATION.md)、[ASD 证据需求](docs/research/ASD_REPORT_REQUIREMENTS_AND_EVIDENCE.md)。
 
+Issue #28 的 opt-in v3 让一个自然语言任务包含多个带独立参数/来源的目标实例：同一 PSD 两个窗口不再被同名去重，连续与事件任务仍走同一共享图/Executor，并交付可由应用读取的逐目标 `evidence_bundle`。这只在合成开发例和受限本地模型协议上验证；旧方法与历史实验不改。复现 Fake 协议三案例与自动化测试：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.integrated_method.v3_validation
+python -m unittest tests.test_point1_multitask_v3 -q
+```
+
+具备合法环境变量时，上述验证模块可加 `--real --max-requests 8 --max-total-tokens 24000` 做**仅合成 EEG**的有界真实 Tool Calling；详情与原始响应只写被忽略的 `artifacts/`。单条自然语言入口为 `python -m eeg_harness.agent_cli --agent-mode point1-v3 --demo-synthetic --request '<自然语言 EEG 分析需求>'`，无事件合成记录可用 `--demo-synthetic-no-events`。此 v3 CLI 不提供任意请求的 Fake 意图理解；Fake 场景入口是上述固定验证模块。真实 EDF 不允许进入 v3 联网入口，离线结构化 `run_instances` 才能使用本地合法数据/权重。
+
 本地合成验证入口（只输出到被 Git 忽略的 `artifacts/`，不需要 EDF/权重/API）：
 
 ```powershell
