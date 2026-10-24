@@ -1,0 +1,17 @@
+{
+  "protocol_id": "eeg-intent-scope-compiler-v2",
+  "event": "post_evaluation_serialization_failure",
+  "date_local": "2026-10-24",
+  "requested_model": "deepseek-flash",
+  "selected_cases": ["SH01", "SH03", "SH05", "SH09", "SH10"],
+  "provider_requests": 9,
+  "provider_tokens": null,
+  "provider_token_upper_bound": 25000,
+  "raw_eeg_sent_to_llm": false,
+  "results_recoverable": false,
+  "error": {
+    "code": "REPORT_NOT_JSON_SERIALIZABLE",
+    "message": "A set in capability-certificate diagnostics prevented report serialization after evaluation. Provider responses were not persisted and were not reconstructed."
+  },
+  "follow_up": "The diagnostic set was converted to a sorted list and a serialization regression test was added. The five-case batch was not repeated; a smaller frozen subset was used within the original total request ceiling."
+}
