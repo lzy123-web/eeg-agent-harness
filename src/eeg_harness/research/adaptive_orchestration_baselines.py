@@ -94,20 +94,27 @@ forbidden. It is a genuine comparator, not a disabled fixed-order script.
     if stopped:
         return stopped
     decisions, evidence = [], {}
-    for group in _groups(task, context.executor.registry):
-        scope = group["scope"]
-        labels = tuple(scope["labels"])
-        minimum = _need_counts(group, task)
-        if minimum > 1 and "list_events" not in task.forbidden_operations:
-            inventory = _call(context, task, "list_events", {}, decisions,
-                              "expert probes event support before expensive work")
-            if inventory is None:
-                return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "Tool budget exhausted", decisions)
-            if not inventory.success:
-                return _reject(context, "scientific_stop", inventory.error_code, "Inventory failed", decisions)
+    groups = _groups(task, context.executor.registry)
+    at_risk = [group for group in groups if _need_counts(group, task) > 1]
+    # Strong Expert is not denied global atomic-task inspection or tool reuse.
+    if at_risk and "list_events" not in task.forbidden_operations:
+        inventory = _call(context, task, "list_events", {}, decisions,
+                          "expert inspects all event scopes before irreversible work")
+        if inventory is None:
+            return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "Tool budget exhausted", decisions)
+        if not inventory.success:
+            return _reject(context, "scientific_stop", inventory.error_code, "Inventory failed", decisions)
+        for group in at_risk:
+            labels = tuple(group["scope"]["labels"])
+            minimum = _need_counts(group, task)
             if any(inventory.data["labels"].get(label, 0) < minimum for label in labels):
                 return _reject(context, "scientific_stop", "INSUFFICIENT_EVENT_COUNT",
                                "Raw event count below requested minimum", decisions)
+    prepared = []
+    for group in groups:
+        scope = group["scope"]
+        labels = tuple(scope["labels"])
+        minimum = _need_counts(group, task)
         epochs = _call(context, task, "create_epochs", scope, decisions,
                        "expert checks actual valid trial support")
         if epochs is None:
@@ -118,10 +125,12 @@ forbidden. It is a genuine comparator, not a disabled fixed-order script.
         if any(valid.get(label, 0) < minimum for label in labels):
             return _reject(context, "scientific_stop", "INSUFFICIENT_VALID_EPOCHS",
                            "Valid Epoch count below requested minimum", decisions)
+        prepared.append((group, epochs.data))
+    for group, artifact in prepared:
         for goal in group["goals"]:
             measured = _call(context, task, goal.capability, {
-                "artifact_id": epochs.data["artifact_id"],
-                "expected_artifact_fingerprint": epochs.data["artifact_fingerprint"],
+                "artifact_id": artifact["artifact_id"],
+                "expected_artifact_fingerprint": artifact["artifact_fingerprint"],
             }, decisions, "expert releases only supported event analysis")
             if measured is None:
                 return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "Tool budget exhausted", decisions)

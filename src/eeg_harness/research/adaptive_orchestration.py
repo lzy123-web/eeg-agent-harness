@@ -176,21 +176,29 @@ def run_adaptive(context, task):
         return _reject(context, status, code, reason)
     decisions, evidence = [], {}
     forbidden = set(task.forbidden_operations)
-    for group in _groups(task, context.executor.registry):
-        scope, minimum = group["scope"], _need_counts(group, task)
-        labels = tuple(scope["labels"])
-        if minimum > 1 and "list_events" not in forbidden:
-            observed = _call(context, task, "list_events", {}, decisions,
-                             "event inventory may rule out the declared trial requirement")
-            if observed is None:
-                return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "No budget for event inventory", decisions)
-            if not observed.success:
-                return _reject(context, "stopped", observed.error_code, "Event inventory failed", decisions)
+    groups = _groups(task, context.executor.registry)
+    probes = [group for group in groups if _need_counts(group, task) > 1]
+    # Iteration 1: all cheap feasibility gates precede any Epoch or consumer.
+    # One inventory answers every event scope on this record.
+    if probes and "list_events" not in forbidden:
+        observed = _call(context, task, "list_events", {}, decisions,
+                         "one event inventory checks every declared trial requirement")
+        if observed is None:
+            return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "No budget for event inventory", decisions)
+        if not observed.success:
+            return _reject(context, "stopped", observed.error_code, "Event inventory failed", decisions)
+        for group in probes:
+            labels = tuple(group["scope"]["labels"])
+            minimum = _need_counts(group, task)
             decisions.append({"observation": "event_counts", "counts": {
                 label: observed.data["labels"].get(label, 0) for label in labels}})
             if any(observed.data["labels"].get(label, 0) < minimum for label in labels):
                 return _reject(context, "scientific_stop", "INSUFFICIENT_EVENT_COUNT",
                                "Observed event count cannot meet the requested minimum", decisions)
+    prepared = []
+    for group in groups:
+        scope, minimum = group["scope"], _need_counts(group, task)
+        labels = tuple(scope["labels"])
         created = _call(context, task, "create_epochs", scope, decisions,
                         "materialize authorized event scope to observe valid trials")
         if created is None:
@@ -204,10 +212,12 @@ def run_adaptive(context, task):
         if any(counts.get(label, 0) < minimum for label in labels):
             return _reject(context, "scientific_stop", "INSUFFICIENT_VALID_EPOCHS",
                            "Boundary-valid trial count is below the requested minimum", decisions)
+        prepared.append((group, created.data))
+    for group, artifact in prepared:
         for goal in group["goals"]:
             result = _call(context, task, goal.capability, {
-                "artifact_id": created.data["artifact_id"],
-                "expected_artifact_fingerprint": created.data["artifact_fingerprint"],
+                "artifact_id": artifact["artifact_id"],
+                "expected_artifact_fingerprint": artifact["artifact_fingerprint"],
             }, decisions, "all declared event prerequisites are now satisfied")
             if result is None:
                 return _reject(context, "stopped", "TOOL_BUDGET_EXCEEDED", "No budget for event analysis", decisions)

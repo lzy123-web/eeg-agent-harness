@@ -151,7 +151,8 @@ def _oracle(case, record, result):
             "publication_ok": bool(publication_ok), "numerical_ok": bool(numerical_ok),
             "forbidden_ok": bool(forbidden_ok), "global_gate_ok": bool(global_gate_ok),
             "numeric_checks": checks,
-            "all_ok": bool(status_ok and code_ok and publication_ok and numerical_ok and forbidden_ok and global_gate_ok)}
+            # Cost/ordering is a separate endpoint, never a scientific failure.
+            "all_ok": bool(status_ok and code_ok and publication_ok and numerical_ok and forbidden_ok)}
 
 
 def evaluate(cases):

@@ -13,6 +13,7 @@ from eeg_harness.executor import Executor
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE
 from eeg_harness.research.adaptive_orchestration import ScientificTask, run_adaptive
+from eeg_harness.research.adaptive_orchestration_baselines import run_strong_expert
 from eeg_harness.research.integrated_method.v3 import GoalInstance
 from eeg_harness.tools import build_default_registry
 
@@ -106,6 +107,18 @@ class AdaptiveDevelopmentTests(unittest.TestCase):
         result = run_adaptive(context(), ScientificTask((goal,)))
         self.assertEqual(result["code"], "INCOMPATIBLE_PROFILE")
         self.assertEqual(names(result), [])
+
+    def test_posthoc_d10_all_event_scopes_are_gated_before_consumers(self):
+        task = ScientificTask((
+            GoalInstance("e1", "event_bandpower", {"labels": ["stimulus"], "tmin": 0, "tmax": 1}),
+            GoalInstance("e2", "event_bandpower", {"labels": ["control"], "tmin": 0, "tmax": 1}),
+        ), {"e1": 2, "e2": 2})
+        for policy in (run_adaptive, run_strong_expert):
+            with self.subTest(policy=policy.__name__):
+                result = policy(context(), task)
+                self.assertEqual(result["code"], "INSUFFICIENT_EVENT_COUNT")
+                self.assertEqual(names(result), ["list_events"])
+                self.assertEqual(result["evidence_bundle"]["publication"], "none")
 
 
 if __name__ == "__main__":
