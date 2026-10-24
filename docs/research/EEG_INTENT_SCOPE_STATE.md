@@ -24,10 +24,20 @@
 - H14 冻结 raw Intent 回放会澄清 `analysis_stage`；真实 Agent 测试确认零 EEG 工具调用。
 - 合法单阶段重参考链通过原 Executor/CIEDG，Evidence Gate 与回答校验闭合。
 - 发现并修复“只接受直接边、误拒等价传递链”的图算法缺陷，改为 DAG 可达性判断。
-- 2026-10-24：`compileall` 通过；全套 239 tests 通过、12 个资源条件测试跳过。
+- 2026-10-24：`compileall`、`pip check` 通过；全套 240 tests 通过、12 个资源条件测试跳过。
 
-## 下一步
+## 真实验证与最终状态
 
-1. 锁定候选实现后运行不超过 24 请求、65,000 tokens 的 Flash/Pro 对照。
-2. 保留任何未见 dangerous accept；若出现则结论必须为 NOT SAFE TO ADOPT。
-3. 完成结果、失败归因、研究价值边界与恢复入口文档。
+- 首次 5 例 Flash 批次因 diagnostics 含 `set` 在写报告时失败；9 次请求计入预算，未重建响应。
+- 冻结子集 SH01/SH03：Flash v2 2/2、0 dangerous；Pro v2 0/2、1 dangerous、1 false reject。
+- SH01/Pro 的基座 Intent 漏掉 transition 与功率，暴露“无 transition 快路”可被不完整目标绕过。
+- 旧 H14 真实 Agent：clarification_required、0 EEG 工具；合法 SD03：5 工具、Evidence closed、Answer valid。
+- 联网合计 21 requests；总 tokens 严格小于 46,468；只使用合成元数据/EEG，不外发波形。
+- 最终决策：**NOT SAFE TO ADOPT / 工程原型保留 / 独立论文贡献 No-Go**。
+
+## 恢复入口
+
+- 结果：`EEG_INTENT_SCOPE_RESULTS.md`。
+- 判断：`EEG_INTENT_SCOPE_DECISION.md`。
+- 候选保持 opt-in；不得把 v2 设为默认，也不得基于本次 holdout 继续修改。
+- 后续若新开研究，必须换新协议并先解决目标集合完备性，不能只补关键词或 Prompt 特例。

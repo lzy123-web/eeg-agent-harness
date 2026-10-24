@@ -309,6 +309,17 @@ CIEDG 已冻结并完成 24 个登记场景的公平实验。parsed-task 主评�
 
 详见 `docs/research/EEG_INTENT_FAILURE_ATTRIBUTION.md`、`EEG_INTENT_COMPILER_V1_DESIGN.md`、`EEG_INTENT_COMPILER_V1_RESULTS.md` 与 `EEG_INTENT_RESEARCH_DECISION.md`。
 
+## Issue #19：目标—数据阶段关系安全验证
+
+新增 opt-in TGSRG v2，把每个 EEG 科学目标的数据阶段、先后关系、原文证据和现有 CIEDG 能力投影表示为
+可验证 DAG；当前不支持的转换前/后双分支会在 EEG 工具调用前澄清。旧 H14 的真实 DeepSeek 回归已实现
+0 工具安全停止，合法 post-reference 任务通过原 Registry/Executor/CIEDG 完成并闭合 Evidence Gate。
+
+但冻结未见 SH01 在 `deepseek-v4-pro` 上出现基座目标遗漏，绕过了只对已识别 transition 启动的 scope gate，
+形成 dangerous accept。故最终结论为 **NOT SAFE TO ADOPT**：实现仅保留为研究原型，不进入默认路径，也不作为
+独立论文创新主张。详见 `docs/research/EEG_INTENT_SCOPE_DESIGN.md`、`EEG_INTENT_SCOPE_RESULTS.md` 和
+`EEG_INTENT_SCOPE_DECISION.md`。
+
 ## Issue #12：CCEP Evidence Phase
 
 本轮将事件分析统一为 `event_workflow` 与质量、筛选、频带功率三个原子目标。以下两条链共用真实 Registry/Executor 和同一个 Epoch artifact lineage：
