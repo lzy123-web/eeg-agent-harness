@@ -665,4 +665,5 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 
 - `f04d9f9`：问题模型与文献核查。
 - `07b7065`：三条主体路线、强基线、公平实验蓝图与 CONDITIONAL GO 决策。
-- 本轮状态提交及最终远端/CI 状态将在推送后补记；Draft PR #18 保持 Draft，不合并 main。
+- `0d144cc`：Issue #20 状态与项目总状态；GitHub Actions `unit-tests` run `40061585223` 成功。
+- Draft PR #18 保持 Draft，不合并 main；本轮未 force push。
