@@ -52,7 +52,7 @@ python -m unittest discover -s tests -q
 
 模型资源只在本地临时环境变量显式指定既有权重时，用**合成** `tuev_bipolar_22` 记录通过原 `seizure_detection` 真实工具做 1 秒、1 通道输出结构检查；结果为长度 1 的列表和两项模型分数键，未记录/发布分数，也不作诊断或模型效能推断。无权重时该测试 skip；错误 2 导 Profile 在 D9 零调用拒绝。没有外发权重或私有路径。另一个后设开发检查把已注册 `amplitude` 加到事件组合中，候选和 Expert 无新目标名分支、同一调用序列、独立平均绝对幅值核验通过；**这不是新工具扩展成本实验**，不能从中推论新增任意任务更省人工。
 
-最终代码本地 `compileall -q src tests`、`pip check` 通过；`unittest discover -s tests -q` 为 **287 tests OK / 16 skipped**（无模型资源）或 **287 OK / 15 skipped**（合法本地既有权重）；定向 pytest 为 13 passed / 1 skipped，带权重为 14 passed。GitHub CI 待发布后核实。外部 LLM 预算实际 **0 completion / 0 tokens**，因为结构化策略已可由真实工具与独立 oracle 验证；没有触碰真实受试者 EEG。初版与修订的合成原始输出均保留，不覆盖旧负结果。
+最终代码本地 `compileall -q src tests`、`pip check` 通过；`unittest discover -s tests -q` 为 **287 tests OK / 16 skipped**（无模型资源）或 **287 OK / 15 skipped**（合法本地既有权重）；定向 pytest 为 13 passed / 1 skipped，带权重为 14 passed。[GitHub `unit-tests` #195](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40124609648) 对研究交付提交 `c1be342` 已 `success`。外部 LLM 预算实际 **0 completion / 0 tokens**，因为结构化策略已可由真实工具与独立 oracle 验证；没有触碰真实受试者 EEG。初版与修订的合成原始输出均保留，不覆盖旧负结果。
 
 ## 5. 研究判断
 
