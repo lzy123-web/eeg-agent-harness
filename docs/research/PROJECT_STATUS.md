@@ -667,3 +667,42 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `07b7065`：三条主体路线、强基线、公平实验蓝图与 CONDITIONAL GO 决策。
 - `0d144cc`：Issue #20 状态与项目总状态；GitHub Actions `unit-tests` run `40061585223` 成功。
 - Draft PR #18 保持 Draft，不合并 main；本轮未 force push。
+
+## Issue #21：无标注者 EEG 目标完备性受控 Pilot（2026-10-24）
+
+### 协议与实现
+
+- 在无法取得两名 EEG 标注者的现实条件下，改用“先结构化合同、后确定性渲染文本”的受控真值；明确为单作者研究设计，
+  不报告 IAA、人类标注准确率或自由语言泛化。
+- 冻结 24 条请求（development/holdout 各 12，模板家族不重叠）、48 个 candidate 对、seed `21021` 和 manifest SHA-256
+  `94111eb7a025c0fc7bb4780e53d894cac2d5833c8c21f4ac613b9b073541381a`。
+- 新增独立 claim schema、闭合中英文 parser、typed matcher、离线 evaluator 与 9 项专项测试；只在
+  `research/goal_completeness` 中使用，没有替换 v0/v1/v2 或接入 Agent。
+- 故障覆盖漏操作、授权冲突、stage 冲突、缺 precedence 和额外操作；强受控语言 parser 是公平工程基线，oracle 只作上界。
+
+### 实际 dry run
+
+| 检查 | 结果 |
+|---|---|
+| 受控请求 / candidate 对 | 24 / 48 |
+| parser 与 source AST | 24/24 完全一致 |
+| 预置故障 | oracle 24/24；controlled parser 路径 24/24 |
+| exact disposition | 24/24；16 个合法 accept 中 0 个多余澄清 |
+| 数据与模型 | 无 EEG 波形、无 LLM、无 API 请求 |
+| 结果标签 | `controlled synthetic, not independently annotated real NL` |
+
+首次测试曾发现 selection 参数不一致、测试查找错误、合法 selection 链被误标成双分支，以及 fault 终止断言错误；均作为协议/实现
+缺陷记录并在最终 hash 冻结前修正，不能视为方法性能提升。
+
+### 研究判断
+
+- **ESOCC 作为独立第二创新点暂时 NO-GO。** 本轮验证 DSL/matcher 在闭合合同上自洽，没有验证自由自然语言 source extraction、
+  joint miss、真实用户表达或相对强基线优势。
+- typed matcher 和受控 manifest 保留为回归/校准基础设施；不创建 v3、不接生产 Agent、不继续扩模板刷规模。
+- 只有取得独立自然语言—workflow 标注、可迁移公开数据或明确标注为单人 spot-check 的新证据后，才考虑新预注册实验。
+- 论文资源优先回到冻结 CIEDG 的复现、边界论证和综合案例；目标完备性作为输入信任边界和未来工作陈述。
+
+### 本轮提交
+
+- `13f73ed`：结构化协议、冻结 manifest、DSL/matcher/evaluator、专项测试与协议文档。
+- dry run 结果、决策文档、完整回归和远端 CI 状态将在后续提交补记。
