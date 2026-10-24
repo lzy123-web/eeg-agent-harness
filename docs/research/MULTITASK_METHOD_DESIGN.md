@@ -86,7 +86,7 @@ release only answer-required evidence bound to current state
 
 `v3.py::capability_catalog` 从当前 `ToolRegistry/ToolSpec` 和 Profile 枚举可见能力，再由小型 EEG 科学适配表给出必填用户参数与单位/类型。新增能力仍需在 Registry 中实现、在科学适配表中声明参数/单位并接受已有 Planner/Executor 前置条件；若涉及新数据对象，还需一项输入绑定策略。**这不等于零改动扩展**，但不应为每种组合新增路由或复制执行器。当前 v3 仅开放 record_info、record_quality、amplitude、psd、seizure_detection、epoch_quality、epoch_summary、event_bandpower；筛选/重参考仍留在旧受控方法，不伪装成 v3 已支持。
 
-`v3_agent.py::InstanceGoalEEGAgent` 用一次原生 Tool Calling 提交全部用户正向目标；`request_quote` 定位实例范围，`concept_quote` 独立定位科学操作，`parameter_quotes` 逐值引文。Harness 分配 `g1…gn` 稳定的任务内 ID；澄清后如果目标类型序列变化则拒绝无声替换。`v3.py::compile_instances` 先对整单进行能力/Profile/资源/窗口/事件/禁止操作检查，再将每个用户目标映射为自己的 `GoalContract`；同参数事件目标才共享内部 `list_events/create_epochs`，内部节点不是用户要发布的输出目标。缺参合并澄清；不支持/不适用整体零调用拒绝；本版不允许静默部分执行。
+`v3_agent.py::InstanceGoalEEGAgent` 用一次原生 Tool Calling 提交全部用户正向目标；`request_quote` 定位实例范围，`concept_quote` 独立定位科学操作，`parameter_quotes` 逐值引文。Harness 分配 `g1…gn` 稳定的任务内 ID。阶段审查后新增结构性绑定：若同一参数槽出现不同值，每个值的引文须与本目标的原文锚点重叠；公共通道等同值可共享引文。澄清时冻结已确认目标的顺序、类型、锚点、概念、参数、来源阶段与禁止操作，只允许填缺项；唯一缺失的参数槽可从补充文本取得值，多个同名缺项仍需更明确的关联。`v3.py::compile_instances` 先对整单进行能力/Profile/资源/窗口/事件/禁止操作检查，再将每个用户目标映射为自己的 `GoalContract`；同参数事件目标才共享内部 `list_events/create_epochs`，内部节点不是用户要发布的输出目标。缺参合并澄清；不支持/不适用整体零调用拒绝；本版不允许静默部分执行。
 
 ```text
 Registry/ToolSpec + EEG 科学适配 → 可用能力目录
@@ -100,6 +100,10 @@ SharedEvidenceGraphCore → ExecutionContext → 原 Executor → 原 EEG 工具
 同一 `psd` 的两个窗口是两个实例；相同工具、实参、输入绑定及依赖语义的完全相同实例可共享已完成结果，但各保留独立 token。事件 `labels/tmin/tmax/baseline` 全部参与 producer scope 哈希，不同 scope 不复用 Epoch。连续质量默认整段；若用户给范围则严格检查两端，不把整段质量冒充窗口质量。明确 raw/processed 来源阶段与当前记录不符时拒绝，不发明另一版本。模型仍必须满足 `tuev_bipolar_22`、256 Hz、已有权重和窗口；资源哈希绑定输入。状态变化后共同核心只失效受影响的实例及后继；独立记录目标可保留。
 
 `evidence_bundle` 由实际 `ToolResult` 与 `GoalEvidence` 构造，每项含 ID、能力、参数、引文、来源/阶段、输入绑定、依赖证据、方法/单位、请求 ID、原始结果、研究限制；任务含未完成目标。仅证据闭合时发布数值，异常返回结构化未完成信息。回答文本只概括目标列表并指向 bundle，不让 LLM 回填自由编造的数值。应用层样张见 `v3_application.py`，临床栏目仍未建立。
+
+当前能力接口须分层阅读：`capability_catalog` 只给当前 Profile、事件存在性、采样率和已配置资源下可由 v3 入口执行的能力，发现时仅检查资源文件存在，不加载权重；`capability_inventory` 区分 `available_v3`、`v3_unavailable_for_current_context`、`internal_prerequisite_only`、`registered_not_migrated_to_v3`。未注册工具/科学目标是真正不支持，不能与旧入口已注册但 v3 未迁移的筛选、重参考混为一谈。当前 8 项为 **v3 实现上限**，并非每份记录都可用 8 项。适配表仍须人工维护，不能宣称任意工具零改动接入。
+
+交付采取整单闭合发布：bundle 记录 expected/published 数和 `publication`。预检或运行期故障时公开 `goals=[]`，所有请求目标列为未发布；运行 trace 仍可用于故障审计，但先成功目标的数值不会被应用误读为整单完成。合成应用入口检查完整计数和无未履行目标。该一致性门是工程安全性，并不证明开放语言解析完备。
 
 ### 明确限制和待检验研究价值
 

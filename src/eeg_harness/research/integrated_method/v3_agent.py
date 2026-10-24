@@ -6,7 +6,7 @@ from dataclasses import replace
 from .intent import _value_supported_by_quote
 from .semantics import concept_quote_is_grounded
 from .v3 import (GoalInstance, InstanceTaskRequest, USER_CAPABILITIES,
-                 capability_catalog, run_instances)
+                 capability_catalog, capability_inventory, run_instances)
 
 
 CAPABILITY_CONCEPTS = {
@@ -39,12 +39,82 @@ def _intent_tool(catalog):
     }}]
 
 
-def _safe_failure(status, code, details):
+def _safe_failure(status, code, details, goal_ids=()):
+    unfulfilled = [{"instance_id": goal_id, "code": code,
+                    "details": details.get(goal_id) if isinstance(details, dict) else None}
+                   for goal_id in goal_ids]
     return {"status": status, "code": code, "details": details,
             "tool_results": [],
             "evidence_bundle": {"schema_version": "1", "status": status,
-                                "goals": [], "unfulfilled_goals": details},
+                                "goals": [], "unfulfilled_goals": unfulfilled,
+                                "expected_goal_count": len(goal_ids), "published_goal_count": 0,
+                                "publication": "none"},
             "answer": "需要澄清或当前能力不支持；未执行 EEG 工具。"}
+
+
+def _quote_occurrences(text, quote):
+    if not isinstance(quote, str) or not quote:
+        return ()
+    source, needle = text.casefold(), quote.casefold()
+    return tuple((index, index + len(needle)) for index in range(len(source))
+                 if source.startswith(needle, index))
+
+
+def _overlaps(first, second):
+    return first[0] < second[1] and second[0] < first[1]
+
+
+def _parameter_ownership_errors(goals, text, previous=(), clarification_start=None):
+    """Require distinct values of one slot to belong to their goal anchors.
+
+    This is a structural span check, not a vocabulary-level intent parser. A
+    shared value (for example a common channel) may be quoted outside both
+    anchors; competing values may not be borrowed from another instance.
+    """
+    errors = {}
+    for goal in goals:
+        own = _quote_occurrences(text, goal.request_quote)
+        for key, value in goal.parameters.items():
+            if key in goal.parameter_sources:
+                continue
+            competitors = [other for other in goals if other is not goal
+                           and key in other.parameters and other.parameters[key] != value]
+            if not competitors:
+                continue
+            quoted = _quote_occurrences(text, goal.parameter_quotes.get(key))
+            anchored = own and quoted and any(
+                _overlaps(anchor, evidence) for anchor in own for evidence in quoted)
+            # A new value supplied in a clarification need not be inside the
+            # frozen original anchor. It is unambiguous only when this is the
+            # sole previously missing slot with that parameter name.
+            uniquely_missing = (previous and all(item is not None for item in previous)
+                                and clarification_start is not None
+                                and sum(item is not None and key not in item.parameters
+                                        for item in previous) == 1
+                                and goal.instance_id in {
+                                    item.instance_id for item in previous
+                                    if item is not None and key not in item.parameters
+                                }
+                                and any(start >= clarification_start for start, _ in quoted))
+            if not anchored and not uniquely_missing:
+                errors.setdefault(goal.instance_id, []).append("parameter_outside_goal_anchor:" + key)
+    return errors
+
+
+def _resume_drift(previous, current, previous_forbidden, current_forbidden):
+    if len(previous) != len(current) or set(previous_forbidden) != set(current_forbidden):
+        return True
+    for before, after in zip(previous, current):
+        if before is None:
+            continue
+        if (before.capability != after.capability
+                or before.request_quote != after.request_quote
+                or before.concept_quote != after.concept_quote
+                or before.source_stage != after.source_stage
+                or any(key not in after.parameters or after.parameters[key] != value
+                       for key, value in before.parameters.items())):
+            return True
+    return False
 
 
 def _decode_arguments(raw):
@@ -69,11 +139,15 @@ class InstanceGoalEEGAgent:
         self.max_tool_calls = max_tool_calls
         self.pending_request = None
         self._pending_capabilities = None
+        self._pending_goals = None
+        self._pending_forbidden = None
         self._awaiting_clarification = False
 
     def run(self, user_request):
         self.pending_request = user_request
         self._pending_capabilities = None
+        self._pending_goals = None
+        self._pending_forbidden = None
         self._awaiting_clarification = False
         return self._attempt(user_request)
 
@@ -92,7 +166,8 @@ class InstanceGoalEEGAgent:
                  "sfreq": record.sfreq, "duration_seconds": record.duration_seconds,
                  "channel_names": list(record.channel_names),
                  "event_labels": [] if record.events is None else list(record.events.summary()["labels"]),
-                 "capabilities": catalog}
+                 "capabilities": catalog,
+                 "capability_status": capability_inventory(self.context)}
         system = (
             "你是 EEG 科学任务编译器。只调用 submit_eeg_goals 一次；列出用户明确要求的所有独立目标，"
             "相同能力的不同参数必须拆成不同 instance_id；不得把内部 create_epochs/list_events 当作用户目标。"
@@ -136,18 +211,26 @@ class InstanceGoalEEGAgent:
                                  {"error_type": type(exc).__name__})
         if unsupported:
             return _safe_failure("rejected", "UNSUPPORTED_REQUEST_ATOMIC_STOP",
-                                 {"unsupported_requests": unsupported})
+                                 {"unsupported_requests": unsupported},
+                                 tuple(f"g{index}" for index in range(1, len(goals) + 1)))
         if not goals or len({goal.instance_id for goal in goals}) != len(goals):
-            return _safe_failure("clarification_required", "INVALID_GOAL_SET", {})
+            return _safe_failure("clarification_required", "INVALID_GOAL_SET", {},
+                                 tuple(f"g{index}" for index in range(1, len(goals) + 1)))
         capabilities = tuple(goal.capability for goal in goals)
         if self._pending_capabilities is not None and capabilities != self._pending_capabilities:
             return _safe_failure("clarification_required", "GOAL_SET_CHANGED_ON_RESUME",
                                  {"expected_capabilities": self._pending_capabilities,
-                                  "observed_capabilities": capabilities})
+                                  "observed_capabilities": capabilities},
+                                 tuple(f"g{index}" for index in range(1, len(goals) + 1)))
         # Stable task-local identity is assigned by the Harness, not entrusted
         # to a model-generated label that may change after clarification.
         goals = tuple(replace(goal, instance_id=f"g{index}")
                       for index, goal in enumerate(goals, 1))
+        if self._pending_goals is not None and _resume_drift(
+                self._pending_goals, goals, self._pending_forbidden, forbidden):
+            return _safe_failure("clarification_required", "GOAL_SET_CHANGED_ON_RESUME",
+                                 {"reason": "Confirmed goal, scope, source or prohibition changed"},
+                                 tuple(goal.instance_id for goal in goals))
         errors = {}
         grounded = []
         revised = []
@@ -198,13 +281,31 @@ class InstanceGoalEEGAgent:
                 revised.append(revised_goal)
         if errors:
             self._pending_capabilities = capabilities
+            self._pending_goals = tuple(next((item for item in revised
+                                              if item.instance_id == goal.instance_id), None)
+                                        for goal in goals)
+            self._pending_forbidden = tuple(forbidden)
             self._awaiting_clarification = True
-            return _safe_failure("clarification_required", "UNGROUNDED_GOAL_OR_PARAMETER", errors)
+            return _safe_failure("clarification_required", "UNGROUNDED_GOAL_OR_PARAMETER", errors,
+                                 tuple(goal.instance_id for goal in goals))
+        ownership_errors = _parameter_ownership_errors(
+            revised, text, self._pending_goals or (),
+            len(self.pending_request) + len("\n补充说明：") if self._awaiting_clarification else None)
+        if ownership_errors:
+            self._pending_capabilities = capabilities
+            self._pending_goals = tuple(None if goal.instance_id in ownership_errors else goal
+                                        for goal in revised)
+            self._pending_forbidden = tuple(forbidden)
+            self._awaiting_clarification = True
+            return _safe_failure("clarification_required", "PARAMETER_GOAL_OWNERSHIP_UNCLEAR",
+                                 ownership_errors, tuple(goal.instance_id for goal in goals))
         result = run_instances(self.context, InstanceTaskRequest(tuple(revised), tuple(forbidden)),
                                max_tool_calls=self.max_tool_calls)
         result["protocol_repair"] = protocol_repair
         if result["status"] == "clarification_required":
             self._pending_capabilities = capabilities
+            self._pending_goals = tuple(revised)
+            self._pending_forbidden = tuple(forbidden)
             self._awaiting_clarification = True
             result["answer"] = "请补充各目标缺失的科学参数：" + json.dumps(result["details"], ensure_ascii=False)
             return result
@@ -213,6 +314,8 @@ class InstanceGoalEEGAgent:
             return result
         self.pending_request = None
         self._pending_capabilities = None
+        self._pending_goals = None
+        self._pending_forbidden = None
         self._awaiting_clarification = False
         result["answer"] = "已完成 " + "、".join(
             f"{item['instance_id']}({item['capability']})" for item in result["evidence_bundle"]["goals"]

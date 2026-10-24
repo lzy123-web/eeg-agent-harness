@@ -6,6 +6,7 @@ import contextlib
 import io
 from pathlib import Path
 import unittest
+from dataclasses import replace
 
 import numpy as np
 from scipy.signal import welch
@@ -18,7 +19,7 @@ from eeg_harness.executor import Executor
 from eeg_harness.pipeline import load_config
 from eeg_harness.profiles import EDF_NATIVE, TUEV_BIPOLAR_22
 from eeg_harness.research.integrated_method.v3 import (
-    GoalInstance, InstanceTaskRequest, capability_catalog, run_instances,
+    GoalInstance, InstanceTaskRequest, capability_catalog, capability_inventory, run_instances,
 )
 from eeg_harness.research.integrated_method.v3_agent import InstanceGoalEEGAgent, _decode_arguments
 from eeg_harness.research.integrated_method.v3_application import render_auxiliary_evidence_note
@@ -70,6 +71,14 @@ class InstanceGoalTests(unittest.TestCase):
         names = {item["name"] for item in capability_catalog(context())}
         self.assertIn("psd", names)
         self.assertNotIn("seizure_detection", names)
+        self.assertNotIn("event_bandpower", names)
+        status = {item["name"]: item["category"] for item in capability_inventory(context())}
+        self.assertEqual(status["psd"], "available_v3")
+        self.assertEqual(status["event_bandpower"], "v3_unavailable_for_current_context")
+        self.assertEqual(status["rereference_epochs"], "registered_not_migrated_to_v3")
+        no_weight = ExecutionContext(build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
+                                     Executor(build_default_registry(), CONFIG), "no-weight-catalog")
+        self.assertNotIn("seizure_detection", {item["name"] for item in capability_catalog(no_weight)})
 
     def test_distinct_task_families_also_run_as_single_goal_requests(self):
         cases = (
@@ -196,6 +205,9 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertIn("合成示例", note)
         self.assertIn(result["evidence_bundle"]["goals"][0]["evidence_token"], note)
         self.assertIn("不构成 ASD 诊断", note)
+        incomplete = dict(result["evidence_bundle"], expected_goal_count=2)
+        with self.assertRaises(ValueError):
+            render_auxiliary_evidence_note(incomplete)
 
     def test_model_missing_resource_and_wrong_profile_rejected_atomically(self):
         no_weight = ExecutionContext(build_synthetic_tuev_record(), TUEV_BIPOLAR_22,
@@ -234,6 +246,35 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertEqual(result["status"], "rejected")
         self.assertEqual(result["tool_results"], [])
         self.assertEqual(ctx.trace.to_dict()["events"], [])
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual(result["evidence_bundle"]["published_goal_count"], 0)
+        self.assertEqual({item["instance_id"] for item in result["evidence_bundle"]["unfulfilled_goals"]},
+                         {"good", "bad"})
+
+    def test_runtime_failure_withholds_every_goal_from_public_bundle(self):
+        ctx = context()
+        registry = ctx.executor.registry
+        original = registry.get("psd")
+        calls = []
+        def handler(record, arguments, config, resources):
+            calls.append(arguments["start"])
+            if arguments["start"] == 2:
+                raise ValueError("injected second-window failure")
+            return original.handler(record, arguments, config, resources)
+        registry._tools["psd"] = replace(original, handler=handler)
+        result = run_instances(ctx, InstanceTaskRequest((
+            goal("first", "psd", channels=["SYNTH-C1"], start=0, end=2),
+            goal("second", "psd", channels=["SYNTH-C1"], start=2, end=4),
+        )), max_retries=0)
+        self.assertNotEqual(result["status"], "completed")
+        bundle = result["evidence_bundle"]
+        self.assertEqual(bundle["publication"], "none")
+        self.assertEqual(bundle["goals"], [])
+        self.assertEqual({item["instance_id"] for item in bundle["unfulfilled_goals"]},
+                         {"first", "second"})
+        self.assertIn(0, calls)
+        self.assertIn(2, calls)
+        json.dumps(result, allow_nan=False)
 
     def test_missing_parameters_clarify_without_execution(self):
         result = run_instances(context(), InstanceTaskRequest((goal("p", "psd", channels=["SYNTH-C1"]),)))
@@ -288,6 +329,105 @@ class InstanceGoalTests(unittest.TestCase):
         self.assertEqual(result["evidence_bundle"]["goals"][0]["instance_id"], "g1")
         self.assertNotIn("raw EEG", json.dumps(fake.messages[0][0], ensure_ascii=False))
         self.assertEqual(len(fake.messages), 2)
+
+    def test_repeated_goal_windows_cannot_borrow_each_others_parameter_quotes(self):
+        request = "请分别计算 SYNTH-C1 的 0 秒到 2 秒和 2 秒到 4 秒的绝对频带功率。"
+        items = []
+        for key, anchor, start, end, quote in (
+            ("a", "0 秒到 2 秒", 2, 4, "2 秒到 4 秒"),
+            ("b", "2 秒到 4 秒", 0, 2, "0 秒到 2 秒"),
+        ):
+            items.append({"instance_id": key, "capability": "psd",
+                          "parameters": {"channels": ["SYNTH-C1"], "start": start, "end": end},
+                          "request_quote": anchor, "concept_quote": "绝对频带功率",
+                          "parameter_quotes": {"channels": "SYNTH-C1", "start": quote, "end": quote}})
+        result = InstanceGoalEEGAgent(FixtureLLM([{
+            "goals": items, "forbidden_operations": [], "unsupported_requests": [],
+        }]), context()).run(request)
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["tool_results"], [])
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual({item["instance_id"] for item in result["evidence_bundle"]["unfulfilled_goals"]},
+                         {"g1", "g2"})
+
+    def test_resume_freezes_all_confirmed_goals_and_forbidden_operations(self):
+        request = ("请测量整段记录质量，不要筛选试次；再计算 SYNTH-C1 0 秒到 2 秒"
+                   "及 2 秒起的两段绝对频带功率。")
+        def item(key, anchor, params, quotes):
+            return {"instance_id": key, "capability": "psd", "parameters": params,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        first = {"goals": [
+            {"instance_id": "q", "capability": "record_quality", "parameters": {},
+             "request_quote": "整段记录质量", "concept_quote": "记录质量", "parameter_quotes": {}},
+            item("early", "0 秒到 2 秒", {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                 {"channels": "SYNTH-C1", "start": "0 秒到 2 秒", "end": "0 秒到 2 秒"}),
+            item("late", "2 秒起", {"channels": ["SYNTH-C1"], "start": 2},
+                 {"channels": "SYNTH-C1", "start": "2 秒起"}),
+        ], "forbidden_operations": ["selection"], "unsupported_requests": []}
+        changed = json.loads(json.dumps(first))
+        changed["goals"][1]["parameters"]["start"] = 2
+        changed["goals"][1]["parameters"]["end"] = 4
+        changed["goals"][1]["parameter_quotes"]["start"] = "2 秒到 4 秒"
+        changed["goals"][1]["parameter_quotes"]["end"] = "2 秒到 4 秒"
+        changed["goals"][2]["parameters"]["end"] = 4
+        changed["goals"][2]["parameter_quotes"]["end"] = "4 秒"
+        changed["forbidden_operations"] = []
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, changed]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段到 4 秒。")
+        self.assertEqual(result["code"], "GOAL_SET_CHANGED_ON_RESUME")
+        self.assertEqual(result["tool_results"], [])
+        self.assertEqual(agent.context.trace.to_dict()["events"], [])
+
+    def test_multi_goal_clarification_fills_only_unique_missing_slot(self):
+        request = "请计算 SYNTH-C1 的 0 秒到 2 秒及 2 秒起两段绝对频带功率，不要筛选试次。"
+        def entry(key, anchor, parameters, quotes):
+            return {"instance_id": key, "capability": "psd", "parameters": parameters,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        early = entry("a", "0 秒到 2 秒", {"channels": ["SYNTH-C1"], "start": 0, "end": 2},
+                      {"channels": "SYNTH-C1", "start": "0 秒到 2 秒", "end": "0 秒到 2 秒"})
+        late = entry("b", "2 秒起", {"channels": ["SYNTH-C1"], "start": 2},
+                     {"channels": "SYNTH-C1", "start": "2 秒起"})
+        payload = lambda second: {"goals": [early, second], "forbidden_operations": ["selection"],
+                                  "unsupported_requests": []}
+        completed_late = json.loads(json.dumps(late))
+        completed_late["parameters"]["end"] = 4
+        completed_late["parameter_quotes"]["end"] = "4 秒"
+        agent = InstanceGoalEEGAgent(FixtureLLM([payload(late), payload(completed_late)]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段到 4 秒。")
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["evidence_bundle"]["expected_goal_count"], 2)
+        self.assertEqual(result["evidence_bundle"]["published_goal_count"], 2)
+        self.assertEqual(len(result["evidence_bundle"]["goals"]), 2)
+
+    def test_resume_rejects_swap_even_when_capability_sequence_is_unchanged(self):
+        request = "请计算 SYNTH-C1 0 秒到 2 秒和 2 秒到 4 秒两段绝对频带功率，第二段通道待补。"
+        def entry(key, anchor, start, end, channels=None):
+            params = {"start": start, "end": end}
+            quotes = {"start": anchor, "end": anchor}
+            if channels:
+                params["channels"] = channels
+                quotes["channels"] = "SYNTH-C1"
+            return {"instance_id": key, "capability": "psd", "parameters": params,
+                    "request_quote": anchor, "concept_quote": "绝对频带功率",
+                    "parameter_quotes": quotes}
+        first = {"goals": [entry("a", "0 秒到 2 秒", 0, 2, ["SYNTH-C1"]),
+                           entry("b", "2 秒到 4 秒", 2, 4)],
+                 "forbidden_operations": [], "unsupported_requests": []}
+        second = json.loads(json.dumps(first))
+        second["goals"][0]["parameters"].update(start=2, end=4)
+        second["goals"][0]["parameter_quotes"].update(start="2 秒到 4 秒", end="2 秒到 4 秒")
+        second["goals"][1]["parameters"].update(start=0, end=2, channels=["SYNTH-C1"])
+        second["goals"][1]["parameter_quotes"].update(start="0 秒到 2 秒", end="0 秒到 2 秒",
+                                                       channels="SYNTH-C1")
+        agent = InstanceGoalEEGAgent(FixtureLLM([first, second]), context())
+        self.assertEqual(agent.run(request)["status"], "clarification_required")
+        result = agent.resume("第二段也是 SYNTH-C1。")
+        self.assertEqual(result["code"], "GOAL_SET_CHANGED_ON_RESUME")
+        self.assertEqual(result["tool_results"], [])
 
     def test_fake_llm_rejects_ungrounded_goal(self):
         fake = FixtureLLM([{"goals": [{"instance_id": "g1", "capability": "amplitude",

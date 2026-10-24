@@ -6,6 +6,8 @@ Issue #26 在独立研究分支新增 opt-in 的多任务共同证据图：连�
 
 Issue #28 的 opt-in v3 让一个自然语言任务包含多个带独立参数/来源的目标实例：同一 PSD 两个窗口不再被同名去重，连续与事件任务仍走同一共享图/Executor，并交付可由应用读取的逐目标 `evidence_bundle`。这只在合成开发例和受限本地模型协议上验证；旧方法与历史实验不改。复现 Fake 协议三案例与自动化测试：
 
+PR #27 阶段审查后，v3 对同名但不同值的参数执行目标引文归属检查，并在澄清续接中锁定已确认目标和禁止操作；不完整任务不发布部分证据。`capability_catalog(context)` 只列当前记录/Profile/资源可通过 v3 执行的能力，`capability_inventory(context)` 另列旧入口已注册但 v3 尚未迁移的工具；不能把“有工具”当成所有 EEG 数据都已验证。
+
 ```powershell
 $env:PYTHONPATH = 'src'
 python -m eeg_harness.research.integrated_method.v3_validation

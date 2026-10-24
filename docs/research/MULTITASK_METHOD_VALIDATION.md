@@ -61,3 +61,9 @@ python -m eeg_harness.research.integrated_method.v3_validation
 四轮真实 DeepSeek 开发检查均为合成 EEG，共 15 completion / 32,066 tokens；首轮双窗误拒、第二轮范围/共指误拒、第三轮 Tool Calling 格式与缺参分类失败、末轮三例完成。各轮原始响应按到达顺序写本地忽略 JSONL；末轮 `deepseek-chat` 请求的四次实际响应均报告 `deepseek-flash`。末轮闭合目标数为双窗 3、混合 3、澄清后 1，实际工具分别为 `record_quality+psd+psd`、`list_events+create_epochs+psd+epoch_quality+event_bandpower`、`psd`，不把必要 producer 算成用户新增目标。此结果不代表未见请求成功率，也不证明相对强专家优势。
 
 本轮末次完整 `unittest discover` 为 **258 tests，OK，14 skipped**（资源/环境可选项）；`compileall`、`pip check` 通过。v3 本地权重启用时 **20/20 OK**。内部必要 `list_events/create_epochs` 可运行，但模型额外提出 `epoch_summary` 且无原文目标证据时整单澄清、零工具调用。`3df256d` 的 GitHub Actions `unit-tests` #169 成功；最后状态同步提交的 CI 需另核对。生成产物不提交。
+
+## PR #27 审查后增量验收（不替换前述 258 项历史检查）
+
+仅使用合成 EEG/Fake，不增加本轮真实 DeepSeek 调用。定向新增反例：两个同类 PSD 目标在首轮互借两个窗口的时间引文，旧实现实际返回 `completed`，修订后 `PARAMETER_GOAL_OWNERSHIP_UNCLEAR` 且零工具调用；缺参续接中删除禁止筛选、变更已确认参数或交换两个同类窗口，返回 `GOAL_SET_CHANGED_ON_RESUME`；保持前两目标与禁止项、只补第二窗口唯一缺失终点时完成。非事件记录的事件能力、未配权重的模型能力不再标为 v3 当前可用，已注册重参考工具标为旧入口未迁移。注入第二 PSD 窗运行失败后，公开 bundle 保持 `goals=[]`、两个目标均列未发布；应用拒绝计数不完整的 bundle。
+
+命令为 `PYTHONPATH=src python -m compileall -q src tests`、`PYTHONPATH=src python -m unittest discover -s tests -q`、`PYTHONPATH=src python -m eeg_harness.research.integrated_method.v3_validation`。当前本地环境 `eegagent` 已执行 compileall、`pip check` 和完整 **263 tests / OK / 14 skipped**（即 249 实际执行无失败）；Fake 固定三例状态为 completed、completed、clarification_required→completed。此为开发集回归，不是未见任务准确率或 CIEDG 对强 Expert 的胜负证据。阶段审查还指出旧历史“258 tests”应读为 244 执行/14 跳过，本文保留原记录并明确解释。

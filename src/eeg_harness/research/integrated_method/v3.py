@@ -70,13 +70,20 @@ class InstanceTaskRequest:
 
 
 def capability_catalog(context):
-    """Expose only capabilities backed by the active registry and Profile."""
+    """Expose only capabilities executable by this entry for this record."""
     catalog = []
     for name in sorted(USER_CAPABILITIES):
         spec = context.executor.registry.get(name)
         if (spec is None or not context.profile.supports_tool(name)
                 or "*" not in spec.compatible_profiles
                 and context.profile.profile_id not in spec.compatible_profiles):
+            continue
+        if name not in MULTITASK_CONTRACTS:
+            continue
+        if (name in EVENT_CAPABILITIES and context.record.events is None
+                or spec.required_sfreq is not None and context.record.sfreq != spec.required_sfreq
+                or any(not Path(context.executor.resources.get(resource, "")).expanduser().is_file()
+                       for resource in spec.required_resources)):
             continue
         catalog.append({
             "name": name, "description": spec.description,
@@ -89,29 +96,49 @@ def capability_catalog(context):
     return catalog
 
 
+def capability_inventory(context):
+    """Distinguish current entry support, migrated-but-blocked, and old-only tools."""
+    active = {item["name"] for item in capability_catalog(context)}
+    entries = []
+    for spec in context.executor.registry.list_specs():
+        if spec.name in active:
+            category = "available_v3"
+        elif spec.name in USER_CAPABILITIES:
+            category = "v3_unavailable_for_current_context"
+        elif spec.name in {"list_events", "create_epochs"}:
+            category = "internal_prerequisite_only"
+        else:
+            category = "registered_not_migrated_to_v3"
+        entries.append({"name": spec.name, "category": category})
+    return entries
+
+
 def _scope_key(parameters):
     scope = {key: parameters[key] for key in EVENT_SCOPE_KEYS if key in parameters}
     serialized = json.dumps(scope, sort_keys=True, ensure_ascii=False, allow_nan=False)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:12]
 
 
-def _failure(context, code, reason, details=None):
+def _failure(context, code, reason, details=None, goals=()):
     status = "clarification_required" if code == "MISSING_PARAMETERS" else "rejected"
+    unfulfilled = [{"instance_id": goal.instance_id,
+                    **(details or {}).get(goal.instance_id, {"code": "ATOMIC_PREFLIGHT_WITHHELD"})}
+                   for goal in goals]
     return {"status": status,
             "code": code, "reason": reason, "details": details or {},
             "context_id": context.task_id, "tool_results": [],
             "evidence_bundle": {"schema_version": "1", "context_id": context.task_id,
                                 "status": status, "goals": [],
-                                "unfulfilled_goals": [
-                                    {"instance_id": key, **value} for key, value in (details or {}).items()
-                                ]}}
+                                "expected_goal_count": len(goals), "published_goal_count": 0,
+                                "publication": "none", "unfulfilled_goals": unfulfilled}}
 
 
 def compile_instances(context, request):
     """Atomically validate all user goals and build per-instance graph contracts."""
     goals = tuple(request.goals)
     if not goals or len({goal.instance_id for goal in goals}) != len(goals):
-        return None, _failure(context, "INVALID_GOAL_INSTANCES", "Goal IDs must be nonempty and unique")
+        return None, _failure(context, "INVALID_GOAL_INSTANCES", "Goal IDs must be nonempty and unique",
+                              goals=goals)
     available = {item["name"] for item in capability_catalog(context)}
     forbidden = _forbidden_tools(request.forbidden_operations)
     contracts, arguments, scopes, reasons = {}, {}, {}, {}
@@ -181,7 +208,8 @@ def compile_instances(context, request):
         preflight_steps.extend(step.to_dict() for step in subplan.steps)
     if reasons:
         code = "MISSING_PARAMETERS" if all(item["code"] == "MISSING_PARAMETERS" for item in reasons.values()) else "GOAL_PREFLIGHT_FAILED"
-        return None, _failure(context, code, "No EEG tool was run; resolve every goal before execution", reasons)
+        return None, _failure(context, code, "No EEG tool was run; resolve every goal before execution",
+                              reasons, goals)
     if scopes:
         contracts["_observe_events"] = GoalContract(
             "_observe_events", "list_events", "consumer", "record", (), 0, False)
@@ -333,11 +361,13 @@ def run_instances(context, request, *, max_retries=1, max_repairs=2, max_tool_ca
                                  "planned_tools": [step["tool_name"] for step in preflight]})
     bundle = {"schema_version": "1", "context_id": context.task_id,
               "status": execution.status, "goals": [],
+              "expected_goal_count": len(request.goals), "published_goal_count": 0,
+              "publication": "none",
               "unfulfilled_goals": [
                   {"instance_id": goal.instance_id,
-                   **execution.evidence_check["goal_status"][goal.instance_id]}
+                   **execution.evidence_check["goal_status"][goal.instance_id],
+                   "publication": "withheld_until_all_goals_close"}
                   for goal in request.goals
-                  if execution.evidence_check["goal_status"][goal.instance_id]["status"] != "satisfied"
               ]}
     if execution.evidence_check["closed"]:
         items = []
@@ -376,6 +406,8 @@ def run_instances(context, request, *, max_retries=1, max_repairs=2, max_tool_ca
             })
         bundle = {"schema_version": "1", "context_id": context.task_id,
                   "status": "completed",
+                  "expected_goal_count": len(request.goals),
+                  "published_goal_count": len(items), "publication": "complete",
                   "record_state": {"source": context.record.source,
                                    "source_stage": context.record.metadata.get("source_stage", "current"),
                                    "reference": context.record.reference,
