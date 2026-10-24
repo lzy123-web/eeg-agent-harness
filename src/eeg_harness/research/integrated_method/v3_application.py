@@ -11,6 +11,11 @@ def render_auxiliary_evidence_note(bundle):
     goals = bundle.get("goals")
     if not isinstance(goals, list) or not goals:
         raise ValueError("Evidence bundle has no completed goals")
+    if (bundle.get("publication") != "complete"
+            or bundle.get("expected_goal_count") != len(goals)
+            or bundle.get("published_goal_count") != len(goals)
+            or bundle.get("unfulfilled_goals")):
+        raise ValueError("Evidence bundle does not account for every requested goal")
     lines = ["# 辅助评估所需分析证据摘要（合成示例）", "",
              "本样张只整理通用 EEG Harness 已完成的测量；不构成 ASD 诊断、严重程度或能力评分。", "",
              f"任务上下文：`{bundle['context_id']}`", ""]
