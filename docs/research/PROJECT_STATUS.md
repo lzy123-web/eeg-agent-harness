@@ -615,4 +615,7 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 - `c531c18`：TGSRG、真实 Agent adapter、评估 CLI 与测试。
 - `895295f`：序列化修复与 regression test，不改变决策。
 - `cda3964`：保留真实原始结果和基础设施失败。
-- 最终文档、回归、远端快照与 CI 信息将在交付提交后补记；Draft PR #18 保持未合并。
+- `efe63c8`：结果、No-Go 判断、README 与项目状态。
+- `ece5a77`：普通 merge 协调远端 Issue #17 快照历史；合并前双方基线 tree 完全一致，未 force push。
+- 研究分支已推送到 Draft PR #18，远端 head `ece5a77`；GitHub Actions `unit-tests`
+  run `40059506114` 成功。PR 保持 Draft、未合并 main。
