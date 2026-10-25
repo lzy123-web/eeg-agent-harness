@@ -281,7 +281,7 @@ def bind_read_scope(session, entry, request, scope):
 
     # Reuse the existing public read guard after object-specific validation.
     parts = [entry.record, "事件" if event else "连续"]
-    if label or len(labels) == 1:
+    if event and (label or len(labels) == 1):
         parts.append(label or labels[0])
     if chosen_channel:
         parts.append(chosen_channel)

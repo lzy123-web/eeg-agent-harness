@@ -252,6 +252,15 @@ class RepairedHandoffTests(unittest.TestCase):
                                     scope("B", "event", [0, 1], condition="click"))
         self.assertEqual(reason, "SCIENTIFIC_SCOPE_MISMATCH")
 
+    def test_event_label_of_other_object_does_not_poison_continuous_read(self):
+        script = self.old["C-mixed"]
+        session, keys = build_same_history(script, 3)
+        query = script["turns"][3]["text"]
+        text, reason = bind_read_scope(session, keys["a_cont"], query,
+                                       scope("A", "continuous", [0, 2]))
+        self.assertIsNone(reason)
+        self.assertNotIn("pulse", text)
+
     def test_scope_negative_matrix_and_ambiguous_multitarget(self):
         script = self.old["C-mixed"]
         session, keys = build_same_history(script, 5)

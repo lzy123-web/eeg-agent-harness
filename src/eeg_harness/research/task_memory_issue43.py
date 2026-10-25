@@ -215,7 +215,18 @@ def _attributed_value(answer, value, step, peers):
     anchors = "|".join(re.escape(record) for record in sorted(records, key=len,
                                                                 reverse=True))
     clauses = []
-    for sentence in re.split(r"[；;。\n]+", answer):
+    # A numbered heading and its following bullet fields form one attribution
+    # block; a Markdown table row remains its own block. Do not concatenate
+    # distinct records across blank paragraphs or semicolon-separated clauses.
+    blocks = []
+    for paragraph in re.split(r"\n\s*\n", answer):
+        if "|" in paragraph and any(line.lstrip().startswith("|")
+                                   for line in paragraph.splitlines()):
+            blocks.extend(paragraph.splitlines())
+        else:
+            blocks.append(paragraph)
+    split_before_record = rf"[；;。]\s*(?=(?:记录\s*)?(?:{anchors})(?![A-Za-z0-9]))"
+    for sentence in (part for block in blocks for part in re.split(split_before_record, block)):
         boundary = rf"[,，、]\s*(?=(?:记录\s*)?(?:{anchors})(?![A-Za-z0-9]))"
         clauses.extend(part.strip() for part in re.split(boundary, sentence)
                        if part.strip())
@@ -241,8 +252,16 @@ def _attributed_value(answer, value, step, peers):
         if need_window and not re.search(
                 rf"(?<!\d){start:g}\s*(?:到|至|[-–—~])\s*{end:g}(?!\d)", clause):
             continue
-        if need_scope and event != bool(re.search(r"事件|试次|epoch|event", clause, re.I)):
-            continue
+        if need_scope:
+            heading = clause.splitlines()[0]
+            if re.search(r"连续|continuous", heading, re.I):
+                clause_event = False
+            elif re.search(r"事件|试次|epoch|event", heading, re.I):
+                clause_event = True
+            else:
+                clause_event = bool(re.search(r"事件|试次|epoch|event", clause, re.I))
+            if event != clause_event:
+                continue
         if event and len(labels) > 1 and not any(
                 label in clause for label in params.get("labels", ())):
             continue
