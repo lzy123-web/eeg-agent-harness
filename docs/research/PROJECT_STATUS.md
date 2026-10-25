@@ -8,7 +8,7 @@
 - 验证：`PYTHONPATH=src python -m compileall -q src tests`；`PYTHONPATH=src python -m pytest -q` → **265 passed、15 skipped**；本轮新增评分/fixture/合法替代计划测试 7/7。独立 NumPy/SciPy 数值 oracle、事件边界/计数核验；质量只核结构、模型只核结构。协议及原始记录 SHA-256、逐例轨迹与层级归因见 `POINT1_COMPOSITION_RESULTS.md`。
 - 研究判断：在现有真实小样本中，未出现反复、跨任务且非 Prompt/引文格式导致的计划组合失败；不满足阶段 C 门槛，故不造新 Planner。v3 是可运行 EEG Harness，额外算法新颖性和相对公平 typed/Expert 的维护成本优势**尚未证实**；`POINT1_COMPOSITION_DECISION.md` 建议 KEEP 系统基础、STOP 此轮算法扩张，工作点一主张与导师 PIVOT/收缩讨论。合成案例/部分 Native 子集不能推断真实 EEG 或总体统计优势。
 - 遗留：开放语言的目标完备性/复杂作用域引用、模型最终回答的数值和单位忠实性、可变换操作尚未迁入 v3、真实 EEG 泛化、完整同预算 Plan-and-Execute 与原 WINGS 对照均未解决。下一步须另立独立协议和最近邻成本核算，不自动进入 ASD、第二工作点或新的事件门控开发。
-- Git：协议 `bd1243f`、执行与测试 `2f80ec8`、逐例报告和替代计划评分修订 `ce9f4ad` 已普通推送至新分支；[Draft PR #35](https://github.com/lzy123-web/eeg-agent-harness/pull/35) 以 PR #27 功能树为 base，保持 Draft、未合并 main。当前状态补记另成纯文档提交；CI 状态以远端工作流实际结果为准。禁止强推、上传本地响应/权重/密钥/真实 EEG。
+- Git：协议 `bd1243f`、执行与测试 `2f80ec8`、逐例报告和替代计划评分修订 `ce9f4ad`、PR 状态补记 `9001838` 已普通推送至新分支；[Draft PR #35](https://github.com/lzy123-web/eeg-agent-harness/pull/35) 以 PR #27 功能树为 base，保持 Draft、未合并 main。[GitHub Actions unit-tests #201](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40162607002) 对 `9001838` 完成并为 `success`。禁止强推、上传本地响应/权重/密钥/真实 EEG。
 
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
