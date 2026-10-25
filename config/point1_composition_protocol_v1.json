@@ -1,0 +1,22 @@
+{
+  "protocol_version": "1.0-frozen-before-real-response",
+  "source_tree": "PR #27 research/multitask-harness-method-v2 fb5b85b",
+  "seed": 3401,
+  "external_llm_max_completions": 24,
+  "external_llm_max_total_tokens": 50000,
+  "max_tokens_per_completion": 1400,
+  "max_tool_calls_per_case": 12,
+  "data_policy": "synthetic-only; no waveform is sent to LLM",
+  "cases": [
+    {"id":"D01","split":"development","fixture":"native_no_events","request":"在 SYNTH-C1 导联分别计算 0 秒至 2 秒、3 秒至 5 秒的绝对频带功率，分开交付两段结果。","gold":[{"capability":"psd","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},{"capability":"psd","parameters":{"channels":["SYNTH-C1"],"start":3,"end":5}}],"expected":"complete","forbid":["create_epochs","seizure_detection"]},
+    {"id":"D02","split":"development","fixture":"native_events","request":"对 stimulus 事件后的 0 到 1 秒试次，给出有效试次数和各频段绝对功率；不筛除试次。","gold":[{"capability":"epoch_summary","parameters":{"labels":["stimulus"],"tmin":0,"tmax":1}},{"capability":"event_bandpower","parameters":{"labels":["stimulus"],"tmin":0,"tmax":1}}],"expected":"complete","forbid":["select_quality_epochs"]},
+    {"id":"D03","split":"development","fixture":"native_no_events","request":"先查看整段记录的信号质量，再分别给出 SYNTH-C2 导联 0 到 2 秒的幅值和 2 到 4 秒的绝对频带功率。","gold":[{"capability":"record_quality","parameters":{}},{"capability":"amplitude","parameters":{"channels":["SYNTH-C2"],"start":0,"end":2}},{"capability":"psd","parameters":{"channels":["SYNTH-C2"],"start":2,"end":4}}],"expected":"complete","forbid":["create_epochs"]},
+    {"id":"D04","split":"development","fixture":"bipolar_22","request":"用现有研究模型分析 FP1-F7 导联 0 到 1 秒片段的癫痫/非癫痫输出，只报告模型输出，不做诊断。","gold":[{"capability":"seizure_detection","parameters":{"channels":["FP1-F7"],"start":0,"end":1}}],"expected":"complete_if_resource_available","forbid":["create_epochs"]},
+    {"id":"D05","split":"development","fixture":"native_no_events","request":"对 SYNTH-C1 导联 0 到 1 秒，使用现有癫痫/非癫痫模型推理。","gold":[],"expected":"safe_stop_profile_incompatible","forbid":["seizure_detection"]},
+    {"id":"D06","split":"development","fixture":"native_events","request":"请计算 stimulus 事件锁定试次的绝对频带功率，但我尚未指定事件相对时间窗。","gold":[],"expected":"clarify_missing_tmin_tmax","forbid":["create_epochs","event_bandpower"]},
+    {"id":"H01","split":"holdout","fixture":"native_events_alt","request":"分别交付 SYNTH-C2 导联 1 到 3 秒的连续绝对频带功率，以及 target 事件后 0 到 1 秒的试次数和 control 事件后 0 到 1 秒的绝对频带功率；三项不要合并作用域。","gold":[{"capability":"psd","parameters":{"channels":["SYNTH-C2"],"start":1,"end":3}},{"capability":"epoch_summary","parameters":{"labels":["target"],"tmin":0,"tmax":1}},{"capability":"event_bandpower","parameters":{"labels":["control"],"tmin":0,"tmax":1}}],"expected":"complete","forbid":["select_quality_epochs"]},
+    {"id":"H02","split":"holdout","fixture":"native_no_events","request":"计算 SYNTH-C1 导联 0 到 2 秒的幅值，并报告 target 事件后 0 到 1 秒的有效试次数；若当前记录没有事件，整单不要发布为完成。","gold":[{"capability":"amplitude","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},{"capability":"epoch_summary","parameters":{"labels":["target"],"tmin":0,"tmax":1}}],"expected":"safe_stop_no_events","forbid":["select_quality_epochs"]},
+    {"id":"H03","split":"holdout","fixture":"bipolar_22","request":"独立给出 FP1-F7 导联 0 到 1 秒的绝对频带功率，并对此窗口运行现有癫痫/非癫痫研究模型；两种证据不能互相替代。","gold":[{"capability":"psd","parameters":{"channels":["FP1-F7"],"start":0,"end":1}},{"capability":"seizure_detection","parameters":{"channels":["FP1-F7"],"start":0,"end":1}}],"expected":"complete_if_resource_available","forbid":["create_epochs"]},
+    {"id":"H04","split":"holdout","fixture":"native_events_edge","request":"测量 late 事件后 0 到 1 秒试次的质量，再计算这些试次的绝对频带功率；如果越过记录末尾，不要虚构试次。","gold":[{"capability":"epoch_quality","parameters":{"labels":["late"],"tmin":0,"tmax":1}},{"capability":"event_bandpower","parameters":{"labels":["late"],"tmin":0,"tmax":1}}],"expected":"safe_stop_zero_valid_epochs","forbid":["select_quality_epochs"]}
+  ]
+}
