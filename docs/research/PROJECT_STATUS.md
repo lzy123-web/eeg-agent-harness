@@ -1,5 +1,11 @@
 # 项目状态
 
+## 2026-10-25 当前阶段：Issue #36 多轮 EEG 任务上下文管理（进行中）
+
+- 从经核验的 PR #27 功能树 `fb5b85b` 创建独立分支 `research/point1-eeg-task-memory`，不改旧 CIEDG、PR #35 或 main。当前目标是成熟 Agent 记忆技术的 EEG 领域适配与公平验证，不是重新发明通用记忆算法，也不回到 Planner/ESOCC。
+- 已核对原始 HiAgent（ACL 2025）、LongMemEval、EEGAgent 与 BrainAgent 的方法边界；下一步先冻结共享多轮接口、独立合成脚本/数值真值及 F/S/G/E 公平对照，再做实现、离线回放和有界真实模型闭环。此条为阶段起点，结果尚未验证。
+- Git：起点为 `fb5b85b`；本轮提交、测试和 Draft PR 待实际完成后补记。
+
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
 - 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。
