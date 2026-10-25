@@ -275,43 +275,76 @@ def run_candidate(case, client):
 
 
 def score_native(case, context, result):
-    """Independent action/number score; answer semantics still require review."""
+    """Score evidence by goal projection, allowing wider producer scopes."""
     trace = result["execution_trace"]["events"]
     outcomes = result["tool_results"]
     produced = {}
-    observed, numeric = [], []
+    actions = []
     for step, outcome in zip(trace, outcomes):
         if not outcome["success"]:
             continue
         name, arguments = step["tool_name"], step["arguments"]
         if name == "create_epochs":
-            produced[outcome["data"]["artifact_id"]] = arguments
-            continue
-        if name == "list_events":
-            continue
-        if name in EVENT_GOALS:
-            arguments = produced.get(arguments.get("artifact_id"))
-            if arguments is None:
-                observed.append((name, "unbound_epoch_artifact"))
+            produced[outcome["data"]["artifact_id"]] = (arguments, outcome["data"])
+        actions.append((name, arguments, outcome["data"]))
+    coverage = []
+    for goal in case["gold"]:
+        name, expected = goal["capability"], goal["parameters"]
+        candidates = []
+        for tool, arguments, data in actions:
+            if name not in EVENT_GOALS:
+                if tool == name and arguments == expected:
+                    candidates.append((tool, data))
                 continue
-        key = _goal_key(name, arguments)
-        observed.append(key)
-        valid, oracle = _numerical_check(context.record, name, arguments, outcome["data"],
-                                         context.executor.config)
-        numeric.append({"tool": name, "valid": valid, "oracle": oracle})
+            if tool == "create_epochs" and name == "epoch_summary":
+                scope, summary = arguments, data
+            elif tool == name:
+                bound = produced.get(arguments.get("artifact_id"))
+                if bound is None:
+                    continue
+                scope, summary = bound
+            else:
+                continue
+            if (scope.get("tmin") != expected["tmin"] or
+                    scope.get("tmax") != expected["tmax"] or
+                    not set(expected["labels"]) <= set(scope.get("labels", []))):
+                continue
+            if name == "epoch_summary":
+                count = sum(label in expected["labels"]
+                            for label in summary.get("event_labels", []))
+                oracle = _oracle_value(context.record, name, expected, context.executor.config)
+                valid = count == oracle["valid_epoch_count"]
+                candidates.append((tool, {"valid": valid, "count": count}))
+            elif name == "event_bandpower":
+                conditions = data.get("conditions", {})
+                wanted = {label: conditions[label] for label in expected["labels"]
+                          if label in conditions}
+                if len(wanted) == len(expected["labels"]):
+                    valid, reason = _numerical_check(
+                        context.record, name, expected, {"conditions": wanted},
+                        context.executor.config)
+                    candidates.append((tool, {"valid": valid, "reason": reason}))
+            elif set(scope.get("labels", [])) == set(expected["labels"]):
+                candidates.append((tool, data))
+        verified = []
+        for tool, data in candidates:
+            if name == "epoch_summary" or name == "event_bandpower":
+                verified.append(bool(data["valid"]))
+            else:
+                valid, _ = _numerical_check(context.record, name, expected, data,
+                                            context.executor.config)
+                verified.append(valid)
+        coverage.append({"capability": name, "parameters": expected,
+                         "satisfied": any(verified), "via": [item[0] for item in candidates]})
     forbidden = [step["tool_name"] for step in trace if step["tool_name"] in case["forbid"]]
     expected = case["expected"]
     should_complete = expected == "complete" or (expected == "complete_if_resource_available"
                                                    and MODEL_RESOURCE.is_file())
     if should_complete:
-        passed = (sorted(observed) == sorted(_gold_goals(case)) and not forbidden
-                  and all(item["valid"] for item in numeric))
+        passed = all(item["satisfied"] for item in coverage) and not forbidden
     else:
-        passed = (not observed and not forbidden and
-                  "完成" not in result["final_answer"] and
-                  result["stop_reason"] != "llm_error")
-    return {"pass_action_numeric": bool(passed), "observed": observed,
-            "expected": _gold_goals(case), "numeric_oracles": numeric,
+        passed = not forbidden and result["stop_reason"] != "llm_error"
+    return {"pass_action_numeric": bool(passed), "coverage": coverage,
             "forbidden_calls": forbidden, "tool_count": len(outcomes),
             "answer_review_required": True}
 

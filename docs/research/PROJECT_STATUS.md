@@ -1,5 +1,15 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #34 未预置组合任务的真实判别（独立分支）
+
+- 阶段/范围：在 `research/point1-composition-generalization` 从 PR #27 功能树 `fb5b85b` 新建独立分支；未修改 PR #27/#31/#33、main、冻结 CIEDG、原 EEG 数值工具或 v3 方法。协议 `POINT1_COMPOSITION_PROTOCOL.md` / JSON 在首次真实响应前提交 `bd1243f`；执行器/独立 oracle/typed Expert 近似与测试提交 `2f80ec8`。不启动候选新 Planner。
+- 实际能力与资源：10 条确定性合成请求（开发 6、holdout 4），含连续双窗/质量/幅值/PSD、两标签事件计数/条件功率、合成 22 导已存癫痫模型、Profile 不兼容、缺参、无事件和 Epoch 边界停止。本地复用原 EEGAgent 现存 `seiz&normal.pth`，不提交权重或个人路径；模型只检输入契约及输出形状/有限值，不解释临床性能。旧版筛选/重参考仍不属于 v3 可用目标。
+- 真实 DeepSeek：请求名 `deepseek-chat`，响应均报告 `deepseek-flash`；累计 **23 completions / 49,411 tokens**，低于 Issue 的 24/50,000 限额；只发送合成元信息及必要工具结果，原始响应/轨迹保存在被忽略的本地 `artifacts/point1_composition/`，未上传。v3 开发 5/6 达到预定完成/安全停止，holdout 4/4；D02 因模型用省略号拼接原文引用而安全误拒（0 工具），非已证明的依赖规划缺陷。Native 实际只覆盖 D01/D02/D05/D06/H01/H02，D06 被预算截尾；D02 答案把积分功率误写为谱密度单位，D05 作无关事件检查并给出错误的模型需 Epoch 理由。H01 Native 的合并 producer 计划合法，首次评分器误判已通过追加投影审计修复并保留原始 false，未重试 holdout。Strong Expert/typed 近似以结构化真值起步，8 个非空目标案例均合法完成/停止，D05/D06 N/A，非自然语言端到端对照；WINGS 与 Plan-and-Execute 软件未运行。
+- 验证：`PYTHONPATH=src python -m compileall -q src tests`；`PYTHONPATH=src python -m pytest -q` → **265 passed、15 skipped**；本轮新增评分/fixture/合法替代计划测试 7/7。独立 NumPy/SciPy 数值 oracle、事件边界/计数核验；质量只核结构、模型只核结构。协议及原始记录 SHA-256、逐例轨迹与层级归因见 `POINT1_COMPOSITION_RESULTS.md`。
+- 研究判断：在现有真实小样本中，未出现反复、跨任务且非 Prompt/引文格式导致的计划组合失败；不满足阶段 C 门槛，故不造新 Planner。v3 是可运行 EEG Harness，额外算法新颖性和相对公平 typed/Expert 的维护成本优势**尚未证实**；`POINT1_COMPOSITION_DECISION.md` 建议 KEEP 系统基础、STOP 此轮算法扩张，工作点一主张与导师 PIVOT/收缩讨论。合成案例/部分 Native 子集不能推断真实 EEG 或总体统计优势。
+- 遗留：开放语言的目标完备性/复杂作用域引用、模型最终回答的数值和单位忠实性、可变换操作尚未迁入 v3、真实 EEG 泛化、完整同预算 Plan-and-Execute 与原 WINGS 对照均未解决。下一步须另立独立协议和最近邻成本核算，不自动进入 ASD、第二工作点或新的事件门控开发。
+- Git：协议 `bd1243f`、执行与测试 `2f80ec8`；本轮最终报告/状态/追加评分修订提交及 Draft PR 的编号、推送与 CI 状态在交付时补记。禁止强推、合并 main、上传本地响应/权重/密钥/真实 EEG。
+
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
 - 当前阶段：暂停功能开发，审查通用多任务 EEG Harness 的工作点一研究问题、先行方法重合、已有证据与方向决策；审查基点为 Draft PR #27 的 `c1edcb1`。新增 `POINT1_METHOD_RESEARCH_REVIEW.md`，与导师讨论前不启动下一方法版本。

@@ -73,6 +73,24 @@ class CompositionEvaluationTests(unittest.TestCase):
         result["execution_trace"]["events"] = result["execution_trace"]["events"][:1]
         self.assertFalse(score_native(case, context, result)["pass_action_numeric"])
 
+    def test_native_combined_epoch_producer_is_legal_alternative_plan(self):
+        from eeg_harness.tooling import ToolRequest
+
+        case = self.cases["H01"]
+        context = new_context(case, "test-native-combined")
+        psd = context.execute(ToolRequest("psd", case["gold"][0]["parameters"], "n1"))
+        producer = context.execute(ToolRequest("create_epochs", {
+            "labels": ["target", "control"], "tmin": 0, "tmax": 1}, "n2"))
+        power = context.execute(ToolRequest("event_bandpower", {
+            "artifact_id": producer.data["artifact_id"]}, "n3"))
+        result = {"execution_trace": context.trace.to_dict(),
+                  "tool_results": [psd.to_dict(), producer.to_dict(), power.to_dict()],
+                  "final_answer": "按标签分别报告", "stop_reason": "completed"}
+        score = score_native(case, context, result)
+        self.assertTrue(score["pass_action_numeric"], score)
+        self.assertEqual([item["satisfied"] for item in score["coverage"]],
+                         [True, True, True])
+
 
 if __name__ == "__main__":
     unittest.main()
