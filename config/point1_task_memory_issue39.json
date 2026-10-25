@@ -3,6 +3,10 @@
   "development_session_ids": ["N-medium"],
   "confirmation_session_ids": ["C-short", "C-long"],
   "policies": ["F", "S", "H", "HE"],
+  "confirmation_schedule": {
+    "C-short": ["F", "S", "H", "HE"],
+    "C-long": ["H", "HE", "F", "S"]
+  },
   "max_external_completions": 160,
   "max_external_tokens": 300000,
   "planned_allocation": {

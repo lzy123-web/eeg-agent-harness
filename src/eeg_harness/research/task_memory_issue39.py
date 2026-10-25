@@ -105,16 +105,24 @@ def run_phase(phase, *, policies=None):
 
     if phase == "smoke":
         rows = _smoke(client, save)
+    elif phase == "confirmation":
+        if policies is not None:
+            raise ValueError("Confirmation arm order is frozen in the protocol")
+        rows = []
+        for script in spec["confirmation_sessions"]:
+            batch = run_paired_v3(
+                {"sessions": [script]}, client,
+                policies=tuple(spec["confirmation_schedule"][script["id"]]),
+                deliver_answer=True, save=lambda current: save(rows + current))
+            rows.extend(batch)
+            if any(item["outcome"]["status"] == "llm_error" for item in batch):
+                break
     else:
-        if phase == "confirmation":
-            scripts = spec["confirmation_sessions"]
-            arms = policies or tuple(spec["policies"])
-        else:
-            original = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
-            scripts = [script for script in original["sessions"]
-                       if script["id"] in spec["development_session_ids"]]
-            arms = policies or (("H", "HE") if phase == "revision"
-                                else tuple(spec["policies"]))
+        original = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+        scripts = [script for script in original["sessions"]
+                   if script["id"] in spec["development_session_ids"]]
+        arms = policies or (("H", "HE") if phase == "revision"
+                            else tuple(spec["policies"]))
         rows = run_paired_v3({"sessions": scripts}, client, policies=arms,
                              deliver_answer=True, save=save)
     save(rows)

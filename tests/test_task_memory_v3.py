@@ -78,6 +78,9 @@ class TaskEpisodeTests(unittest.TestCase):
         self.assertEqual(direct["archive_count"], 7)
         self.assertTrue(direct["summary_triggered"])
         self.assertEqual(len(direct["payload"]["completed_index"]), 7)
+        self.assertTrue(all("result_preview" not in card
+                            and card["read_task_id"] == card["task_id"]
+                            for card in direct["payload"]["working_tasks"]))
         groups = adapted["payload"]["scientific_object_groups"]
         lineage = [group for group in groups
                    if {keys["a_power_old"].task_id, keys["a_power_new"].task_id}

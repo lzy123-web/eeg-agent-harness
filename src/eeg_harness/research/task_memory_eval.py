@@ -99,7 +99,7 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                     client.set_context(session_id=script["id"], policy=policy,
                                        turn_index=index, kind=kind)
                 before_requests = getattr(client, "request_count", None)
-                before_tokens = getattr(client, "total_usage", {}).get("total_tokens")
+                before_tokens = getattr(client, "total_usage", {}).get("total_tokens", 0)
                 started = time.perf_counter()
                 try:
                     item = live_turn_v3(session, policy, expected["text"], client,

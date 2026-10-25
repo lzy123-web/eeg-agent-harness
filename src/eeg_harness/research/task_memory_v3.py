@@ -7,7 +7,7 @@ HiAgent's LLM subgoal generator or learned/proactive summarizer.
 import json
 
 from .task_memory import MultiTurnEEGSession, live_turn
-from .task_memory_v2 import (_full_card, _scalar_paths, score_read_semantics,
+from .task_memory_v2 import (_full_card, score_read_semantics,
                              select_context_v2, build_protocol_session,
                              parse_visible_query)
 from .integrated_method.v3 import EVENT_CAPABILITIES
@@ -138,7 +138,9 @@ def _summary(entry):
             "unit_or_kind": entry.evidence["unit_or_kind"],
             "analysis_configuration": entry.evidence["analysis_configuration"],
             "evidence_token": entry.evidence["evidence_token"],
-            "result_fields": ["/".join(path) for path in _scalar_paths(entry.result)][:24],
+            # An index advertises the result schema, not every scalar in an
+            # artifact/trace. Exact values and nested fields stay in read_task.
+            "result_fields": sorted(entry.result),
             "read_task_id": entry.task_id}
 
 
@@ -217,7 +219,12 @@ def select_context_v3(session, text, policy, *, top_k=3):
                "active_task": _active_card(session),
                "completed_index": [session.task_summaries[entry.task_id]
                                    for entry in archived],
-               "working_tasks": [_full_card(by_id[task_id]) for task_id in chosen],
+               # Route with task abstracts; numerical evidence is restored by
+               # the common read_task interface after the model selects an ID.
+               # Sending complete tool results here defeated task compression.
+               "working_tasks": [{**session.task_summaries[task_id],
+                                  "request": by_id[task_id].user_text}
+                                 for task_id in chosen],
                "focused_evidence": ({**_full_card(focus),
                                      "tool_trace": list(focus.tool_trace)} if focus else None),
                "read_interface": "read_task(task_id)"}
