@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-26 完成：Issue #43 统一证据交接与完整任务交付
+
+- 阶段/范围：沿用 `research/point1-eeg-task-memory` / Draft PR #37；工作点一既定 HiAgent 启发 EEG 任务上下文路线，不改旧 CIEDG、Issue #42 历史成绩、EEG Executor/数值算法，不开发第二工作点或 ASD 报告。已安全 `git fetch`，起点本地/远端均为 `5dca165`、无分叉。
+- 代码：新增 `task_memory_evidence.py` 的规范字段路径、首轮精确值＋成功读回有界集合、来源/记录/参数版本/单位去重与冲突拒绝、结构化多对象科学范围绑定；新增 `task_memory_issue43.py` 的 F/S/HC 统一历史回答、最终输入可见性评分、真实工具完整流程及追加审计 CLI。旧 `task_memory_issue42.py` 仅增加可选 handler/scorer 注入，默认历史入口与旧结果不变。公共修复不归 HC 独有。`config/point1_task_memory_issue43.json` 与协议在模型输出前冻结，旧 C-mixed 用作开发反例，新 N-continuous/N-mixed 用作确认。
+- 验证与结果：`PYTHONPATH=src python -m eeg_harness.research.task_memory_issue43 --offline` 使用真实 Registry/Executor 完成新两流程 3＋4 项合成 EEG 分析，独立原样本 oracle 均吻合。消息级旧路径反例与新路径十余种范围/部分读取/去重/失败测试通过。真实 DeepSeek 仅接收合成 EEG 必要元信息/结果：请求 `deepseek-chat`，**37/37 响应报告 `deepseek-flash`**；独立账本 **37/80 completion、82,393/180,000 tokens**（输入 73,410、输出 8,983；0 未结算）。开发旧/新 7 calls/16,330 tokens；新确认 30/66,063。原始响应、账本、首次失败只在 Git 忽略的 `artifacts/point1_task_memory/issue43/`，确认文件 SHA-256 `0372f7893659793262c8e386336e2e7abda3f073c952584b6459c7476d8eccb3`。
+- 完整任务：N-continuous F/S/HC 严格自动均 4/4，但 HC 把未修订 B 标为新版并错误称直接可见值“已读取”，人工不记完全忠实；N-mixed F 5/5，S 原严格 4/5 但同科学对象事件功率中的有效计数 `3` 可替代专用计数条目（追加等价证据审计＋人工核查，原分不改），HC 4/5 且末轮因模型三次提供用户未请求的 `version:new` 被守卫拒绝、仅安全部分答复。不能把部分答复当完整成功。详见 `EEG_TASK_MEMORY_ISSUE43_RESULTS.md`。
+- 测试命令：`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest tests.test_task_memory_issue43 -v`、`python -m unittest discover -s tests -q`、`git diff --check`；全部通过，**355 tests（340 pass、15 resource-gated skip、0 fail）**，定向 18/18。代码/协议分阶段提交 `58ddaf3`、`2c98828`、`046e5cb`；确认后仅追加审计与测试 `8e0f5e3`，未改原评分或方法。最终文档提交、普通 push、GitHub CI 和 Issue/PR 评论待本阶段收尾留痕。不合并 main、不强推。
+- 研究判断/边界：保留不可变任务历史＋公共科学证据交接，以强 S 作简单默认，HC 可选，HE 不扩展。整体是成熟任务记忆思想的 EEG 领域适配；公共交接修复是工程正确性。两条合成新流程未证明 HC 相对强 S 的稳定论文独立增量、开放语言范围完备性、真实 EEG 泛化或临床意义。下一步仅在导师审查此贡献定位和样本边界后定，不自动追加收费实验、Prompt 特例或第二方向。
+
 ## 2026-10-26 完成：Issue #42 任务记忆定型与完整工作流验收
 
 - 当前阶段：继续 Draft PR #37 / `research/point1-eeg-task-memory` 的 HiAgent 启发多轮 EEG 上下文路线，**本阶段已完成并停止**。旧 CIEDG、H/HE 和全部历史实验不变；没有第二工作点、ASD 报告、新 Planner 或新 EEG 数值工具。

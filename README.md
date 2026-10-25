@@ -1,6 +1,6 @@
 # EEG Agent Harness
 
-> Issue #42（Draft PR #37）已冻结并运行完整 EEG 任务记忆验收：合成 EEG 的连续双记录/参数修订任务 F/S/HC 均 6/6；事件—连续交错任务分别 3/6、4/6、5/6（修正通用评分器的逗号拆句误拒后）。HC 在连续任务比强 S 略省 556 tokens，但混合任务更多调用、token、延迟且中途漏报，**无稳定独立优势**。本轮真实 DeepSeek 52 calls / 98,029 tokens，请求 `deepseek-chat`、实际报告 `deepseek-flash`。推荐保留不可变任务历史、来源/版本/范围守卫，以强 S 为简单默认；HC 仅选用，勿将其包装成已证创新。见[冻结协议](docs/research/EEG_TASK_MEMORY_ISSUE42_PROTOCOL.md)与[逐例结论](docs/research/EEG_TASK_MEMORY_ISSUE42_RESULTS.md)。离线入口：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue42 --offline`。
+> Issue #43（Draft PR #37）把已见精确结果与新读回结果统一交接给末轮回答，并统一字段路径和多对象科学范围校验。离线真实工具/独立 oracle 与 17 项定向测试通过；有界合成 DeepSeek 共 37 calls / 82,393 tokens。新连续完整任务 S/HC/F 严格初筛均 4/4，但 HC 的版本/过程措辞不忠实；新事件＋连续任务 F 5/5、S 原严格 4/5（有同范围有效计数替代证据，人工核查完整）、HC 4/5 且安全部分答复。旧 Issue #42 结果保留；强 S 仍为简单默认，HC 独立优势未证。见[协议](docs/research/EEG_TASK_MEMORY_ISSUE43_PROTOCOL.md)与[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE43_RESULTS.md)。离线入口：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue43 --offline`。
 
 > Issue #41（Draft PR #37）在原任务记忆上新增小型真实结果内联、较大结果字段索引与全臂共用的按需精确读回。独立合成确认四问 F/S/H/HC 严格有效分别 3/4、4/4、3/4、4/4；HC 与强 S 均 5 次调用，分别 10,030/10,416 实际 API tokens，但 HC 墙钟延迟更高。连续及事件短闭环 S/HC 均正确，HC 成本反高；事件闭环是明确标注的协议后补充，不能混成主确认。请求 `deepseek-chat`，实际返回 `deepseek-flash`；Issue #41 独立阶段累计 59 completion / 123,623 tokens，已停止。原始失败及评分器追加审计均保留。见[冻结协议](docs/research/EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md)和[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE41_RESULTS.md)。无付费复验：`$env:PYTHONPATH='src'; python -m unittest tests.test_task_memory_issue41 -q`。
 
