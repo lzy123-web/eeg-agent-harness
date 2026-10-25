@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-25 当前更新：PR #37 阶段审查后的任务记忆 v2（离线设计验收）
+
+- 按 [审查意见](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6395350899) 保留 Issue #36 的公共多轮接口与旧 v1 结果；先冻结 `point1_task_memory_protocol_v2.json` 和中文协议，再实现独立 v2 选择器。原协议、96 次真实 DeepSeek 响应、旧失败与冻结 CIEDG 均未修改；本轮**新增付费调用 0 次**。
+- 方法：任务级不可变历史仍经原 v3/Registry/Executor；S 的完成任务摘要在 6/10 项历史下实际归档 3/7 条，保留真实结果读取 ID。G 有通用文本/字段、记录、显式时间与修订版本检索；E 仅加从真实记录/事件元信息得到的 EEG 通道、事件标签和科学范围排序。`cue/rest/target/standard` 只在合成协议和 EventSet 中，检索核心不写死数据集标签。全臂工作卡共同披露已有来源、来源阶段、单位和配置；不把 HiAgent-inspired 轻量索引称为原论文算法复现。
+- 运行：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v2`。3/6/10 项真实工具任务对应 2/3/5 个追问；F/S 所需目标均可读，G/E/E−science 的 10/10 查询目标均进 top-3 且 top-1 正确。中/长历史已真实触发 top-3 选择和 S 摘要，F 未截断。G 与 E 持平，E 中/长平均工作上下文字符还分别多 213/125；无 EEG 独立收益证据。评分用公共 `read_task` 核对记录、能力、范围、修订、来源、单位及独立 NumPy/SciPy 重算数值；相同 task ID 但错误内容判错。旧 M6 的 analyze/switch 错误归为公共动作失败，本轮 Fake 接口 smoke 通过但**没有真实模型复验或修复该失误**。
+- 实际验证：在现有 `eegagent` 环境执行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**290 tests：275 通过、15 resource-gated skipped、0 失败**。v2 定向 9 项通过。生成的回放 JSON 只在 Git 忽略的本地 `artifacts/point1_task_memory/`，未提交密钥、真实 EEG 或模型权重。
+- 研究判断：v2 使摘要/选择机制真正受测，仍只是**离线共享历史**；不能以此宣称 F/S 的真实问答能力、E 优于强 G 或论文贡献已成立。下一阶段若获新预算，先按 `EEG_TASK_MEMORY_PROTOCOL_V2.md` 的分层清单做四臂同历史真实读取和 G/E 多轮闭环，逐臂计入写入、摘要、检索、读取与回答成本；不自动执行。
+- Git：独立分支 `research/point1-eeg-task-memory`，Draft PR #37，base 为 PR #27 功能分支；`a5164e1` 冻结 v2 设计/协议，`735b6d2` 公共摘要、强通用基线、EEG 作用域检索与语义测试。结果/状态文档提交及普通推送待本轮收尾核验；不合并 main、不强推。
+
 ## 2026-10-25 当前阶段：Issue #36 多轮 EEG 任务上下文管理（本轮研究验证结束）
 
 - 从经核验的 PR #27 功能树 `fb5b85b` 创建独立分支 `research/point1-eeg-task-memory`；未修改旧 CIEDG、PR #35 或 main。核对 HiAgent、LongMemEval、EEGAgent、BrainAgent 原始来源后，冻结 6 条合成多轮脚本及开发/验证切分；明确本研究为成熟记忆技术的 EEG 适配而非新通用算法。

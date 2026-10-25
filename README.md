@@ -2,10 +2,14 @@
 
 > Issue #36 的独立研究分支新增 opt-in 多轮 EEG 任务上下文原型：按真实分析任务保存不可变历史、记录/事件作用域与参数修订，F（完整历史）、S（通用摘要）、G（强通用任务记忆）、E（EEG 作用域适配）共用同一工具/读取接口。合成短会话中 G/E 均能完成核心分析，E 的独立端到端收益**尚未证实**。见 [设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[冻结协议](docs/research/EEG_TASK_MEMORY_PROTOCOL.md)、[逐例结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)和[研究判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 的回放与定向测试：
 
+PR #37 审查后追加 v2 离线协议：3/6/10 条由真实工具执行的有效历史，6/10 条时摘要和 top-3 选择确实触发；G 已具通用时间/版本检索，事件标签来自合成记录元信息。离线 G/E 均在全部 10 个查询中 top-1 取对，**不能据此宣称真实模型或 EEG 附加排序胜出**。冻结范围、逐例语义评分和下一阶段未授权预算见 [v2 协议](docs/research/EEG_TASK_MEMORY_PROTOCOL_V2.md)与[结果追加](docs/research/EEG_TASK_MEMORY_RESULTS.md)。本轮不调用付费模型。
+
 ```powershell
 $env:PYTHONPATH = 'src'
 python -m eeg_harness.research.task_memory_eval --mode replay
+python -m eeg_harness.research.task_memory_eval --mode replay-v2
 python -m unittest tests.test_task_memory -q
+python -m unittest tests.test_task_memory_v2 -q
 ```
 
 真实模型入口可加 `--mode real --sessions M1 --policies G E --max-requests 20 --max-total-tokens 50000 --final-answer`，但**本轮既定 96 次外部调用预算已经用尽**，此命令仅供另行批准预算后的复现；只允许合成 EEG，密钥从环境变量读取，原始响应写入被 Git 忽略的本地目录。不能把首次失败后的开发复测当成独立未见成绩。
