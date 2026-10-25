@@ -522,6 +522,37 @@ def _sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def audit_saved_pairing(path):
+    """Re-score immutable development/confirmation rows after parser fixes.
+
+    This does not re-run the model, change a scientific oracle, or alter the
+    original score embedded in the saved artifact.
+    """
+    path = Path(path)
+    saved = json.loads(path.read_text(encoding="utf-8"))
+    phase = saved.get("phase")
+    if phase not in {"development", "confirmation"}:
+        raise ValueError("Only paired history-answer artifacts can be audited")
+    spec = load_spec()
+    sources = _sources(spec)
+    items = {f"{phase}:{item['source']}:{item['session']}:{item['query_index']}": item
+             for item in spec[phase]}
+    audited = []
+    for row in saved["rows"]:
+        item = items[row["unit_id"]]
+        script = sources[item["source"]][item["session"]]
+        session, keys = build_session(script)
+        observed = deepcopy(row["observed"])
+        observed["selection"] = select_context41(session, row["query"], row["policy"])
+        rescored = score_turn(session, script, script["queries"][item["query_index"]],
+                              keys, observed)
+        audited.append({"unit_id": row["unit_id"], "policy": row["policy"],
+                        "original_valid_screen": row["score"]["valid_screen"],
+                        "audited_valid_screen": rescored["valid_screen"],
+                        "audited_category": rescored["category"]})
+    return {"input_sha256": _sha(path), "phase": phase, "audited_rows": audited}
+
+
 def run_phase(phase):
     spec = load_spec()
     path = _new_output(phase)
@@ -557,7 +588,11 @@ def main(argv=None):
     parser.add_argument("--phase", choices=("development", "confirmation", "closed"))
     parser.add_argument("--enable-paid-issue41", action="store_true")
     parser.add_argument("--ledger-status", action="store_true")
+    parser.add_argument("--audit-file", type=Path)
     args = parser.parse_args(argv)
+    if args.audit_file is not None:
+        print(json.dumps(audit_saved_pairing(args.audit_file), ensure_ascii=False))
+        return
     if args.ledger_status:
         print(json.dumps(ledger_totals(LEDGER), ensure_ascii=False))
         return

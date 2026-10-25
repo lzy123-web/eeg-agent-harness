@@ -1,5 +1,7 @@
 # EEG Agent Harness
 
+> Issue #41（Draft PR #37）在原任务记忆上新增小型真实结果内联、较大结果字段索引与全臂共用的按需精确读回。独立合成确认四问 F/S/H/HC 严格有效分别 3/4、4/4、3/4、4/4；HC 与强 S 均 5 次调用，分别 10,030/10,416 实际 API tokens，但 HC 墙钟延迟更高。短自然语言闭环 S/HC 均 4/4，HC 成本反高；不能宣称候选优于通用摘要。请求 `deepseek-chat`，实际返回 `deepseek-flash`；Issue #41 独立阶段累计 50 completion / 106,482 tokens，已停止。原始失败及评分器追加审计均保留。见[冻结协议](docs/research/EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md)和[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE41_RESULTS.md)。无付费复验：`$env:PYTHONPATH='src'; python -m unittest tests.test_task_memory_issue41 -q`。
+
 > Issue #39（Draft PR #37）现已对 HiAgent 启发的任务记忆做真实 DeepSeek＋合成 EEG 四臂初评与独立确认。短链 F/S/H/HE 均 3/3；长链 H 6/8、HE 5/8、F 5/8，S 因跨运行 300,000-token 硬预算在第 3 轮前停止，**不能得出完整长链四臂优劣结论**。HE 的 EEG 对象/版本附加组织尚无可归因收益，不宣称论文创新已证。全部新阶段 126 completion / 292,532 tokens，请勿自动续跑。见 [冻结与版本化协议](docs/research/EEG_TASK_MEMORY_ISSUE39_PROTOCOL.md)、[逐例及成本](docs/research/EEG_TASK_MEMORY_ISSUE39_RESULTS.md)、[阶段判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 可复验旧/压缩版：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3 --memory-variant original|optimized`（实际执行时二选一）。
 
 > Issue #36 的独立研究分支新增 opt-in 多轮 EEG 任务上下文原型：按真实分析任务保存不可变历史、记录/事件作用域与参数修订，F（完整历史）、S（通用摘要）、G（强通用任务记忆）、E（EEG 作用域适配）共用同一工具/读取接口。合成短会话中 G/E 均能完成核心分析，E 的独立端到端收益**尚未证实**。见 [设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[冻结协议](docs/research/EEG_TASK_MEMORY_PROTOCOL.md)、[逐例结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)和[研究判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 的回放与定向测试：

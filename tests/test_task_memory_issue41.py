@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 from eeg_harness.research.task_memory_issue39_budget import StageBudgetExhausted
 from eeg_harness.research.task_memory_issue41 import (
-    LEDGER, _admit_pair, _number_in_answer, _sources, build_session, load_spec, protocol_records41,
+    LEDGER, _admit_pair, _number_in_answer, _sources, audit_saved_pairing,
+    build_session, load_spec, protocol_records41,
     result_view, same_history_turn, score_turn, select_context41,
 )
 
@@ -228,6 +229,29 @@ class Issue41Tests(unittest.TestCase):
                                             "context": {"unit_id": "development:v2:N-short:0"}}))
                 with self.assertRaises(StageBudgetExhausted):
                     _admit_pair(self.spec, "development", "development:v2:N-short:0")
+
+    def test_saved_pair_audit_does_not_rewrite_original_score(self):
+        script = self.scripts["C-continuous"]
+        session, keys = build_session(script)
+        query = script["queries"][0]
+        task = keys["a_amp_old"]
+        row = {"unit_id": "confirmation:issue41:C-continuous:0", "policy": "HC",
+               "query": query["text"],
+               "observed": {"status": "answered", "action": {"operation": "answer",
+                            "task_id": task.task_id,
+                            "answer": f"A 旧窗口 RMS {task.result['SYNTH-C1']['rms']} V"},
+                            "answer": f"A 旧窗口 RMS {task.result['SYNTH-C1']['rms']} V",
+                            "read": None},
+               "score": {"valid_screen": False}}
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "paired.json"
+            raw = {"phase": "confirmation", "rows": [row]}
+            path.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+            before = path.read_bytes()
+            audit = audit_saved_pairing(path)
+            self.assertEqual(path.read_bytes(), before)
+            self.assertFalse(audit["audited_rows"][0]["original_valid_screen"])
+            self.assertTrue(audit["audited_rows"][0]["audited_valid_screen"])
 
 
 if __name__ == "__main__":
