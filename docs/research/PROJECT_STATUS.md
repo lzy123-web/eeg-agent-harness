@@ -7,7 +7,7 @@
 - 运行：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v2`。3/6/10 项真实工具任务对应 2/3/5 个追问；F/S 所需目标均可读，G/E/E−science 的 10/10 查询目标均进 top-3 且 top-1 正确。中/长历史已真实触发 top-3 选择和 S 摘要，F 未截断。G 与 E 持平，E 中/长平均工作上下文字符还分别多 213/125；无 EEG 独立收益证据。评分用公共 `read_task` 核对记录、能力、范围、修订、来源、单位及独立 NumPy/SciPy 重算数值；相同 task ID 但错误内容判错。旧 M6 的 analyze/switch 错误归为公共动作失败，本轮 Fake 接口 smoke 通过但**没有真实模型复验或修复该失误**。
 - 实际验证：在现有 `eegagent` 环境执行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**290 tests：275 通过、15 resource-gated skipped、0 失败**。v2 定向 9 项通过。生成的回放 JSON 只在 Git 忽略的本地 `artifacts/point1_task_memory/`，未提交密钥、真实 EEG 或模型权重。
 - 研究判断：v2 使摘要/选择机制真正受测，仍只是**离线共享历史**；不能以此宣称 F/S 的真实问答能力、E 优于强 G 或论文贡献已成立。下一阶段若获新预算，先按 `EEG_TASK_MEMORY_PROTOCOL_V2.md` 的分层清单做四臂同历史真实读取和 G/E 多轮闭环，逐臂计入写入、摘要、检索、读取与回答成本；不自动执行。
-- Git：独立分支 `research/point1-eeg-task-memory`，Draft PR #37，base 为 PR #27 功能分支；`a5164e1` 冻结 v2 设计/协议，`735b6d2` 公共摘要、强通用基线、EEG 作用域检索与语义测试。结果/状态文档提交及普通推送待本轮收尾核验；不合并 main、不强推。
+- Git：独立分支 `research/point1-eeg-task-memory`，Draft PR #37，base 为 PR #27 功能分支；`a5164e1` 冻结 v2 设计/协议，`735b6d2` 公共摘要、强通用基线、EEG 作用域检索与语义测试，`530f2ff` 保存离线回放结果与后续预算清单，均已普通推送。对 `530f2ff` 的 GitHub Actions [`unit-tests` #209](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40178863098) 结论为 `success`；本条 CI 状态同步属于后续纯文档提交。不合并 main、不强推。
 
 ## 2026-10-25 当前阶段：Issue #36 多轮 EEG 任务上下文管理（本轮研究验证结束）
 
