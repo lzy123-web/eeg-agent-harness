@@ -8,7 +8,7 @@
 - 真实 DeepSeek：仅合成 EEG；请求 `deepseek-chat`，96 个响应均报告 `deepseek-flash`；合计 **96 completions / 113,296 API tokens**，达到请求硬上限，不再继续调用。首轮 M1 G 0/5、E 5/5 主要因共同参数契约，修订后的回归两臂均 0/5；目录化共同契约后开发 M1/M4 两臂各 5/5，首次验证 M6 两臂各 6/6。增加最终文字交付后重复 M6，两臂均 2/6（首轮共同误选 `switch`，级联历史缺失），开发 M1 两臂均 5/5，修改前后 alpha 分别 `2.00e-10`/`3.92e-10 V²` 且最终回答忠实。旧失败不覆盖、重复验证不冒充未见成绩；原始响应留在 Git 忽略的本地 `artifacts/`。
 - 检查：使用 `eegagent` 环境运行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`；compileall/pip check 通过，**281 tests，266 通过、15 resource-gated skipped、0 失败**。定向 `pytest -q tests/test_task_memory.py` 为 9/9。数值由原始合成数组的独立 SciPy Welch 验证；真实受试者数据、密钥、原始模型响应均不入 Git。
 - 结论：多轮任务历史与 EEG 证据绑定原型可运行，E 的短历史 top-1 排序有诊断信号，但 G 已同样覆盖并在实际闭环持平；当前证据**不足以把 EEG 适配称为已证实的论文独立方法贡献**。公共动作解析错误和模型最终回答仍需与检索故障分开研究。下一步只建议一个预注册、更长有效历史但非垃圾干扰的独立会话集；若仍持平，收缩为 G + EEG provenance/版本安全工程能力，停止扩充 E 特例。完整报告见 `EEG_TASK_MEMORY_RESULTS.md` / `EEG_TASK_MEMORY_DECISION.md`。
-- Git：`6526cb6` 冻结方法/协议，`565c22e` 共享多轮实现，`fc1b705` 公共参数契约首修（产生回归并保留），`5d5e088` 目录化契约、最终回答及数值测试。报告/README 提交与 Draft PR/推送信息将在发布后追加；未强推或合并 main。
+- Git：`6526cb6` 冻结方法/协议，`565c22e` 共享多轮实现，`fc1b705` 公共参数契约首修（产生回归并保留），`5d5e088` 目录化契约、最终回答及数值测试，`a4751f3` 研究结果/决策/README。均经普通 push 发布到独立分支 `research/point1-eeg-task-memory`；[Draft PR #37](https://github.com/lzy123-web/eeg-agent-harness/pull/37) 以 PR #27 功能分支为 base，保持 Draft。GitHub Actions [unit-tests #205](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40174847980) 对 `a4751f3` 为 `success`。本状态同步为纯文档后续提交；未强推或合并 main。
 
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
