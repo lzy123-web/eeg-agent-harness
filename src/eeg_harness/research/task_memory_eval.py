@@ -116,7 +116,7 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                                            operation == "analyze" and
                                            action.get("operation") == "switch_analyze")
                         valid = (operation_valid
-                                 and action.get("record") == expected["record"]
+                                 and outcome.get("record", action.get("record")) == expected["record"]
                                  and action.get("capability") == expected["capability"]
                                  and action.get("parameters") == expected["parameters"]
                                  and parent_valid and outcome.get("status") == "completed")

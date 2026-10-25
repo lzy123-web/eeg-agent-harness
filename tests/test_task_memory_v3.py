@@ -143,6 +143,22 @@ class TaskEpisodeTests(unittest.TestCase):
         self.assertEqual(session.active_record, "B")
         self.assertEqual(session.entries[0].record, "B")
 
+    def test_revision_without_record_uses_parent_record_not_active_record(self):
+        script = self.scripts[2]
+        session = EpisodeMemorySession("parent-record", protocol_records(script))
+        old = script["steps"][0]
+        new = script["steps"][6]
+        parent = session.analyze("A", old["capability"], old["parameters"], old["text"])
+        session.switch("B", "仅切换到 B")
+        revised = live_turn_v3(session, "H", new["text"],
+                               FakeClient({"operation": "revise",
+                                           "parent_task_id": parent["task_id"],
+                                           "capability": new["capability"],
+                                           "parameters": new["parameters"]}))
+        self.assertEqual(revised["outcome"]["status"], "completed")
+        self.assertEqual(revised["outcome"]["record"], "A")
+        self.assertEqual(session.entries[-1].revision_of, parent["task_id"])
+
     def test_shared_read_guard_rejects_wrong_record_event_and_version(self):
         session, keys = build_protocol_session(
             self.scripts[1], session_class=EpisodeMemorySession)

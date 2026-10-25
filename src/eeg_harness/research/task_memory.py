@@ -326,8 +326,16 @@ def live_turn(session, policy, text, client, *, deliver_answer=False,
         if operation == "switch":
             outcome = session.switch(action.get("record"), text)
         elif operation in {"analyze", "switch_analyze", "revise"}:
+            record = action.get("record")
+            if not record and operation == "revise":
+                # A revision with a valid parent is bound to that parent's
+                # record, never to whichever record happens to be active.
+                parent = next((item for item in session.entries
+                               if item.task_id == action.get("parent_task_id")), None)
+                record = parent.record if parent is not None else None
             outcome = session.analyze(
-                action.get("record", session.active_record), action.get("capability"),
+                record or (session.active_record if operation != "revise" else None),
+                action.get("capability"),
                 action.get("parameters", {}), text,
                 revision_of=action.get("parent_task_id") if operation == "revise" else None)
         elif operation == "history":
