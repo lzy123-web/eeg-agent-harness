@@ -132,8 +132,9 @@ class MultiTurnEEGSession:
                 "unit_or_kind": bundle["unit_or_kind"],
                 "tool_count": len(result["tool_results"])}
 
-    def read_task(self, task_id, text):
-        self.messages.append({"role": "user", "content": text})
+    def read_task(self, task_id, text, *, record_message=True):
+        if record_message:
+            self.messages.append({"role": "user", "content": text})
         entry = next((item for item in self.entries if item.task_id == task_id), None)
         if entry is None:
             return {"status": "clarification_required", "code": "TASK_NOT_FOUND"}
@@ -272,9 +273,10 @@ MEMORY_ACTION_TOOL = [{"type": "function", "function": {
 }}]
 
 
-def live_turn(session, policy, text, client, *, deliver_answer=False):
+def live_turn(session, policy, text, client, *, deliver_answer=False,
+              selector=select_context):
     """One real model decision, then shared real tools/read API. No gold input."""
-    selection = select_context(session, text, policy)
+    selection = selector(session, text, policy)
     metadata = {alias: {"sfreq": record.sfreq,
                         "channels": list(record.channel_names),
                         "duration_seconds": record.duration_seconds,

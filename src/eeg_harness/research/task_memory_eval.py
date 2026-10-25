@@ -10,6 +10,10 @@ from ..llm import OpenAICompatibleClient
 from .integrated_method.v2_validation import JournaledBudgetClient, PRIVATE_ROOT
 from .task_memory import (MultiTurnEEGSession, PROJECT_ROOT, live_turn,
                           load_protocol, replay_policies)
+from .task_memory_v2 import replay_protocol_v2
+
+
+PROTOCOL_V2 = PROJECT_ROOT / "config" / "point1_task_memory_protocol_v2.json"
 
 
 def _destination(label):
@@ -40,6 +44,22 @@ def run_replay(*, session_ids=None, policies=("F", "S", "G", "E", "E-no-scope"))
             records.append(entry)
             _save(path, {"mode": "same_history_replay", "real_llm": False,
                          "synthetic_only": True, "records": records})
+    return path, records
+
+
+def run_replay_v2(*, session_ids=None,
+                  policies=("F", "S", "G", "E", "E-no-science")):
+    """Append-only offline replay of the separately frozen v2 protocol."""
+    protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+    path = _destination("replay_v2")
+    records = []
+    for script in protocol["sessions"]:
+        if session_ids is not None and script["id"] not in session_ids:
+            continue
+        records.extend(replay_protocol_v2(script, policies))
+        _save(path, {"mode": "same_history_replay_v2", "real_llm": False,
+                     "synthetic_only": True, "protocol_version": protocol["version"],
+                     "records": records})
     return path, records
 
 
@@ -114,7 +134,7 @@ def run_live(*, session_ids=("M1", "M6"), policies=("G", "E"),
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("replay", "real"), required=True)
+    parser.add_argument("--mode", choices=("replay", "replay-v2", "real"), required=True)
     parser.add_argument("--sessions", nargs="+")
     parser.add_argument("--policies", nargs="+")
     parser.add_argument("--max-requests", type=int, default=96)
@@ -122,7 +142,15 @@ def main(argv=None):
     parser.add_argument("--final-answer", action="store_true",
                         help="Request a second, grounded natural-language delivery per turn")
     args = parser.parse_args(argv)
-    if args.mode == "replay":
+    if args.mode == "replay-v2":
+        path, records = run_replay_v2(session_ids=args.sessions,
+                                      policies=args.policies or
+                                      ("F", "S", "G", "E", "E-no-science"))
+        print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
+                          "session_policy_pairs": len(records),
+                          "queries": sum(len(row["queries"]) for row in records),
+                          "real_llm": False}, ensure_ascii=False))
+    elif args.mode == "replay":
         path, records = run_replay(session_ids=args.sessions,
                                    policies=args.policies or ("F", "S", "G", "E", "E-no-scope"))
         print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
