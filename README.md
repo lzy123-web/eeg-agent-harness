@@ -1,5 +1,15 @@
 # EEG Agent Harness
 
+> Issue #36 的独立研究分支新增 opt-in 多轮 EEG 任务上下文原型：按真实分析任务保存不可变历史、记录/事件作用域与参数修订，F（完整历史）、S（通用摘要）、G（强通用任务记忆）、E（EEG 作用域适配）共用同一工具/读取接口。合成短会话中 G/E 均能完成核心分析，E 的独立端到端收益**尚未证实**。见 [设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[冻结协议](docs/research/EEG_TASK_MEMORY_PROTOCOL.md)、[逐例结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)和[研究判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 的回放与定向测试：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.task_memory_eval --mode replay
+python -m unittest tests.test_task_memory -q
+```
+
+真实模型入口可加 `--mode real --sessions M1 --policies G E --max-requests 20 --max-total-tokens 50000 --final-answer`，但**本轮既定 96 次外部调用预算已经用尽**，此命令仅供另行批准预算后的复现；只允许合成 EEG，密钥从环境变量读取，原始响应写入被 Git 忽略的本地目录。不能把首次失败后的开发复测当成独立未见成绩。
+
 > PR #27 的跨任务合成开发验收与方法边界见 [冻结协议](docs/research/MULTITASK_ACCEPTANCE_PROTOCOL.md) 和 [实测报告](docs/research/MULTITASK_ACCEPTANCE_REPORT.md)。`v3_acceptance` 可以用固定 Fake 负载离线检查连续、事件、现有模型、组合、澄清与科学停止；真实 DeepSeek 只允许合成输入、显式预算与私有本地日志。旧 CIEDG 正式实验结果不因此改变。
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
