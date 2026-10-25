@@ -6,7 +6,7 @@ import unittest
 
 from eeg_harness.research.task_memory_issue42 import (
     _attributed_in_answer, _scope_for_read, build_same_history, history_turn, load_spec,
-    offline_preflight, run_workflow, score_history,
+    offline_local_cost, offline_preflight, run_workflow, score_history,
 )
 from eeg_harness.research.task_memory_v2 import independent_oracle
 
@@ -44,6 +44,11 @@ class Issue42Tests(unittest.TestCase):
                          ["D-short", "C-continuous", "C-mixed"])
         self.assertEqual([row["analysis_tasks"] for row in rows], [1, 4, 4])
         self.assertEqual([row["history_turns"] for row in rows], [1, 2, 2])
+
+    def test_local_cost_entry_is_offline_and_covers_all_arms(self):
+        rows = offline_local_cost(repetitions=2)
+        self.assertEqual(len(rows), 10)
+        self.assertTrue(all(row["median_ms"] >= 0 for row in rows))
 
     def test_shared_comparison_scope_blocks_erasure_and_wrong_record(self):
         script = self.scripts["C-mixed"]
@@ -107,6 +112,17 @@ class Issue42Tests(unittest.TestCase):
         swapped = f"A: {value_b:.12g} V；B: {value_a:.12g} V"
         self.assertFalse(_attributed_in_answer(swapped, value_a, a, [a, b]))
         self.assertFalse(_attributed_in_answer(swapped, value_b, b, [a, b]))
+        comma_swapped = f"A: {value_b:.12g} V，B: {value_a:.12g} V"
+        self.assertFalse(_attributed_in_answer(comma_swapped, value_a, a, [a, b]))
+        self.assertFalse(_attributed_in_answer(comma_swapped, value_b, b, [a, b]))
+
+    def test_comma_within_single_record_line_does_not_break_attribution(self):
+        script = self.scripts["C-continuous"]
+        a, b = script["turns"][0], script["turns"][1]
+        session, _ = build_same_history(script, 2)
+        value = independent_oracle(session.records["A"], a, ["SYNTH-C1", "rms"])
+        answer = f"记录 A，SYNTH-C1，0–2 s：RMS = {value:.8g} V；记录 B 为另一来源。"
+        self.assertTrue(_attributed_in_answer(answer, value, a, [a, b]))
 
     def test_complete_short_workflow_fake_model_and_no_gold_prompt(self):
         script = self.scripts["D-short"]

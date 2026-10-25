@@ -1,5 +1,15 @@
 # 项目状态
 
+## 2026-10-26 完成：Issue #42 任务记忆定型与完整工作流验收
+
+- 当前阶段：继续 Draft PR #37 / `research/point1-eeg-task-memory` 的 HiAgent 启发多轮 EEG 上下文路线，**本阶段已完成并停止**。旧 CIEDG、H/HE 和全部历史实验不变；没有第二工作点、ASD 报告、新 Planner 或新 EEG 数值工具。
+- 代码/协议：新增 `task_memory_issue42.py`、冻结配置、8 项定向离线测试及一份协议/结果报告。统一 CLI 组合已有 `GranularEpisodeSession`、`live_turn`、Registry/Executor 与 F/S/HC 工作视图；连续和事件四任务完整流程含中途证据使用、跨记录或跨条件比较、参数修订。比较读取的公共 verbatim `scope_quote` 保持 EEG 科学范围，所有臂同权。结果评分器在确认后只修中文逗号切句错误，原始响应和原始分数保留，追加审计单列。
+- 数据与模型：仅确定性合成 EEG；实际工具结果与独立原样本 oracle 一致。开发 D-short 三臂全部完成；确认 C-continuous F/S/HC 追加审计后各 6/6，C-mixed 分别 3/6、4/6、5/6，另做两条同历史三臂读取。请求 `deepseek-chat`，52/52 有效响应实际报告 `deepseek-flash`；**独立阶段总计 52 completion / 98,029 tokens**（input 87,785、output 10,244；0 失败、0 未结算），未超 96 / 240,000。原始逐轮响应与预算账本只在 Git 忽略的本地 `artifacts/point1_task_memory/issue42/`。真实 EEG、密钥、权重不外发或入库。
+- 研究判断：不可变任务历史、EEG 对象/参数版本/来源绑定与按需真实证据读回是一套可运行的领域适配；其核心块/摘要/读取思想来自成熟方法。HC 对强 S 仅在连续流程同效略省 556 tokens，而在事件混合流程更贵并漏掉中途连续功率；**独立论文增量尚未证实**。推荐强 S 作默认，HC opt-in，F 短会话/审计用；不为制造优势继续调阈值或延长对话。
+- 遗留问题：模型把事件试次数误作跨能力修订；F/S 的可见 `result_preview` 与底层 `read_fields` 路径不一致；HC 有证据选择漏项；严格原文引文守卫对合法比较可能误拒；自动评分仍不能完美理解标题—数值跨行归属，无外部 EEG 专家评审或多模型泛化。本轮只记录，不在已打开的确认集上修候选再称独立成绩。
+- 验证：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue42 --offline`、`--offline-cost`、`python -m unittest tests.test_task_memory_issue42 -q`、`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**337 tests，322 passed、15 resource-gated skipped、0 failed**。`git diff --check` 通过，私有账本经 `git check-ignore` 确认不入库。远端 CI 在本次状态记录时尚未验证，不写成已通过。方法和逐类失败见 `EEG_TASK_MEMORY_ISSUE42_PROTOCOL.md` / `EEG_TASK_MEMORY_ISSUE42_RESULTS.md`。
+- Git：预冻结方法/协议提交 `38e724d`、开发诊断后锁定 `106df00` 已安全推送到原 Draft PR #37 分支；最终结果/评分器追加审计提交见本轮后续同步。未合并 main、未强推。下一步只等待研究判断审核，不自动启动新的付费实验或方向。
+
 ## 2026-10-25 完成：Issue #41 结果保留与读回粒度阶段
 
 - 当前阶段：沿用 Draft PR #37 的 HiAgent 启发 EEG 任务记忆路线；诊断旧 H 小结果读回成本，完成紧凑精确结果卡 HC、公共字段/完整读口、同历史四臂开发与独立确认、一次 S/HC 自然语言闭环。未启动第二工作点、ASD 报告或新的 EEG 数值工具；旧 H/HE、CIEDG 与历史实验不改。

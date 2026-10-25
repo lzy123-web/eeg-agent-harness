@@ -12,6 +12,7 @@ import json
 import math
 from pathlib import Path
 import re
+from statistics import median
 import time
 
 from ..llm import OpenAICompatibleClient
@@ -23,7 +24,7 @@ from .task_memory_issue41 import (GranularEpisodeSession, _encoded,
                                   _number_in_answer, _visible_exact,
                                   protocol_records41, select_context41)
 from .task_memory_v2 import independent_oracle, parse_visible_query
-from .task_memory_v3 import scientific_read_mismatch
+from .task_memory_v3 import _summary as _task_summary, scientific_read_mismatch
 
 
 SPEC_PATH = PROJECT_ROOT / "config" / "point1_task_memory_issue42.json"
@@ -178,9 +179,18 @@ def _actual_matches_oracle(entry, turn, session):
 
 def _attributed_in_answer(answer, value, step, peers):
     """Conservative positive screen; an ambiguous sentence needs manual review."""
-    clauses = [part.strip() for part in re.split(r"[；;。\n，,、]+", answer)
-               if part.strip()]
+    # A record label and its value can be separated by a Chinese comma within
+    # one valid table/prose line; only sentence/line boundaries split binding.
     records = {item["record"] for item in peers}
+    anchors = "|".join(re.escape(record) for record in sorted(records, key=len, reverse=True))
+    # Preserve commas within one record's clause; a comma introducing another
+    # explicit record starts a new clause. This rejects A/B value swaps without
+    # severing "记录 A，通道，窗口：RMS" at its ordinary Chinese commas.
+    clauses = []
+    for sentence in re.split(r"[；;。\n]+", answer):
+        boundary = rf"[,，、]\s*(?=(?:记录\s*)?(?:{anchors})(?![A-Za-z0-9]))"
+        clauses.extend(part.strip() for part in re.split(boundary, sentence)
+                       if part.strip())
     same_record = [item for item in peers if item["record"] == step["record"]]
     need_window = len({(item["parameters"].get("start"), item["parameters"].get("end"),
                          item["parameters"].get("tmin"), item["parameters"].get("tmax"))
@@ -322,6 +332,38 @@ def offline_preflight(spec=None):
                      "sources": {alias: record.source for alias, record in session.records.items()},
                      "task_evidence": {key: entry.evidence["evidence_token"]
                                        for key, entry in keys.items()}})
+    return rows
+
+
+def offline_local_cost(*, repetitions=30):
+    """Indicative local summary derivation and context-selection costs, no API."""
+    if repetitions < 1:
+        raise ValueError("repetitions must be positive")
+    rows = []
+    for script in load_spec()["workflows"]:
+        if script["id"] == "D-short":
+            continue
+        index = len(script["turns"]) - 1
+        session, _ = build_same_history(script, index)
+        query = script["turns"][index]["text"]
+        for policy in ("F", "S", "H", "HC"):
+            select_context41(session, query, policy)
+            times = []
+            for _ in range(repetitions):
+                started = time.perf_counter()
+                selected = select_context41(session, query, policy)
+                times.append((time.perf_counter() - started) * 1000)
+            rows.append({"workflow": script["id"], "operation": "select_context",
+                         "policy": policy, "median_ms": round(median(times), 6),
+                         "serialized_bytes": len(_encoded(selected["payload"]))})
+        times = []
+        for _ in range(repetitions):
+            started = time.perf_counter()
+            [_task_summary(entry) for entry in session.entries]
+            times.append((time.perf_counter() - started) * 1000)
+        rows.append({"workflow": script["id"], "operation": "derive_all_task_summaries",
+                     "policy": "shared", "median_ms": round(median(times), 6),
+                     "task_count": len(session.entries)})
     return rows
 
 
@@ -482,16 +524,71 @@ def run_phase(phase):
     return path, rows
 
 
+def audit_saved(path):
+    """Append-only evaluator correction; never edits original response/score."""
+    path = Path(path).resolve()
+    if not path.is_relative_to(PRIVATE.resolve()) or not path.name.endswith(".json"):
+        raise ValueError("Audit input must be an Issue42 private result file")
+    saved = json.loads(path.read_text(encoding="utf-8"))
+    if saved.get("spec_sha256") != spec_sha():
+        raise ValueError("Frozen protocol hash differs; preserve old scoring")
+    scripts = {item["id"]: item for item in load_spec()["workflows"]}
+    audited = []
+    for row in saved["rows"]:
+        turn = scripts[row["workflow"]]["turns"][row["turn_index"]]
+        if turn["kind"] != "history":
+            continue
+        checks = row["score"].get("target_checks") or []
+        answer = row["observed"].get("answer") or ""
+        by_key = {item["key"]: item for item in scripts[row["workflow"]]["turns"]
+                  if "key" in item}
+        peers = [by_key[target["key"]] for target in turn["targets"]]
+        revised = []
+        for check in checks:
+            step = by_key[check["key"]]
+            attributed = all(_attributed_in_answer(answer, value, step, peers)
+                             for value in check["oracle_values"])
+            revised.append({"key": check["key"],
+                            "old_attribution_screen": check["attribution_screen"],
+                            "audited_attribution_screen": attributed,
+                            "source_and_result_valid": check["source_and_result_valid"],
+                            "evidence_available": check["evidence_available"],
+                            "numeric_screen": check["numeric_screen"]})
+        new_science = bool(row["observed"].get("status") == "answered"
+                           and checks and all(all(item[name] for name in (
+                               "source_and_result_valid", "evidence_available",
+                               "numeric_screen", "audited_attribution_screen"))
+                               for item in revised)
+                           and row["score"].get("unit_screen")
+                           and row["score"].get("record_screen"))
+        audited.append({"workflow": row["workflow"], "mode": row["mode"],
+                        "policy": row["policy"], "turn_index": row["turn_index"],
+                        "old_science_valid_screen": row["score"]["science_valid_screen"],
+                        "audited_science_valid_screen": new_science,
+                        "target_checks": revised})
+    return {"input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "scoring_change": "Clause binding: commas no longer split record from scalar",
+            "audited_rows": audited}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument("--offline-cost", action="store_true")
     parser.add_argument("--ledger-status", action="store_true")
     parser.add_argument("--phase", choices=("development", "confirmation"))
     parser.add_argument("--enable-paid-issue42", action="store_true")
+    parser.add_argument("--audit-file", type=Path)
     args = parser.parse_args(argv)
+    if args.audit_file:
+        print(json.dumps(audit_saved(args.audit_file), ensure_ascii=False))
+        return
     if args.offline:
         print(json.dumps({"spec_sha256": spec_sha(), "preflight": offline_preflight()},
                          ensure_ascii=False))
+        return
+    if args.offline_cost:
+        print(json.dumps(offline_local_cost(), ensure_ascii=False))
         return
     if args.ledger_status:
         print(json.dumps(ledger_totals(LEDGER), ensure_ascii=False))
