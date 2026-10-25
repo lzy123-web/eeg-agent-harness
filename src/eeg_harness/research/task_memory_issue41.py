@@ -308,6 +308,11 @@ def same_history_turn(session, policy, query, client, *, inline_max=256):
 
 
 def _number_in_answer(answer, expected):
+    superscript = str.maketrans("⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹", "-+0123456789")
+    answer = re.sub(
+        r"([-+]?(?:\d+\.?\d*|\.\d+))\s*[×x]\s*10([⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹]+)",
+        lambda match: f"{match.group(1)}e{match.group(2).translate(superscript)}",
+        answer)
     numbers = re.findall(r"(?<![A-Za-z0-9])[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?", answer)
     return any(math.isclose(float(token), float(expected), rel_tol=0.05,
                             abs_tol=1e-30) for token in numbers)
@@ -356,9 +361,11 @@ def score_turn(session, script, query, keys, observed):
         except (KeyError, IndexError, TypeError, ValueError):
             actual_valid = False
     unit = target.evidence["unit_or_kind"]
-    positive_unit_text = re.sub(r"(?:非|不是|并非|不等于)\s*V²/Hz", "", answer)
-    unit_screen = ("V²" in answer and "V²/Hz" not in positive_unit_text if unit == "V²"
-                   else "V" in answer and "V²" not in answer if unit == "V"
+    positive_unit_text = re.sub(r"(?:非|不是|并非|不等于|not)\s*V²(?:/Hz)?",
+                                "", answer, flags=re.IGNORECASE)
+    unit_screen = ("V²" in positive_unit_text and "V²/Hz" not in positive_unit_text
+                   if unit == "V²" else
+                   "V" in positive_unit_text and "V²" not in positive_unit_text if unit == "V"
                    else True)
     valid = bool(same_task and actual_valid and numbers_match and direct_visible
                  and read_covers and unit_screen and observed.get("status") == "answered")

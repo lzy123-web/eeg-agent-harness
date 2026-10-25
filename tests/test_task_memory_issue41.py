@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from eeg_harness.research.task_memory_issue39_budget import StageBudgetExhausted
 from eeg_harness.research.task_memory_issue41 import (
-    LEDGER, _admit_pair, _sources, build_session, load_spec, protocol_records41,
+    LEDGER, _admit_pair, _number_in_answer, _sources, build_session, load_spec, protocol_records41,
     result_view, same_history_turn, score_turn, select_context41,
 )
 
@@ -138,6 +138,22 @@ class Issue41Tests(unittest.TestCase):
                               f"{values[1]} V²；这是功率，非 V²/Hz。")
         observed = same_history_turn(deepcopy(event), "HC", query["text"], client)
         self.assertTrue(score_turn(event, self.scripts["C-event"], query,
+                                   keys, observed)["valid_screen"])
+
+    def test_unicode_scientific_notation_matches_true_numeric_value(self):
+        self.assertTrue(_number_in_answer("9.977652406546746×10⁻¹¹ V²", 9.977652406546746e-11))
+        self.assertTrue(_number_in_answer("4.509943356451858×10⁻²⁶ V²", 4.509943356451858e-26))
+        self.assertFalse(_number_in_answer("4.5×10⁻²⁶ V²", 9.9e-11))
+
+    def test_amplitude_answer_can_negate_power_density_unit(self):
+        session, keys = build_session(self.scripts["C-continuous"])
+        query = self.scripts["C-continuous"]["queries"][1]
+        task = keys["a_amp_new"]
+        value = task.result["SYNTH-C1"]["rms"]
+        client = FakeEvidence({"operation": "answer", "task_id": task.task_id,
+                               "answer": f"A 修改后 3–5 秒 RMS 为 {value} V，非 V²/Hz。"})
+        observed = same_history_turn(deepcopy(session), "F", query["text"], client)
+        self.assertTrue(score_turn(session, self.scripts["C-continuous"], query,
                                    keys, observed)["valid_screen"])
 
     def test_multiple_read_actions_share_one_final_completion(self):
