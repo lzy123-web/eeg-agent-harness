@@ -1,0 +1,57 @@
+{
+  "version": "issue41-frozen-before-paid-calls",
+  "max_external_completions": 96,
+  "max_external_tokens": 240000,
+  "policies": ["F", "S", "H", "HC"],
+  "inline_result_max_utf8_bytes": 256,
+  "max_field_reads_per_action": 4,
+  "unit_reservation": {"completions": 8, "tokens": 24000},
+  "development": [
+    {"source": "v2", "session": "N-short", "query_index": 0},
+    {"source": "v2", "session": "N-medium", "query_index": 0},
+    {"source": "v2", "session": "N-medium", "query_index": 1},
+    {"source": "v2", "session": "N-long", "query_index": 0}
+  ],
+  "confirmation": [
+    {"source": "issue41", "session": "C-continuous", "query_index": 0},
+    {"source": "issue41", "session": "C-continuous", "query_index": 1},
+    {"source": "issue41", "session": "C-event", "query_index": 0},
+    {"source": "issue41", "session": "C-event", "query_index": 1}
+  ],
+  "closed_loop": {"session": "C-continuous", "policies": ["S", "HC"],
+                  "step_indices": [0, 1, 2], "query_index": 0},
+  "confirmation_scripts": [
+    {
+      "id": "C-continuous",
+      "signal_scales": {"A": 1.11, "B": 0.71},
+      "event_labels": {"A": ["beep", "pause"], "B": ["tone", "rest"]},
+      "steps": [
+        {"key": "a_amp_old", "text": "在 A 的 SYNTH-C1 通道 0 到 2 秒测量幅值 RMS。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "b_psd", "text": "切至 B，对 SYNTH-C2 的 0 到 2 秒计算连续绝对频带功率。", "record": "B", "capability": "psd", "parameters": {"channels": ["SYNTH-C2"], "start": 0, "end": 2}},
+        {"key": "a_amp_new", "text": "把 A 的 SYNTH-C1 幅值窗口改为 3 到 5 秒，旧结果保留。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}, "revision_of": "a_amp_old"},
+        {"key": "a_psd", "text": "另算 A 的 SYNTH-C1 在 0 到 2 秒的连续功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}}
+      ],
+      "queries": [
+        {"text": "A 最初 0 到 2 秒那次 SYNTH-C1 幅值 RMS 是多少？", "target": "a_amp_old", "fields": [["SYNTH-C1", "rms"]]},
+        {"text": "修改后 3 到 5 秒 A 的 SYNTH-C1 幅值 RMS 是多少？", "target": "a_amp_new", "fields": [["SYNTH-C1", "rms"]]}
+      ]
+    },
+    {
+      "id": "C-event",
+      "signal_scales": {"A": 1.23, "B": 0.77},
+      "event_labels": {"A": ["oddball", "standard"], "B": ["flash", "quiet"]},
+      "steps": [
+        {"key": "a_oddball_old", "text": "对 A 的 oddball 事件后 0 到 1 秒算绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["oddball"], "tmin": 0, "tmax": 1}},
+        {"key": "a_standard", "text": "对 A 的 standard 同一事件窗口也算绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["standard"], "tmin": 0, "tmax": 1}},
+        {"key": "b_flash_count", "text": "切到 B，统计 flash 事件后 0 到 1 秒的有效试次数。", "record": "B", "capability": "epoch_summary", "parameters": {"labels": ["flash"], "tmin": 0, "tmax": 1}},
+        {"key": "b_flash_power", "text": "同一批 B 的 flash 事件窗计算绝对频带功率。", "record": "B", "capability": "event_bandpower", "parameters": {"labels": ["flash"], "tmin": 0, "tmax": 1}},
+        {"key": "a_oddball_new", "text": "把 A 的 oddball 功率窗口改为事件后 0 到 1.5 秒，保留旧版。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["oddball"], "tmin": 0, "tmax": 1.5}, "revision_of": "a_oddball_old"},
+        {"key": "b_cont", "text": "最后另算 B 的 SYNTH-C1 3 到 5 秒连续功率。", "record": "B", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}}
+      ],
+      "queries": [
+        {"text": "B 的 flash 事件后 0 到 1 秒，SYNTH-C1 和 SYNTH-C2 的 alpha 绝对功率各是多少？", "target": "b_flash_power", "fields": [["conditions", "flash", "channels", "SYNTH-C1", "alpha"], ["conditions", "flash", "channels", "SYNTH-C2", "alpha"]]},
+        {"text": "A 的事件窗 alpha 功率是多少？这里没有指定 oddball 还是 standard，也没有指定旧版或新版。", "expect_clarify": true}
+      ]
+    }
+  ]
+}
