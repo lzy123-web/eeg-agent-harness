@@ -7,7 +7,7 @@
 - 机制迭代：首次 v3 离线运行发现 HE 给所有单例重复科学绑定，增加上下文而无命中增益；只保留确有多版本的对象组，首次 JSON 保留。本轮没有调科学真值、旧实验或 EEG 算法。方法对应表、真实运行及失败边界见 `EEG_TASK_MEMORY_DESIGN.md` / `EEG_TASK_MEMORY_RESULTS.md` / `EEG_TASK_MEMORY_DECISION.md`。
 - 验证：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3` 生成本地忽略 JSON：3/6/10 项实际工具任务，F/S 目标证据可读 10/10，H/HE top-1 均 10/10；中/长历史实际归档 3/7 条；独立原始样本 oracle 核对读取范围与数值。Fake 多轮经原 Executor 完成分析→修订→历史证据恢复；非法通道 blocked→续接、科学范围误读拒绝与切记录焦点清除通过。`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 在 `eegagent` 环境通过：**300 tests，285 通过、15 skipped、0 失败**。
 - 判断与遗留：完成 HiAgent 启发的任务块/压缩/恢复 EEG 适配的可运行阶段，不是原论文完整复现。HE 对 H 无离线命中增益且中/长平均工作卡分别多 449/448 字符；真实模型理解摘要、最终答案、总 token/调用成本仍未验证。旧 M6 的首轮 analyze/switch 误选不由记忆层修复。下一阶段若单独授权，先冻结新语义评分并以明确预算做 F/S/H/HE 配对闭环；当前开发协议不得冒充未见测试。
-- Git：功能/测试提交 `ac031e5`、机制修订与文档提交 `c702581` 已普通推送至原 Draft PR #37；两次 GitHub Actions [`unit-tests` #213](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40183916297)、[`#215`](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40184205749) 均成功。本次最后补充科学范围定向测试、状态和 CI 记录另行提交；未合并 main、未强推。
+- Git：`ac031e5`（任务 episode 与集成）、`c702581`（摘要写入时点修订、研究文档）、`65737ef`（科学范围补测和状态）均已普通推送至原 Draft PR #37；GitHub Actions [`unit-tests` #213](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40183916297)、[`#215`](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40184205749)、[`#217`](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40184403607) 均成功。PR 和 Issue #38 已给出中文阶段结果；本条提交仅同步最终 Git/CI 状态，不改变方法或实验。未合并 main、未强推。
 
 ## 2026-10-25 当前更新：PR #37 阶段审查后的任务记忆 v2（离线设计验收）
 
