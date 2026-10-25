@@ -9,7 +9,7 @@
 - 有限闭环：N-short 的 F/H 各 3 次真实自然语言分析＋最终历史追问均 4/4；首次旧历史接口各 5 call，因 F 被强迫读不作成本对比。公共接口修正复核后 F 4 call / 6,496 tokens，H 5 / 6,950，最终 A 连续 alpha `2.00e-10 V²` 未误取 B；这只是已见短链开发复核，不是独立长链结论。
 - 方法判断：最简推荐 H＋全臂共享 EEG 来源/作用域/版本读口守卫；HE 分组暂置，不删旧版。任务 episode/摘要/按需恢复可运行，但相对强 S 的总成本/正确性优势、EEG-specific 独立贡献和自然长会话泛化**尚未验证**。下一步唯一有价值的实验是预注册更长、自然、有效 EEG 任务历史上的 H vs 强 S 同权配对；不继续加 HE 关键词或另建 Planner。
 - 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**314 tests，299 passed、15 resource-gated skipped、0 failed**。定向 Issue #40 6 项通过。详细协议、逐例及限制见 `EEG_TASK_MEMORY_ISSUE40_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE40_RESULTS.md`。
-- Git：预冻结协议/公共修订/入口/测试 `dac4961`（本地已提交）；本轮最终文档与闭环接口提交、普通推送及 CI 状态在完成后补记。禁止强推或合并 main。
+- Git：预冻结协议/公共修订/入口/测试 `dac4961`，结果报告/闭环接口修正 `a11e608`，均已普通推送到 `research/point1-eeg-task-memory`；PR #37 经远端核对仍为 Draft、未合并。远端 CI 在本条更新时尚未核定，不写作已通过。未强推、未提交私有资源。
 
 ## 2026-10-25 完成（长链 S 预算截断）：Issue #39 任务记忆真实使用价值评价
 
