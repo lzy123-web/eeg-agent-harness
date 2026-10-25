@@ -39,3 +39,7 @@ HiAgent 的子目标分块、完成后压缩和恢复是成熟思想；LongMemEv
 本轮独立上限 **96 external completion / 240,000 API tokens**，append-only 忽略目录 `artifacts/point1_task_memory/issue42/budget.jsonl` 在网络请求前保守预留，自动重试禁用；旧阶段余额不叠加。输出上限每次 900 tokens，先运行无付费离线 oracle/Fake，再开发 D-short；只有公共接口确有实证缺陷时进行最多一次有依据修订，保留首次失败。之后锁定代码/配置，才开始两条确认各 F/S/HC 的完整配对及同历史读取；余额不足时只运行能完整配对的任务单元，不只截断 S。任何确认后必要修订须将相关结果降为开发并留痕。额度是上限不是消耗目标。
 
 复现命令（`eegagent` 环境，PowerShell）：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue42 --offline`；无付费测试 `python -m unittest tests.test_task_memory_issue42 -v`；真实开发/确认须先仅在当前进程加载本地私有 API 凭据，再显式加 `--phase development|confirmation --enable-paid-issue42`。无配置时不得报告真实模型成功。原始响应和完整逐轮私有输出留在 Git 忽略目录；公开只放脱敏、合成汇总。
+
+## 开发诊断后锁定（确认调用之前）
+
+预冻结配置 SHA-256：`95d4a93e1c711ebba9c3fc68e58069152375da2e318a439d68cea246219ec44f`；候选与评分实现提交 `38e724d`。D-short 的 S/HC/F 都完成了真实分析和回答，共 6 次外部 completion、7,572 实际 API tokens、0 未结算；请求模型 `deepseek-chat`，六次服务实际报告 `deepseek-flash`。这只能说明短任务中三臂均可用，不证明候选优势。未观察到足以支持本轮一次方法修订的缺陷，**不作调阈值或提示词修订**，以该提交和配置进入确认。新的确认输出不能倒过来调整本协议或科学真值。
