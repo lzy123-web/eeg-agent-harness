@@ -19,7 +19,9 @@ from ..executor import Executor
 from ..pipeline import load_config
 from ..profiles import EDF_NATIVE
 from ..tools import build_default_registry
-from .integrated_method.v3 import GoalInstance, InstanceTaskRequest, run_instances
+from .integrated_method.v3 import (EVENT_CAPABILITIES, EVENT_SCOPE_KEYS,
+                                   GoalInstance, InstanceTaskRequest,
+                                   capability_catalog, run_instances)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -270,7 +272,7 @@ MEMORY_ACTION_TOOL = [{"type": "function", "function": {
 }}]
 
 
-def live_turn(session, policy, text, client):
+def live_turn(session, policy, text, client, *, deliver_answer=False):
     """One real model decision, then shared real tools/read API. No gold input."""
     selection = select_context(session, text, policy)
     metadata = {alias: {"sfreq": record.sfreq,
@@ -278,16 +280,30 @@ def live_turn(session, policy, text, client):
                         "duration_seconds": record.duration_seconds,
                         "event_labels": record.events.summary()["labels"] if record.events else {}}
                 for alias, record in session.records.items()}
+    context = ExecutionContext(session.records[session.active_record], EDF_NATIVE,
+                               Executor(build_default_registry(), CONFIG),
+                               f"{session.session_id}-catalog")
+    catalog = []
+    for item in capability_catalog(context):
+        if item["name"] not in ALLOWED_GOALS:
+            continue
+        allowed = (EVENT_SCOPE_KEYS if item["name"] in EVENT_CAPABILITIES
+                   else tuple(item["parameters"].get("properties", {})))
+        catalog.append({"name": item["name"], "description": item["description"],
+                        "scientific_scope": item["scientific_scope"],
+                        "unit_or_kind": item["unit_or_kind"],
+                        "required": item["required_user_parameters"],
+                        "allowed": allowed})
     system = (
         "你是研究用途 EEG 多轮分析助手。只调用 submit_memory_action 一次。"
         "所有历史 task_id 和参数必须来自当前提供的真实任务卡/只读结果；不可猜 ID、记录、窗口、事件或模型结果。"
         "历史查询选 history 并填 task_id；参数修改选 revise 并填 parent_task_id，生成新任务且保留旧结果。"
         "切换记录选 switch；新增计算选 analyze。若多个历史任务同样符合请求，选 clarify 说明歧义。"
-        "新分析只支持 record_info、record_quality、amplitude、psd、epoch_summary、epoch_quality、event_bandpower。"
-        "每类工具的 parameters 必须严格只含其合法字段，不要附加 absolute、method 或推测的配置。"
-        "amplitude/psd 严格为 channels/start/end；事件分析严格为 labels/tmin/tmax，"
-        "record_info 为空对象；record_quality 可含 channels/start/end/line_frequency。缺参应澄清。"
+        "新分析的能力、科学含义和合法参数均由 CAPABILITIES 声明；"
+        "按描述匹配用户需求，仅用 allowed 中字段，不添加自造参数。"
+        "所需参数确实缺失才澄清；不要把能力名称与自然语言的字面差异当成缺参。"
         "不要把连续 PSD 与事件窗功率混淆，不诊断。"
+        "CAPABILITIES=" + json.dumps(catalog, ensure_ascii=False, allow_nan=False) + "。"
         "RECORDS=" + json.dumps(metadata, ensure_ascii=False, allow_nan=False)
     )
     message = client.complete(
@@ -320,7 +336,22 @@ def live_turn(session, policy, text, client):
     except (KeyError, ValueError, TypeError, json.JSONDecodeError):
         action = {"operation": "invalid"}
         outcome = {"status": "intent_error", "code": "INVALID_MODEL_ACTION"}
+    final_answer = None
+    if deliver_answer:
+        reply = client.complete([
+            {"role": "system", "content": (
+                "你是研究用途 EEG 分析助手。仅依据下列真实执行/历史读取结果回答当前问题；"
+                "数字、单位、记录和分析条件必须忠实于结果。若需澄清，直接提出澄清问题；"
+                "若执行失败，说明失败，不能编造 EEG 数值或临床结论。")},
+            {"role": "user", "content": json.dumps({"request": text, "action": action,
+                                                   "outcome": outcome},
+                                                  ensure_ascii=False, allow_nan=False)},
+        ], [])
+        final_answer = reply.get("content") if isinstance(reply, dict) else None
+        if not isinstance(final_answer, str) or not final_answer.strip():
+            final_answer = None
     return {"request": text, "memory_policy": policy,
             "shown_task_ids": selection["shown_task_ids"],
             "working_context_estimated_tokens": selection["estimated_tokens"],
-            "action": action, "outcome": outcome}
+            "action": action, "outcome": outcome,
+            "final_answer": final_answer}

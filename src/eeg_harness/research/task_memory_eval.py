@@ -69,7 +69,8 @@ def score_live_turn(script, index, observed):
 
 
 def run_live(*, session_ids=("M1", "M6"), policies=("G", "E"),
-             max_requests=96, max_total_tokens=300000):
+             max_requests=96, max_total_tokens=300000,
+             deliver_answer=False):
     protocol = load_protocol()
     path = _destination("real")
     raw = OpenAICompatibleClient.from_env()
@@ -88,7 +89,8 @@ def run_live(*, session_ids=("M1", "M6"), policies=("G", "E"),
                 before = client.request_count
                 started = time.perf_counter()
                 try:
-                    item = live_turn(session, policy, turn["text"], client)
+                    item = live_turn(session, policy, turn["text"], client,
+                                     deliver_answer=deliver_answer)
                     item["score"] = score_live_turn(script, index, item)
                 except Exception as exc:
                     item = {"request": turn["text"], "memory_policy": policy,
@@ -99,6 +101,7 @@ def run_live(*, session_ids=("M1", "M6"), policies=("G", "E"),
                              "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)})
                 observations.append(item)
                 _save(path, {"mode": "real_closed_loop", "synthetic_only": True,
+                             "final_answer_enabled": deliver_answer,
                              "requested_model": client.model,
                              "response_models": list(raw.response_models),
                              "request_count": client.request_count,
@@ -116,6 +119,8 @@ def main(argv=None):
     parser.add_argument("--policies", nargs="+")
     parser.add_argument("--max-requests", type=int, default=96)
     parser.add_argument("--max-total-tokens", type=int, default=300000)
+    parser.add_argument("--final-answer", action="store_true",
+                        help="Request a second, grounded natural-language delivery per turn")
     args = parser.parse_args(argv)
     if args.mode == "replay":
         path, records = run_replay(session_ids=args.sessions,
@@ -129,7 +134,8 @@ def main(argv=None):
         path, records, client = run_live(
             session_ids=args.sessions or ("M1", "M6"),
             policies=args.policies or ("G", "E"),
-            max_requests=args.max_requests, max_total_tokens=args.max_total_tokens)
+            max_requests=args.max_requests, max_total_tokens=args.max_total_tokens,
+            deliver_answer=args.final_answer)
         print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
                           "turns": len(records),
                           "correct": sum(item["score"]["correct"] for item in records),

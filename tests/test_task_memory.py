@@ -24,6 +24,18 @@ class FakeDecisionClient:
         }}]}
 
 
+class FakeDeliveryClient(FakeDecisionClient):
+    def __init__(self, actions):
+        super().__init__(actions)
+        self.delivery_payload = None
+
+    def complete(self, messages, tools, tool_choice="auto"):
+        if tools:
+            return super().complete(messages, tools, tool_choice)
+        self.delivery_payload = json.loads(messages[-1]["content"])
+        return {"content": "已读取真实工具结果。"}
+
+
 class TaskMemoryTests(unittest.TestCase):
     def test_distinct_synthetic_records_and_independent_psd_oracle(self):
         records = synthetic_records()
@@ -56,6 +68,25 @@ class TaskMemoryTests(unittest.TestCase):
         self.assertNotEqual(session.read_task(one["task_id"], "old")["result"],
                             session.read_task(two["task_id"], "new")["result"])
         self.assertEqual(session.entries[0].parameters["start"], 0)
+
+    def test_event_bandpower_has_independent_raw_record_oracle(self):
+        records = synthetic_records()
+        session = MultiTurnEEGSession("event-oracle", records)
+        result = session.analyze("A", "event_bandpower", {
+            "labels": ["stimulus"], "tmin": 0, "tmax": 1,
+        }, "stimulus event power")
+        self.assertEqual(result["status"], "completed")
+        condition = result["result"]["conditions"]["stimulus"]
+        self.assertEqual(condition["epoch_count"], 3)
+        independently_computed = []
+        for onset in (1, 3, 5):
+            samples = records["A"].slice(onset, onset + 1, ["SYNTH-C1"])[0]
+            frequencies, density = welch(samples, fs=128.0, nperseg=128)
+            band = (frequencies >= 8) & (frequencies <= 13)
+            independently_computed.append(np.trapz(density[band], frequencies[band]))
+        observed = condition["channels"]["SYNTH-C1"]["alpha"]
+        self.assertTrue(np.isclose(observed, np.mean(independently_computed),
+                                   rtol=5e-3, atol=5e-13))
 
     def test_cross_record_artifact_isolation_and_history_read(self):
         session = MultiTurnEEGSession("cross")
@@ -112,6 +143,18 @@ class TaskMemoryTests(unittest.TestCase):
         self.assertEqual(len(summary["payload"]["cards"][0]["rolling_summary"]), 1)
         self.assertEqual(len(generic["shown_task_ids"]), 3)
         self.assertEqual(len(eeg["shown_task_ids"]), 3)
+
+    def test_fake_delivery_receives_only_real_result_after_execution(self):
+        session = MultiTurnEEGSession("answer")
+        client = FakeDeliveryClient([{"operation": "analyze", "record": "A",
+                                      "capability": "amplitude",
+                                      "parameters": {"channels": ["SYNTH-C1"],
+                                                     "start": 0, "end": 2}}])
+        result = live_turn(session, "E", "A 的幅值", client, deliver_answer=True)
+        self.assertEqual(result["final_answer"], "已读取真实工具结果。")
+        self.assertEqual(client.delivery_payload["outcome"]["status"], "completed")
+        self.assertEqual(client.delivery_payload["outcome"]["result"], result["outcome"]["result"])
+        self.assertEqual(len(session.entries), 1)
 
 
 if __name__ == "__main__":
