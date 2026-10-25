@@ -147,6 +147,17 @@ class TaskEpisodeTests(unittest.TestCase):
         self.assertEqual(session.read_task(old.task_id, "修改前 A 的 cue 试次数")
                          ["status"], "read")
 
+    def test_shared_read_guard_checks_channel_window_and_analysis_scope(self):
+        session, keys = build_protocol_session(
+            self.scripts[0], session_class=EpisodeMemorySession)
+        power = keys["a_power"]
+        self.assertEqual(scientific_read_mismatch(
+            session, power, "A 的 SYNTH-C2 连续功率"), "channels")
+        self.assertEqual(scientific_read_mismatch(
+            session, power, "A 的 SYNTH-C1 连续功率 3 到 5 秒"), "window")
+        self.assertEqual(scientific_read_mismatch(
+            session, power, "A 的事件功率"), "analysis_scope")
+
     def test_same_history_replay_preserves_independent_oracle(self):
         for script in self.scripts:
             for row in replay_protocol_v3(script):

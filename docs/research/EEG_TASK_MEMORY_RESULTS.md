@@ -91,6 +91,6 @@ v2 的合成事件标签由真实 `EventSet` 元信息给出（`cue/rest/target/
 
 **失败与修订**：初版 HE 对所有任务重复科学绑定，在短/中/长会话平均分别比 H 多约 928/988/973 个字符，top-1 同为 10/10；因此把重复索引限定为真正有多版本的科学对象。修订后开销仍高于 H，不包装为收益。旧 M6 的首轮 `analyze`→`switch` 误选没有重跑真实模型，也未由 episode 消除；若任务未被正确选择，记忆不可能生成缺失证据。本轮 API 请求 **0**，旧 96 次真实响应只能用于故障归因，不能拼作新闭环成绩。
 
-本地验证：`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**299 tests，284 通过、15 资源门控跳过、0 失败**，其中 v3 定向 9 项。完整历史、通用摘要、直接迁移 H、EEG 适配 HE 的真实模型回答和实际 token 消耗仍未比较；当前只确认核心机制可运行、可复查与科学读取防混用的确定性行为。
+本地验证：`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**300 tests，285 通过、15 资源门控跳过、0 失败**，其中 v3 定向 10 项。完整历史、通用摘要、直接迁移 H、EEG 适配 HE 的真实模型回答和实际 token 消耗仍未比较；当前只确认核心机制可运行、可复查与科学读取防混用的确定性行为。
 
 下一阶段配对脚本已接入 `task_memory_eval --mode real-v3`，但要求额外 `--enable-paid-v3` 和两个**显式**预算参数 `--v3-max-requests` / `--v3-max-total-tokens`；本阶段没有执行。脚本逐轮记录动作/执行/读取错误类别、实际请求数、tokens 和耗时，并把原始响应写在 Git 忽略目录。若以后获新授权，最小先对 N-medium 的 F/S/H/HE 从首轮独立闭环（每臂 6 项真实分析 + 3 次追问），有最终回答时计划 36 决策 + 12 回答 = 48 completions，可预留最多 4 次公共接口故障重试，建议上限 52 completions / 80,000 tokens；需在付款前另行冻结自然语言/语义评分与模型版本，并逐臂记账写入、摘要、检索、读取及回答。此 N-medium 是开发协议，**不是独立 holdout**；若欲作论文增益判断，还需新的预注册有效任务历史，不得回头在这些问题上调提示词。
