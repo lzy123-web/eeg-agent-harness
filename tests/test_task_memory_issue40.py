@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from eeg_harness.research.task_memory_issue40 import (
-    HISTORY_PATH, _admit_unit, load_spec, same_history_turn, score_turn,
+    HISTORY_PATH, _admit_unit, load_spec, run_closed, same_history_turn, score_turn,
 )
 from eeg_harness.research.task_memory_issue39_budget import StageBudgetExhausted
 from eeg_harness.research.task_memory_v2 import build_protocol_session, protocol_records
@@ -39,6 +39,36 @@ class FakeActionClient:
         return {"tool_calls": [{"function": {
             "name": "submit_memory_action",
             "arguments": json.dumps(self.action)}}]}
+
+
+class ClosedFake:
+    def __init__(self):
+        self.request_count = 0
+        self.total_usage = {"total_tokens": 0}
+        self.context = {}
+
+    def set_context(self, **values):
+        self.context = values
+
+    def complete(self, messages, tools, tool_choice="auto"):
+        self.request_count += 1
+        self.total_usage["total_tokens"] += 10
+        if not tools:
+            return {"content": "A 的 SYNTH-C1 连续 alpha 功率为 2.00e-10 V²。"}
+        kind = tools[0]["function"]["name"]
+        if kind == "submit_evidence_action":
+            action = ({"operation": "answer", "task_id": "N-short-t1",
+                       "answer": "A 的 SYNTH-C1 连续 alpha 功率为 2.00e-10 V²。"}
+                      if self.context["policy"] == "F" else
+                      {"operation": "read", "task_id": "N-short-t1"})
+        else:
+            script = Issue40Tests.scripts["N-short"]
+            step = script["steps"][int(self.context["unit_id"].split(":")[-1])]
+            action = {"operation": "analyze", "record": step["record"],
+                      "capability": step["capability"],
+                      "parameters": step["parameters"]}
+        return {"tool_calls": [{"function": {
+            "name": kind, "arguments": json.dumps(action)}}]}
 
 
 class Issue40Tests(unittest.TestCase):
@@ -116,6 +146,18 @@ class Issue40Tests(unittest.TestCase):
             "operation": "revise", "parent_task_id": parent["task_id"],
             "capability": "amplitude", "parameters": revised["parameters"]}))
         self.assertEqual(conflicting["outcome"]["code"], "INVALID_REVISION_PARENT")
+
+    def test_corrected_closed_interface_allows_full_history_direct_answer(self):
+        with TemporaryDirectory() as folder:
+            with patch("eeg_harness.research.task_memory_issue40.LEDGER",
+                       Path(folder) / "budget.jsonl"):
+                rows = run_closed(ClosedFake(), save=lambda _: None,
+                                  direct_history=True)
+        self.assertEqual(len(rows), 8)
+        self.assertEqual(rows[3]["llm_completions"], 1)
+        self.assertEqual(rows[7]["llm_completions"], 2)
+        self.assertTrue(rows[3]["score"]["valid_screen"])
+        self.assertTrue(rows[7]["score"]["valid_screen"])
 
 
 if __name__ == "__main__":

@@ -1,5 +1,16 @@
 # 项目状态
 
+## 2026-10-25 完成：Issue #40 任务记忆效用归因与方法收敛
+
+- 当前阶段：继续工作点一既定 HiAgent 启发任务记忆路线；完成同历史真实模型配对、原因分析、一次公共闭环接口修正及短多轮复核。未更换研究方向，未改 CIEDG/旧实验、数值工具或科学真值；PR #37 继续 Draft。
+- 代码与协议：`config/point1_task_memory_issue40.json` 冻结三份由原真实 Registry/Executor 在合成 EEG 上生成的 3/6/10 任务历史，各取开发/确认追问；新增 `task_memory_issue40.py` 的四臂共同答/读/澄清、独立快照、oracle 后评分、整体配对预算准入、跨运行追加账本与 CLI。公共 `revise` 在有效父任务存在且未提供 capability 时继承父任务类型，显式冲突仍拒绝；属公共接口修复，不是 H/HE 专享机制。首次闭环强迫 F 读取，原始结果保留；`closed-direct` 将末轮改为共用直接答/读取接口，前三轮仍走原 Agent/Executor。
+- 真实 DeepSeek 仅见合成任务元信息和必要结果：请求 `deepseek-chat`，57 次响应均报告 `deepseek-flash`。**独立阶段累计 57 completion / 103,906 API tokens**，低于 96 / 240,000；无重试、无未结算尝试。私有原始响应与账本在 Git 忽略的 `artifacts/point1_task_memory/issue40/`，未上传密钥、模型权重或真实受试者数据。与 Issue #39 账本完全分开。
+- 同历史完整配对：开发/确认各 3 问；F 6/6（6 call、19,031 tokens）、S 6/6（9、19,364）、H 6/6（12、18,141）、HE 5/6（11、18,220）。所有正确答复数值经独立原数组 oracle 与人工文本审阅；HE 一例选对任务却把空归档索引误读为尚未执行，不是检索错误。H 总 tokens 较 F 少约 4.7%，但调用与延迟更高；S 全部完整正确，HE 额外组织无已证增量。
+- 有限闭环：N-short 的 F/H 各 3 次真实自然语言分析＋最终历史追问均 4/4；首次旧历史接口各 5 call，因 F 被强迫读不作成本对比。公共接口修正复核后 F 4 call / 6,496 tokens，H 5 / 6,950，最终 A 连续 alpha `2.00e-10 V²` 未误取 B；这只是已见短链开发复核，不是独立长链结论。
+- 方法判断：最简推荐 H＋全臂共享 EEG 来源/作用域/版本读口守卫；HE 分组暂置，不删旧版。任务 episode/摘要/按需恢复可运行，但相对强 S 的总成本/正确性优势、EEG-specific 独立贡献和自然长会话泛化**尚未验证**。下一步唯一有价值的实验是预注册更长、自然、有效 EEG 任务历史上的 H vs 强 S 同权配对；不继续加 HE 关键词或另建 Planner。
+- 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**314 tests，299 passed、15 resource-gated skipped、0 failed**。定向 Issue #40 6 项通过。详细协议、逐例及限制见 `EEG_TASK_MEMORY_ISSUE40_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE40_RESULTS.md`。
+- Git：预冻结协议/公共修订/入口/测试 `dac4961`（本地已提交）；本轮最终文档与闭环接口提交、普通推送及 CI 状态在完成后补记。禁止强推或合并 main。
+
 ## 2026-10-25 完成（长链 S 预算截断）：Issue #39 任务记忆真实使用价值评价
 
 - 独立确认：短集四臂 F/S/H/HE 各 3/3 且最终 RMS `1.41e-05 V` 与独立 oracle 相符；长集完整闭环 H 6/8、HE 5/8、F 5/8，S 在前两轮后因累计 token 上限于第三次请求前停止，不给 S 长链率。H 缺修订能力名、HE 首轮把试次数选成质量、F 幻造未注册能力名，均由公共 Executor/读口安全拒绝或导致后续澄清；HE 的另一事件 alpha 修订/读取数值 `3.2799997787269497e-10 V²` 与独立 oracle 一致，但不抹掉其试次数目标错位。10 条历史最终回答逐条审阅；未发现缺失结果凭空生成，HE 一条为错误质量证据链。确认新增 48 completion / 92,182 tokens，**本阶段累计 126 completion / 292,532 tokens**，已停用剩余 7,468 tokens，不超 160 / 300,000。请求 `deepseek-chat`、有效响应均报告 `deepseek-flash`。

@@ -228,19 +228,27 @@ def run_pairs(phase, client, *, save):
     return rows
 
 
-def run_closed(client, *, save):
+def run_closed(client, *, save, direct_history=False):
     spec = load_spec()
     conf = spec["closed_loop"]
+    totals = ledger_totals(LEDGER)
+    # Admit the complete two-arm closed loop, never spend the last budget on
+    # only the candidate or only its full-history comparator.
+    if (totals["attempts"] + 12 > spec["max_external_completions"] or
+        totals["charged_tokens"] + 30000 > spec["max_external_tokens"]):
+        raise StageBudgetExhausted("Insufficient budget for both closed-loop arms")
     history = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
     script = next(item for item in history["sessions"] if item["id"] == conf["session"])
     rows = []
     for policy in conf["policies"]:
         session = EpisodeMemorySession(script["id"], protocol_records(script))
+        keys = {}
         for kind, indices in (("analysis", conf["step_indices"]),
                               ("history", conf["query_indices"])):
             for index in indices:
                 text = script["steps" if kind == "analysis" else "queries"][index]["text"]
-                unit_id = f"closed:{policy}:{kind}:{index}"
+                prefix = "closed-direct" if direct_history else "closed"
+                unit_id = f"{prefix}:{policy}:{kind}:{index}"
                 if any(row.get("event") == "reserved" and
                        row.get("context", {}).get("unit_id") == unit_id
                        for row in _rows(LEDGER)):
@@ -249,19 +257,36 @@ def run_closed(client, *, save):
                 before_calls = client.request_count
                 before_tokens = client.total_usage.get("total_tokens", 0)
                 try:
-                    item = live_turn_v3(session, policy, text, client,
-                                        deliver_answer=(kind == "history"))
+                    if kind == "history" and direct_history:
+                        item = same_history_turn(session, policy, text, client)
+                        score = (score_turn(session, script, script["queries"][index],
+                                            keys, item)
+                                 if script["queries"][index]["target"] in keys
+                                 else {"valid_screen": False,
+                                       "failure_category": "history_absent_after_prior_failure"})
+                        item.pop("selection", None)
+                    else:
+                        item = live_turn_v3(session, policy, text, client,
+                                            deliver_answer=(kind == "history"))
+                        score = None
+                        if kind == "analysis" and item["outcome"]["status"] == "completed":
+                            step = script["steps"][index]
+                            keys[step["key"]] = session.entries[-1]
                 except Exception as exc:
                     item = {"outcome": {"status": "llm_error",
                                         "error_type": type(exc).__name__}}
+                    score = {"valid_screen": False, "failure_category": "llm_error"}
+                status = (item.get("outcome") or {}).get("status", item.get("status"))
                 rows.append({"policy": policy, "kind": kind, "turn_index": index,
                              "request": text, "observed": item,
+                             "score": score, "history_interface": (
+                                 "direct_or_read" if direct_history else "legacy_history"),
                              "task_count": len(session.entries),
                              "llm_completions": client.request_count - before_calls,
                              "llm_tokens": client.total_usage.get("total_tokens", 0)
                                            - before_tokens})
                 save(rows)
-                if item["outcome"]["status"] == "llm_error":
+                if status == "llm_error":
                     return rows
     return rows
 
@@ -288,15 +313,17 @@ def run_phase(phase):
                        "reported_models": raw.response_models,
                        "stage_ledger": ledger_totals(LEDGER), "rows": rows})
 
-    rows = run_closed(client, save=save) if phase == "closed" else run_pairs(
-        phase, client, save=save)
+    rows = (run_closed(client, save=save, direct_history=phase == "closed-direct")
+            if phase in {"closed", "closed-direct"} else
+            run_pairs(phase, client, save=save))
     save(rows)
     return output, rows
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("development", "confirmation", "closed"))
+    parser.add_argument("--phase", choices=("development", "confirmation",
+                                            "closed", "closed-direct"))
     parser.add_argument("--enable-paid-issue40", action="store_true")
     parser.add_argument("--ledger-status", action="store_true")
     args = parser.parse_args(argv)
