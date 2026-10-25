@@ -5,7 +5,8 @@ import unittest
 
 from eeg_harness.research.task_memory_issue42 import build_same_history, history_turn, load_spec
 from eeg_harness.research.task_memory_issue43 import (
-    history_turn as repaired_turn, load_spec as new_spec, offline_preflight,
+    _attributed_value, audit_equivalent_epoch_count, history_turn as repaired_turn,
+    load_spec as new_spec, offline_preflight,
     score_history as repaired_score, select_context43,
 )
 from eeg_harness.research.task_memory_evidence import bind_read_scope
@@ -362,6 +363,42 @@ class RepairedHandoffTests(unittest.TestCase):
         self.assertFalse(repaired_score(session, script["turns"][4],
                                         {**base, "final_visible": missing}, keys,
                                         by_key)["science_valid_screen"])
+
+    def test_posthoc_equivalent_count_requires_same_scientific_object(self):
+        script = self.new["N-mixed"]
+        session, keys = build_same_history(script, 4)
+        alternate = {"task_id": keys["a_event"].task_id,
+                     "path": ["conditions", "pulse", "epoch_count"]}
+        accepted = audit_equivalent_epoch_count(session, keys["a_count"], [alternate])
+        self.assertEqual(accepted["count"], keys["a_count"].result["valid_epoch_count"])
+        self.assertIsNone(audit_equivalent_epoch_count(session, keys["a_count"], [
+            {"task_id": keys["b_event"].task_id,
+             "path": ["conditions", "click", "epoch_count"]}]))
+        self.assertIsNone(audit_equivalent_epoch_count(session, keys["a_count"], [
+            {"task_id": keys["a_event"].task_id,
+             "path": ["conditions", "pulse", "channels", "SYNTH-C1", "alpha"]}]))
+
+    def test_evaluator_multiline_table_and_same_value_wrong_scope(self):
+        script = self.new["N-continuous"]
+        session, keys = build_same_history(script, 3)
+        a = float(keys["a_early"].result["SYNTH-C1"]["alpha"])
+        b = float(keys["b_early"].result["SYNTH-C1"]["alpha"])
+        peers = [script["turns"][0], script["turns"][1], script["turns"][2]]
+        multiline = ("## 1. 记录 A 修改前 0–2 秒\n\n"
+                     f"- SYNTH-C1 alpha 绝对功率 = {a:.9e} V²。")
+        self.assertTrue(_attributed_value(multiline, a, peers[0], peers))
+        swapped_table = ("| 记录 | 窗口 | alpha 绝对功率 |\n"
+                         f"| A | 0–2 秒 | {b:.9e} V² |\n"
+                         f"| B | 0–2 秒 | {a:.9e} V² |")
+        self.assertFalse(_attributed_value(swapped_table, a, peers[0], peers))
+        mixed = self.old["C-mixed"]
+        mixed_session, mixed_keys = build_same_history(mixed, 3)
+        event_value = float(mixed_keys["a_pulse"].result["conditions"]["pulse"]
+                            ["channels"]["SYNTH-C1"]["alpha"])
+        wrong_scope = f"记录 A 连续信号 0–2 秒 alpha = {event_value:.9e} V²"
+        self.assertFalse(_attributed_value(wrong_scope, event_value,
+                                           mixed["turns"][0],
+                                           [mixed["turns"][0], mixed["turns"][2]]))
 
 
 if __name__ == "__main__":

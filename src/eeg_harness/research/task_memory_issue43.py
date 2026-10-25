@@ -219,12 +219,20 @@ def _attributed_value(answer, value, step, peers):
     # block; a Markdown table row remains its own block. Do not concatenate
     # distinct records across blank paragraphs or semicolon-separated clauses.
     blocks = []
+    pending_heading = False
     for paragraph in re.split(r"\n\s*\n", answer):
         if "|" in paragraph and any(line.lstrip().startswith("|")
                                    for line in paragraph.splitlines()):
             blocks.extend(paragraph.splitlines())
+            pending_heading = False
+        elif pending_heading and paragraph.lstrip().startswith(("- ", "* ")):
+            blocks[-1] += "\n" + paragraph
+            pending_heading = False
         else:
             blocks.append(paragraph)
+            pending_heading = bool(re.match(r"\s*(?:#{1,6}\s*|\*\*)?\d+[.)、]", paragraph)
+                                   and not re.search(
+                                       r"[-+]?(?:\d+\.\d*|\.\d+)[eE][-+]?\d+", paragraph))
     split_before_record = rf"[；;。]\s*(?=(?:记录\s*)?(?:{anchors})(?![A-Za-z0-9]))"
     for sentence in (part for block in blocks for part in re.split(split_before_record, block)):
         boundary = rf"[,，、]\s*(?=(?:记录\s*)?(?:{anchors})(?![A-Za-z0-9]))"
@@ -336,6 +344,76 @@ def score_history(session, turn, observed, keys, turns_by_key):
             "requires_manual_science_review": True}
 
 
+def audit_equivalent_epoch_count(session, target_entry, final_visible):
+    """Post-hoc evaluator audit; never alters the original strict score.
+
+    Event bandpower can report the same valid epoch count as epoch_summary,
+    but only with an identical source, record, condition and relative window.
+    This is an explicitly checked alternative, not a model-visible gold hint.
+    """
+    if target_entry.capability != "epoch_summary":
+        return None
+    labels = target_entry.parameters.get("labels", ())
+    if len(labels) != 1:
+        return None
+    label = labels[0]
+    expected = target_entry.result.get("valid_epoch_count")
+    for entry in session.entries:
+        if (entry.capability != "event_bandpower" or
+                entry.record != target_entry.record or
+                entry.evidence["source"] != target_entry.evidence["source"] or
+                entry.parameters != target_entry.parameters):
+            continue
+        path = ["conditions", label, "epoch_count"]
+        if not _field_present(final_visible, entry.task_id, path):
+            continue
+        count = entry.result.get("conditions", {}).get(label, {}).get("epoch_count")
+        if type(count) is int and count == expected:
+            return {"equivalent_task_id": entry.task_id, "path": path,
+                    "count": count, "source": entry.evidence["source"],
+                    "record": entry.record, "parameters": entry.parameters}
+    return None
+
+
+def audit_saved(path):
+    """Append-only interpretation aid for immutable confirmation rows."""
+    path = Path(path).resolve()
+    if not path.is_relative_to(PRIVATE.resolve()) or not path.name.startswith("confirmation_"):
+        raise ValueError("Audit requires an Issue43 private confirmation file")
+    saved = json.loads(path.read_text(encoding="utf-8"))
+    if saved.get("spec_sha256") != spec_sha():
+        raise ValueError("Frozen protocol hash differs")
+    scripts = {script["id"]: script for script in load_spec()["workflows"]}
+    audited = []
+    for row in saved["rows"]:
+        script = scripts[row["workflow"]]
+        index = row["turn_index"]
+        turn = script["turns"][index]
+        if turn["kind"] != "history":
+            continue
+        session, keys = build_same_history(script, index)
+        turns_by_key = {item["key"]: item for item in script["turns"] if "key" in item}
+        rescored = score_history(session, turn, row["observed"], keys, turns_by_key)
+        alternatives = {}
+        for target in turn["targets"]:
+            entry = keys.get(target["key"])
+            if entry is not None:
+                candidate = audit_equivalent_epoch_count(
+                    session, entry, row["observed"].get("final_visible", ()))
+                if candidate:
+                    alternatives[target["key"]] = candidate
+        audited.append({"workflow": row["workflow"], "policy": row["policy"],
+                        "original_science_valid_screen": row["score"]["science_valid_screen"],
+                        "original_category": row["score"]["category"],
+                        "audited_science_valid_screen": rescored["science_valid_screen"],
+                        "audited_category": rescored["category"],
+                        "audited_target_checks": rescored["target_checks"],
+                        "equivalent_count_evidence": alternatives,
+                        "manual_answer_review_required": True})
+    return {"input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "rows": audited}
+
+
 def _session(script):
     from .task_memory_issue42 import _session as make_session
     return make_session(script)
@@ -425,7 +503,11 @@ def main(argv=None):
     parser.add_argument("--ledger-status", action="store_true")
     parser.add_argument("--phase", choices=("development", "confirmation"))
     parser.add_argument("--enable-paid-issue43", action="store_true")
+    parser.add_argument("--audit-file", type=Path)
     args = parser.parse_args(argv)
+    if args.audit_file:
+        print(json.dumps(audit_saved(args.audit_file), ensure_ascii=False))
+        return
     if args.offline:
         print(json.dumps({"spec_sha256": spec_sha(), "preflight": offline_preflight()},
                          ensure_ascii=False))
