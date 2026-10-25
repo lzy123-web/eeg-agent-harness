@@ -209,9 +209,9 @@ def live_turn_v2(session, policy, text, client, *, deliver_answer=False):
                      deliver_answer=deliver_answer, selector=select_context_v2)
 
 
-def build_protocol_session(script):
+def build_protocol_session(script, *, session_class=MultiTurnEEGSession):
     """Execute script steps once; target keys are not passed to session memory."""
-    session = MultiTurnEEGSession(script["id"], protocol_records(script))
+    session = session_class(script["id"], protocol_records(script))
     keys = {}
     for step in script["steps"]:
         parent = keys[step["revision_of"]].task_id if "revision_of" in step else None

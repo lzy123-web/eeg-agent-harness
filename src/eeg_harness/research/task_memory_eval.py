@@ -10,7 +10,10 @@ from ..llm import OpenAICompatibleClient
 from .integrated_method.v2_validation import JournaledBudgetClient, PRIVATE_ROOT
 from .task_memory import (MultiTurnEEGSession, PROJECT_ROOT, live_turn,
                           load_protocol, replay_policies)
-from .task_memory_v2 import replay_protocol_v2
+from .task_memory_v2 import (protocol_records, replay_protocol_v2,
+                             score_observed_history_turn)
+from .task_memory_v3 import (EpisodeMemorySession, live_turn_v3,
+                             replay_protocol_v3)
 
 
 PROTOCOL_V2 = PROJECT_ROOT / "config" / "point1_task_memory_protocol_v2.json"
@@ -61,6 +64,98 @@ def run_replay_v2(*, session_ids=None,
                      "synthetic_only": True, "protocol_version": protocol["version"],
                      "records": records})
     return path, records
+
+
+def run_replay_v3(*, session_ids=None, policies=("F", "S", "H", "HE")):
+    """Append-only evaluation of the task-episode adapter, without API calls."""
+    protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+    path = _destination("replay_v3")
+    records = []
+    for script in protocol["sessions"]:
+        if session_ids is not None and script["id"] not in session_ids:
+            continue
+        records.extend(replay_protocol_v3(script, policies))
+        _save(path, {"mode": "task_episode_same_history_replay",
+                     "real_llm": False, "synthetic_only": True,
+                     "protocol_version": protocol["version"], "records": records})
+    return path, records
+
+
+def run_paired_v3(protocol, client, *, session_ids=None,
+                  policies=("F", "S", "H", "HE"), deliver_answer=False,
+                  save=None):
+    """Shared action interface; each arm builds only its own observed history."""
+    observations = []
+    for script in protocol["sessions"]:
+        if session_ids is not None and script["id"] not in session_ids:
+            continue
+        for policy in policies:
+            session = EpisodeMemorySession(script["id"], protocol_records(script))
+            completed_ids = {}
+            turns = [("analysis", item) for item in script["steps"]]
+            turns += [("history", item) for item in script["queries"]]
+            for index, (kind, expected) in enumerate(turns, 1):
+                try:
+                    item = live_turn_v3(session, policy, expected["text"], client,
+                                        deliver_answer=deliver_answer and kind == "history")
+                    if kind == "history":
+                        score = score_observed_history_turn(session, script, expected, item)
+                    else:
+                        operation = "revise" if "revision_of" in expected else "analyze"
+                        action, outcome = item["action"], item["outcome"]
+                        parent_valid = ("revision_of" not in expected or
+                                        action.get("parent_task_id") ==
+                                        completed_ids.get(expected["revision_of"], object()))
+                        valid = (action.get("operation") == operation
+                                 and action.get("record") == expected["record"]
+                                 and action.get("capability") == expected["capability"]
+                                 and action.get("parameters") == expected["parameters"]
+                                 and parent_valid and outcome.get("status") == "completed")
+                        score = {"valid": bool(valid),
+                                 "category": "correct" if valid else "action_or_execution_error"}
+                        if valid:
+                            completed_ids[expected["key"]] = outcome["task_id"]
+                    item["score"] = score
+                except Exception as exc:
+                    item = {"request": expected["text"], "memory_policy": policy,
+                            "outcome": {"status": "llm_error",
+                                        "error_type": type(exc).__name__},
+                            "score": {"valid": False, "category": "llm_error"}}
+                item.update({"session_id": script["id"], "turn_index": index,
+                             "kind": kind, "task_count": len(session.entries),
+                             "lifecycle": list(session.lifecycle),
+                             "evidence_reads": session.evidence_reads})
+                observations.append(item)
+                if save is not None:
+                    save(observations)
+                if item["outcome"]["status"] == "llm_error":
+                    return observations
+    return observations
+
+
+def run_live_v3(*, session_ids=("N-medium",), policies=("F", "S", "H", "HE"),
+                max_requests, max_total_tokens, deliver_answer=False):
+    """Future opt-in paid run; this stage executes no external model calls."""
+    protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+    path = _destination("real_v3")
+    raw = OpenAICompatibleClient.from_env()
+    raw.max_retries = 0
+    raw.max_tokens = min(raw.max_tokens, 1200)
+    client = JournaledBudgetClient(raw, path.with_suffix(".responses.jsonl"),
+                                   max_requests=max_requests,
+                                   max_total_tokens=max_total_tokens)
+
+    def save(observations):
+        _save(path, {"mode": "task_episode_real_closed_loop",
+                     "synthetic_only": True, "protocol_version": protocol["version"],
+                     "requested_model": client.model,
+                     "response_models": list(raw.response_models),
+                     "request_count": client.request_count,
+                     "usage": dict(client.total_usage), "records": observations})
+
+    return path, run_paired_v3(protocol, client, session_ids=session_ids,
+                               policies=policies, deliver_answer=deliver_answer,
+                               save=save), client
 
 
 def score_live_turn(script, index, observed):
@@ -134,15 +229,29 @@ def run_live(*, session_ids=("M1", "M6"), policies=("G", "E"),
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("replay", "replay-v2", "real"), required=True)
+    parser.add_argument("--mode", choices=("replay", "replay-v2", "replay-v3",
+                                           "real", "real-v3"), required=True)
     parser.add_argument("--sessions", nargs="+")
     parser.add_argument("--policies", nargs="+")
     parser.add_argument("--max-requests", type=int, default=96)
     parser.add_argument("--max-total-tokens", type=int, default=300000)
     parser.add_argument("--final-answer", action="store_true",
                         help="Request a second, grounded natural-language delivery per turn")
+    parser.add_argument("--enable-paid-v3", action="store_true",
+                        help="Explicit future authorization gate for real-v3 only")
+    parser.add_argument("--v3-max-requests", type=int,
+                        help="Required explicit request cap for future real-v3 run")
+    parser.add_argument("--v3-max-total-tokens", type=int,
+                        help="Required explicit token cap for future real-v3 run")
     args = parser.parse_args(argv)
-    if args.mode == "replay-v2":
+    if args.mode == "replay-v3":
+        path, records = run_replay_v3(session_ids=args.sessions,
+                                      policies=args.policies or ("F", "S", "H", "HE"))
+        print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
+                          "session_policy_pairs": len(records),
+                          "queries": sum(len(row["queries"]) for row in records),
+                          "real_llm": False}, ensure_ascii=False))
+    elif args.mode == "replay-v2":
         path, records = run_replay_v2(session_ids=args.sessions,
                                       policies=args.policies or
                                       ("F", "S", "G", "E", "E-no-science"))
@@ -158,6 +267,23 @@ def main(argv=None):
                           "history_hits": sum(item.get("hit") is True
                                               for row in records for item in row["observations"]),
                           "real_llm": False}, ensure_ascii=False))
+    elif args.mode == "real-v3":
+        if (not args.enable_paid_v3 or args.v3_max_requests is None
+                or args.v3_max_total_tokens is None
+                or args.v3_max_requests < 1 or args.v3_max_total_tokens < 1):
+            parser.error("real-v3 requires --enable-paid-v3 and positive explicit budgets")
+        path, records, client = run_live_v3(
+            session_ids=args.sessions or ("N-medium",),
+            policies=args.policies or ("F", "S", "H", "HE"),
+            max_requests=args.v3_max_requests,
+            max_total_tokens=args.v3_max_total_tokens,
+            deliver_answer=args.final_answer)
+        print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
+                          "turns": len(records),
+                          "correct": sum(item["score"]["valid"] for item in records),
+                          "request_count": client.request_count,
+                          "total_tokens": client.total_usage.get("total_tokens")},
+                         ensure_ascii=False))
     else:
         path, records, client = run_live(
             session_ids=args.sessions or ("M1", "M6"),
