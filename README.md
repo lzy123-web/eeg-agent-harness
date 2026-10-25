@@ -1,5 +1,7 @@
 # EEG Agent Harness
 
+> Issue #39（Draft PR #37）现已对 HiAgent 启发的任务记忆做真实 DeepSeek＋合成 EEG 四臂初评与独立确认。短链 F/S/H/HE 均 3/3；长链 H 6/8、HE 5/8、F 5/8，S 因跨运行 300,000-token 硬预算在第 3 轮前停止，**不能得出完整长链四臂优劣结论**。HE 的 EEG 对象/版本附加组织尚无可归因收益，不宣称论文创新已证。全部新阶段 126 completion / 292,532 tokens，请勿自动续跑。见 [冻结与版本化协议](docs/research/EEG_TASK_MEMORY_ISSUE39_PROTOCOL.md)、[逐例及成本](docs/research/EEG_TASK_MEMORY_ISSUE39_RESULTS.md)、[阶段判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 可复验旧/压缩版：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3 --memory-variant original|optimized`（实际执行时二选一）。
+
 > Issue #36 的独立研究分支新增 opt-in 多轮 EEG 任务上下文原型：按真实分析任务保存不可变历史、记录/事件作用域与参数修订，F（完整历史）、S（通用摘要）、G（强通用任务记忆）、E（EEG 作用域适配）共用同一工具/读取接口。合成短会话中 G/E 均能完成核心分析，E 的独立端到端收益**尚未证实**。见 [设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[冻结协议](docs/research/EEG_TASK_MEMORY_PROTOCOL.md)、[逐例结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)和[研究判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 的回放与定向测试：
 
 PR #37 审查后追加 v2 离线协议：3/6/10 条由真实工具执行的有效历史，6/10 条时摘要和 top-3 选择确实触发；G 已具通用时间/版本检索，事件标签来自合成记录元信息。离线 G/E 均在全部 10 个查询中 top-1 取对，**不能据此宣称真实模型或 EEG 附加排序胜出**。冻结范围、逐例语义评分和下一阶段未授权预算见 [v2 协议](docs/research/EEG_TASK_MEMORY_PROTOCOL_V2.md)与[结果追加](docs/research/EEG_TASK_MEMORY_RESULTS.md)。本轮不调用付费模型。

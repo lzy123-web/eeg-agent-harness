@@ -1,7 +1,11 @@
 # 项目状态
 
-## 2026-10-25 进行中：Issue #39 任务记忆真实使用价值评价
+## 2026-10-25 完成（长链 S 预算截断）：Issue #39 任务记忆真实使用价值评价
 
+- 独立确认：短集四臂 F/S/H/HE 各 3/3 且最终 RMS `1.41e-05 V` 与独立 oracle 相符；长集完整闭环 H 6/8、HE 5/8、F 5/8，S 在前两轮后因累计 token 上限于第三次请求前停止，不给 S 长链率。H 缺修订能力名、HE 首轮把试次数选成质量、F 幻造未注册能力名，均由公共 Executor/读口安全拒绝或导致后续澄清；HE 的另一事件 alpha 修订/读取数值 `3.2799997787269497e-10 V²` 与独立 oracle 一致，但不抹掉其试次数目标错位。10 条历史最终回答逐条审阅；未发现缺失结果凭空生成，HE 一条为错误质量证据链。确认新增 48 completion / 92,182 tokens，**本阶段累计 126 completion / 292,532 tokens**，已停用剩余 7,468 tokens，不超 160 / 300,000。请求 `deepseek-chat`、有效响应均报告 `deepseek-flash`。
+- 最终方法判断：任务 episode/不可变历史/按需恢复是成熟技术启发的可运行系统能力。相同历史离线工作上下文 H `65,428→47,722` 字符、HE `69,081→50,801`，10/10 top-1 未变；本次真实长链观察到 H/HE 的 tokens 均不低于 F，**但各臂历史已分叉，不能据此作压缩成本的因果判断**。HE 比 H 更贵、少对一项，**EEG 对象组额外增量未证**。开发集修订 H 9/9、HE 5/9 受采样/历史分叉影响，不作因果收益。下一阶段唯一重点是在新授权预算下完成同历史 F/S/H/HE 最终读取与回答配对，补齐 S 长链，隔离公共能力误选与记忆作用；不自动续付费、不开发第二点。
+- 运行和复现：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_eval --mode replay-v3 --memory-variant original` 与 `--memory-variant optimized` 可无 API 比较旧/压缩版；原始真实响应与跨进程预算账本仅在 Git 忽略的 `artifacts/point1_task_memory/issue39/`。`python -m compileall -q src tests`、`python -m unittest discover -s tests -q`、`python -m pip check` 为最终验收命令，结果见本阶段最后提交记录。真实受试者数据、密钥、权重未入库或发给外部模型。
+- Git：协议与硬预算 `e0b9a85`、公共父记录修订 `e4d5771`、摘要压缩与确认顺序增补 `ec01ac8` 已普通推送 Draft PR #37；最终审计/文档提交待本轮收尾记录。未合并 main，未强推。
 - 首次真实阶段：6 completion / 11,072 tokens 的合成 smoke 完成；四臂 `N-medium` 各 12 completion，合计 48 completion / 121,982 tokens，F 9/9、S 8/9、H 7/9、HE 7/9。请求 `deepseek-chat`，实际响应报告 `deepseek-flash`。第 8 轮 HE 已有证据却重复计算，最终数值仍正确，分开记为冗余成本；完整记录见 `EEG_TASK_MEMORY_ISSUE39_RESULTS.md`。新阶段累计 **54 completion / 133,054 tokens**，尚未动用确认集。
 - 开发修订 1：修订动作未显式给记录但父任务 ID 有效时，由真实父任务绑定记录，避免切到 B 后错误修订 A 的任务；显式矛盾仍拒绝。评分按实际执行记录判定，而非强制要求多余字段。定向 17/17 通过；此修复属于公共工程，不声称 EEG 适配收益。
 - 开发复验：同一 `N-medium` H 9/9、HE 5/9，分别 33,410 / 33,886 tokens；HE 的首次无历史分析已选错质量能力，不能归咎检索。阶段累计 78 completion / 200,350 tokens。修订 2 将 H/HE 工作卡的完整结果替为可读回的任务摘要，`C-long` 离线末轮字符 H 4,024、HE 4,762、F 6,432；保留真实值通过公共 `read_task` 恢复。预算驱动地在首次确认前调整长集臂顺序 H→HE→F→S，脚本真值不动；可能无法在 token 上限内完成全四臂，缺失必须公开。`compileall`、307 tests（15 skipped）通过；尚未开始确认，不以离线字符宣称收益。
@@ -160,7 +164,7 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 | 检查项 | 结果 |
 |---|---|
 | Python 源码语法读取 | 38 个 `.py` 文件均可由 `ast.parse` 解析。 |
-| 运行环境 | 使用 `C:\Users\Nick\.conda\envs\eegagent\python.exe`；`pip check` 无损坏依赖。 |
+| 运行环境 | 使用本地 `eegagent` Conda 环境；`pip check` 无损坏依赖。 |
 | 关键环境 | Python 3.10.17、MNE 1.6.1、NumPy 1.24.4、SciPy 1.10.1、PyTorch 2.14.1+cpu。最小基线不依赖 OpenAI。 |
 | 工具注册 | 成功发现 11 个工具。 |
 | EDF 样例 | `gped_049_a_6.edf` 原始 250 Hz、33 信号、241 秒。 |

@@ -66,7 +66,8 @@ def run_replay_v2(*, session_ids=None,
     return path, records
 
 
-def run_replay_v3(*, session_ids=None, policies=("F", "S", "H", "HE")):
+def run_replay_v3(*, session_ids=None, policies=("F", "S", "H", "HE"),
+                  memory_variant="optimized"):
     """Append-only evaluation of the task-episode adapter, without API calls."""
     protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
     path = _destination("replay_v3")
@@ -74,16 +75,17 @@ def run_replay_v3(*, session_ids=None, policies=("F", "S", "H", "HE")):
     for script in protocol["sessions"]:
         if session_ids is not None and script["id"] not in session_ids:
             continue
-        records.extend(replay_protocol_v3(script, policies))
+        records.extend(replay_protocol_v3(script, policies, variant=memory_variant))
         _save(path, {"mode": "task_episode_same_history_replay",
                      "real_llm": False, "synthetic_only": True,
-                     "protocol_version": protocol["version"], "records": records})
+                     "protocol_version": protocol["version"],
+                     "memory_variant": memory_variant, "records": records})
     return path, records
 
 
 def run_paired_v3(protocol, client, *, session_ids=None,
                   policies=("F", "S", "H", "HE"), deliver_answer=False,
-                  save=None):
+                  save=None, memory_variant="optimized"):
     """Shared action interface; each arm builds only its own observed history."""
     observations = []
     for script in protocol["sessions"]:
@@ -103,7 +105,8 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                 started = time.perf_counter()
                 try:
                     item = live_turn_v3(session, policy, expected["text"], client,
-                                        deliver_answer=deliver_answer and kind == "history")
+                                        deliver_answer=deliver_answer and kind == "history",
+                                        variant=memory_variant)
                     if kind == "history":
                         score = score_observed_history_turn(session, script, expected, item)
                     else:
@@ -157,7 +160,8 @@ def run_paired_v3(protocol, client, *, session_ids=None,
 
 
 def run_live_v3(*, session_ids=("N-medium",), policies=("F", "S", "H", "HE"),
-                max_requests, max_total_tokens, deliver_answer=False):
+                max_requests, max_total_tokens, deliver_answer=False,
+                memory_variant="optimized"):
     """Future opt-in paid run; this stage executes no external model calls."""
     protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
     path = _destination("real_v3")
@@ -173,12 +177,13 @@ def run_live_v3(*, session_ids=("N-medium",), policies=("F", "S", "H", "HE"),
                      "synthetic_only": True, "protocol_version": protocol["version"],
                      "requested_model": client.model,
                      "response_models": list(raw.response_models),
+                     "memory_variant": memory_variant,
                      "request_count": client.request_count,
                      "usage": dict(client.total_usage), "records": observations})
 
     return path, run_paired_v3(protocol, client, session_ids=session_ids,
                                policies=policies, deliver_answer=deliver_answer,
-                               save=save), client
+                               save=save, memory_variant=memory_variant), client
 
 
 def score_live_turn(script, index, observed):
@@ -256,6 +261,8 @@ def main(argv=None):
                                            "real", "real-v3"), required=True)
     parser.add_argument("--sessions", nargs="+")
     parser.add_argument("--policies", nargs="+")
+    parser.add_argument("--memory-variant", choices=("original", "optimized"),
+                        default="optimized")
     parser.add_argument("--max-requests", type=int, default=96)
     parser.add_argument("--max-total-tokens", type=int, default=300000)
     parser.add_argument("--final-answer", action="store_true",
@@ -269,7 +276,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.mode == "replay-v3":
         path, records = run_replay_v3(session_ids=args.sessions,
-                                      policies=args.policies or ("F", "S", "H", "HE"))
+                                      policies=args.policies or ("F", "S", "H", "HE"),
+                                      memory_variant=args.memory_variant)
         print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
                           "session_policy_pairs": len(records),
                           "queries": sum(len(row["queries"]) for row in records),
@@ -300,7 +308,8 @@ def main(argv=None):
             policies=args.policies or ("F", "S", "H", "HE"),
             max_requests=args.v3_max_requests,
             max_total_tokens=args.v3_max_total_tokens,
-            deliver_answer=args.final_answer)
+            deliver_answer=args.final_answer,
+            memory_variant=args.memory_variant)
         print(json.dumps({"output": str(path.relative_to(PROJECT_ROOT)),
                           "turns": len(records),
                           "correct": sum(item["score"]["valid"] for item in records),

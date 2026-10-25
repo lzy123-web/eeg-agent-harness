@@ -63,3 +63,26 @@ F/S/G/E 共用该写入和读取路径；`select_context` 只改变当前提供�
 **共同调用链**：自然语言 → 原 `live_turn` 结构化动作 → `EpisodeMemorySession` 的任务 episode → 原 `run_instances` → 原 Registry/Executor → 实际 ToolResult/trace → 不可变完成条目或 blocked active → `select_context_v3` 压缩/选择 → 公共 `read_task` 恢复证据 → 模型或 Fake 的下一轮。只新增 opt-in 研究层与 CLI 模式，不修改 EEG 数值算法、旧 CIEDG 或 Executor。当前 episode 生命周期以实际工具状态为准；若模型首轮把 `analyze` 误选成 `switch`，任务根本不会产生，记忆层不能补救。
 
 **实现后修订**：首轮回放显示 HE 为每个单例也重复写一份科学绑定，增加约千字符而没有命中收益。这是组织冗余而非额外科学信息，故仅保留确有多个版本的对象分组；首次本地回放保留。其后增加所有臂共享的显式科学范围读取校验：错记录、事件条件、通道、窗口或明确旧/新版本不恢复为可引用数值，返回 `SCIENTIFIC_SCOPE_MISMATCH`。这项安全约束使用真实任务及记录元信息，不使用 gold，但仍是规则型适配，不声称开放语言覆盖或新通用记忆算法。
+
+## Issue #39：真实评价后的方法版本与归属
+
+当前 opt-in v3 的核心不是额外 EEG 数值算法，而是以下闭环；所有臂共用 `EpisodeMemorySession`、合成记录、既有 `run_instances`→Registry/Executor、不可变真实结果和 `read_task`：
+
+```text
+用户轮次 → 公共结构化动作(analyze/revise/switch/history/clarify)
+  → 真实工具状态决定 active / blocked / archived
+  → 完成时写入不可变 TaskEntry + 任务摘要（不让 LLM 编造数值）
+  → 下一轮 H/HE: 通用任务检索 → 工作集摘要 + 其余完成任务索引
+  → history(task_id) 经公共科学范围检查恢复原 ToolResult/trace
+  → 最终回答只依据此次执行或读取结果
+```
+
+`--memory-variant original|optimized` 可在 `task_memory_eval --mode replay-v3` 跑同一合成历史的旧 v3 与 Issue #39 压缩版；默认 optimized。旧版 H/HE 将选中任务的完整 result 放入工作集，`result_fields` 为前 24 个叶路径；新版只放真实任务摘要、顶层结果字段和读取 ID，完整数值需通过公共读取恢复。`original` 是研究版本，不作为新的独立对照臂；F/S 始终保持各自合理信息权限。版本开关不创建第二套 Executor、不影响冻结 CIEDG，也不覆盖旧实验日志。
+
+| 层次 | 来自何处 | 本轮可支持的主张 |
+|---|---|---|
+| 子任务/工作记忆块、已完成摘要与按需恢复 | HiAgent 启发；本项目并未复现其 LLM 子目标生成、主动摘要决策或原基准 | H/HE 的任务摘要选择与真实读取可运行；同历史离线工作上下文缩短，真实闭环净收益未证 |
+| 通用任务 ID、时间/版本检索、旧结果读取和公共动作/范围校验 | Harness 公共工程，F/S/H/HE 同权 | 可安全保留旧任务、跨记录绑定修订、拒绝不一致读取；不能记作 HE 独立贡献 |
+| EEG 记录来源、连续/事件范围、通道、事件条件、参数版本的对象组 | HE 领域适配；输入来自实际数据/工具状态，不来自 gold | 结构存在且可追溯，但本次真实对照没有发现相对 H 的稳定正确性或成本增益，不能宣称论文方法优势 |
+
+Issue #39 的首次四臂开发、两轮有依据修订、独立确认与 token 停线见 `EEG_TASK_MEMORY_ISSUE39_PROTOCOL.md` / `EEG_TASK_MEMORY_ISSUE39_RESULTS.md`。动作能力误选（如试次数→质量）可在空历史发生，任务记忆不应为它背锅；已归档但模型重新计算也应与检索漏召分开。当前没有基于成功/失败数据自动决定何时摘要或如何主动读取，也没有跨进程会话持久化；不要把这些列为已实现创新。

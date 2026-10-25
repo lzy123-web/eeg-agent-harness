@@ -90,6 +90,19 @@ class TaskEpisodeTests(unittest.TestCase):
                             lineage[0]["versions"][1]["window"])
         self.assertNotIn("target_key", json.dumps(adapted["payload"]))
 
+    def test_original_and_optimized_memory_variants_remain_runnable(self):
+        session, _ = build_protocol_session(
+            self.scripts[2], session_class=EpisodeMemorySession)
+        query = self.scripts[2]["queries"][0]["text"]
+        original = select_context_v3(session, query, "H", variant="original")
+        optimized = select_context_v3(session, query, "H", variant="optimized")
+        self.assertTrue(all("result_preview" in card
+                            for card in original["payload"]["working_tasks"]))
+        self.assertTrue(all("result_preview" not in card
+                            for card in optimized["payload"]["working_tasks"]))
+        self.assertLess(optimized["characters"], original["characters"])
+        self.assertEqual(original["shown_task_ids"], optimized["shown_task_ids"])
+
     def test_live_history_restores_original_evidence_then_switch_clears_focus(self):
         session, keys = build_protocol_session(
             self.scripts[0], session_class=EpisodeMemorySession)

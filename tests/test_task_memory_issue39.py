@@ -9,7 +9,7 @@ from eeg_harness.research.task_memory_issue39 import load_stage_protocol
 from eeg_harness.research.task_memory_issue39_budget import (
     Issue39BudgetClient, StageBudgetExhausted, ledger_totals,
 )
-from eeg_harness.research.task_memory_v2 import protocol_records
+from eeg_harness.research.task_memory_v2 import protocol_records, score_read_semantics
 from eeg_harness.research.task_memory_v3 import EpisodeMemorySession
 
 
@@ -94,6 +94,13 @@ class Issue39Tests(unittest.TestCase):
                 for key in query["field"]:
                     value = value[key]
                 self.assertGreaterEqual(float(value), 0, (query, value))
+                entries = {step_key: next(entry for entry in session.entries
+                                          if entry.task_id == task_id)
+                           for step_key, task_id in completed.items()}
+                independent = score_read_semantics(
+                    session, script, query, entries, completed[query["target"]],
+                    observed_read=read)
+                self.assertTrue(independent["valid"], independent)
             json.dumps([item.result for item in session.entries], allow_nan=False)
 
 

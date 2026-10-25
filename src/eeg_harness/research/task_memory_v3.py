@@ -7,7 +7,7 @@ HiAgent's LLM subgoal generator or learned/proactive summarizer.
 import json
 
 from .task_memory import MultiTurnEEGSession, live_turn
-from .task_memory_v2 import (_full_card, score_read_semantics,
+from .task_memory_v2 import (_full_card, _scalar_paths, score_read_semantics,
                              select_context_v2, build_protocol_session,
                              parse_visible_query)
 from .integrated_method.v3 import EVENT_CAPABILITIES
@@ -144,6 +144,12 @@ def _summary(entry):
             "read_task_id": entry.task_id}
 
 
+def _original_summary(entry):
+    """Pre-Issue39 v3 summary, retained for exact offline comparison."""
+    return {**_summary(entry),
+            "result_fields": ["/".join(path) for path in _scalar_paths(entry.result)][:24]}
+
+
 def _active_card(session):
     if not session.active_task:
         return None
@@ -190,10 +196,12 @@ def _scientific_groups(entries):
     return [group for group in groups.values() if len(group["versions"]) > 1]
 
 
-def select_context_v3(session, text, policy, *, top_k=3):
+def select_context_v3(session, text, policy, *, top_k=3, variant="optimized"):
     """Active detail, completed abstracts, bounded working set and exact restore."""
     if top_k < 1:
         raise ValueError("top_k must be positive")
+    if variant not in {"original", "optimized"}:
+        raise ValueError("Unknown task memory v3 variant")
     if policy in {"F", "S", "G", "E", "E-no-science"}:
         selected = select_context_v2(session, text, policy, top_k=top_k)
         payload = {**selected["payload"], "active_task": _active_card(session)}
@@ -214,17 +222,20 @@ def select_context_v3(session, text, policy, *, top_k=3):
     chosen = baseline["shown_task_ids"]
     archived = [entry for entry in session.entries if entry.task_id not in chosen]
     focus = by_id.get(session.focused_task_id)
+    summaries = ([_original_summary(entry) for entry in archived]
+                 if variant == "original" else
+                 [session.task_summaries[entry.task_id] for entry in archived])
+    working = ([_full_card(by_id[task_id]) for task_id in chosen]
+               if variant == "original" else
+               [{**session.task_summaries[task_id],
+                 "request": by_id[task_id].user_text} for task_id in chosen])
     payload = {"active_record": session.active_record,
                "record_aliases": sorted(session.records),
                "active_task": _active_card(session),
-               "completed_index": [session.task_summaries[entry.task_id]
-                                   for entry in archived],
-               # Route with task abstracts; numerical evidence is restored by
-               # the common read_task interface after the model selects an ID.
-               # Sending complete tool results here defeated task compression.
-               "working_tasks": [{**session.task_summaries[task_id],
-                                  "request": by_id[task_id].user_text}
-                                 for task_id in chosen],
+               "completed_index": summaries,
+               # The optimized variant routes with abstracts, then restores
+               # exact numerical evidence through the common read_task API.
+               "working_tasks": working,
                "focused_evidence": ({**_full_card(focus),
                                      "tool_trace": list(focus.tool_trace)} if focus else None),
                "read_interface": "read_task(task_id)"}
@@ -239,21 +250,24 @@ def select_context_v3(session, text, policy, *, top_k=3):
             "characters": len(encoded), "estimated_tokens": (len(encoded) + 3) // 4}
 
 
-def live_turn_v3(session, policy, text, client, *, deliver_answer=False):
+def live_turn_v3(session, policy, text, client, *, deliver_answer=False,
+                 variant="optimized"):
     if not isinstance(session, EpisodeMemorySession):
         raise TypeError("Task episodes require EpisodeMemorySession")
     return live_turn(session, policy, text, client, deliver_answer=deliver_answer,
-                     selector=select_context_v3)
+                     selector=lambda active, request, arm:
+                     select_context_v3(active, request, arm, variant=variant))
 
 
-def replay_protocol_v3(script, policies=("F", "S", "H", "HE")):
+def replay_protocol_v3(script, policies=("F", "S", "H", "HE"), *, variant="optimized"):
     """One actual tool history; offline gold is used only after selection."""
     session, keys = build_protocol_session(script, session_class=EpisodeMemorySession)
     rows = []
     for policy in policies:
         observations = []
         for query in script["queries"]:
-            selected = select_context_v3(session, query["text"], policy)
+            selected = select_context_v3(session, query["text"], policy,
+                                         variant=variant)
             target_id = keys[query["target"]].task_id
             first_id = selected["ranked_task_ids"][0] if selected["ranked_task_ids"] else None
             first = (score_read_semantics(session, script, query, keys, first_id)

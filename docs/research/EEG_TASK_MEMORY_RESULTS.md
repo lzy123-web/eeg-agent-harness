@@ -1,5 +1,7 @@
 # Issue #36：多轮 EEG 任务上下文实验结果
 
+> 后续 Issue #39 已在同一 Draft PR #37 进行真实四臂闭环、两轮针对性修订与独立确认。旧 Issue #36/#38/v2 的结果均为历史版本、不在本页覆盖；新阶段协议、逐例失败、实际成本和 300,000-token 停线见 [Issue #39 结果](EEG_TASK_MEMORY_ISSUE39_RESULTS.md)。
+
 ## 证据等级与复现边界
 
 本报告只使用 6 条研究者预写的合成会话 M1–M6；M1–M4 为开发、M5–M6 为验证。脚本和评分目标先于实现及真实模型输出冻结在 `config/point1_task_memory_protocol_v1.json`，没有外部人工金标。原始响应和逐轮状态仅保留在被 Git 忽略的本地 `artifacts/point1_task_memory/`，不含真实受试者 EEG。以下逐例摘要可公开复核，但**回放、模型决策闭环、模型最终文字回答是三个不同证据层**。
