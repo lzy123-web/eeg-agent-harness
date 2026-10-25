@@ -445,13 +445,13 @@ def run_pairs(phase, client, *, save):
     return rows
 
 
-def run_closed(client, *, save):
+def run_closed(client, *, phase="closed", save):
     spec = load_spec()
     totals = ledger_totals(LEDGER)
     if (totals["attempts"] + 12 > spec["max_external_completions"] or
         totals["charged_tokens"] + 30000 > spec["max_external_tokens"]):
         raise StageBudgetExhausted("Insufficient budget for both closed-loop arms")
-    conf = spec["closed_loop"]
+    conf = spec["closed_loop" if phase == "closed" else "closed_loop_event"]
     script = _sources(spec)["issue41"][conf["session"]]
     rows = []
     for policy in conf["policies"]:
@@ -459,13 +459,14 @@ def run_closed(client, *, save):
         keys = {}
         for index in conf["step_indices"]:
             step = script["steps"][index]
-            unit_id = f"closed:{policy}:analysis:{index}"
+            unit_id = f"{phase}:{policy}:analysis:{index}"
             if any(row.get("event") == "reserved" and
                    row.get("context", {}).get("unit_id") == unit_id for row in _rows(LEDGER)):
                 raise StageBudgetExhausted("Closed-loop turn already attempted")
-            client.set_context(phase="closed", unit_id=unit_id, policy=policy)
+            client.set_context(phase=phase, unit_id=unit_id, policy=policy)
             before = client.request_count
             before_tokens = client.total_usage.get("total_tokens", 0)
+            started = time.perf_counter()
             try:
                 observed = live_turn(session, policy, step["text"], client,
                                      selector=select_context41)
@@ -477,19 +478,21 @@ def run_closed(client, *, save):
             rows.append({"policy": policy, "kind": "analysis", "index": index,
                          "observed": observed, "task_count": len(session.entries),
                          "llm_completions": client.request_count - before,
-                         "llm_tokens": client.total_usage.get("total_tokens", 0) - before_tokens})
+                         "llm_tokens": client.total_usage.get("total_tokens", 0) - before_tokens,
+                         "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)})
             save(rows)
             if observed["outcome"]["status"] == "llm_error":
                 return rows
         index = conf["query_index"]
         query = script["queries"][index]
-        unit_id = f"closed:{policy}:history:{index}"
+        unit_id = f"{phase}:{policy}:history:{index}"
         if any(row.get("event") == "reserved" and
                row.get("context", {}).get("unit_id") == unit_id for row in _rows(LEDGER)):
             raise StageBudgetExhausted("Closed-loop history already attempted")
-        client.set_context(phase="closed", unit_id=unit_id, policy=policy)
+        client.set_context(phase=phase, unit_id=unit_id, policy=policy)
         before = client.request_count
         before_tokens = client.total_usage.get("total_tokens", 0)
+        started = time.perf_counter()
         try:
             observed = same_history_turn(
                 session, policy, query["text"], client,
@@ -505,7 +508,9 @@ def run_closed(client, *, save):
                      "observed": observed, "score": score,
                      "task_count": len(session.entries),
                      "llm_completions": client.request_count - before,
-                     "llm_tokens": client.total_usage.get("total_tokens", 0) - before_tokens})
+                     "llm_tokens": client.total_usage.get("total_tokens", 0) - before_tokens,
+                     "read_payload_bytes": session.read_payload_bytes,
+                     "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)})
         save(rows)
     return rows
 
@@ -577,7 +582,7 @@ def run_phase(phase):
                                     "rows": rows}, ensure_ascii=False,
                                    indent=2, allow_nan=False) + "\n", encoding="utf-8")
 
-    rows = run_closed(client, save=save) if phase == "closed" else run_pairs(
+    rows = run_closed(client, phase=phase, save=save) if phase in {"closed", "closed-event"} else run_pairs(
         phase, client, save=save)
     save(rows)
     return path, rows
@@ -585,7 +590,7 @@ def run_phase(phase):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("development", "confirmation", "closed"))
+    parser.add_argument("--phase", choices=("development", "confirmation", "closed", "closed-event"))
     parser.add_argument("--enable-paid-issue41", action="store_true")
     parser.add_argument("--ledger-status", action="store_true")
     parser.add_argument("--audit-file", type=Path)

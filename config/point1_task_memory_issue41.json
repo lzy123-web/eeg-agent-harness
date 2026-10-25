@@ -20,6 +20,8 @@
   ],
   "closed_loop": {"session": "C-continuous", "policies": ["S", "HC"],
                   "step_indices": [0, 1, 2], "query_index": 0},
+  "closed_loop_event": {"session": "C-event", "policies": ["S", "HC"],
+                        "step_indices": [0, 2, 3], "query_index": 0},
   "confirmation_scripts": [
     {
       "id": "C-continuous",

@@ -48,6 +48,18 @@ class Issue41Tests(unittest.TestCase):
             self.assertTrue(all(entry.evidence["source"].startswith("synthetic://issue41")
                                 for entry in session.entries))
 
+    def test_supplemental_event_closed_loop_uses_real_event_tools(self):
+        conf = self.spec["closed_loop_event"]
+        script = self.scripts[conf["session"]]
+        self.assertEqual(conf["policies"], ["S", "HC"])
+        self.assertEqual([script["steps"][index]["capability"]
+                          for index in conf["step_indices"]],
+                         ["event_bandpower", "epoch_summary", "event_bandpower"])
+        session, keys = build_session(script)
+        self.assertTrue(all(keys[step["key"]].tool_trace
+                            for step in (script["steps"][index]
+                                         for index in conf["step_indices"])))
+
     def test_size_rule_retains_exact_small_result_and_indexes_large_result(self):
         continuous, ckeys = build_session(self.scripts["C-continuous"])
         event, ekeys = build_session(self.scripts["C-event"])
