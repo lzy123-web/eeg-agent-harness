@@ -4,12 +4,16 @@
 
 PR #37 审查后追加 v2 离线协议：3/6/10 条由真实工具执行的有效历史，6/10 条时摘要和 top-3 选择确实触发；G 已具通用时间/版本检索，事件标签来自合成记录元信息。离线 G/E 均在全部 10 个查询中 top-1 取对，**不能据此宣称真实模型或 EEG 附加排序胜出**。冻结范围、逐例语义评分和下一阶段未授权预算见 [v2 协议](docs/research/EEG_TASK_MEMORY_PROTOCOL_V2.md)与[结果追加](docs/research/EEG_TASK_MEMORY_RESULTS.md)。本轮不调用付费模型。
 
+Issue #38 继续同一 PR 的既定 HiAgent→EEG 路线：opt-in `EpisodeMemorySession` 把当前分析任务的行动/观察与完成任务摘要分开，历史查询经共同只读接口恢复实际证据；H 为任务记忆直接迁移，HE 再组织 EEG 科学对象的多版本关系。错误条件的证据读取由各臂共用范围校验拒绝。F/S/H/HE 在 3/6/10 条合成、真实工具生成的历史中离线可读 10/10，H/HE top-1 均 10/10，HE 暂无增益且上下文略长；**无新付费调用，不能推断真实模型效果**。完整边界见[设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)与[阶段判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。
+
 ```powershell
 $env:PYTHONPATH = 'src'
 python -m eeg_harness.research.task_memory_eval --mode replay
 python -m eeg_harness.research.task_memory_eval --mode replay-v2
+python -m eeg_harness.research.task_memory_eval --mode replay-v3
 python -m unittest tests.test_task_memory -q
 python -m unittest tests.test_task_memory_v2 -q
+python -m unittest discover -s tests -p test_task_memory_v3.py -q
 ```
 
 真实模型入口可加 `--mode real --sessions M1 --policies G E --max-requests 20 --max-total-tokens 50000 --final-answer`，但**本轮既定 96 次外部调用预算已经用尽**，此命令仅供另行批准预算后的复现；只允许合成 EEG，密钥从环境变量读取，原始响应写入被 Git 忽略的本地目录。不能把首次失败后的开发复测当成独立未见成绩。
@@ -112,7 +116,7 @@ EEG_HARNESS_R3_DATA_ROOT（可选，仅本地 R3 资源诊断）
 ## 运行入口
 
 ```powershell
-$python = 'C:\Users\Nick\.conda\envs\eegagent\python.exe'
+$python = 'python'  # 先激活已安装项目依赖的 Conda 环境
 $env:PYTHONPATH = "$PWD\src"
 $env:EEG_HARNESS_EDF_PATH = '<合法 EDF 路径>'
 $env:EEG_HARNESS_MODEL_PATH = '<已有 seizure&normal 权重路径>'

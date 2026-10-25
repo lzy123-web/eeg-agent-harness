@@ -95,6 +95,9 @@ def run_paired_v3(protocol, client, *, session_ids=None,
             turns = [("analysis", item) for item in script["steps"]]
             turns += [("history", item) for item in script["queries"]]
             for index, (kind, expected) in enumerate(turns, 1):
+                before_requests = getattr(client, "request_count", None)
+                before_tokens = getattr(client, "total_usage", {}).get("total_tokens")
+                started = time.perf_counter()
                 try:
                     item = live_turn_v3(session, policy, expected["text"], client,
                                         deliver_answer=deliver_answer and kind == "history")
@@ -111,8 +114,15 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                                  and action.get("capability") == expected["capability"]
                                  and action.get("parameters") == expected["parameters"]
                                  and parent_valid and outcome.get("status") == "completed")
-                        score = {"valid": bool(valid),
-                                 "category": "correct" if valid else "action_or_execution_error"}
+                        if valid:
+                            category = "correct"
+                        elif action.get("operation") != operation:
+                            category = "common_action_selection_error"
+                        elif outcome.get("status") != "completed":
+                            category = "execution_error"
+                        else:
+                            category = "semantic_action_error"
+                        score = {"valid": bool(valid), "category": category}
                         if valid:
                             completed_ids[expected["key"]] = outcome["task_id"]
                     item["score"] = score
@@ -124,7 +134,14 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                 item.update({"session_id": script["id"], "turn_index": index,
                              "kind": kind, "task_count": len(session.entries),
                              "lifecycle": list(session.lifecycle),
-                             "evidence_reads": session.evidence_reads})
+                             "evidence_reads": session.evidence_reads,
+                             "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
+                             "llm_requests": (getattr(client, "request_count", 0)
+                                              - before_requests if before_requests is not None
+                                              else None),
+                             "llm_tokens": (getattr(client, "total_usage", {}).get("total_tokens", 0)
+                                            - before_tokens if before_tokens is not None
+                                            else None)})
                 observations.append(item)
                 if save is not None:
                     save(observations)

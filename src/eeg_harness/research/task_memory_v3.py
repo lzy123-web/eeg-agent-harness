@@ -20,6 +20,7 @@ class EpisodeMemorySession(MultiTurnEEGSession):
         super().__init__(session_id, records)
         self.active_task = None
         self.focused_task_id = None
+        self.task_summaries = {}
         self.lifecycle = []
         self.evidence_reads = 0
 
@@ -50,6 +51,7 @@ class EpisodeMemorySession(MultiTurnEEGSession):
                                     "status": result["status"],
                                     "code": result.get("code"), "tool_trace": trace})
         if result["status"] == "completed":
+            self.task_summaries[result["task_id"]] = _summary(self.entries[-1])
             self.lifecycle.append({"event": "archived", "task_id": result["task_id"],
                                    "attempt_count": len(pending["attempts"])})
             self.active_task = None
@@ -202,7 +204,8 @@ def select_context_v3(session, text, policy, *, top_k=3):
     payload = {"active_record": session.active_record,
                "record_aliases": sorted(session.records),
                "active_task": _active_card(session),
-               "completed_index": [_summary(entry) for entry in archived],
+               "completed_index": [session.task_summaries[entry.task_id]
+                                   for entry in archived],
                "working_tasks": [_full_card(by_id[task_id]) for task_id in chosen],
                "focused_evidence": ({**_full_card(focus),
                                      "tool_trace": list(focus.tool_trace)} if focus else None),

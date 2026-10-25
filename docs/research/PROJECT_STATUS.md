@@ -1,5 +1,14 @@
 # 项目状态
 
+## 2026-10-25 当前更新：Issue #38 既定 HiAgent→EEG 任务上下文适配阶段
+
+- 阶段与范围：继续 Draft PR #37 的 `research/point1-eeg-task-memory`，沿用 v1/v2、旧真实响应、负结果和冻结 CIEDG，不重新选题；只做工作点一任务级上下文适配。真实受试者数据、密钥、权重未进入 Git；本轮付费 API 调用 **0**。
+- 代码：新增 opt-in `task_memory_v3.py` 的任务 episode 状态。实际 `analyze/revise` 与原 Registry/Executor 的结果决定 started/blocked/resumed/archived；完成任务摘要只留真实来源、条件、版本、字段和读取 ID，原始数值/trace 经共同 `read_task` 恢复并可成为下一轮焦点。HE 对实际 EEG 对象的多版本任务分组；公共读口对错记录/连续或事件范围/通道/事件标签/窗口/版本作保守拒绝。F/S/H/HE 共享原始历史和读取 API；旧 v1/v2 入口不变。CLI 新增无 API `--mode replay-v3` 及有显式额外授权/预算门的未来 `real-v3` 配对入口。
+- 机制迭代：首次 v3 离线运行发现 HE 给所有单例重复科学绑定，增加上下文而无命中增益；只保留确有多版本的对象组，首次 JSON 保留。本轮没有调科学真值、旧实验或 EEG 算法。方法对应表、真实运行及失败边界见 `EEG_TASK_MEMORY_DESIGN.md` / `EEG_TASK_MEMORY_RESULTS.md` / `EEG_TASK_MEMORY_DECISION.md`。
+- 验证：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3` 生成本地忽略 JSON：3/6/10 项实际工具任务，F/S 目标证据可读 10/10，H/HE top-1 均 10/10；中/长历史实际归档 3/7 条；独立原始样本 oracle 核对读取范围与数值。Fake 多轮经原 Executor 完成分析→修订→历史证据恢复；非法通道 blocked→续接、科学范围误读拒绝与切记录焦点清除通过。`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 在 `eegagent` 环境通过：**299 tests，284 通过、15 skipped、0 失败**。
+- 判断与遗留：完成 HiAgent 启发的任务块/压缩/恢复 EEG 适配的可运行阶段，不是原论文完整复现。HE 对 H 无离线命中增益且中/长平均工作卡分别多 449/448 字符；真实模型理解摘要、最终答案、总 token/调用成本仍未验证。旧 M6 的首轮 analyze/switch 误选不由记忆层修复。下一阶段若单独授权，先冻结新语义评分并以明确预算做 F/S/H/HE 配对闭环；当前开发协议不得冒充未见测试。
+- Git：功能/测试提交 `ac031e5` 已普通推送至原 Draft PR #37；本状态与研究文档将随纯文档提交同步。未合并 main、未强推。
+
 ## 2026-10-25 当前更新：PR #37 阶段审查后的任务记忆 v2（离线设计验收）
 
 - 按 [审查意见](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6395350899) 保留 Issue #36 的公共多轮接口与旧 v1 结果；先冻结 `point1_task_memory_protocol_v2.json` 和中文协议，再实现独立 v2 选择器。原协议、96 次真实 DeepSeek 响应、旧失败与冻结 CIEDG 均未修改；本轮**新增付费调用 0 次**。

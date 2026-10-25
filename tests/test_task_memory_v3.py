@@ -48,6 +48,8 @@ class TaskEpisodeTests(unittest.TestCase):
                          ["started", "archived"])
         self.assertTrue(session.entries[0].tool_trace)
         self.assertEqual(session.entries[0].evidence["source"], session.records["A"].source)
+        self.assertEqual(session.task_summaries[result["task_id"]]["read_task_id"],
+                         result["task_id"])
 
     def test_blocked_task_preserves_observation_and_resumes_only_same_goal(self):
         script = self.scripts[0]
@@ -58,6 +60,7 @@ class TaskEpisodeTests(unittest.TestCase):
         self.assertNotEqual(bad["status"], "completed")
         self.assertEqual(session.active_task["state"], "blocked")
         self.assertFalse(session.entries)
+        self.assertFalse(session.task_summaries)
         active = select_context_v3(session, "继续分析", "H")["payload"]["active_task"]
         self.assertEqual(active["attempts"][0]["status"], bad["status"])
         good = session.analyze("A", "psd", step["parameters"], "修正通道后继续")
