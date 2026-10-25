@@ -8,8 +8,8 @@
 - 同历史严格确认：F 3/4、S 4/4、旧 H 3/4、HC 4/4；分别 4/5/6/5 次响应、11,581/10,416/10,332/10,030 API tokens、0/603/4,124/686 读回字节、8.15/5.85/7.92/7.51 s 累计墙钟。原始自动筛查误拒否定单位和 Unicode 指数；原分数、原始响应仍保留，追加审计后逐例人工核对。F 歧义题没有擅选一个结果，但以 answer 枚举全部候选、不合冻结澄清契约；H 一次错误字段读回。开发原始及修正评分详见 `EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
 - 有限闭环：S 与 HC 各三次自然语言分析加末轮旧 RMS 历史追问，均 4/4 完成；S 4 call/6,609 tokens，HC 4/6,952。末轮均直答、均未读回，HC 此例无成本优势。数值核验使用原数组独立 oracle；完整自然语言回答另经逐例审阅。
 - 研究结论：小值内联与大值字段读取可运行且减少旧 H 的部分额外读回；相对强 S，HC 仅在四题确认中节省 3.7% tokens，但延迟更高、闭环成本反高，**未证独立 EEG-specific 方法优势**。最简建议保留不可变任务历史/科学读口、小型精确结果卡和完整读回兜底；字段级读回为全臂可选接口，HE 额外分组继续暂置。下一步若获新预算，只应预注册自然、有效的较长历史做强 S vs 紧凑方案的完整成本—正确性配对；本阶段不自动续跑。
-- 验证：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，及定向 `python -m unittest tests.test_task_memory_issue41 -q`；最终数字与 Git 提交见本节末次同步。完整协议、哈希、逐例、用量和局限见 `EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
-- Git：协议/方法冻结 `dd6040f`，开发失败后的公共接口修订 `a238430`，确认后只修评价器 `026e92c`；均为本研究分支普通本地提交。报告/状态的最终提交与推送状态在本轮收尾时更新；不强推、不合并 main。
+- 验证：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**328 tests，313 passed、15 resource-gated skipped、0 failed**。定向 Issue #41 14 项通过；`git diff --check` 无问题，私有原始账本经 `git check-ignore` 确认不入库。完整协议、哈希、逐例、用量和局限见 `EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
+- Git：协议/方法冻结 `dd6040f`，开发失败后的公共接口修订 `a238430`，确认后只修评价器 `026e92c`，逐例报告/审计入口 `fa11d83`。均为本研究分支普通提交；最终状态同步及远端推送情况以 Git 历史与本轮交付说明为准。不强推、不合并 main。
 
 ## 2026-10-25 完成：Issue #40 任务记忆效用归因与方法收敛
 
