@@ -9,7 +9,7 @@
 - 有限闭环：预注册连续链中 S/HC 各三次自然语言分析加旧 RMS 追问，均 4/4；S 4 call/6,609 tokens，HC 4/6,952，末轮都直答。主确认后发现原闭环遗漏事件对象，追加明确标注的事件集成检查（不混入主确认）：A oddball→B flash 试次→B flash 功率→两通道历史追问，S/HC 均 4/4；S 4 call/8,289 tokens、0 读回字节，HC 5/8,852、3,406 字节，HC 选择完整读回。数值经原数组独立 oracle；完整回答另逐例审阅。
 - 研究结论：小值内联与大值字段读取可运行且减少旧 H 的部分额外读回；相对强 S，HC 仅在四题确认中节省 3.7% tokens，但延迟更高、闭环成本反高，**未证独立 EEG-specific 方法优势**。最简建议保留不可变任务历史/科学读口、小型精确结果卡和完整读回兜底；字段级读回为全臂可选接口，HE 额外分组继续暂置。下一步若获新预算，只应预注册自然、有效的较长历史做强 S vs 紧凑方案的完整成本—正确性配对；本阶段不自动续跑。
 - 验证：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**329 tests，314 passed、15 resource-gated skipped、0 failed**。定向 Issue #41 15 项通过；`git diff --check` 无问题，私有原始账本经 `git check-ignore` 确认不入库。完整协议、哈希、逐例、用量和局限见 `EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
-- Git：协议/方法冻结 `dd6040f`，开发失败后的公共接口修订 `a238430`，确认后只修评价器 `026e92c`，逐例报告/审计入口 `fa11d83`，连续阶段状态 `b5a99a3`，协议后补充事件闭环入口 `60235ba`。至 `b5a99a3` 已普通推送至 `research/point1-eeg-task-memory` / Draft PR #37；补充事件入口与本次补充报告仍待最终普通推送。未强推、未合并 main。
+- Git：协议/方法冻结 `dd6040f`，开发失败后的公共接口修订 `a238430`，确认后只修评价器 `026e92c`，逐例报告/审计入口 `fa11d83`，连续阶段状态 `b5a99a3`，协议后补充事件闭环入口 `60235ba`，补充结果报告 `0fd7508`。均已普通推送至 `research/point1-eeg-task-memory` / Draft PR #37；该代码/报告提交的 GitHub Actions `unit-tests` run `40207756210` 在本次记录时尚未完成，不能写成已通过。未强推、未合并 main。
 
 ## 2026-10-25 完成：Issue #40 任务记忆效用归因与方法收敛
 
