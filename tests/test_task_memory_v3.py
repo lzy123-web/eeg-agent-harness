@@ -131,6 +131,18 @@ class TaskEpisodeTests(unittest.TestCase):
         self.assertEqual(past["outcome"]["result"], session.entries[0].result)
         self.assertEqual(len(session.entries), 2)
 
+    def test_common_switch_and_analyze_finishes_requested_calculation(self):
+        script = self.scripts[0]
+        session = EpisodeMemorySession("combo", protocol_records(script))
+        step = script["steps"][2]
+        observed = live_turn_v3(session, "H", step["text"],
+                                FakeClient({"operation": "switch_analyze",
+                                            "record": "B", "capability": "psd",
+                                            "parameters": step["parameters"]}))
+        self.assertEqual(observed["outcome"]["status"], "completed")
+        self.assertEqual(session.active_record, "B")
+        self.assertEqual(session.entries[0].record, "B")
+
     def test_shared_read_guard_rejects_wrong_record_event_and_version(self):
         session, keys = build_protocol_session(
             self.scripts[1], session_class=EpisodeMemorySession)
@@ -157,6 +169,23 @@ class TaskEpisodeTests(unittest.TestCase):
             session, power, "A 的 SYNTH-C1 连续功率 3 到 5 秒"), "window")
         self.assertEqual(scientific_read_mismatch(
             session, power, "A 的事件功率"), "analysis_scope")
+
+    def test_event_power_channel_read_is_not_falsely_rejected(self):
+        session, keys = build_protocol_session(
+            self.scripts[1], session_class=EpisodeMemorySession)
+        target = keys["b_target_power"]
+        text = "B 的 target 事件窗 SYNTH-C1 alpha 功率是多少？"
+        self.assertIsNone(scientific_read_mismatch(session, target, text))
+        self.assertEqual(session.read_task(target.task_id, text)["status"], "read")
+
+    def test_full_history_does_not_duplicate_raw_tool_result(self):
+        session, _ = build_protocol_session(
+            self.scripts[1], session_class=EpisodeMemorySession)
+        payload = select_context_v3(session, "回顾历史", "F")["payload"]
+        self.assertNotIn("full_tool_results", payload)
+        self.assertTrue(all("result_preview" in card and "request" not in card
+                            for card in payload["cards"]))
+        self.assertEqual(len(payload["cards"]), len(session.entries))
 
     def test_same_history_replay_preserves_independent_oracle(self):
         for script in self.scripts:

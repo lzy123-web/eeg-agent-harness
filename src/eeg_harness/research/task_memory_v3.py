@@ -105,8 +105,13 @@ def scientific_read_mismatch(session, entry, text):
         event = entry.capability in EVENT_CAPABILITIES
         if (query.scientific_scope == "event") != event:
             return "analysis_scope"
-    if query.channels and not set(query.channels).issubset(params.get("channels", ())):
-        return "channels"
+    if query.channels:
+        channels = set(params.get("channels", ()))
+        if entry.capability == "event_bandpower":
+            for condition in entry.result.get("conditions", {}).values():
+                channels.update(condition.get("channels", {}))
+        if not set(query.channels).issubset(channels):
+            return "channels"
     if query.event_labels and not set(query.event_labels).issubset(params.get("labels", ())):
         return "event_labels"
     if query.window:
@@ -190,6 +195,12 @@ def select_context_v3(session, text, policy, *, top_k=3):
     if policy in {"F", "S", "G", "E", "E-no-science"}:
         selected = select_context_v2(session, text, policy, top_k=top_k)
         payload = {**selected["payload"], "active_task": _active_card(session)}
+        if policy == "F":
+            # Full chronological user text and each complete task result once;
+            # the v2 card+message+tool-trace triplication is not a fair F cost.
+            payload.pop("full_tool_results", None)
+            payload["cards"] = [{key: value for key, value in card.items()
+                                 if key != "request"} for card in payload["cards"]]
         encoded = json.dumps(payload, ensure_ascii=False, allow_nan=False)
         return {**selected, "payload": payload, "characters": len(encoded),
                 "estimated_tokens": (len(encoded) + 3) // 4}

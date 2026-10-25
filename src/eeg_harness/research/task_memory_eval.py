@@ -95,6 +95,9 @@ def run_paired_v3(protocol, client, *, session_ids=None,
             turns = [("analysis", item) for item in script["steps"]]
             turns += [("history", item) for item in script["queries"]]
             for index, (kind, expected) in enumerate(turns, 1):
+                if hasattr(client, "set_context"):
+                    client.set_context(session_id=script["id"], policy=policy,
+                                       turn_index=index, kind=kind)
                 before_requests = getattr(client, "request_count", None)
                 before_tokens = getattr(client, "total_usage", {}).get("total_tokens")
                 started = time.perf_counter()
@@ -109,14 +112,17 @@ def run_paired_v3(protocol, client, *, session_ids=None,
                         parent_valid = ("revision_of" not in expected or
                                         action.get("parent_task_id") ==
                                         completed_ids.get(expected["revision_of"], object()))
-                        valid = (action.get("operation") == operation
+                        operation_valid = (action.get("operation") == operation or
+                                           operation == "analyze" and
+                                           action.get("operation") == "switch_analyze")
+                        valid = (operation_valid
                                  and action.get("record") == expected["record"]
                                  and action.get("capability") == expected["capability"]
                                  and action.get("parameters") == expected["parameters"]
                                  and parent_valid and outcome.get("status") == "completed")
                         if valid:
                             category = "correct"
-                        elif action.get("operation") != operation:
+                        elif not operation_valid:
                             category = "common_action_selection_error"
                         elif outcome.get("status") != "completed":
                             category = "execution_error"

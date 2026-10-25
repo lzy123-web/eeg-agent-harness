@@ -265,7 +265,7 @@ MEMORY_ACTION_TOOL = [{"type": "function", "function": {
     "name": "submit_memory_action",
     "description": "Choose one grounded multi-turn EEG action. History IDs must come from visible memory.",
     "parameters": {"type": "object", "properties": {
-        "operation": {"type": "string", "enum": ["analyze", "revise", "switch", "history", "clarify"]},
+        "operation": {"type": "string", "enum": ["analyze", "switch_analyze", "revise", "switch", "history", "clarify"]},
         "record": {"type": "string"}, "capability": {"type": "string"},
         "parameters": {"type": "object"}, "parent_task_id": {"type": "string"},
         "task_id": {"type": "string"}, "question": {"type": "string"},
@@ -300,7 +300,9 @@ def live_turn(session, policy, text, client, *, deliver_answer=False,
         "你是研究用途 EEG 多轮分析助手。只调用 submit_memory_action 一次。"
         "所有历史 task_id 和参数必须来自当前提供的真实任务卡/只读结果；不可猜 ID、记录、窗口、事件或模型结果。"
         "历史查询选 history 并填 task_id；参数修改选 revise 并填 parent_task_id，生成新任务且保留旧结果。"
-        "切换记录选 switch；新增计算选 analyze。若多个历史任务同样符合请求，选 clarify 说明歧义。"
+        "只有单纯切换记录且没有计算请求才选 switch；若要求在另一记录上计算，"
+        "选 analyze 并指定 record，或选 switch_analyze 同时完成切换与分析，不能只 switch。"
+        "若多个历史任务同样符合请求，选 clarify 说明歧义。"
         "新分析的能力、科学含义和合法参数均由 CAPABILITIES 声明；"
         "按描述匹配用户需求，仅用 allowed 中字段，不添加自造参数。"
         "所需参数确实缺失才澄清；不要把能力名称与自然语言的字面差异当成缺参。"
@@ -323,7 +325,7 @@ def live_turn(session, policy, text, client, *, deliver_answer=False,
         operation = action["operation"]
         if operation == "switch":
             outcome = session.switch(action.get("record"), text)
-        elif operation in {"analyze", "revise"}:
+        elif operation in {"analyze", "switch_analyze", "revise"}:
             outcome = session.analyze(
                 action.get("record", session.active_record), action.get("capability"),
                 action.get("parameters", {}), text,
