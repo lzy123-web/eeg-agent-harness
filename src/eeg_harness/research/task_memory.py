@@ -284,7 +284,9 @@ def live_turn(session, policy, text, client):
         "历史查询选 history 并填 task_id；参数修改选 revise 并填 parent_task_id，生成新任务且保留旧结果。"
         "切换记录选 switch；新增计算选 analyze。若多个历史任务同样符合请求，选 clarify 说明歧义。"
         "新分析只支持 record_info、record_quality、amplitude、psd、epoch_summary、epoch_quality、event_bandpower。"
-        "连续窗要 channels/start/end，事件分析要 labels/tmin/tmax；缺参应澄清。"
+        "每类工具的 parameters 必须严格只含其合法字段，不要附加 absolute、method 或推测的配置。"
+        "amplitude/psd 严格为 channels/start/end；事件分析严格为 labels/tmin/tmax，"
+        "record_info 为空对象；record_quality 可含 channels/start/end/line_frequency。缺参应澄清。"
         "不要把连续 PSD 与事件窗功率混淆，不诊断。"
         "RECORDS=" + json.dumps(metadata, ensure_ascii=False, allow_nan=False)
     )
