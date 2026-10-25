@@ -148,6 +148,14 @@ class GranularEpisodeSession(EpisodeMemorySession):
         for path in paths:
             if not isinstance(path, list) or not 1 <= len(path) <= 8:
                 return {"status": "invalid_field", "code": "FIELD_PATH_INVALID"}
+            # A generic summary may display a nested path as "parent/child".
+            # Preserve a literal key if it exists; otherwise accept that
+            # display form only when every split component resolves exactly.
+            if (len(path) == 1 and isinstance(path[0], str)
+                    and "/" in path[0] and path[0] not in entry.result):
+                path = path[0].split("/")
+                if not all(path) or len(path) > 8:
+                    return {"status": "invalid_field", "code": "FIELD_PATH_INVALID"}
             value = entry.result
             for key in path:
                 if isinstance(value, dict) and isinstance(key, str) and key in value:
@@ -157,7 +165,12 @@ class GranularEpisodeSession(EpisodeMemorySession):
                     value = value[key]
                 else:
                     return {"status": "invalid_field", "code": "FIELD_NOT_FOUND"}
-            if not (value is None or type(value) in {str, int, float, bool}):
+            small_list = (isinstance(value, list) and len(value) <= 16
+                          and all(item is None or type(item) in {str, int, float, bool}
+                                  for item in value)
+                          and len(_encoded(value)) <= 256)
+            if not (value is None or type(value) in {str, int, float, bool}
+                    or small_list):
                 return {"status": "invalid_field", "code": "FIELD_NOT_SCALAR"}
             values.append({"path": path, "value": value})
         # Only after path validation invoke the shared scientific read guard
@@ -227,7 +240,7 @@ def same_history_turn(session, policy, query, client, *, inline_max=256):
         "你是研究用途 EEG 历史分析助手。仅用当前可见的真实任务证据，不诊断、不猜数值。"
         "所有方案拥有同样的 read_full 和 read_fields 权限。若精确数值已在当前上下文，"
         "可直接 answer 并注明其真实 task_id；若只有索引，用 read_fields 按真实字段路径"
-        "读取最多四个标量，字段路径必须来自可见字段结构；不确定路径或需要完整结果时用"
+        "读取最多四个小字段，字段路径必须来自可见字段结构；不确定路径或需要完整结果时用"
         " read_full。确有条件、记录或版本歧义才 clarify。空归档索引不代表工作任务不存在。"
         "不得把功率 V² 写成 V²/Hz；分析范围、版本、单位需忠实于证据。")
     first = client.complete([
@@ -238,14 +251,21 @@ def same_history_turn(session, policy, query, client, *, inline_max=256):
     ], EVIDENCE_ACTION, tool_choice={"type": "function", "function": {
         "name": "submit_evidence_action"}})
     calls = first.get("tool_calls") or []
-    if len(calls) != 1 or calls[0].get("function", {}).get("name") != "submit_evidence_action":
+    if not 1 <= len(calls) <= 4 or any(
+            call.get("function", {}).get("name") != "submit_evidence_action"
+            for call in calls):
         return {"status": "invalid_action", "action": None, "answer": None,
                 "selection": selected, "read": None}
     try:
-        action = json.loads(calls[0]["function"]["arguments"])
+        actions = [json.loads(call["function"]["arguments"]) for call in calls]
     except (TypeError, ValueError, KeyError):
         return {"status": "invalid_action", "action": None, "answer": None,
                 "selection": selected, "read": None}
+    if len(actions) > 1 and any(action.get("operation") not in
+                                {"read_full", "read_fields"} for action in actions):
+        return {"status": "invalid_action", "action": None, "answer": None,
+                "selection": selected, "read": None}
+    action = actions[0]
     operation = action.get("operation")
     if operation == "answer":
         answer = action.get("answer")
@@ -255,29 +275,36 @@ def same_history_turn(session, policy, query, client, *, inline_max=256):
     if operation == "clarify":
         return {"status": "clarification_required", "action": action,
                 "answer": action.get("question"), "selection": selected, "read": None}
-    if operation == "read_full":
-        observed = session.read_task(action.get("task_id"), query)
-    elif operation == "read_fields":
-        observed = session.read_task_fields(action.get("task_id"),
-                                            action.get("field_paths"), query)
-    else:
-        return {"status": "invalid_action", "action": action, "answer": None,
-                "selection": selected, "read": None}
-    if observed["status"] not in {"read", "read_fields"}:
-        return {"status": observed["status"], "action": action, "answer": None,
-                "selection": selected, "read": observed}
+    reads = []
+    for item in actions:
+        if item.get("operation") == "read_full":
+            observed = session.read_task(item.get("task_id"), query)
+        elif item.get("operation") == "read_fields":
+            observed = session.read_task_fields(item.get("task_id"),
+                                                item.get("field_paths"), query)
+        else:
+            return {"status": "invalid_action", "action": item, "answer": None,
+                    "selection": selected, "read": None}
+        reads.append(observed)
+    successful = [item for item in reads if item["status"] in {"read", "read_fields"}]
+    if not successful:
+        return {"status": reads[0]["status"], "action": actions[0],
+                "actions": actions, "answer": None,
+                "selection": selected, "read": reads[0], "reads": reads}
     second = client.complete([
         {"role": "system", "content": (
             "只据下列真实 EEG 任务证据回答当前问题，准确注明记录、科学条件、时间窗、"
             "版本、数值和单位。若证据不足须明确说明，不能编造或诊断。")},
         {"role": "user", "content": json.dumps({"request": query,
-                                               "evidence": observed},
+                                               "evidence": reads[0] if len(reads) == 1
+                                               else reads},
                                               ensure_ascii=False, allow_nan=False)},
     ], [])
     answer = second.get("content") if isinstance(second, dict) else None
     return {"status": "answered" if isinstance(answer, str) and answer.strip()
-            else "invalid_answer", "action": action, "answer": answer,
-            "selection": selected, "read": observed}
+            else "invalid_answer", "action": action, "actions": actions,
+            "answer": answer, "selection": selected, "read": reads[0],
+            "reads": reads}
 
 
 def _number_in_answer(answer, expected):
@@ -298,7 +325,8 @@ def score_turn(session, script, query, keys, observed):
     chosen = action.get("task_id")
     target = keys[query["target"]]
     step = next(item for item in script["steps"] if item["key"] == query["target"])
-    same_task = chosen == target.task_id
+    actions = observed.get("actions") or [action]
+    same_task = any(item.get("task_id") == target.task_id for item in actions)
     fields = query.get("fields") or [query["field"]]
     oracles = [independent_oracle(session.records[step["record"]], step, field)
                for field in fields]
@@ -307,12 +335,14 @@ def score_turn(session, script, query, keys, observed):
     read = observed.get("read")
     direct_visible = (action.get("operation") != "answer" or
                       _visible_exact(observed["selection"], chosen))
-    if action.get("operation") == "read_fields":
-        paths = [item["path"] for item in read.get("fields", ())] if read else []
-        read_covers = read.get("status") == "read_fields" and all(
-            field in paths for field in fields)
-    elif action.get("operation") == "read_full":
-        read_covers = bool(read and read.get("status") == "read")
+    if any(item.get("operation") in {"read_fields", "read_full"} for item in actions):
+        targeted_reads = [item for item in (observed.get("reads") or [read])
+                          if item and item.get("task_id") == target.task_id]
+        paths = [field["path"] for item in targeted_reads
+                 for field in item.get("fields", ())]
+        read_covers = bool(targeted_reads) and (
+            any(item.get("status") == "read" for item in targeted_reads)
+            or all(field in paths for field in fields))
     else:
         read_covers = True
     actual_valid = True
@@ -326,7 +356,8 @@ def score_turn(session, script, query, keys, observed):
         except (KeyError, IndexError, TypeError, ValueError):
             actual_valid = False
     unit = target.evidence["unit_or_kind"]
-    unit_screen = ("V²" in answer and "V²/Hz" not in answer if unit == "V²"
+    positive_unit_text = re.sub(r"(?:非|不是|并非|不等于)\s*V²/Hz", "", answer)
+    unit_screen = ("V²" in answer and "V²/Hz" not in positive_unit_text if unit == "V²"
                    else "V" in answer and "V²" not in answer if unit == "V"
                    else True)
     valid = bool(same_task and actual_valid and numbers_match and direct_visible

@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from eeg_harness.research.task_memory_issue39_budget import StageBudgetExhausted
 from eeg_harness.research.task_memory_issue41 import (
-    LEDGER, _admit_pair, build_session, load_spec, protocol_records41,
+    LEDGER, _admit_pair, _sources, build_session, load_spec, protocol_records41,
     result_view, same_history_turn, score_turn, select_context41,
 )
 
@@ -23,9 +23,10 @@ class FakeEvidence:
     def complete(self, messages, tools, tool_choice="auto"):
         self.calls.append((messages, tools))
         if tools:
+            actions = self.action if isinstance(self.action, list) else [self.action]
             return {"tool_calls": [{"function": {
                 "name": "submit_evidence_action",
-                "arguments": json.dumps(self.action)}}]}
+                "arguments": json.dumps(action)}} for action in actions]}
         return {"content": self.final}
 
 
@@ -124,6 +125,67 @@ class Issue41Tests(unittest.TestCase):
         wrong_unit["answer"] = wrong_unit["answer"].replace("V²", "V²/Hz")
         self.assertFalse(score_turn(event, self.scripts["C-event"], query,
                                     ekeys, wrong_unit)["valid_screen"])
+
+    def test_negated_density_unit_is_not_a_positive_wrong_unit(self):
+        event, keys = build_session(self.scripts["C-event"])
+        query = self.scripts["C-event"]["queries"][0]
+        task = keys["b_flash_power"]
+        values = [task.result["conditions"]["flash"]["channels"][name]["alpha"]
+                  for name in ("SYNTH-C1", "SYNTH-C2")]
+        client = FakeEvidence({"operation": "read_fields", "task_id": task.task_id,
+                               "field_paths": query["fields"]},
+                              f"B flash 的两通道 alpha 功率为 {values[0]} 和 "
+                              f"{values[1]} V²；这是功率，非 V²/Hz。")
+        observed = same_history_turn(deepcopy(event), "HC", query["text"], client)
+        self.assertTrue(score_turn(event, self.scripts["C-event"], query,
+                                   keys, observed)["valid_screen"])
+
+    def test_multiple_read_actions_share_one_final_completion(self):
+        session, keys = build_session(self.scripts["C-event"])
+        query = self.scripts["C-event"]["queries"][0]
+        target = keys["b_flash_power"]
+        values = [target.result["conditions"]["flash"]["channels"][name]["alpha"]
+                  for name in ("SYNTH-C1", "SYNTH-C2")]
+        client = FakeEvidence([
+            {"operation": "read_fields", "task_id": target.task_id,
+             "field_paths": [query["fields"][0]]},
+            {"operation": "read_fields", "task_id": target.task_id,
+             "field_paths": [query["fields"][1]]},
+        ], f"B flash 0–1 秒两通道 alpha 功率 {values[0]} 和 {values[1]} V²。")
+        observed = same_history_turn(deepcopy(session), "HC", query["text"], client)
+        self.assertEqual(len(client.calls), 2)
+        self.assertEqual(len(observed["reads"]), 2)
+        self.assertTrue(score_turn(session, self.scripts["C-event"], query,
+                                   keys, observed)["valid_screen"])
+
+    def test_summary_display_path_can_be_read_without_guessing_key(self):
+        script = _sources(self.spec)["v2"]["N-long"]
+        session, keys = build_session(script)
+        task = keys["a_psd"] if "a_psd" in keys else next(
+            entry for entry in keys.values() if entry.capability == "psd")
+        result = session.read_task_fields(task.task_id, [["SYNTH-C1/alpha"]],
+                                          "记录 A 最初的连续 alpha 功率")
+        self.assertEqual(result["status"], "read_fields")
+        self.assertEqual(result["fields"][0]["path"], ["SYNTH-C1", "alpha"])
+
+    def test_batch_keeps_valid_evidence_and_reports_rejected_version(self):
+        script = _sources(self.spec)["v2"]["N-medium"]
+        session, keys = build_session(script)
+        query = script["queries"][0]
+        old = keys["a_cue_count_old"]
+        new = keys["a_cue_count_new"]
+        client = FakeEvidence([
+            {"operation": "read_fields", "task_id": old.task_id,
+             "field_paths": [["valid_epoch_count"], ["rejected_epoch_count"],
+                             ["event_labels"], ["tmax"]]},
+            {"operation": "read_fields", "task_id": new.task_id,
+             "field_paths": [["valid_epoch_count"], ["tmax"]]},
+        ], "修改前 A cue 事件后 0–1 秒，有效试次数为 3。")
+        observed = same_history_turn(deepcopy(session), "HC", query["text"], client)
+        self.assertEqual(observed["status"], "answered")
+        self.assertEqual(observed["reads"][0]["status"], "read_fields")
+        self.assertEqual(observed["reads"][1]["code"], "SCIENTIFIC_SCOPE_MISMATCH")
+        self.assertTrue(score_turn(session, script, query, keys, observed)["valid_screen"])
 
     def test_ambiguous_request_must_clarify(self):
         event, keys = build_session(self.scripts["C-event"])
