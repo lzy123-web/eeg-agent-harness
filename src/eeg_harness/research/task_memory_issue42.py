@@ -403,7 +403,8 @@ def _record_row(client, before, started, policy, script, mode, index, observed, 
             "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)}
 
 
-def run_workflow(script, policy, client, *, mode="closed", save=lambda row: None):
+def run_workflow(script, policy, client, *, mode="closed", save=lambda row: None,
+                 history_handler=history_turn, history_scorer=score_history):
     """Use the same public natural-language and evidence actions for every arm."""
     session = _session(script)
     keys = {}
@@ -422,8 +423,8 @@ def run_workflow(script, policy, client, *, mode="closed", save=lambda row: None
                 if observed["outcome"]["status"] == "completed":
                     keys[turn["key"]] = session.entries[-1]
             else:
-                observed = history_turn(session, policy, turn["text"], client)
-                score = score_history(session, turn, observed, keys, turns_by_key)
+                observed = history_handler(session, policy, turn["text"], client)
+                score = history_scorer(session, turn, observed, keys, turns_by_key)
         except StageBudgetExhausted:
             raise
         except Exception as exc:
@@ -453,19 +454,21 @@ def build_same_history(script, stop_index):
     return session, keys
 
 
-def run_same_history(script, index, policy, client, *, save=lambda row: None):
+def run_same_history(script, index, policy, client, *, save=lambda row: None,
+                     history_handler=history_turn, history_scorer=score_history,
+                     mode="confirmation"):
     turn = script["turns"][index]
     if turn["kind"] != "history":
         raise ValueError("Same-history checkpoint must be a history turn")
     session, keys = build_same_history(script, index)
     turns_by_key = {item["key"]: item for item in script["turns"] if "key" in item}
-    client.set_context(unit_id=f"confirmation:{script['id']}",
+    client.set_context(unit_id=f"{mode}:{script['id']}",
                        workflow=script["id"], policy=policy, turn=index)
     before = (client.request_count, client.total_usage.get("total_tokens", 0))
     started = time.perf_counter()
     try:
-        observed = history_turn(session, policy, turn["text"], client)
-        score = score_history(session, turn, observed, keys, turns_by_key)
+        observed = history_handler(session, policy, turn["text"], client)
+        score = history_scorer(session, turn, observed, keys, turns_by_key)
     except StageBudgetExhausted:
         raise
     except Exception as exc:
