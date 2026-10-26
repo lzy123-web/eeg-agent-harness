@@ -21,7 +21,7 @@ STRINGS = {"type": "array", "items": STRING}
 CONTROLS = [
     control("begin_subgoal", "Declare ONE scientific delivery contract before multi-action analysis or a revision. Do not specify a whole action sequence.", {
         "title": STRING, "record": STRING, "deliverable": {"type": "string", "enum": sorted(TERMINALS)},
-        "scope": {"type": "object", "description": "Continuous: channels,start,end. Event: labels,tmin,tmax, optional baseline. Record info/list_events: {}."},
+        "scope": {"type": "object", "description": "Computational scope, not output selection. Continuous: channels,start,end. Event: labels,tmin,tmax only (tools compute all channels; select requested output channel later). Record info/list_events: {}."},
         "checks": {**STRINGS, "description": "Required prerequisite tools for this delivery, e.g. epoch_quality. Completion checks actual successes on the same artifact."},
         "criteria": {"type": "array", "items": {"type": "object", "properties": {
             "tool": STRING, "path": {"type": "array"}, "op": {"type": "string", "enum": ["eq", "gte", "lte"]},
@@ -84,6 +84,7 @@ class WorkingMemoryController:
         self.stop_reason = None
         self.final_answer = ""
         self.errors = 0
+        self.last_error = None
         self.repeats = {}
         self.restore_count = 0
         self.turn_evidence = []
@@ -201,7 +202,11 @@ class WorkingMemoryController:
         except Exception:
             result = self.store._error("INTERNAL_CONTROL_ERROR", "Control failed safely; no traceback is sent to the model")
         successful = result.get("status") not in {"rejected", "blocked"}
-        self.errors = 0 if successful else self.errors + 1
+        # Rejected multi-call batches are one failed decision. Distinct corrected
+        # input errors are not evidence of repeating the same non-progress loop.
+        signature = (request.name, result.get("code", "TOOL_BLOCKED"))
+        self.errors = (0 if successful else self.errors + 1 if signature == self.last_error else 1)
+        self.last_error = None if successful else signature
         key = encoded({"tool": request.name, "args": dict(request.arguments)})
         self.repeats[key] = self.repeats.get(key, 0) + 1
         if self.repeats[key] > self.no_progress_limit:

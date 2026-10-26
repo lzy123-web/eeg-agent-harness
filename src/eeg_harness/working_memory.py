@@ -104,7 +104,12 @@ class WorkingMemoryStore(GranularEpisodeSession):
                    else set(spec.parameters.get("properties", {})))
         required = REQUIRED_PARAMETERS.get(deliverable, ())
         if set(scope) - allowed or any(scope.get(k) in (None, "", []) for k in required):
-            return self._error("MISSING_OR_INVALID_SCOPE", "Scope must match the capability's required scientific parameters")
+            return {**self._error("MISSING_OR_INVALID_SCOPE", "Use the capability's computational scope; output fields do not change tool inputs"),
+                    "allowed_scope_keys": sorted(allowed), "required_scope_keys": list(required),
+                    "unexpected_keys": sorted(set(scope) - allowed),
+                    "missing_keys": [k for k in required if scope.get(k) in (None, "", [])],
+                    "output_selection": ("Event tools compute all record channels; select the requested channel from the returned result. Do not put channels into Epoch creation scope."
+                                         if deliverable in EVENT_CAPABILITIES else "Use declared channel window")}
         if scope.get("baseline") is not None:
             return self._error("TRANSFORM_NOT_ENABLED", "This mode does not authorize baseline correction")
         checks = checks or []

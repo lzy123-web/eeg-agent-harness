@@ -219,6 +219,13 @@ class WorkingMemoryTest(unittest.TestCase):
             agent = WorkingMemoryEEGAgent(ScriptedClient([action] * 4), self.records)
             self.assertEqual(agent.run("测试").stop_reason, "no_progress")
 
+    def test_scope_feedback_allows_recovery_without_silent_parameter_rewrite(self):
+        bad = self.store.begin_subgoal("事件功率", "A", "event_bandpower", dict(EVENT, channels=["SYNTH-C1"]))
+        self.assertEqual(bad["unexpected_keys"], ["channels"])
+        self.assertIn("tmin", bad["required_scope_keys"])
+        self.assertIsNone(self.store.active)
+        self.assertEqual(self.begin_event()["status"], "active")
+
     def test_limits_cancellation_and_context_capacity(self):
         agent = WorkingMemoryEEGAgent(ScriptedClient([]), self.records)
         agent.cancel()
