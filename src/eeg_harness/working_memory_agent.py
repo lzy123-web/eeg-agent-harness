@@ -117,7 +117,8 @@ def lifecycle_controls(request_closure=False):
             "description": "Alongside this goal, quote the original requested outputs and associate each with local delivery keys; not an action sequence or an independent proof of full intent."}
         finish = next(c["function"] for c in controls if c["function"]["name"] == "finish_task")
         finish["parameters"]["properties"].update(coverage={"type": "array", "items": {
-            "type": "object", "properties": {"quote": STRING, "result_ids": STRINGS, "unresolved": STRING},
+            "type": "object", "properties": {"quote": STRING, "result_ids": {
+                **STRINGS, "description": "Actual visible evidence only; stored unread locators are not evidence. Use [] for an undelivered item and describe it in unresolved."}, "unresolved": STRING},
             "required": ["quote", "result_ids"], "additionalProperties": False}}, coverage_complete={"type": "boolean"})
         finish["parameters"]["required"] += ["coverage", "coverage_complete"]
     controls.append(control("amend_subgoal", "Correct technical field expressions or fill previously missing scientific parameters in the SAME pending goal; cannot weaken conditions or change known scope. A scientific revision needs a new goal with revision_of.", {
@@ -306,7 +307,7 @@ class WorkingMemoryController:
             payload["request_progress"] = self.request_progress.view()
             if self.final_only or final_preview:
                 payload["delivery_phase"] = {"reason": final_preview or self.finalization_reason,
-                    "instruction": "No further numerical expansion. Use finish_task now with actual visible evidence and explicit missing work; only complete if the original request is covered."}
+                    "instruction": "Resources are protected for delivery; this is not a claim that the API token allowance is exhausted. Only finish_task is available. Cite actual visible results; leave result_ids empty for unread/missing evidence and describe unresolved work. Report only scientifically checked conditions, not unexecuted assumptions."}
         messages = [{"role": "system", "content": (LIFECYCLE_SYSTEM if self.lifecycle else MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM) + (REQUEST_CLOSURE_SYSTEM if self.request_closure else "")},
                     {"role": "user", "content": encoded(payload).decode("utf-8")}]
         if self.context_mode == "full":
@@ -532,7 +533,14 @@ class WorkingMemoryController:
             if self.request_progress:
                 problem = self.request_progress.review(status, args.get("coverage"), args.get("coverage_complete"))
                 if problem:
-                    return store._error("REQUEST_COVERAGE_NOT_DELIVERED", problem)
+                    return {**store._error("REQUEST_COVERAGE_NOT_DELIVERED", problem),
+                            "recovery": {
+                                "actual_visible_result_ids": sorted(self.visible_evidence_ids),
+                                "stored_unread_result_ids": [e.task_id for e in store.entries
+                                    if store._binding_valid(e) and e.task_id not in self.visible_evidence_ids],
+                                "delivery_only": self.final_only,
+                                "allowed_path": ("For partial/clarification, cite only visible results; use an empty result_ids list and unresolved for unmet items. A stored locator does not prove a numerical answer."
+                                    if self.final_only else "Read required evidence or report a genuinely unresolved item with an empty result_ids list.")}}
                 if status == "completed" and store.active and store.completion_check(store.active)["valid"]:
                     # Programmatic closure verifies the actual contract; the
                     # model still owns the final scientific answer and review.
@@ -544,7 +552,7 @@ class WorkingMemoryController:
                         "pending": [store.summary(g) for g in pending]}
             if status != "completed" and (not unresolved or not isinstance(unresolved, list)):
                 return store._error("UNRESOLVED_REQUIRED", "Name the missing information or limitation")
-            if status in {"completed", "partial"} and not store.entries:
+            if (status == "completed" or (status == "partial" and not self.request_closure)) and not store.entries:
                 return store._error("NO_EVIDENCE", "No actual analysis has been delivered")
             self.stop_reason, self.final_answer = status, args["answer"]
             if self.request_progress:
@@ -634,6 +642,8 @@ class WorkingMemoryController:
         if not self.lifecycle:
             return ""
         pending = [g for g in self.store.subgoals if g.status != "completed"]
+        if self.request_closure:
+            return f" 已保留{len(self.store.entries)}项真实结果、{len(pending)}个未完成的已登记目的；这不包含尚未声明的原需求，也不证明本轮请求完整交付。当前仅为保存点，详见状态与错误。"
         return f" 已保留{len(self.store.entries)}项真实结果，{len(pending)}个目的未完成；可在同一会话补充或继续。未执行动作不算成功，详见保存的状态与错误。"
 
     def snapshot(self):

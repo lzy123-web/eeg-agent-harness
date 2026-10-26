@@ -55,6 +55,12 @@ class ClosingClient(ScriptedClient):
         return super().complete(messages, tools)
 
 
+class ImmediateClosingClient(ClosingClient):
+    def prepare_decision(self, *args, **kwargs):
+        self.budget_checks.append((args, kwargs))
+        return True
+
+
 class RequestClosureIntegrationTest(unittest.TestCase):
     def make(self, actions, mode="working", client_class=ScriptedClient):
         client = client_class(actions)
@@ -128,6 +134,60 @@ class RequestClosureIntegrationTest(unittest.TestCase):
         self.assertEqual(sfreq["value"], 128.0)
         self.assertEqual(metadata["record"], "B")
         self.assertEqual([a["tool_name"] for a in result.tool_results], ["record_info", "finish_task"])
+
+    def test_final_only_unread_reference_has_actionable_partial_recovery(self):
+        def cite_unread_history(messages):
+            payload = json.loads(messages[1]["content"])
+            row = payload["archived_summaries"][0]["results"][0]
+            self.assertFalse(payload["exact_evidence"])
+            self.assertEqual(payload["delivery_phase"]["reason"], "budget_reserve")
+            return "finish_task", {"status": "partial", "answer": "旧结果仍保存，尚未读取；新窗口尚未计算。",
+                "unresolved": ["新旧alpha功率比较尚未完成"], "coverage_complete": False,
+                "coverage": [{"quote": payload["current_request"], "result_ids": [row["task_id"]],
+                              "unresolved": "仅有旧结果定位符，尚无数值比较"}]}
+
+        def recover_without_claiming_a_value(messages):
+            feedback = json.loads(messages[-1]["content"])
+            recovery = feedback["data"]["recovery"]
+            self.assertFalse(feedback["success"])
+            self.assertEqual(feedback["error"]["code"], "REQUEST_COVERAGE_NOT_DELIVERED")
+            self.assertTrue(recovery["delivery_only"])
+            self.assertEqual(recovery["actual_visible_result_ids"], [])
+            self.assertEqual(recovery["stored_unread_result_ids"], ["closure-t1"])
+            self.assertIn("empty result_ids", recovery["allowed_path"])
+            return deliver("partial", unresolved="为最终交付保留资源；旧值尚未读取，新窗口及比较未完成")(messages)
+
+        agent, client = self.make([("psd", WINDOW), deliver(), cite_unread_history,
+            recover_without_claiming_a_value], client_class=ClosingClient)
+        self.assertEqual(agent.run("记录A的SYNTH-C1在0到2秒计算alpha功率。").stop_reason, "completed")
+        result = agent.continue_run("把记录A的SYNTH-C1窗口改成2到4秒，比较新旧alpha功率。")
+        self.assertEqual(result.stop_reason, "partial")
+        self.assertEqual([r["tool_name"] for r in result.tool_results], ["finish_task", "finish_task"])
+        self.assertFalse(result.tool_results[0]["success"])
+        self.assertTrue(result.tool_results[1]["success"])
+        self.assertTrue(all(x == ["finish_task"] for x in client.interfaces[1:]))
+        self.assertEqual(len(agent.working_memory.store.entries), 1)
+        review = agent.working_memory.request_progress.frames[-1]["coverage_review"]
+        self.assertTrue(review["accepted"])
+        self.assertFalse(review["coverage_complete"])
+        self.assertEqual(review["coverage"][0]["result_ids"], [])
+        self.assertTrue(review["coverage"][0]["unresolved"])
+
+    def test_zero_result_resource_stop_is_partial_never_complete_in_all_modes(self):
+        for mode in ("working", "summary", "full"):
+            with self.subTest(mode=mode):
+                agent, client = self.make([deliver(),
+                    deliver("partial", unresolved="尚未执行科学分析；为最终交付保留资源")],
+                    mode, client_class=ImmediateClosingClient)
+                result = agent.run("计算记录A的SYNTH-C1在0到2秒alpha绝对功率。")
+                self.assertEqual(result.stop_reason, "partial")
+                self.assertFalse(result.tool_results[0]["success"], "No empty result can support completed delivery")
+                self.assertEqual(result.tool_results[0]["error"]["code"], "REQUEST_COVERAGE_NOT_DELIVERED")
+                self.assertTrue(result.tool_results[1]["success"])
+                self.assertTrue(result.tool_results[1]["data"]["unresolved"])
+                self.assertFalse(agent.working_memory.store.entries)
+                self.assertTrue(all(x == ["finish_task"] for x in client.interfaces))
+                self.assertNotEqual(result.final_answer, "")
 
     def test_summary_and_full_can_use_actually_visible_history_without_forced_read(self):
         def cite_visible_history(messages):
