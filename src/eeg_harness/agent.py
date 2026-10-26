@@ -97,6 +97,8 @@ class EEGAgent:
             self.context.trace.finish(reason)
             if memory is not None:
                 memory.on_stop(reason)
+                if reason not in {"completed", "partial", "clarification_required"} and hasattr(memory, "progress_notice"):
+                    answer = answer + memory.progress_notice()
             result = AgentRunResult(
                 final_answer=answer, stop_reason=reason, rounds=rounds,
                 tool_calls=total_calls, tool_results=tuple(collected),
@@ -140,33 +142,43 @@ class EEGAgent:
                 }
             )
             exchange = []
+            batch_stop = None
             for call in tool_calls:
-                if total_calls >= self.max_tool_calls:
-                    return finish("tool_call_limit", "达到工具调用次数上限。", round_number)
                 function = call.get("function", {})
-                try:
-                    raw_arguments = function.get("arguments", "{}")
-                    arguments = (
-                        json.loads(raw_arguments)
-                        if isinstance(raw_arguments, str)
-                        else raw_arguments
-                    )
-                    request = ToolRequest(
-                        function.get("name", ""), arguments, request_id=call.get("id") or "llm-call"
-                    )
-                    tool_result = (memory.execute(request, batch_size=len(tool_calls))
-                                   if memory is not None else self.context.execute(request))
-                    rendered = tool_result.to_dict()
-                except (TypeError, ValueError, json.JSONDecodeError) as exc:
-                    rendered = {
-                        "request_id": call.get("id"),
-                        "tool_name": function.get("name"),
-                        "success": False,
-                        "data": None,
-                        "error": {"code": "INVALID_TOOL_CALL", "message": str(exc)},
-                        "duration_ms": 0.0,
-                    }
-                total_calls += 1
+                # Complete every native call/result pair, even when the batch
+                # is interrupted. Never execute later actions after a stop.
+                if total_calls >= self.max_tool_calls and batch_stop is None:
+                    batch_stop = "tool_call_limit"
+                if memory is not None and batch_stop is None:
+                    batch_stop = memory.check_stop()
+                if batch_stop:
+                    rendered = {"request_id": call.get("id"), "tool_name": function.get("name"),
+                                "success": False, "data": {"executed": False},
+                                "error": {"code": "NOT_EXECUTED", "message": batch_stop}, "duration_ms": 0.0}
+                else:
+                    try:
+                        raw_arguments = function.get("arguments", "{}")
+                        arguments = (
+                            json.loads(raw_arguments)
+                            if isinstance(raw_arguments, str)
+                            else raw_arguments
+                        )
+                        request = ToolRequest(
+                            function.get("name", ""), arguments, request_id=call.get("id") or "llm-call"
+                        )
+                        tool_result = (memory.execute(request, batch_size=len(tool_calls))
+                                       if memory is not None else self.context.execute(request))
+                        rendered = tool_result.to_dict()
+                    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                        rendered = {
+                            "request_id": call.get("id"),
+                            "tool_name": function.get("name"),
+                            "success": False,
+                            "data": None,
+                            "error": {"code": "INVALID_TOOL_CALL", "message": str(exc)},
+                            "duration_ms": 0.0,
+                        }
+                    total_calls += 1
                 collected.append(rendered)
                 tool_message = {
                         "role": "tool",
@@ -180,6 +192,8 @@ class EEGAgent:
                 memory.observe_exchange(assistant, exchange)
                 if memory.stop_reason:
                     return finish(memory.stop_reason, memory.final_answer, round_number)
+            if batch_stop:
+                return finish(batch_stop, "达到工具调用次数上限。" if batch_stop == "tool_call_limit" else "本批剩余动作未执行。", round_number)
 
         return finish("round_limit", "达到 Agent 循环轮数上限。", self.max_rounds)
 

@@ -349,3 +349,38 @@ python -m eeg_harness.research.working_memory_issue47_audit --output artifacts/p
 ```
 
 最后一条需本机保留的原始日志，输出以x创建，不覆盖旧证据。公开最小摘录可直接读JSON；只有公开摘录不能重构完整模型上下文。真实复现入口 `python -m eeg_harness.research.working_memory_issue47 --real --case mixed --run-id 新唯一目录` 会继续累计同一账本，**不应在本阶段结束后自动调用，也不能新建账本恢复余额**。
+
+## Issue #48：可接纳、可修正、可续接的共同生命周期
+
+承接`7259345`的P1问题定义，新增opt-in `memory_version="lifecycle"`，旧single/multi_result保留。详细协议、首次失败、真实确认与成本集中在[本阶段协议及结果](EEG_WORKING_MEMORY_ISSUE48_PROTOCOL_AND_RESULTS.md)，不拼接旧成绩。
+
+**为什么不能只改Prompt：** 字段路径、结果身份和科学参数的实际来源不能靠模型自称成立；同时，独立再造验证Agent会增加调用与新的误差面。因此在原`MultiResultWorkingMemoryStore`上实现`ReliableWorkingMemoryStore`，保留原Executor及数值逻辑。模型提出目的，程序分别检查结构/字段合同、可表示的参数来源和实际结果条件。
+
+```mermaid
+flowchart LR
+  U[自然需求及补充] --> P[模型提出科学目的与交付/来源]
+  P --> A[共同接纳检查]
+  A -->|科学参数无依据或缺失| Q[同一目的 awaiting_input]
+  Q -->|用户补充 amend_subgoal| A
+  A -->|合法| X[原 Agent 串行调用原 Executor]
+  X --> R[真实结果自动入档 / 进度反馈]
+  R --> C[逐交付完成检查]
+  C -->|技术表达错误| M[保留结果修正表达 / 不改阈值]
+  M --> C
+  C -->|数据条件未满足| S[保留未决 / 部分交付]
+  C -->|必要项齐全| H[归档摘要 / 精确结果 / 原过程]
+  H --> W[按需读取或恢复 / 新参数新版本]
+  W --> X
+```
+
+`working_memory_lifecycle.py`包含最小工具字段描述、用户逐字引用及类型/值/对象核对、真实旧结果/工件继承、待补要求、`amend_subgoal`及分层诊断。未知未来值不伪造；无默认科学窗口的Profile不能提供凭空来源。范围变化必须新版本，表达纠正不能改变操作符、阈值或必需属性。引用核对只是当前可表示语言的保守检查，**不证明开放语言意图或否定/指代都理解正确**。
+
+`agent.py::run`仍是唯一循环。新模式允许一批原生调用按顺序执行，每项依实际当时状态校验；不存在的工件不能靠同批猜ID获得。达到限额/停止时剩余call_id返回明确未执行；完整原批保存在会话中，每个子目标只关联本身的有效协议投影。`working_memory_agent.py`提供逐动作进度、来源轮次、准确引用和停止保存点；旧未决目标不会永久拦住新短查询。
+
+工作视图保留活动目标的结构化进度、必要精确值及最近行动反馈，完整原轨迹仍在外部档案；已解决控制消息无需逐轮重发。此变化是对HiAgent当前行动—观察表示的有界简化，有丢失过程线索的代价，因此保留`restore_subgoal`真实过程恢复。`read_evidence`仅用于精确字段；两个入口不能混称。任何新读值仍与当前必要值共同交接，容量守卫不提高。
+
+同一`run/continue_run`新增`context_mode="summary"`强通用摘要：平铺保存真实事实、记录/范围/版本、结果定位和未决事项；精确读权、科学来源校验、原工具与完成条件和候选一致。`full`保留原对话参考。候选/强S差异仅在工作组织，公共修复不能算候选独有贡献。当前只完成离线同权验证，真实比较不在本阶段要求内。
+
+统一入口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", context_mode="working"|"summary"|"full")`，调用`run(text)`和`continue_run(text)`。CLI沿用`python -m eeg_harness.working_memory_cli --real --memory-version lifecycle --context-mode summary --budget-config 已独立授权配置 --request 自然需求`；Issue48预算由专用驱动固定累计，不能用通用CLI另开账本绕过它。所有联网只用合成数据。
+
+科学适配仍围绕多结果、记录/范围、版本与原工件如何参与完成和续接；本轮接纳、协议补齐、单位/范围保护主要属于共同工程正确性。是否比合理强摘要和直接迁移更有价值，仍须后续完整同条件比较，不凭本轮测试数或样例推断。

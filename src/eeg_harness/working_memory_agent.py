@@ -93,11 +93,49 @@ read_evidence 查精确字段；restore_subgoal 查处理过程，二者有不�
 close_subgoal(completed) 需通过程序检查；未决时 suspend，继续原范围可 resume_subgoal。finish_task 区分完成、部分交付、缺参澄清；回答不能省略必要结果或把试次窗口功率解释为 ERD/ERS、诊断或能力评分。
 """
 
+SOURCE_SCHEMA = {"type": "object", "description":
+    "Scientific parameter provenance. User: {kind:'user',turn:1,quote:'exact relevant user span'}; "
+    "inherit: {kind:'result',result_id:'actual task_id'}; artifact: {kind:'artifact',artifact_id:'actual id'}. "
+    "For mixed origins use {fields:{start:source,end:source,channels:source}}. "
+    "Only literal supported values and matching record/scope pass; source:user alone is not authority."}
+
+
+def lifecycle_controls():
+    controls = multi_result_controls()
+    begin = controls[0]["function"]
+    begin["parameters"]["properties"]["parameter_sources"] = {
+        "type": "object", "description": "Map each delivery key to its scientific parameter source; optional 'record' source for record selection. Missing or unsupported scope is saved awaiting clarification."}
+    begin["parameters"]["properties"]["dependencies"]["description"] = (
+        "Existing result/task IDs only, not future delivery keys. Omit when no actual historical result is needed.")
+    begin["parameters"]["properties"]["criteria"]["description"] = (
+        "Only an explicit user acceptance threshold, not invented tool prerequisites. No criteria needed merely to query a count or power. Use declared field paths, e.g. list_events.labels.<label>.")
+    controls.append(control("amend_subgoal", "Correct technical field expressions or fill previously missing scientific parameters in the SAME pending goal; cannot weaken conditions or change known scope. A scientific revision needs a new goal with revision_of.", {
+        "subgoal_id": STRING,
+        "updates": {"type": "object", "description": "Map delivery key to only missing scope fields"},
+        "parameter_sources": {"type": "object", "description": "Same per-delivery provenance format as begin_subgoal"},
+        "criterion_paths": {"type": "object", "description": "Map criterion index string to corrected path array; op/value/required remain fixed"}}, ["subgoal_id"]))
+    return controls
+
+
+LIFECYCLE_SYSTEM = """你是合成EEG科学分析助手。所有数值来自原工具，不作诊断。用户原文与真实状态持续可见。
+用户目的可包含多项交付。begin_subgoal仅声明所需结果，不给固定动作序列；缺科学参数时仍可用部分scope声明，程序保存awaiting_input。通过finish_task(clarification_required)询问缺项。用户补充后amend_subgoal补入同一目的，不重建无关目标。
+科学scope必须有依据：parameter_sources按delivery key给原用户逐字quote及turn，或准确旧result_id/实际artifact_id；混合来源用fields。不要改写quote、猜时间窗或把全部元数据当成用户选择。常规执行默认不需要用户重填；record默认当前选择，换记录需可核对来源。
+连续scope是channels/start/end记录绝对秒；事件scope是labels/tmin/tmax相对秒，工具计算全部通道。不同时间窗必须不同交付；修订用对应delivery.revision_of指向准确旧结果，保留旧数值。
+记录/事件列表可直接查。已知范围的简单分析可直接调用并提供parameter_sources，多结果用begin_subgoal。缺参时不得先执行相关数值动作。
+当前接口在原循环中串行执行同一响应的多个动作。独立动作可同批；依赖尚未返回的结果/工件必须等实际观察后再调用，绝不猜ID。subgoal_id是目的，task_id是实际结果，delivery key只是该目的内的项目名，artifact_id是数据对象。
+每次数值成功已自动记录并关联delivery_check；本目标刚算出的结果无需reuse_result。不必反复绑定。reuse_result只用于已有适用历史结果；无变化会明示。
+criteria仅表达用户明确的验收条件，无阈值就不要添加条件。查询0个事件也可以完整。条件字段错误、无结果和真实条件不满足不同，依据诊断修正技术表达；不得删条件/改阈值/把必需降成可选换取完成。
+目标required齐全后close_subgoal(completed)，缺项则继续或明确暂停；用户未声明的目的遗漏仍不能算完整交付。
+read_evidence读取准确字段；restore_subgoal恢复真实行动—观察以继续旧过程/说明处理，非必要不恢复。恢复提供的实际工件可以继续测量；不同记录/版本/相同数值不代表同一证据。依赖旧值时声明dependencies或读取它。
+本模式只开放记录信息、连续幅值/PSD/质量和事件Epoch/计数/质量/绝对功率。不支持筛选、基线校正、重参考或模型推理。质量标准未配置就说明，不编造合格阈值。
+finish_task区分完整、部分和澄清，回答提供请求的关键值/比较、范围、单位及限制。功率V²、幅值V、频率Hz、计数无量纲，以字段语义为准。不得只在存储中完成而省略最后答案。
+"""
+
 
 class WorkingMemoryController:
     def __init__(self, store, *, context_mode="working", max_restores=4,
                  max_context_bytes=96000, no_progress_limit=3, timeout_seconds=300):
-        if context_mode not in {"working", "full"}:
+        if context_mode not in {"working", "full", "summary"}:
             raise ValueError("Unknown context mode")
         self.store = store
         self.context_mode = context_mode
@@ -111,12 +149,23 @@ class WorkingMemoryController:
         self.decisions = []
         self.outcomes = []
         self.restored = {}
+        self.lifecycle = hasattr(store, "amend_subgoal")
 
     def begin_turn(self, request):
         if not isinstance(request, str) or not request.strip():
             raise ValueError("A natural language request is required")
         self.store.turn += 1
         self.requests.append(request)
+        if self.lifecycle:
+            self.store.user_requests = clone(self.requests)
+            # A pending old objective remains discoverable but cannot hold an
+            # unrelated new request hostage. Resumption is an explicit action.
+            if self.store.active:
+                if self.store.active.status == "active":
+                    self.store.active.status = "suspended"
+                self.store.active = None
+        self.action_owners = {}
+        self.touched_goals = set()
         self.stop_reason = None
         self.final_answer = ""
         self.errors = 0
@@ -132,9 +181,17 @@ class WorkingMemoryController:
 
     def tool_definitions(self):
         registry = next(iter(self.store.contexts.values())).executor.registry
-        return [registry.get(n).public_definition() for n in sorted(NUMERIC_TOOLS)] + self.control_definitions()
+        numeric = [clone(registry.get(n).public_definition()) for n in sorted(NUMERIC_TOOLS)]
+        if self.lifecycle:
+            for tool in numeric:
+                tool["function"]["parameters"]["properties"]["parameter_sources"] = SOURCE_SCHEMA
+                tool["function"]["parameters"]["properties"]["record"] = {
+                    "type": "string", "description": "Optional known record alias for a direct short task; no alias means current record. An active scientific goal cannot silently switch records."}
+        return numeric + self.control_definitions()
 
     def control_definitions(self):
+        if self.lifecycle:
+            return lifecycle_controls()
         return multi_result_controls() if hasattr(self.store, "reuse_result") else clone(CONTROLS)
 
     def check_stop(self):
@@ -193,12 +250,23 @@ class WorkingMemoryController:
                    "evidence_workspace": {"selected_result_ids": sorted(selected | {e["task_id"] for e in self.turn_evidence}),
                        "stored_result_count": len(store.entries),
                        "policy": "current-turn results, explicit dependencies/revisions, reuse/read/restore; archive indexes are not values"}}
-        messages = [{"role": "system", "content": MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM},
+        if self.context_mode == "summary":
+            # A strong generic cumulative factual summary: all completed and
+            # pending purposes, records, versions and small result facts survive.
+            # Uses no EEG-specific retrieval weights or future query/gold.
+            payload["generic_summary"] = self._generic_summary(selected)
+            payload.pop("archived_summaries")
+        messages = [{"role": "system", "content": LIFECYCLE_SYSTEM if self.lifecycle else MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM},
                     {"role": "user", "content": encoded(payload).decode("utf-8")}]
         if self.context_mode == "full":
             pairs = self.exchanges
         else:
             pairs = list(store.active.exchanges) if store.active else []
+            if self.lifecycle or self.context_mode == "summary":
+                # Grounded progress and exact values already carry resolved
+                # observations. Keep the latest feedback; full native traces
+                # remain recoverable outside the bounded working view.
+                pairs = pairs[-1:] if self.context_mode == "working" else []
             # Successful close/restore is already represented in the grounded
             # archive/restoration payload. Retain neither half of that duplicate
             # protocol pair. Rejections still remain observable for recovery.
@@ -214,8 +282,36 @@ class WorkingMemoryController:
             return []
         self.decisions.append({"turn": store.turn, "before_action": len(self.exchanges) + 1,
                                "active_subgoal": store.active.subgoal_id if store.active else None,
-                               "messages": clone(messages), "context_bytes": len(encoded(messages))})
+                               "messages": clone(messages), "context_bytes": len(encoded(messages)),
+                               "input_components_bytes": {
+                                   "system": len(encoded(messages[0])),
+                                   "tool_schema": len(encoded(self.tool_definitions())),
+                                   "user_original": len(encoded({k:payload[k] for k in ("user_requests", "current_request")})),
+                                   "current_state": len(encoded({k:payload[k] for k in ("records", "active_record", "active_subgoal", "control_feedback", "evidence_workspace")})),
+                                   "history_index_or_summary": len(encoded(payload.get("generic_summary", payload.get("archived_summaries", [])))),
+                                   "exact_evidence": len(encoded(payload["exact_evidence"])),
+                                   "active_or_full_trajectory": len(encoded(pairs)),
+                                   "restored_trajectory": len(encoded(payload["restored_trajectories"])),
+                               }})
         return messages
+
+    def _generic_summary(self, selected):
+        summary = []
+        for goal in self.store.subgoals:
+            card = self.store.summary(goal)
+            facts = []
+            for result in card.get("results", [card]):
+                if not result.get("task_id"):
+                    continue
+                facts.append({k: clone(result[k]) for k in ("task_id", "record", "capability", "parameters", "revision_of", "evidence", "artifact_id", "binding_valid") if k in result})
+                # The same current exact values are already present in the
+                # common workspace, not repeated here.
+                if result["task_id"] in selected and facts[-1].get("evidence"):
+                    facts[-1]["evidence"].pop("fields", None)
+            summary.append({"subgoal_id": goal.subgoal_id, "purpose": goal.title, "record": goal.record,
+                            "status": goal.status, "unresolved": clone(goal.unresolved),
+                            "progress": card.get("delivery_check"), "facts": facts})
+        return summary
 
     def _required_evidence_ids(self):
         """No gold, query keywords, or automatic all-history injection.
@@ -227,7 +323,7 @@ class WorkingMemoryController:
         store = self.store
         selected = {e.task_id for e in store.entries[self.turn_entry_start:]}
         for goal in store.subgoals:
-            if goal is store.active or goal.turn == store.turn or goal.subgoal_id in self.restored:
+            if goal is store.active or goal.turn == store.turn or goal.subgoal_id in self.restored or goal.subgoal_id in self.touched_goals:
                 selected.update(getattr(goal, "result_ids", []))
                 if goal.task_id:
                     selected.add(goal.task_id)
@@ -259,6 +355,10 @@ class WorkingMemoryController:
         name, args = request.name, dict(request.arguments)
         store = self.store
         if name in NUMERIC_TOOLS:
+            if self.lifecycle:
+                sources = args.pop("parameter_sources", None)
+                record = args.pop("record", None)
+                return store.execute_numeric(name, args, parameter_sources=sources, record=record)
             return store.execute_numeric(name, args)
         spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name), None)
         if spec is None:
@@ -286,7 +386,7 @@ class WorkingMemoryController:
             if status not in {"completed", "partial", "clarification_required"}:
                 return store._error("INVALID_STATUS", "Unknown delivery status")
             pending = [g for g in store.subgoals if g.status != "completed" and
-                       (g.turn == store.turn or g.subgoal_id in self.restored)]
+                       (g.turn == store.turn or g.subgoal_id in self.restored or g.subgoal_id in self.touched_goals)]
             if status == "completed" and (store.active or unresolved or pending):
                 return {**store._error("UNFINISHED_SUBGOAL", "Resolve or explicitly report pending work"),
                         "pending": [store.summary(g) for g in pending]}
@@ -305,7 +405,7 @@ class WorkingMemoryController:
                         request.arguments.get("subgoal_id"))
         start = time.perf_counter()
         try:
-            if batch_size != 1:
+            if batch_size != 1 and not self.lifecycle:
                 result = self.store._error("SEQUENTIAL_ACTION_REQUIRED", "Observe each action before selecting the next")
             else:
                 result = self._dispatch(request)
@@ -314,6 +414,16 @@ class WorkingMemoryController:
         except Exception:
             result = self.store._error("INTERNAL_CONTROL_ERROR", "Control failed safely; no traceback is sent to the model")
         successful = result.get("status") not in {"rejected", "blocked"}
+        owner = self.store.last_owner or owner_before
+        self.action_owners[request.request_id] = owner
+        if owner:
+            self.touched_goals.add(owner)
+        if self.lifecycle:
+            goal = self.store.find_subgoal(owner)
+            if goal:
+                result["progress"] = {"subgoal_id": goal.subgoal_id, "status": goal.status,
+                                      "deliveries": self.store.completion_check(goal).get("deliveries", []),
+                                      "unresolved": clone(goal.unresolved)}
         # Rejected multi-call batches are one failed decision. Distinct corrected
         # input errors are not evidence of repeating the same non-progress loop.
         signature = (request.name, result.get("code", "TOOL_BLOCKED"))
@@ -343,9 +453,16 @@ class WorkingMemoryController:
                  "tool_calls": clone(assistant["tool_calls"])}] + clone(responses)
         self.exchanges.append(pair)
         self.pending = pair
-        owner = self.store.find_subgoal(self.store.last_owner)
-        if owner:
-            owner.exchanges.append(pair)
+        # Each goal receives a protocol-valid projection of its OWN actions.
+        # The original batch remains intact in the session archive above.
+        owners = {self.action_owners.get(r["tool_call_id"]) for r in responses}
+        for ident in owners - {None}:
+            owner = self.store.find_subgoal(ident)
+            if owner:
+                chosen = [r for r in responses if self.action_owners.get(r["tool_call_id"]) == ident]
+                ids = {r["tool_call_id"] for r in chosen}
+                owner.exchanges.append([{"role": "assistant", "content": assistant.get("content"),
+                                         "tool_calls": [clone(c) for c in assistant["tool_calls"] if c["id"] in ids]}] + clone(chosen))
         self.feedback = None
 
     def on_unstructured_answer(self, answer):
@@ -358,6 +475,12 @@ class WorkingMemoryController:
             self.store.active.status = "awaiting_input" if reason == "clarification_required" else "suspended"
             self.store.active.unresolved = self.store.active.unresolved or [reason]
         self.outcomes.append({"turn": self.store.turn, "stop_reason": reason, "answer": self.final_answer})
+
+    def progress_notice(self):
+        if not self.lifecycle:
+            return ""
+        pending = [g for g in self.store.subgoals if g.status != "completed"]
+        return f" 已保留{len(self.store.entries)}项真实结果，{len(pending)}个目的未完成；可在同一会话补充或继续。未执行动作不算成功，详见保存的状态与错误。"
 
     def snapshot(self):
         return {"session_id": self.store.session_id, "context_mode": self.context_mode,
@@ -372,9 +495,12 @@ class WorkingMemoryEEGAgent(EEGAgent):
 
     def __init__(self, llm_client, records, *, session_id="wm", max_rounds=24,
                  max_tool_calls=24, config=None, memory_version="single", **memory_options):
-        if memory_version not in {"single", "multi_result"}:
-            raise ValueError("memory_version must be single or multi_result")
-        if memory_version == "multi_result":
+        if memory_version not in {"single", "multi_result", "lifecycle"}:
+            raise ValueError("memory_version must be single, multi_result or lifecycle")
+        if memory_version == "lifecycle":
+            from .working_memory_lifecycle import ReliableWorkingMemoryStore
+            store = ReliableWorkingMemoryStore(session_id, records, config=config)
+        elif memory_version == "multi_result":
             from .working_memory_deliveries import MultiResultWorkingMemoryStore
             store = MultiResultWorkingMemoryStore(session_id, records, config=config)
         else:

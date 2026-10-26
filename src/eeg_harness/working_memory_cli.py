@@ -106,8 +106,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Experimental EEG working memory; real LLM, synthetic records only")
     parser.add_argument("--request", action="append", required=True, help="Natural-language request; repeat for continuation")
     parser.add_argument("--real", action="store_true", required=True)
-    parser.add_argument("--context-mode", choices=("working", "full"), default="working")
-    parser.add_argument("--memory-version", choices=("single", "multi_result"), default="single")
+    parser.add_argument("--context-mode", choices=("working", "full", "summary"), default="working")
+    parser.add_argument("--memory-version", choices=("single", "multi_result", "lifecycle"), default="single")
     parser.add_argument("--budget-config", type=Path, required=True,
                         help="Private JSON for a separately authorized stage; no default quota")
     args = parser.parse_args(argv)
