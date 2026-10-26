@@ -1,0 +1,1189 @@
+{
+  "stage": "issue47",
+  "data": "synthetic only",
+  "protocol_sha256": "9093129eb0e36ce3d2f90df737d543aff530c291e3b1ab28638d08e9a6d4a408",
+  "development_code": "f29f139",
+  "confirmation_code": "83e2c00",
+  "requested_model": "deepseek-chat",
+  "reported_models": {
+    "deepseek-flash": 36
+  },
+  "ledger_unsettled": 0,
+  "costs": {
+    "development": {
+      "calls": 6,
+      "tokens": 27374,
+      "input_tokens": 26133,
+      "output_tokens": 1241
+    },
+    "mixed": {
+      "calls": 22,
+      "tokens": 213800,
+      "input_tokens": 210691,
+      "output_tokens": 3109
+    },
+    "short": {
+      "calls": 3,
+      "tokens": 13368,
+      "input_tokens": 13019,
+      "output_tokens": 349
+    },
+    "clarification": {
+      "calls": 5,
+      "tokens": 22649,
+      "input_tokens": 21974,
+      "output_tokens": 675
+    }
+  },
+  "total": {
+    "calls": 36,
+    "tokens": 277191,
+    "input_tokens": 271817,
+    "output_tokens": 5374
+  },
+  "pre_fix": {
+    "head": "1d11cc132cef1ef6e423eff60a1f5d4865cbe208",
+    "four_goals": {
+      "stop": "repeated_action",
+      "completed": 4,
+      "last_success": true
+    },
+    "archive_nine": {
+      "stored": 9,
+      "stop": "evidence_capacity",
+      "messages": 0
+    },
+    "wrong_units": [
+      {
+        "field": [
+          "conditions",
+          "stimulus",
+          "epoch_count"
+        ],
+        "value": 3,
+        "unit": "V²",
+        "accepted": true
+      },
+      {
+        "field": [
+          "frequency_resolution_hz"
+        ],
+        "value": 1.0,
+        "unit": "V²",
+        "accepted": true
+      }
+    ]
+  },
+  "turns": [
+    {
+      "log": "confirmation-clarification-locked/turn-1.json",
+      "stop_reason": "budget_exhausted",
+      "rounds": 6,
+      "tool_calls": 5,
+      "final_answer": "LLM 调用停止（STAGE_BUDGET_EXHAUSTED）。",
+      "declared_contracts": [
+        {
+          "subgoal_id": "confirmation-clarification-locked-s2",
+          "title": "比较 rest 与 tone 两个条件的事件相关频带功率",
+          "created_turn": 1,
+          "record": "A",
+          "deliverable": "list_events",
+          "scope": {},
+          "checks": [],
+          "criteria": [],
+          "revision_of": null,
+          "dependencies": [],
+          "status": "active",
+          "task_id": null,
+          "unresolved": [],
+          "deliveries": [
+            {
+              "key": "events",
+              "tool": "list_events",
+              "scope": {},
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "epochs",
+              "tool": "create_epochs",
+              "scope": {
+                "labels": [
+                  "rest",
+                  "tone"
+                ],
+                "tmax": 0.5,
+                "tmin": -0.5
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "bp",
+              "tool": "event_bandpower",
+              "scope": {
+                "labels": [
+                  "rest",
+                  "tone"
+                ],
+                "tmax": 0.5,
+                "tmin": -0.5
+              },
+              "required": true,
+              "revision_of": null
+            }
+          ],
+          "result_ids": [],
+          "reused_results": {},
+          "contract_version": "multi_result_v1"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "list_events",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": false,
+          "error": "INVALID_DEPENDENCY"
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "create_epochs",
+          "success": true,
+          "error": null
+        }
+      ]
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "stop_reason": "tool_call_limit",
+      "rounds": 21,
+      "tool_calls": 24,
+      "final_answer": "达到工具调用次数上限。",
+      "declared_contracts": [
+        {
+          "subgoal_id": "confirmation-mixed-locked-s1",
+          "title": "记录B中SYNTH-C2在1–3秒连续窗的RMS与频带绝对功率",
+          "created_turn": 1,
+          "record": "B",
+          "deliverable": "amplitude",
+          "scope": {
+            "channels": [
+              "SYNTH-C2"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "checks": [],
+          "criteria": [],
+          "revision_of": null,
+          "dependencies": [],
+          "status": "active",
+          "task_id": null,
+          "unresolved": [],
+          "deliveries": [
+            {
+              "key": "rms_1_3",
+              "tool": "amplitude",
+              "scope": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "start": 1,
+                "end": 3
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "psd_1_3",
+              "tool": "psd",
+              "scope": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "start": 1,
+                "end": 3
+              },
+              "required": true,
+              "revision_of": null
+            }
+          ],
+          "result_ids": [],
+          "reused_results": {},
+          "contract_version": "multi_result_v1"
+        },
+        {
+          "subgoal_id": "confirmation-mixed-locked-s2",
+          "title": "记录B：SYNTH-C2连续1–3秒RMS/频带功率 + rest事件后0–1秒试次数与整窗平均频带功率",
+          "created_turn": 1,
+          "record": "B",
+          "deliverable": "amplitude",
+          "scope": {
+            "channels": [
+              "SYNTH-C2"
+            ],
+            "end": 3,
+            "start": 1
+          },
+          "checks": [],
+          "criteria": [
+            {
+              "delivery": "rest_events",
+              "op": "gte",
+              "path": [
+                "rest"
+              ],
+              "value": 1
+            }
+          ],
+          "revision_of": null,
+          "dependencies": [],
+          "status": "active",
+          "task_id": null,
+          "unresolved": [],
+          "deliveries": [
+            {
+              "key": "rms_1_3",
+              "tool": "amplitude",
+              "scope": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "end": 3,
+                "start": 1
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "psd_1_3",
+              "tool": "psd",
+              "scope": {
+                "channels": [
+                  "SYNTH-C2"
+                ],
+                "end": 3,
+                "start": 1
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "rest_events",
+              "tool": "list_events",
+              "scope": {},
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "rest_epochs",
+              "tool": "create_epochs",
+              "scope": {
+                "labels": [
+                  "rest"
+                ],
+                "tmax": 1,
+                "tmin": 0
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "rest_epoch_summary",
+              "tool": "epoch_summary",
+              "scope": {
+                "labels": [
+                  "rest"
+                ],
+                "tmax": 1,
+                "tmin": 0
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "rest_bandpower",
+              "tool": "event_bandpower",
+              "scope": {
+                "labels": [
+                  "rest"
+                ],
+                "tmax": 1,
+                "tmin": 0
+              },
+              "required": true,
+              "revision_of": null
+            }
+          ],
+          "result_ids": [],
+          "reused_results": {},
+          "contract_version": "multi_result_v1"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "begin_subgoal",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "amplitude",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "psd",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "amplitude",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "psd",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "close_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": false,
+          "error": "INVALID_DEPENDENCY"
+        },
+        {
+          "tool": "begin_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "reuse_result",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "list_events",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "list_events",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "create_epochs",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "epoch_summary",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "event_bandpower",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "reuse_result",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "read_evidence",
+          "success": false,
+          "error": "FIELD_NOT_FOUND"
+        }
+      ]
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-2.json",
+      "stop_reason": "budget_exhausted",
+      "rounds": 2,
+      "tool_calls": 1,
+      "final_answer": "LLM 调用停止（STAGE_BUDGET_EXHAUSTED）。",
+      "declared_contracts": [],
+      "actions": [
+        {
+          "tool": "close_subgoal",
+          "success": false,
+          "error": "INCOMPLETE_DELIVERIES"
+        }
+      ]
+    },
+    {
+      "log": "confirmation-short-locked/turn-1.json",
+      "stop_reason": "completed",
+      "rounds": 3,
+      "tool_calls": 2,
+      "final_answer": "合成记录A（record_info，task_id: confirmation-short-locked-t1）：\n- 采样率 sfreq = 128.0 Hz\n- 通道名称（2 个通道）：SYNTH-C1、SYNTH-C2\n\n参考信息：记录时长 8.0 s、1024 采样点；参考为 \"synthetic native reference\"，导联布局为 \"synthetic two-channel layout\"；来源 synthetic://issue47-confirmation-A，处理元数据仅 synthetic_signal_generation。这些仅为记录元数据，不涉及任何生理或临床判读。",
+      "declared_contracts": [],
+      "actions": [
+        {
+          "tool": "record_info",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "finish_task",
+          "success": true,
+          "error": null
+        }
+      ]
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "stop_reason": "completed",
+      "rounds": 6,
+      "tool_calls": 7,
+      "final_answer": "记录 A · SYNTH-C1 · 绝对时间 0–2 秒：\n幅值 — RMS = 1.41e-05 V；平均绝对幅值 1.27e-05 V；最大 2.00e-05 V；最小 −2.00e-05 V。\n绝对频带功率（Welch，单位 V²）— δ(0.5–4 Hz) 1.88e-26；θ(4–8 Hz) 1.51e-25；α(8–13 Hz) 2.00e-10；β(13–30 Hz) 2.35e-25；γ(30–70 Hz) 5.39e-25。\n范围与单位：通道 SYNTH-C1，记录绝对时间 0–2 s，采样率 128 Hz，合成原生参考；幅值为 V，功率为绝对功率 V²，未做基线校正/归一化。该结果为窗内绝对功率测量，不构成 ERD/ERS、诊断或能力评分。来源：既有绑定有效的结果 development-initial-t1（幅值）与 development-initial-t2（频带功率），本次未重算。",
+      "declared_contracts": [
+        {
+          "subgoal_id": "development-initial-s1",
+          "title": "记录A中SYNTH-C1在0–2秒的幅值(RMS)与绝对频带功率",
+          "record": "A",
+          "deliverable": "amplitude",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "checks": [],
+          "criteria": [],
+          "revision_of": null,
+          "dependencies": [],
+          "status": "active",
+          "task_id": null,
+          "unresolved": [],
+          "deliveries": [
+            {
+              "key": "amplitude_0_2",
+              "tool": "amplitude",
+              "scope": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "required": true,
+              "revision_of": null
+            },
+            {
+              "key": "psd_0_2",
+              "tool": "psd",
+              "scope": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 0,
+                "end": 2
+              },
+              "required": true,
+              "revision_of": null
+            }
+          ],
+          "result_ids": [],
+          "reused_results": {},
+          "contract_version": "multi_result_v1"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "begin_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "amplitude",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "psd",
+          "success": false,
+          "error": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "tool": "amplitude",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "psd",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "close_subgoal",
+          "success": true,
+          "error": null
+        },
+        {
+          "tool": "finish_task",
+          "success": true,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "numerical_checks": [
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t1",
+      "capability": "amplitude",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "start": 1,
+        "end": 3
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "rms"
+      ],
+      "actual": 7.15e-06,
+      "oracle": 7.14991043657524e-06,
+      "absolute_error": 8.956342476049947e-11,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t2",
+      "capability": "psd",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "delta"
+      ],
+      "actual": 1.37e-26,
+      "oracle": 1.3659953953405928e-26,
+      "absolute_error": 4.004604659407322e-29,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t2",
+      "capability": "psd",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "theta"
+      ],
+      "actual": 5.11e-11,
+      "oracle": 5.1121223573757923e-11,
+      "absolute_error": 2.1223573757920282e-14,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t2",
+      "capability": "psd",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "alpha"
+      ],
+      "actual": 1.56e-26,
+      "oracle": 1.5593601002783826e-26,
+      "absolute_error": 6.398997216172424e-30,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t2",
+      "capability": "psd",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "beta"
+      ],
+      "actual": 5.65e-26,
+      "oracle": 5.654182383031996e-26,
+      "absolute_error": 4.1823830319962535e-29,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t2",
+      "capability": "psd",
+      "record": "B",
+      "scope": {
+        "channels": [
+          "SYNTH-C2"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "SYNTH-C2",
+        "gamma"
+      ],
+      "actual": 1.7e-25,
+      "oracle": 1.704634019284258e-25,
+      "absolute_error": 4.6340192842580705e-28,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t5",
+      "capability": "epoch_summary",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "valid_epoch_count"
+      ],
+      "actual": 2.0,
+      "oracle": 2,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C1",
+        "delta"
+      ],
+      "actual": 2.7019316281969045e-13,
+      "oracle": 2.7019316281969045e-13,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C1",
+        "theta"
+      ],
+      "actual": 1.2023431160196481e-12,
+      "oracle": 1.2023431160196481e-12,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C1",
+        "alpha"
+      ],
+      "actual": 2.416143820389502e-10,
+      "oracle": 2.416143820389502e-10,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C1",
+        "beta"
+      ],
+      "actual": 3.8016789834379e-13,
+      "oracle": 3.8016789834379e-13,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C1",
+        "gamma"
+      ],
+      "actual": 2.0021135106855044e-14,
+      "oracle": 2.0021135106855044e-14,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C2",
+        "delta"
+      ],
+      "actual": 7.726306844747608e-13,
+      "oracle": 7.726306844747608e-13,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C2",
+        "theta"
+      ],
+      "actual": 1.3569885449690733e-10,
+      "oracle": 1.3569885449690733e-10,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C2",
+        "alpha"
+      ],
+      "actual": 3.6716083817081086e-13,
+      "oracle": 3.6716083817081086e-13,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C2",
+        "beta"
+      ],
+      "actual": 3.433344104900219e-14,
+      "oracle": 3.433344104900219e-14,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "confirmation-mixed-locked/turn-1.json",
+      "result_id": "confirmation-mixed-locked-t6",
+      "capability": "event_bandpower",
+      "record": "B",
+      "scope": {
+        "labels": [
+          "rest"
+        ],
+        "tmin": 0.0,
+        "tmax": 1.0
+      },
+      "source": "synthetic://issue47-confirmation-B",
+      "path": [
+        "conditions",
+        "rest",
+        "channels",
+        "SYNTH-C2",
+        "gamma"
+      ],
+      "actual": 3.780347553721888e-15,
+      "oracle": 3.780347553721888e-15,
+      "absolute_error": 0.0,
+      "rtol": 1e-06,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t1",
+      "capability": "amplitude",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "rms"
+      ],
+      "actual": 1.41e-05,
+      "oracle": 1.4142135677367759e-05,
+      "absolute_error": 4.213567736775854e-08,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t2",
+      "capability": "psd",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "delta"
+      ],
+      "actual": 1.88e-26,
+      "oracle": 1.87817631882316e-26,
+      "absolute_error": 1.8236811768402284e-29,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t2",
+      "capability": "psd",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "theta"
+      ],
+      "actual": 1.51e-25,
+      "oracle": 1.5051023261804092e-25,
+      "absolute_error": 4.897673819590913e-28,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t2",
+      "capability": "psd",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "alpha"
+      ],
+      "actual": 2e-10,
+      "oracle": 1.9999999920083944e-10,
+      "absolute_error": 7.991605672364357e-19,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t2",
+      "capability": "psd",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "beta"
+      ],
+      "actual": 2.35e-25,
+      "oracle": 2.350964937594991e-25,
+      "absolute_error": 9.64937594991447e-29,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    },
+    {
+      "log": "development-initial/turn-1.json",
+      "result_id": "development-initial-t2",
+      "capability": "psd",
+      "record": "A",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 2,
+        "start": 0
+      },
+      "source": "synthetic://task-memory-A",
+      "path": [
+        "SYNTH-C1",
+        "gamma"
+      ],
+      "actual": 5.39e-25,
+      "oracle": 5.392362349039639e-25,
+      "absolute_error": 2.3623490396384055e-28,
+      "rtol": 0.005,
+      "atol": 5e-13,
+      "valid": true
+    }
+  ],
+  "private_log_hashes": {
+    "budget.jsonl": "ffa3484b40dfe72e9bd609571a7cbeaa08587a1fa7c24bb24054bbdd0bca2f49",
+    "confirmation-clarification-locked/responses.jsonl": "1f1e920e2cd16b828e9dadfc7ee278ab2d49c8b921cbfb120684c0b213437e5a",
+    "confirmation-clarification-locked/turn-1.json": "966aa56c08f1740fa444b2b84190e0f6464a5b91cfded9074cbd77bd8636cc76",
+    "confirmation-mixed-locked/responses.jsonl": "f757ba249917fd3b993a3701cb4abdc6ed6a091f416b8a74917af527fdc370b4",
+    "confirmation-mixed-locked/turn-1.json": "e70131bf9d70147e568876558af0ed0e558207c234a7c3ebb496c1149e767ced",
+    "confirmation-mixed-locked/turn-2.json": "fffbf8412da32ea14578a930e7ba4b97efd1df2fb4632954e48cb09de027a892",
+    "confirmation-short-locked/responses.jsonl": "2e56058cf48b32a3ba17e2e5e3d85621d92aa0ce353a734f5852adf44f5951c7",
+    "confirmation-short-locked/turn-1.json": "6f4e541f7381048b20f166788287bdb44c05ba99e87c03541a71789aa95673cb",
+    "development-initial/responses.jsonl": "6385d3281898c82feec7f4106f50526dd5735626d17ba513232e46254c42317f",
+    "development-initial/turn-1.json": "2562f7f69f6576cbc0bfacc6d31b9bb01639900dce499534f1a2e38b668fb70b",
+    "pre_fix_reproduction.json": "b6d69a40b243de892e3761f15e28fdad5e1b4cefb381498ce22dbc8580bc56d9"
+  },
+  "interpretation": "Posthoc numeric checks only; mixed delivery/continuation and clarification FAILED. Short information request completed. No autonomous historical trajectory restore occurred. Unspecified event window was guessed in the clarification case. No comparative efficacy claim."
+}

@@ -2,6 +2,8 @@
 
 核查日期：2026-10-26。主线：《面向多任务脑电分析的智能体执行框架研究与应用》。代码起点 `2c34049`；本阶段设计 `555fa84`、多结果实现 `24d4cd2`；继续 Draft PR #37，不合并 main。本文集中供开题讨论，不替代历史实验报告。
 
+> Issue #47 后续核实：完整学校栏目及20项来源/BibTeX集中在[开题写作包](THESIS_PROPOSAL_WRITING_PACK.md)。三项可靠性缺口已修复，412 tests（397通过/15跳过）。新版真实DeepSeek确认已执行：36次/277,191 tokens，短查询成功；复杂交付、修订续接和缺参澄清未通过，不再称“新版完全未做真实验证”，也不能称“已稳定”。下文旧阶段的0次调用、397项测试保留原阶段口径。最终结果以写作包B.2及主方法文档Issue #47末节为准。
+
 ## 1. 明天可以怎样准确介绍
 
 **研究主体是通用多任务 EEG Agent Harness。** 连续信号特征、事件相关分析和已有模型任务是不同任务族；并非注册多个工具便等于证明多任务能力。已建立共同的数据、Profile、Registry、Executor 和证据接口。R3 是数据来源之一，ASD 儿童辅助评估是后续应用，均不进入通用层的疾病/组别假设。
@@ -131,8 +133,8 @@ flowchart TD
 
 |资产（TC相对路径、入口）|实际作用、输入→输出|可复用/需适配|未验证与风险|
 |---|---|---|---|
-|`autodl_latest_data/stage1_inference.py::generate_stage1_report` L33；`stage1+stage2_inference.py` L36|instruction＋特征文本→报告文本；Qwen2.5-7B-Instruct加载LoRA，确定性生成|报告结构和特征文本接口作为候选；改成显式调用，输入附计算证据引用|当前是文本输入，非直接EEG；加载/读文件/写CSV在顶层，不可直接import；报告事实忠实度未知|
-|`stage2_inference.py::generate_stage2_decision` L38；组合脚本L73|instruction＋报告→标签；独立脚本扫描轻/中/重三级，组合脚本取首行|仅在标签定义、使用授权、模型验证完备后作独立研究输出；不能当ASD诊断|独立与组合生成上限不同（256/16）；训练标记为多源评估证据/医学决策结论，推理提示标记不同，不能假定等价|
+|`autodl_latest_data/stage1_inference.py::generate_output` L33；组合`stage1+stage2_inference.py::generate_stage1_report` L36|instruction＋特征文本→报告文本；Qwen2.5-7B-Instruct加载LoRA，确定性生成|报告结构和特征文本接口作为候选；改成显式调用，输入附计算证据引用|当前是文本输入，非直接EEG；加载/读文件/写CSV在顶层，不可直接import；报告事实忠实度未知|
+|`stage2_inference.py::generate_output` L38；组合`stage1+stage2_inference.py::generate_stage2_decision` L73|instruction＋报告→标签；独立脚本扫描轻/中/重三级，组合脚本取首行|仅在标签定义、使用授权、模型验证完备后作独立研究输出；不能当ASD诊断|独立与组合生成上限不同（256/16）；训练标记为多源评估证据/医学决策结论，推理提示标记不同，不能假定等价|
 |`stage1_model_train.py::preprocess_function` L57；`stage2_model_train.py::preprocess` L61|instruction/input/output JSONL→训练文本→LoRA|仅复用已确认的数据/提示契约，暂不训练|训练来源、受试者隔离、目标标签依据未由代码证实；顶层有Trainer.train|
 |两个 `qwen2.5-asd-stage*-lora` 目录|LoRA r=32、alpha=64、q/k/v/o投影；依赖7B基座|后续单独模型适配层，核实版本/许可证/校验值/资源后加载|远端adapter是133字节LFS指针；本机顶层文件各80,770,432字节且头部224张量，但未实际加载；本环境缺peft和bitsandbytes|
 |`eeg_feature_param.py` L104–144；`RandomForest.py`、`RandomForestPredict.py`|读预计算CSV特征/ability_score→标准化、分类/概率；后者仍会训练|可复用经过重新验证的预处理/模型接口思想；提取、训练、评估应解耦|不是原波形特征提取器。标准化先于train_test_split存在泄漏风险；未复现或认可原指标|
