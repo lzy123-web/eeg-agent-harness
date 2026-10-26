@@ -1,0 +1,26 @@
+{
+  "version": "issue45-implementation-acceptance-v1",
+  "purpose": "机制与真实 Agent 集成验收，不是胜负实验；所有记录为确定性合成 EEG。",
+  "budget": {"max_external_completions": 96, "max_api_tokens": 240000, "max_output_per_call": 1200},
+  "development": [
+    {"name": "combined_revision", "records": "original", "requests": [
+      "请分析记录 A：先检查 stimulus 事件后0到1秒的实际有效试次数和质量；至少有2个有效试次且质量标记为0时，再给出 SYNTH-C1 的事件绝对 alpha 功率。另计算同一通道连续记录0到2秒的 alpha 功率，分别说明两个时间基准。只测量，不筛除、不重参考。",
+      "保留刚才的结果，把 A 的连续分析窗口改为3到5秒，比较修改前后的 alpha 功率。另核对刚才事件分析实际使用的质量判据和处理过程，说明是否筛除了试次，再决定能否直接沿用原事件对象为后续分析基础。不要重复计算已有的事件功率。"
+    ]}
+  ],
+  "confirmation": [
+    {"name": "cross_record_and_continuous", "records": "renamed", "requests": [
+      "比较 A 的 pulse 与 B 的 click 事件后0到1秒的 SYNTH-C1 绝对 alpha 功率；分别检查有效试次数，少于2个时停止该项并说明不足。再给出 A 的 SYNTH-C1 连续0到2秒 RMS，作为独立的幅值参考。不要把功率与 RMS 相除，不筛除、不重参考、不作诊断。",
+      "仅把 B 的 click 分析窗口改到事件后0到0.5秒，保留原版本；核对原事件试次数并比较 B 修改前后的 alpha 功率，说明较短窗口带来的频率分辨率限制。A 的结果保持原样。"
+    ]},
+    {"name": "short_information", "records": "renamed", "requests": ["请告诉我当前记录 A 的采样率和通道名称。"]},
+    {"name": "missing_parameters", "records": "renamed", "requests": ["想分析 A 的事件频带功率，请帮我开始。"]}
+  ],
+  "evaluation": [
+    "后验按请求核对实际记录、能力、参数及 revision_of；不同事件/连续任务不能互相替代。",
+    "从原始合成采样独立计算 RMS、Welch 频带积分和事件平均，旧连续工具文本精度允许 rtol=0.005，事件数值 rtol=0.000001。",
+    "核对每次真实 messages：完成前有活跃观察、归档后以摘要替换、恢复后进入下一次决策。",
+    "最终回答人工检查必要数值、单位、范围、试次数、无筛选与分辨率限制；不把程序 stop_reason 当作语义通过。",
+    "真实未触发的机制只能计为离线覆盖。每个首次失败保留，确认后不按结果改方法或科学标准。"
+  ]
+}

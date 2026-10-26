@@ -1,5 +1,12 @@
 # 项目状态
 
+## Issue #45：执行期工作记忆与统一 Agent 集成（进行中）
+
+- 已提交设计依据 `94aaaf3`，核对 HiAgent 原论文和官方实际加载代码；不复制未明确许可的源码。当前实现为 opt-in 原 `EEGAgent.run` 记忆钩子、显式科学子目标和原 Executor 逐动作执行，旧入口不变。
+- 新代码：`working_memory.py`、`working_memory_agent.py`、`working_memory_cli.py`；实验输入/后验核验单独在 `research/working_memory_validation.py`。保留旧 Issue #36–44 结果，不把本轮实现当成收益证明。
+- 离线：`python -m compileall -q src tests`、`python -m unittest discover -s tests -q` 通过，374 tests = 359 passed + 15 resource-gated skipped。作用域/工件/版本、真实数值 oracle、归档上下文替换、轨迹恢复、证据交接、澄清/部分回答/边界均覆盖。
+- 真实模型本检查点尚未运行，Issue #45 独立账本上限 96 completions / 240,000 tokens。下一步执行已固定开发请求、分析首次失败、锁定后执行不同组合确认。仍不支持本模式真实数据联网、跨进程持久化、全意图完备性证明、筛选/重参考/模型推理。
+
 ## 2026-10-26 完成：Issue #44 任务记忆架构与工作点资格评审
 
 - 当前阶段/范围：继续 `research/point1-eeg-task-memory` / Draft PR #37；只审查既有 HiAgent 启发 EEG 任务上下文路线、真实代码与 Issue #36–#43 原始/公开结果。未改 EEG 算法、记忆策略、Executor、旧评分或历史实验；未启动第二工作点、ASD 报告、真实 EEG 外发或新付费实验。

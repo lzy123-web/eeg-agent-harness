@@ -1,0 +1,67 @@
+"""Unified natural-language opt-in entry, synthetic-only for external LLM use."""
+
+import argparse
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+
+from .llm import OpenAICompatibleClient
+from .working_memory_agent import WorkingMemoryEEGAgent
+from .research.task_memory import PROJECT_ROOT, synthetic_records
+from .research.integrated_method.v2_validation import JournaledBudgetClient
+from .research.task_memory_issue39_budget import Issue39BudgetClient, ledger_totals
+
+
+PRIVATE = PROJECT_ROOT / "artifacts" / "point1_task_memory" / "issue45"
+LEDGER = PRIVATE / "budget.jsonl"
+
+
+def budgeted_client(phase, *, phase_cap=40):
+    raw = OpenAICompatibleClient.from_env()
+    raw.max_retries = 0  # Every external attempt must pass the persistent ledger.
+    raw.timeout = min(raw.timeout, 45)
+    raw.max_tokens = min(raw.max_tokens, 1200)
+    private = PRIVATE / phase
+    private.mkdir(parents=True, exist_ok=True)
+    journal = JournaledBudgetClient(raw, private / "responses.jsonl",
+                                    max_requests=96, max_total_tokens=240000)
+    return Issue39BudgetClient(journal, LEDGER, max_requests=96, max_tokens=240000,
+                                model_label=raw.model, phase=phase, phase_request_cap=phase_cap)
+
+
+def run_requests(requests, client, *, records=None, session_id="interactive", context_mode="working"):
+    """Only ordinary requests and loaded records enter the method. No turn kinds."""
+    agent = WorkingMemoryEEGAgent(client, records or synthetic_records(),
+                                  session_id=session_id, context_mode=context_mode)
+    results = []
+    directory = PRIVATE / session_id
+    directory.mkdir(parents=True, exist_ok=True)
+    for number, request in enumerate(requests, 1):
+        result = agent.run(request) if number == 1 else agent.continue_run(request)
+        value = result.to_dict()
+        results.append(value)
+        # Persist immediately, including partial failure; never overwrite old runs.
+        path = directory / f"turn-{number}.json"
+        with path.open("x", encoding="utf-8") as stream:
+            json.dump(value, stream, ensure_ascii=False, allow_nan=False, indent=2)
+        print(json.dumps({"turn": number, "stop_reason": result.stop_reason,
+                          "rounds": result.rounds, "answer": result.final_answer}, ensure_ascii=False), flush=True)
+        if result.stop_reason in {"llm_error", "no_progress", "context_capacity", "evidence_capacity"}:
+            break
+    return agent, results
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Experimental EEG working memory; real LLM, synthetic records only")
+    parser.add_argument("--request", action="append", required=True, help="Natural-language request; repeat for continuation")
+    parser.add_argument("--real", action="store_true", required=True)
+    parser.add_argument("--context-mode", choices=("working", "full"), default="working")
+    args = parser.parse_args(argv)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+    client = budgeted_client("interactive", phase_cap=16)
+    run_requests(args.request, client, session_id=f"interactive-{stamp}", context_mode=args.context_mode)
+    print(json.dumps(ledger_totals(LEDGER)))
+
+
+if __name__ == "__main__":
+    main()
