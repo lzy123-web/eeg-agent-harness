@@ -152,7 +152,7 @@ class WorkingMemoryStore(GranularEpisodeSession):
                 "contract": self.goal_card(goal)}
 
     def goal_card(self, goal):
-        return {"subgoal_id": goal.subgoal_id, "title": goal.title,
+        return {"subgoal_id": goal.subgoal_id, "title": goal.title, "created_turn": goal.turn,
                 "record": goal.record, "deliverable": goal.deliverable,
                 "scope": clone(goal.scope), "checks": goal.checks,
                 "criteria": clone(goal.criteria),

@@ -164,6 +164,11 @@ class WorkingMemoryController:
             return []
         for item in union["items"]:
             entry = store.find_entry(item["task_id"])
+            owner = store.find_subgoal(entry.evidence.get("subgoal_id"))
+            if owner is None:
+                owner = next((g for g in store.subgoals if g.task_id == entry.task_id), None)
+            item["created_turn"] = owner.turn if owner else None
+            item["acquired_this_turn"] = entry.sequence > self.turn_entry_start
             item["unit_scope"] = "tool category only; use field semantics for each value"
             for field in item["fields"]:
                 try:
@@ -179,7 +184,7 @@ class WorkingMemoryController:
                           "channels": list(r.channel_names), "duration": r.duration_seconds,
                           "event_labels": sorted({e.label for e in r.events.events}) if r.events else []}
                     for key, r in store.records.items()}
-        payload = {"user_requests": self.requests, "current_request": self.requests[-1],
+        payload = {"user_requests": self.requests, "current_request": self.requests[-1], "current_turn": store.turn,
                    "records": metadata, "active_record": store.active_record,
                    "archived_summaries": [self._index_summary(c, selected) for c in summaries],
                    "active_subgoal": self._index_summary(store.summary(store.active), selected) if store.active else None,

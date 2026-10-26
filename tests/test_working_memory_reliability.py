@@ -97,6 +97,12 @@ class ReliabilityTest(unittest.TestCase):
         self.assertEqual(agent.continue_run("查询旧窗口").stop_reason, "completed")
         self.assertEqual(original, json.dumps(agent.working_memory.store.entries[0].result))
         self.assertEqual(json.loads(fake.seen[2][1]["content"])["exact_evidence"], [])
+        first = json.loads(fake.seen[1][1]["content"])["exact_evidence"][0]
+        second = json.loads(fake.seen[-1][1]["content"])["exact_evidence"][0]
+        self.assertTrue(first["acquired_this_turn"])
+        self.assertFalse(second["acquired_this_turn"])
+        self.assertEqual(first["created_turn"], second["created_turn"])
+        self.assertEqual(second["created_turn"], 1)
         for messages in fake.seen:
             pending = set()
             for m in messages:
