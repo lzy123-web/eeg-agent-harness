@@ -9,11 +9,31 @@ from .llm import OpenAICompatibleClient
 from .working_memory_agent import WorkingMemoryEEGAgent
 from .research.task_memory import PROJECT_ROOT, synthetic_records
 from .research.integrated_method.v2_validation import JournaledBudgetClient
-from .research.task_memory_issue39_budget import Issue39BudgetClient, ledger_totals
+from .research.task_memory_issue39_budget import Issue39BudgetClient, StageBudgetExhausted, ledger_totals, _rows
 
 
 PRIVATE = PROJECT_ROOT / "artifacts" / "point1_task_memory" / "issue45"
 LEDGER = PRIVATE / "budget.jsonl"
+
+
+class ReservedPhaseClient(Issue39BudgetClient):
+    """Protect confirmation reserve before any development network attempt.
+
+    Shares the original append-only stage ledger. No earlier attempts are reset.
+    """
+    def complete(self, messages, tools, tool_choice="auto"):
+        if self.context.get("phase") == "development":
+            rows = _rows(self.ledger)
+            starts = {r["request_id"]: r for r in rows if r["event"] == "reserved" and
+                      r.get("context", {}).get("phase") == "development"}
+            ends = {r["request_id"]: r for r in rows if r["event"] in {"received", "failed"}}
+            spent = sum((ends.get(k, {}).get("total_tokens") or v["reserved_tokens"])
+                        for k, v in starts.items())
+            reserve = len(json.dumps({"messages": messages, "tools": tools,
+                                      "tool_choice": tool_choice}, ensure_ascii=False).encode("utf-8")) + self.client.client.max_tokens
+            if spent + reserve > 140000:
+                raise StageBudgetExhausted("Development allocation exhausted; preserve confirmation budget")
+        return super().complete(messages, tools, tool_choice)
 
 
 def budgeted_client(phase, *, phase_cap=40):
@@ -25,7 +45,7 @@ def budgeted_client(phase, *, phase_cap=40):
     private.mkdir(parents=True, exist_ok=True)
     journal = JournaledBudgetClient(raw, private / "responses.jsonl",
                                     max_requests=96, max_total_tokens=240000)
-    return Issue39BudgetClient(journal, LEDGER, max_requests=96, max_tokens=240000,
+    return ReservedPhaseClient(journal, LEDGER, max_requests=96, max_tokens=240000,
                                 model_label=raw.model, phase=phase, phase_request_cap=phase_cap)
 
 

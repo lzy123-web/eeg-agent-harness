@@ -30,6 +30,7 @@ CONTROLS = [
         "revision_of": STRING, "dependencies": STRINGS,
     }, ["title", "record", "deliverable", "scope"]),
     control("close_subgoal", "Archive only after actual delivery, or suspend with an unresolved question. Never infer scientific success from API success.", {
+        "subgoal_id": {"type": "string", "description": "Optional exact pending subgoal. Verified close after suspension/restoration needs no numerical rerun."},
         "status": {"type": "string", "enum": ["completed", "suspended"]},
         "unresolved": STRINGS}, ["status"]),
     control("resume_subgoal", "Resume an unchanged suspended scientific scope. Changed parameters require a new subgoal/version.", {
@@ -51,7 +52,7 @@ SYSTEM = """你是合成 EEG 研究助手。通过原 EEG 工具逐步分析，�
 多步任务、跨记录或参数修订用 begin_subgoal：按科学交付物而非每个工具划分。scope 连续是绝对秒 start/end/channels；事件是相对事件秒 labels/tmin/tmax，不是 artifact_id。本模式不执行基线校正。
 事件分析先获得真实 Epoch 工件 ID，再用原工具检查和分析；checks 声明用户要求的必要检查。criteria 可声明用户给定的可核查条件，如 create_epochs.valid_epoch_count >= 2；不要发明科学阈值。只有实际满足条件才继续。
 完成子目标用 close_subgoal；程序验证实际交付与同工件检查，随后用摘要替换详细历史。失败或未决条件用 suspended/clarification，不得宣称已成功。
-用户修改已完成分析参数时，新子目标使用 revision_of 指向旧 task_id；引用旧分析用 dependencies。不暗改旧结果。不支持的筛选、重参考、模型推理等应说明范围并澄清。
+用户修改已完成分析参数时，新子目标使用 revision_of 指向旧 task_id 或已完成 subgoal_id（程序解析同一版本）；引用旧分析用 dependencies。不暗改旧结果。不支持的筛选、重参考、模型推理等应说明范围并澄清。
 小型事实已可见可直接使用。read_evidence 查具体结果，restore_subgoal 恢复旧行动—观察以核查处理过程/继续分析；二者不同，不为展示机制多读。
 精确证据字段含路径、值、来源、科学范围和单位，索引不是值。绝对频带功率 V²，幅值 V；不同记录/时间基准/版本不可混同。
 用 finish_task 输出完整中文回答或明确缺参问题，保留局限；不得只返回无工具的文字。完成状态只是可核查的执行契约，不证明全部科学意图。
@@ -126,7 +127,7 @@ class WorkingMemoryController:
         payload = {"user_requests": self.requests, "current_request": self.requests[-1],
                    "records": metadata, "active_record": store.active_record,
                    "archived_summaries": summaries,
-                   "active_subgoal": store.goal_card(store.active) if store.active else None,
+                   "active_subgoal": store.summary(store.active) if store.active else None,
                    "restored_trajectories": list(self.restored.values()),
                    "exact_evidence": union["items"], "control_feedback": self.feedback}
         messages = [{"role": "system", "content": SYSTEM},
@@ -135,8 +136,14 @@ class WorkingMemoryController:
             pairs = self.exchanges
         else:
             pairs = list(store.active.exchanges) if store.active else []
-            if self.pending and (not pairs or pairs[-1] != self.pending):
-                pairs = pairs + [self.pending]
+            # Successful close/restore is already represented in the grounded
+            # archive/restoration payload. Retain neither half of that duplicate
+            # protocol pair. Rejections still remain observable for recovery.
+            pending = self.pending
+            if pending and pending[-1]["name"] in {"restore_subgoal", "close_subgoal"} and json.loads(pending[-1]["content"])["success"]:
+                pending = []
+            if pending and (not pairs or pairs[-1] != pending):
+                pairs = pairs + [pending]
         for pair in pairs:
             messages.extend(clone(pair))
         if len(encoded(messages)) > self.max_context_bytes:
@@ -177,9 +184,11 @@ class WorkingMemoryController:
             unresolved = args.get("unresolved", [])
             if status not in {"completed", "partial", "clarification_required"}:
                 return store._error("INVALID_STATUS", "Unknown delivery status")
-            if status == "completed" and (store.active or unresolved or
-                    any(g.status != "completed" for g in store.subgoals if g.turn == store.turn)):
-                return store._error("UNFINISHED_SUBGOAL", "Resolve or explicitly report pending work")
+            pending = [g for g in store.subgoals if g.status != "completed" and
+                       (g.turn == store.turn or g.subgoal_id in self.restored)]
+            if status == "completed" and (store.active or unresolved or pending):
+                return {**store._error("UNFINISHED_SUBGOAL", "Resolve or explicitly report pending work"),
+                        "pending": [store.summary(g) for g in pending]}
             if status != "completed" and (not unresolved or not isinstance(unresolved, list)):
                 return store._error("UNRESOLVED_REQUIRED", "Name the missing information or limitation")
             if status in {"completed", "partial"} and not store.entries:

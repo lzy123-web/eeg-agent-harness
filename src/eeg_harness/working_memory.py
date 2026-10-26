@@ -86,7 +86,10 @@ class WorkingMemoryStore(GranularEpisodeSession):
         return next((g for g in self.subgoals if g.subgoal_id == ident), None)
 
     def find_entry(self, ident):
-        return next((e for e in self.entries if e.task_id == ident), None)
+        # A completed subgoal is an explicit alias, never a guessed version.
+        goal = self.find_subgoal(ident)
+        canonical = goal.task_id if goal and goal.status == "completed" else ident
+        return next((e for e in self.entries if e.task_id == canonical), None)
 
     def _error(self, code, message):
         return {"status": "rejected", "code": code, "message": message}
@@ -132,6 +135,8 @@ class WorkingMemoryStore(GranularEpisodeSession):
             parent = self.find_entry(revision_of)
             if parent is None or (parent.record, parent.capability) != (record, deliverable):
                 return self._error("INVALID_REVISION_PARENT", "Revision must retain its parent's record and scientific capability")
+            revision_of = parent.task_id
+        dependencies = [self.find_entry(x).task_id for x in dependencies]
         goal = ScientificSubgoal(
             f"{self.session_id}-s{len(self.subgoals) + 1}", title, record, deliverable,
             clone(scope), list(dict.fromkeys(checks)), clone(criteria), revision_of, clone(dependencies),
@@ -218,6 +223,8 @@ class WorkingMemoryStore(GranularEpisodeSession):
         goal.unresolved = [] if rendered["success"] else [rendered["error"]["code"]]
         out = {"status": "observed" if rendered["success"] else "blocked",
                "subgoal_id": goal.subgoal_id, "observation": observation}
+        if mismatch:
+            out["delivery_check"] = self.delivery_status(goal)
         if goal.implicit and rendered["success"]:
             out["archive"] = self.close_subgoal("completed")
         return out
@@ -269,10 +276,18 @@ class WorkingMemoryStore(GranularEpisodeSession):
             return {"valid": False, "code": "UNRESOLVED_TOOL_FAILURE"}
         return {"valid": True, "terminal": terminal}
 
-    def close_subgoal(self, status, unresolved=None):
-        goal = self.active
+    def delivery_status(self, goal):
+        """Program-derived affordance; does not infer the user's full intent."""
+        return {k: clone(v) for k, v in self.completion_check(goal).items() if k != "terminal"}
+
+    def close_subgoal(self, status, unresolved=None, subgoal_id=None):
+        goal = self.find_subgoal(subgoal_id) if subgoal_id else self.active
         if goal is None:
             return self._error("NO_ACTIVE_SUBGOAL", "There is no active subgoal")
+        if goal.status == "completed":
+            return self._error("ALREADY_ARCHIVED", "Completed entries are immutable")
+        if self.active is not None and self.active is not goal:
+            return self._error("ACTIVE_SUBGOAL", "Resolve current work before closing a different pending goal")
         self.last_owner = goal.subgoal_id
         if status not in {"completed", "suspended"}:
             return self._error("INVALID_STATUS", "Close as completed or suspended")
@@ -334,6 +349,11 @@ class WorkingMemoryStore(GranularEpisodeSession):
     def summary(self, goal):
         entry = self.find_entry(goal.task_id)
         result = self.goal_card(goal)
+        result["delivery_check"] = self.delivery_status(goal)
+        result["available_control"] = (
+            "read_evidence or restore_subgoal only if needed" if goal.status == "completed" else
+            "close_subgoal(completed, subgoal_id) is verified ready" if result["delivery_check"]["valid"] else
+            "resume_subgoal for pending work, or report unresolved")
         result["action_outcomes"] = [
             {"tool": o["request"]["name"], "success": o["result"]["success"],
              "error": o["result"]["error"],
@@ -362,7 +382,7 @@ class WorkingMemoryStore(GranularEpisodeSession):
         if entry.record != record or entry.parameters != parameters:
             return self._error("EVIDENCE_BINDING_MISMATCH", "Requested record/parameters differ from this exact task version")
         # Reuse the existing archive read and normalize against original facts.
-        full = super().read_task(task_id, "", record_message=False)
+        full = super().read_task(entry.task_id, "", record_message=False)
         if field_paths is None:
             read = full
         else:
@@ -382,5 +402,6 @@ class WorkingMemoryStore(GranularEpisodeSession):
         if goal is None or goal is self.active:
             return self._error("TRAJECTORY_NOT_ARCHIVED", "Choose an archived or suspended subgoal")
         return {"status": "restored", "subgoal": self.goal_card(goal),
+                "delivery_check": self.delivery_status(goal),
                 "action_observations": clone(goal.observations),
                 "native_exchanges": clone(goal.exchanges)}

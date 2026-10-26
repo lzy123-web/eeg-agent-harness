@@ -16,6 +16,11 @@
     {"name": "short_information", "records": "renamed", "requests": ["请告诉我当前记录 A 的采样率和通道名称。"]},
     {"name": "missing_parameters", "records": "renamed", "requests": ["想分析 A 的事件频带功率，请帮我开始。"]}
   ],
+  "bounded_confirmation": [
+    {"name": "observed_rms_then_spectrum", "records": "renamed", "requests": ["请给 A 的 SYNTH-C1 连续1到3秒的 RMS。如果 RMS 不超过 0.0001 V，再给同一窗的绝对 alpha 功率，否则停止功率部分并说明原因。最后附上采样率和通道名称，不筛选、不重参考。"]},
+    {"name": "missing_parameters", "records": "renamed", "requests": ["想分析 A 的事件频带功率，请帮我开始。"]}
+  ],
+  "budget_amendment": "开发实际用了33次/202622 tokens，未有效保护原预留；保留该执行缺陷。停止开发调用，只对锁定后两条未运行请求做缩小的完整确认单元，不运行上面的原完整确认。此修订在查看任何确认输出之前冻结，不改变数值真值。事件修复后的真实完整再确认属于未验证，不声称原计划全部验收。",
   "evaluation": [
     "后验按请求核对实际记录、能力、参数及 revision_of；不同事件/连续任务不能互相替代。",
     "从原始合成采样独立计算 RMS、Welch 频带积分和事件平均，旧连续工具文本精度允许 rtol=0.005，事件数值 rtol=0.000001。",

@@ -59,11 +59,11 @@ def audit_entries(store):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("development", "confirmation"), required=True)
+    parser.add_argument("--phase", choices=("development", "confirmation", "bounded_confirmation"), required=True)
     parser.add_argument("--real", required=True, action="store_true")
     args = parser.parse_args(argv)
     spec = json.loads(SPEC.read_text(encoding="utf-8"))
-    client = budgeted_client(args.phase, phase_cap=36 if args.phase == "development" else 40)
+    client = budgeted_client(args.phase, phase_cap=36 if args.phase == "development" else 10)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     report = {"phase": args.phase, "protocol_sha256": hashlib.sha256(SPEC.read_bytes()).hexdigest(), "sessions": []}
     for case in spec[args.phase]:

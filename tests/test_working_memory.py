@@ -128,6 +128,31 @@ class WorkingMemoryTest(unittest.TestCase):
         outcome = self.store.begin_subgoal("校正", "A", "event_bandpower", dict(EVENT, baseline=[0, .1]))
         self.assertEqual(outcome["code"], "TRANSFORM_NOT_ENABLED")
 
+    def test_ready_suspended_goal_can_close_without_reexecuting_or_guessing(self):
+        self.begin_event(["epoch_quality"])
+        ident = self.make_epochs()
+        self.store.execute_numeric("epoch_quality", {"artifact_id": ident})
+        self.store.execute_numeric("event_bandpower", {"artifact_id": ident})
+        self.store.execute_numeric("psd", WINDOW)  # Out-of-scope request stays failed.
+        self.store.close_subgoal("suspended", ["连续分析另做"])
+        self.assertTrue(self.store.summary(self.store.subgoals[0])["delivery_check"]["valid"])
+        count = len(self.store.subgoals[0].observations)
+        self.assertEqual(self.store.close_subgoal("completed", subgoal_id="test-s1")["status"], "completed")
+        self.assertEqual(len(self.store.subgoals[0].observations), count)
+        self.assertEqual(self.store.find_entry("test-s1").task_id, "test-t1")
+        self.store.begin_subgoal("修订", "A", "event_bandpower", dict(EVENT, tmax=.5), revision_of="test-s1")
+        self.assertEqual(self.store.active.revision_of, "test-t1")
+
+    def test_restore_is_not_duplicate_protocol_payload(self):
+        fake = ScriptedClient([("psd", WINDOW), finish(),
+            ("restore_subgoal", {"subgoal_id": "test-s1", "reason": "检查原行动"}), finish()])
+        agent = WorkingMemoryEEGAgent(fake, self.records, session_id="test")
+        agent.run("先分析")
+        agent.continue_run("核对过程")
+        after = fake.seen[-1]
+        self.assertTrue(json.loads(after[1]["content"])["restored_trajectories"])
+        self.assertFalse(any(m["role"] == "tool" and m["name"] == "restore_subgoal" for m in after))
+
     def test_source_artifact_isolation(self):
         self.begin_event()
         first = self.make_epochs()
