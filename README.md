@@ -1,5 +1,21 @@
 # EEG Agent Harness
 
+> **Issue #49 已完成有界实现与真实确认，完整自主会话验收仍未通过。** opt-in `request_closure`统一科学合同、有效结果复用、原请求交付进度和有证据的收尾；原Agent/Executor保持。490项离线回归（475通过、15资源跳过）；真实37 completion / 289,282 tokens，全部失败保留。D短查询完整；C澄清后的事件数值正确但附加单位与质量措辞有误；A完成连续新旧比较，历史RMS未读回；B受来源登记及旧请求相关性校验阻塞，无质量续算。真实恢复→续算本轮未触发。公共修复适用于working/强summary/full，未开展新的付费优劣比较。见[本轮协议、结果与边界](docs/research/EEG_WORKING_MEMORY_ISSUE49_PROTOCOL_AND_RESULTS.md)及[公开合成证据](docs/research/evidence/issue49_request_closure_confirmation.json)。本阶段联网结束，不自动使用余量。
+
+Issue #49 无API检查与审计（output使用新路径）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -v
+python -m eeg_harness.research.working_memory_issue49 --preflight --output artifacts/point1_task_memory/issue49/new-preflight.json
+python -m eeg_harness.research.working_memory_issue49_audit --output artifacts/point1_task_memory/issue49/new-audit.json
+```
+
+统一入口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", request_closure=True, context_mode="working")`，以`run(text)`/`continue_run(text)`接受自然请求；`summary`和`full`使用同一科学契约及读权。CLI对应`--memory-version lifecycle --request-closure`，服务及路径仍使用环境配置，联网需新的明确授权和跨运行预算。阶段脚本不向Agent输入正确task ID、动作顺序或评分真值；审计需要本机原始日志，公开仓库提供合成摘录与可运行离线预检。
+
+以下Issue #48及更早段落是历史产物，保持其原始结果：
+
 > **Issue #48 已结束有界实现与真实确认；完整自主验收仍未通过。** 新增opt-in `lifecycle`：有来源的科学子目标、缺参待补与同目标修正、批次协议保护、分项成本记录和同入口强摘要/full。453项离线回归（438通过、15跳过）；真实DeepSeek＋合成数据共37 completion / 321,201 tokens，首次失败均保留。C实际澄清后在同一目的建立Epoch；B自主恢复原过程并进入下一模型输入，但没有完成续算。A重复已完成目的；D最终回答遭会话保守预约拦截。C/B的0.75秒窗不符合原功率工具≥1秒要求，是确认准备疏漏，不能据此判断记忆优劣。45个已产生数值字段oracle通过，不代表四会话成功。见[本轮协议、结果与准确边界](docs/research/EEG_WORKING_MEMORY_ISSUE48_PROTOCOL_AND_RESULTS.md)、[合成证据](docs/research/evidence/issue48_lifecycle_confirmation.json)。阶段已停止联网，不自动续用余额。
 
 新版统一接口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", context_mode="working")`的`run(text)`/`continue_run(text)`；`context_mode="summary"`或`"full"`共用真实工具、档案、来源核验和读取权限。方法主体在`working_memory_lifecycle.py`/`working_memory_agent.py`，不是评测脚本提供正确任务序列。旧默认、历史模式及结果保留；强S已离线检查，本轮没有新增真实多臂效果比较。真实数据仍限本地离线处理。

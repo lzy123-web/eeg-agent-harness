@@ -139,6 +139,7 @@ def audit_run(directory):
             "active_progress": active.get("delivery_check"),
             "request_progress": payload.get("request_progress"),
             "finalization": payload.get("delivery_phase"),
+            "control_feedback": payload.get("control_feedback"),
             "visible_exact_results": [{k: e.get(k) for k in ("task_id", "record", "parameters", "revision_of", "created_turn", "acquired_this_turn")}
                                       for e in payload.get("exact_evidence", [])],
             "archived_goal_ids": [c.get("subgoal_id") for c in payload.get("archived_summaries", [])],
@@ -159,6 +160,10 @@ def audit_run(directory):
                    "status": data.get("status"), "error": action.get("error"),
                    "progress": data.get("progress", data.get("delivery_check")),
                    "subgoal_id": data.get("subgoal_id"), "result_id": data.get("task_id")}
+            if not action["success"]:
+                # Preserve every actual failure feedback, including recovery,
+                # issues and next-action advice; do not infer it from a code.
+                row["failure_data"] = data
             for key in ("contract", "summary"):
                 if isinstance(data.get(key), dict):
                     row[key] = _goal_excerpt(data[key])
@@ -203,9 +208,35 @@ def audit_run(directory):
             "subsequent_real_artifact_uses": [{k: a[k] for k in ("turn", "request_index", "tool", "arguments")} for a in uses],
             "mechanism_use_proven": bool(visible and uses),
             "process_statement_use": "Final prose needs manual comparison to restored observations; not automatically credited"})
+    excerpts = []
+    # Fixed posthoc diagnostic coverage, never supplied to the running Agent.
+    # Four exact decision/response samples make delivery feedback reviewable
+    # without claiming the public file is the complete private prompt journal.
+    chosen_turn = 2 if manifest["phase"] == "development" or manifest["case"] == "B" else 3 if manifest["case"] == "A" else 2 if manifest["case"] == "C" else None
+    candidates = [i for i, request in enumerate(requests) if request.get("context", {}).get("turn") == chosen_turn]
+    if manifest["phase"] == "development":
+        candidates = [i for i in candidates if requests[i].get("tool_choice") != "auto"]
+        chosen = candidates[:1]
+        reason = "first actual forced-final request in development turn2"
+    else:
+        chosen = candidates[-1:]
+        reason = "last actual request in confirmation " + manifest["case"] + " turn" + str(chosen_turn)
+    for index in chosen:
+        request = requests[index]
+        payload = payload_for(request)
+        excerpts.append({"selection": "posthoc_fixed_diagnostic_not_agent_input_selection", "selection_reason": reason,
+            "request_index": index + 1, "request_id": request.get("request_id"),
+            "context": request.get("context"), "tool_choice": request.get("tool_choice"),
+            "settings": request.get("settings"),
+            "input_payload_verbatim_fields": {k: payload[k] for k in (
+                "user_requests", "current_request", "request_progress", "exact_evidence",
+                "restored_trajectories", "delivery_phase", "control_feedback") if k in payload},
+            "raw_assistant_response": responses[index],
+            "omitted_input_parts": "system prompt, tool schemas, other payload fields and native conversation suffix; full actual journals remain local"})
     return {"run": directory.name, "manifest": manifest,
             "original_protocol_sha256": hashlib.sha256((directory/"protocol.json").read_bytes()).hexdigest(),
             "turns": turns, "request_visibility": visibility, "input_component_bytes": dict(component_bytes),
+            "selected_actual_input_response_excerpts": excerpts,
             "numeric_checks": numeric, "audit_errors": errors, "restore_chains": restore_chains,
             "action_counts": {"numerical_attempts": sum(a["tool"] in NUMERIC_TOOLS for a in action_rows),
                               "numerical_executed": sum(bool(a.get("observation")) for a in action_rows),
@@ -243,7 +274,18 @@ def build_audit(root=ROOT):
             row[k] += usage.get(v, 0)
         row["duration_seconds"] += end.get("duration_seconds", 0)
     runs = [audit_run(p.parent) for p in sorted(root.glob("*/manifest.json"))]
+    confirmation_protocols = [read_json(p.parent/"protocol.json") for p in sorted(root.glob("*/manifest.json"))
+                              if read_json(p)["phase"] == "confirmation"]
+    frozen_protocol = confirmation_protocols[0] if confirmation_protocols else None
+    if any(p != frozen_protocol for p in confirmation_protocols):
+        raise ValueError("Actual confirmation runs did not share one frozen protocol")
     return {"stage": "issue49", "kind": "posthoc_synthetic_only_audit_not_automated_task_score",
+            "frozen_confirmation_protocol": frozen_protocol,
+            "public_coverage": {
+                "included": "Frozen protocol; all tool-result actions including failed data/recovery; actual before-decision progress and visible result identities; end-turn goals and final text; four selected unmodified payload-field/complete assistant-response excerpts; independent numerical checks; complete costs and original-file hashes",
+                "not_included": "This is not the full messages/system/tools/native request journal. Hashes are integrity references, not substitutes for undisclosed original inputs. Full synthetic request/response journals remain locally preserved in the ignored stage directory.",
+                "selection": "Posthoc diagnostic excerpts cover first development turn2 forced-final, last A turn3, last B turn2, and C final. This selection is not model input retrieval or an efficacy sample.",
+                "mechanism_caution": "Only actual restore followed by visibility and subsequent real same-artifact execution qualifies; empty restore_chains never means successful recovery."},
             "protocol_sha256_current": sha(SPEC), "ledger_sha256": sha(root/"budget.jsonl"),
             "costs_by_run": dict(costs),
             "cost_total": {k: sum(v[k] for v in costs.values()) for k in next(iter(costs.values()), {})},
