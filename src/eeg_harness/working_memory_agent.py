@@ -7,7 +7,8 @@ from .agent import EEGAgent
 from .executor import _validate_schema
 from .tooling import ToolResult
 from .working_memory import WorkingMemoryStore, NUMERIC_TOOLS, TERMINALS, clone, encoded
-from .research.task_memory_evidence import merge_evidence, _entry_meta, scalar_paths
+from .research.task_memory_evidence import merge_evidence, _entry_meta, scalar_paths, MAX_EVIDENCE_BYTES
+from .result_semantics import result_field_semantics, UnsupportedResultField
 
 
 def control(name, description, properties, required):
@@ -123,6 +124,7 @@ class WorkingMemoryController:
         self.repeats = {}
         self.restore_count = 0
         self.turn_evidence = []
+        self.turn_entry_start = len(self.store.entries)
         self.restored = {}
         self.pending = []
         self.feedback = None
@@ -149,14 +151,28 @@ class WorkingMemoryController:
         summaries = [store.summary(g) for g in store.subgoals if g is not store.active]
         visible = []
         cards = summaries + ([store.summary(store.active)] if store.active and hasattr(store, "reuse_result") else [])
+        selected = self._required_evidence_ids()
         for card in cards:
             for result_card in card.get("results", [card]):
                 entry = store.find_entry(result_card["task_id"])
-                if entry:
+                if entry and entry.task_id in selected:
                     visible.append({**_entry_meta(entry), "fields": [
                         {**f, "via": ["summary"]} for f in result_card["evidence"]["fields"]]})
         union, _ = merge_evidence(visible, self.turn_evidence)
         if union["status"] != "ok":
+            self.stop_reason = "evidence_capacity"
+            return []
+        for item in union["items"]:
+            entry = store.find_entry(item["task_id"])
+            item["unit_scope"] = "tool category only; use field semantics for each value"
+            for field in item["fields"]:
+                try:
+                    semantics = result_field_semantics(entry.capability, field["path"], entry.result,
+                        parameters=entry.parameters, analysis_configuration=entry.evidence["analysis_configuration"])
+                    field["semantics"] = {"kind": semantics["kind"], "unit": semantics["unit_or_kind"]}
+                except UnsupportedResultField:
+                    field["semantics"] = {"kind": "unregistered", "unit": None}
+        if len(encoded(union["items"])) > MAX_EVIDENCE_BYTES:
             self.stop_reason = "evidence_capacity"
             return []
         metadata = {key: {"source": r.source, "sfreq": r.sfreq,
@@ -165,10 +181,13 @@ class WorkingMemoryController:
                     for key, r in store.records.items()}
         payload = {"user_requests": self.requests, "current_request": self.requests[-1],
                    "records": metadata, "active_record": store.active_record,
-                   "archived_summaries": summaries,
-                   "active_subgoal": store.summary(store.active) if store.active else None,
+                   "archived_summaries": [self._index_summary(c, selected) for c in summaries],
+                   "active_subgoal": self._index_summary(store.summary(store.active), selected) if store.active else None,
                    "restored_trajectories": list(self.restored.values()),
-                   "exact_evidence": union["items"], "control_feedback": self.feedback}
+                   "exact_evidence": union["items"], "control_feedback": self.feedback,
+                   "evidence_workspace": {"selected_result_ids": sorted(selected | {e["task_id"] for e in self.turn_evidence}),
+                       "stored_result_count": len(store.entries),
+                       "policy": "current-turn results, explicit dependencies/revisions, reuse/read/restore; archive indexes are not values"}}
         messages = [{"role": "system", "content": MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM},
                     {"role": "user", "content": encoded(payload).decode("utf-8")}]
         if self.context_mode == "full":
@@ -192,6 +211,44 @@ class WorkingMemoryController:
                                "active_subgoal": store.active.subgoal_id if store.active else None,
                                "messages": clone(messages), "context_bytes": len(encoded(messages))})
         return messages
+
+    def _required_evidence_ids(self):
+        """No gold, query keywords, or automatic all-history injection.
+
+        A turn is a delivery unit: do not silently evict an earlier required
+        value when another is read. Capacity applies to this working set, not
+        the external archive. Oversized simultaneous delivery still stops.
+        """
+        store = self.store
+        selected = {e.task_id for e in store.entries[self.turn_entry_start:]}
+        for goal in store.subgoals:
+            if goal is store.active or goal.turn == store.turn or goal.subgoal_id in self.restored:
+                selected.update(getattr(goal, "result_ids", []))
+                if goal.task_id:
+                    selected.add(goal.task_id)
+                selected.update(goal.dependencies)
+                selected.update(getattr(goal, "reused", {}).values())
+                if goal.revision_of:
+                    selected.add(goal.revision_of)
+                selected.update(d["revision_of"] for d in getattr(goal, "deliveries", []) if d.get("revision_of"))
+        return selected
+
+    @staticmethod
+    def _index_summary(card, selected):
+        """Discoverable scientific locators outside the exact-value workspace."""
+        index = clone(card)
+        # The legacy single-result archive keeps prerequisite observations as
+        # checked facts. Retain them only for explicitly relevant/current work.
+        if card.get("task_id") not in selected:
+            index.pop("checked_facts", None)
+        for result in index.get("results", [index]):
+            proof = result.get("evidence")
+            if proof:
+                fields = proof.pop("fields", [])
+                proof["preview_field_count"] = len(fields)
+                proof.pop("omitted_fields", None)
+                proof["representation"] = "index_only; read_evidence returns exact values"
+        return index
 
     def _dispatch(self, request):
         name, args = request.name, dict(request.arguments)
@@ -239,6 +296,8 @@ class WorkingMemoryController:
     def execute(self, request, *, batch_size=1):
         self.store.last_owner = None
         before = len(self.store.entries)
+        owner_before = (self.store.active.subgoal_id if self.store.active else
+                        request.arguments.get("subgoal_id"))
         start = time.perf_counter()
         try:
             if batch_size != 1:
@@ -255,7 +314,11 @@ class WorkingMemoryController:
         signature = (request.name, result.get("code", "TOOL_BLOCKED"))
         self.errors = (0 if successful else self.errors + 1 if signature == self.last_error else 1)
         self.last_error = None if successful else signature
-        key = encoded({"tool": request.name, "args": dict(request.arguments)})
+        # Identical close arguments on different subgoals are real progress.
+        # Do not include generated result IDs: repeated computation/read on the
+        # same target must still be bounded even when it emits a fresh ID.
+        key = encoded({"tool": request.name, "args": dict(request.arguments),
+                       "subgoal": owner_before, "record": self.store.active_record})
         self.repeats[key] = self.repeats.get(key, 0) + 1
         if self.repeats[key] > self.no_progress_limit:
             self.stop_reason = "repeated_action"
