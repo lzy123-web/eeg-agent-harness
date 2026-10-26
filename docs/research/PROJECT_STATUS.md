@@ -1,5 +1,13 @@
 # 项目状态
 
+## 2026-10-26 完成：Issue #44 任务记忆架构与工作点资格评审
+
+- 当前阶段/范围：继续 `research/point1-eeg-task-memory` / Draft PR #37；只审查既有 HiAgent 启发 EEG 任务上下文路线、真实代码与 Issue #36–#43 原始/公开结果。未改 EEG 算法、记忆策略、Executor、旧评分或历史实验；未启动第二工作点、ASD 报告、真实 EEG 外发或新付费实验。
+- 交付：新增 [`POINT1_MEMORY_ARCHITECTURE_AND_ASSESSMENT.md`](POINT1_MEMORY_ARCHITECTURE_AND_ASSESSMENT.md)，用 Mermaid 总体架构与证据传递时序、逐模块文件/函数映射、受控入口的 LLM/程序/脚本职责、跨连续/事件/修订的可重跑 N-long 示例，以及贡献—实现—证据—限制表给出完整判断。报告提交 `4d9ba73`；本状态同步另作纯文档提交。
+- 复核：本地与远端起点均 `0780419280f7eaf6c81f191336bdf7acb8ffe522`，无分叉；本机 Issue #43 确认原始 JSON SHA-256 `0372f7893659793262c8e386336e2e7abda3f073c952584b6459c7476d8eccb3` 与公开报告一致，27 轮记录、独立账本 37 completion / 82,393 tokens；仅在本机核对，未提交原始响应。`python -m eeg_harness.research.task_memory_issue43 --offline` 通过，3＋4 次合成 EEG 真实工具分析的 evidence token 与冻结配置一致；`python -m eeg_harness.research.task_memory_eval --mode replay-v3 --sessions N-long --policies F S H HE` 通过，10 个真实工具任务、4 臂各 5 问，H/HE top-1 与真实读回各 5/5；该回放无真实 LLM，不冒充最终回答成绩。`python -m unittest tests.test_task_memory_issue43 -q` 为 18/18；`python -m unittest discover -s tests -q` 为 355 tests（340 pass、15 resource-gated skip、0 fail）；`git diff --check` 通过。环境使用本机既有 `eegagent` Python，公开复现命令见报告。Issue #44 新增外部 completion **0/64**、API tokens **0/160,000**。
+- 研究判断：首选 **B：已有连贯可运行的应用方法雏形，当前不足以宣称已成立的独立工作点**。成熟任务记忆的 EEG 对象/时间基准/版本/来源/单位适配具有系统意义，但 F/S/H/HC 共享多个科学合同，HC/HE 相对强 S/H 没有稳定独立净收益；Issue #43 公共交接修复不能归 HC 创新。现有证据还不能把科学对象绑定的增量从合理成熟直接迁移中公平隔离；末轮语言仍可能误述版本或过程。原始负结果、严格初筛与追加等价证据审计分别保留。
+- 未解决问题：多轮入口在完整实验中仍由脚本预定分析/历史轮；直接回答无逐断言运行时科学核验；范围解析有限，可能误拒合法表述；Session 仅进程内、条目嵌套值非深度冻结；研究接口只允许合成记录及七种能力，未验证开放自然语言/模型推理/受试者泛化。下一阶段唯一优先候选是**预注册、同信息同读权的强通用任务记忆直接迁移与 EEG 科学绑定的证据闭环归因验证**；若实质等价，则收束记忆为 Harness 基础模块，不再追 HC/HE 表示得分。本阶段完成即停止，不自动运行该后续实验。
+
 ## 2026-10-26 完成：Issue #43 统一证据交接与完整任务交付
 
 - 阶段/范围：沿用 `research/point1-eeg-task-memory` / Draft PR #37；工作点一既定 HiAgent 启发 EEG 任务上下文路线，不改旧 CIEDG、Issue #42 历史成绩、EEG Executor/数值算法，不开发第二工作点或 ASD 报告。已安全 `git fetch`，起点本地/远端均为 `5dca165`、无分叉。
