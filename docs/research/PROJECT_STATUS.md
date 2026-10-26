@@ -16,6 +16,7 @@
 - 尚未解决：已完成等价目的可重复进入；归档到最终回答不稳定；保守预算未充分保障最后回答；工具前提与实验准备遗漏；B漏声明用户功率需求；未调用质量却陈述阈值状态；真实轨迹恢复后的科学续算链未完成。
 - 下一阶段唯一优先目标：同一请求有有效交付后可靠结束/有理由继续。精确入口为`ReliableWorkingMemoryStore.begin_subgoal`、`WorkingMemoryController.build_messages`，保留合法用户重算/新版本，先复现A闭环，不增工具或关键词。未来真实验证前先审计协议可执行性及最后回答预算；需新任务授权，不自动开始。
 - 本阶段实现提交已普通推送；最终证据/文档随本次交付提交并推送原分支，保持Draft，不合并main、不强推。当前执行状态为结束，等待用户审查。
+- 发布留痕：证据/文档提交`578c21b5044179dbb5a286f182be97338378981c`已普通推送；[Issue #48结果](https://github.com/lzy123-web/eeg-agent-harness/issues/48#issuecomment-6422239943)及[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6422266395)已发布，PR正文保留旧历史并新增本阶段，仍为Draft/open/unmerged。Issue未关闭，完整验收缺口留待审查。
 
 ## Issue #47：阶段交付完成；新版复杂自主验收未通过
 
