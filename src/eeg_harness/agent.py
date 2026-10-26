@@ -122,7 +122,8 @@ class EEGAgent:
                     exc.to_dict() if isinstance(exc, LLMServiceError)
                     else {"code": "LLM_ERROR", "message": "LLM call failed."}
                 )
-                return finish("llm_error", f"LLM 调用失败（{error['code']}）。",
+                reason = "budget_exhausted" if error["code"] == "STAGE_BUDGET_EXHAUSTED" else "llm_error"
+                return finish(reason, f"LLM 调用停止（{error['code']}）。",
                               round_number, error)
             tool_calls = assistant.get("tool_calls") or []
             if not tool_calls:

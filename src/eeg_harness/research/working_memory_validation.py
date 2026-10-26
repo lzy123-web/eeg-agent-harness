@@ -57,11 +57,50 @@ def audit_entries(store):
     return rows
 
 
+def audit_saved_observations():
+    """Include real numeric outputs even when lifecycle/answer delivery failed.
+
+    This is explicitly NOT a score of completed tasks or correct intent.
+    """
+    rows = []
+    for path in sorted(PRIVATE.glob("*/turn-*.json")):
+        run = json.loads(path.read_text(encoding="utf-8"))
+        records = records_for("renamed" if path.parent.name.startswith("bounded_confirmation") else "original")
+        for index, action in enumerate(run["tool_results"]):
+            observation = (action.get("data") or {}).get("observation")
+            if not observation or not observation["result"]["success"]:
+                continue
+            name = observation["request"]["name"]
+            params = observation["scope"] if name == "event_bandpower" else observation["request"]["arguments"]
+            if name in {"psd", "amplitude"}:
+                field = [params["channels"][0], "alpha" if name == "psd" else "rms"]
+            elif name == "event_bandpower":
+                field = ["conditions", params["labels"][0], "channels", "SYNTH-C1", "alpha"]
+            else:
+                continue
+            actual = observation["result"]["data"]
+            for key in field:
+                actual = actual[key]
+            expected = independent_oracle(records[observation["record"]], {
+                "capability": name, "parameters": params}, field)
+            rows.append({"log": path.parent.name + "/" + path.name, "action": index + 1,
+                         "capability": name, "record": observation["record"], "parameters": params,
+                         "actual": actual, "oracle": expected,
+                         "valid": bool(np.isclose(float(actual), expected, rtol=.005 if name != "event_bandpower" else 1e-6, atol=5e-13))})
+    return rows
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("development", "confirmation", "bounded_confirmation"), required=True)
-    parser.add_argument("--real", required=True, action="store_true")
+    parser.add_argument("--phase", choices=("development", "confirmation", "bounded_confirmation"))
+    parser.add_argument("--real", action="store_true")
+    parser.add_argument("--offline-audit", action="store_true")
     args = parser.parse_args(argv)
+    if args.offline_audit:
+        print(json.dumps(audit_saved_observations(), ensure_ascii=False, indent=2))
+        return
+    if not args.real or not args.phase:
+        parser.error("Choose --offline-audit or both --real and --phase")
     spec = json.loads(SPEC.read_text(encoding="utf-8"))
     client = budgeted_client(args.phase, phase_cap=36 if args.phase == "development" else 10)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")

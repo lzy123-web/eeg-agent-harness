@@ -5,6 +5,9 @@ This Fake is an intervention, not evidence of autonomous model performance.
 from dataclasses import replace
 import json
 import unittest
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -12,6 +15,8 @@ from eeg_harness.working_memory import WorkingMemoryStore
 from eeg_harness.working_memory_agent import WorkingMemoryEEGAgent
 from eeg_harness.research.task_memory import synthetic_records
 from eeg_harness.research.task_memory_v2 import independent_oracle
+from eeg_harness.llm import LLMServiceError
+from eeg_harness.working_memory_cli import ReservedPhaseClient
 
 
 WINDOW = {"channels": ["SYNTH-C1"], "start": 0, "end": 2}
@@ -259,6 +264,31 @@ class WorkingMemoryTest(unittest.TestCase):
         self.assertEqual(agent.run("容量").stop_reason, "context_capacity")
         agent = WorkingMemoryEEGAgent(ScriptedClient([("record_info", {})]), self.records, max_rounds=1)
         self.assertEqual(agent.run("信息").stop_reason, "round_limit")
+
+    def test_budget_stop_is_not_provider_failure(self):
+        class Exhausted:
+            def complete(self, messages, tools):
+                raise LLMServiceError("STAGE_BUDGET_EXHAUSTED", "No reservation")
+        agent = WorkingMemoryEEGAgent(Exhausted(), self.records)
+        self.assertEqual(agent.run("信息").stop_reason, "budget_exhausted")
+
+    def test_development_reservation_survives_restart(self):
+        class NoNetwork:
+            client = SimpleNamespace(max_tokens=1200)
+            def complete(self, *args):
+                raise AssertionError("Must not make another external call")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "budget.jsonl"
+            ReservedPhaseClient(NoNetwork(), path, max_requests=96, max_tokens=240000, phase="development")
+            with path.open("a", encoding="utf8") as stream:
+                for row in [
+                    {"event": "reserved", "request_id": "prior", "reserved_tokens": 140000, "context": {"phase": "development"}},
+                    {"event": "received", "request_id": "prior", "total_tokens": 140000}]:
+                    stream.write(json.dumps(row) + "\n")
+            restarted = ReservedPhaseClient(NoNetwork(), path, max_requests=96, max_tokens=240000, phase="development")
+            with self.assertRaises(LLMServiceError) as caught:
+                restarted.complete([{"role": "user", "content": "normal request"}], [])
+            self.assertEqual(caught.exception.code, "STAGE_BUDGET_EXHAUSTED")
 
     def test_real_data_gate(self):
         with self.assertRaises(ValueError):
