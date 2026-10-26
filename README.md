@@ -1,5 +1,16 @@
 # EEG Agent Harness
 
+> 后续用户阶段任务：已补齐 opt-in `memory_version="multi_result"` 的多结果交付/归档、参数修订、结果与原工件复用，保留 Issue #45 单结果模式和失败。397 tests（382通过、15资源跳过）；两轮受控 Fake＋真实工具的连续/事件闭环及5项独立数值检查通过，**新版本真实模型自主效果未验证，本轮外部调用0次**。优先阅读[集中开题简报](docs/research/THESIS_PROPOSAL_RESEARCH_BRIEF.md)、[主方法文档末节](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)和[合成证据样例](docs/research/evidence/multi_result_closure_example.json)。师兄私有资产仅做复用设计，未拷贝或运行其模型。
+
+离线复现新闭环（激活项目环境后）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.working_memory_deliveries_validation --output artifacts/working_memory_multi_result/replay.json
+```
+
+真实工作记忆 CLI 现在要求另行授权的 `--budget-config`，不再默认开启 Issue #45 的历史额度；当前没有新付费预算。
+
 > Issue #45 新增默认关闭的**执行期工作记忆**：原 `EEGAgent.run` 接入子目标、逐动作观察、核验归档和真实轨迹恢复；统一 `run/continue_run` 接收自然语言，不需要评测器 turn.kind。379 tests（364通过、15资源跳过）。真实 DeepSeek 合成演示40 calls / 228,734 tokens，连续/事件数值与原采样 oracle 一致，实际发生旧轨迹恢复与工件复用；但复杂目标归档失败，锁定后确认出现重复子目标并在预算保护下停止，**完整真实验收尚未通过**。不替换旧默认，不宣称比强 S 更好。见[完整设计、真实失败和取舍](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)及[合成轨迹摘录](docs/research/evidence/issue45_synthetic_trace_excerpt.json)。本阶段联网已停止，不自动续跑。
 
 工作记忆离线检查（使用现有环境）：
