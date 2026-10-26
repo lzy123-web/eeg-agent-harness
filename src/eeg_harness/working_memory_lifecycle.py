@@ -400,6 +400,12 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
             except (ValueError, TypeError):
                 return self._error("INVALID_SCOPE", "Supplement violates tool input schema")
         issues, verified = self._sources_check(ds, goal.record, sources)
+        # A failed replacement source cannot erase an earlier confirmation and
+        # subsequently turn a scientific revision into an apparent supplement.
+        # Validate this transaction before changing any part of the objective.
+        for key, confirmed in getattr(goal, "verified_sources", {}).items():
+            if set(confirmed) - set(verified.get(key, {})):
+                return self._error("CONFIRMED_SOURCE_CANNOT_BE_REVOKED", "An invalid replacement source cannot revoke confirmed scientific parameters; the original objective is unchanged")
         if any(i["code"] == "UNVERIFIED_RECORD_SELECTION" for i in getattr(goal, "admission_issues", [])):
             selected = sources.get("record", {})
             quoted = self._quote(selected)

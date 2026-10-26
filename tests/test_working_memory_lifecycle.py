@@ -275,6 +275,28 @@ class LifecycleTest(unittest.TestCase):
                 self.assertEqual(result["status"], "awaiting_input")
                 self.assertFalse(self.s.entries)
 
+    def test_bad_amendment_cannot_revoke_confirmation_then_change_science(self):
+        quote = "记录A SYNTH-C1 在0到2秒的幅值及功率"
+        self.s.begin_subgoal("功率", "A", deliveries=[item("p", "psd", W)], parameter_sources={"p": user(quote)})
+        self.s.execute_numeric("psd", W)
+        goal = self.s.active
+        before_goal = json.dumps(self.s.goal_card(goal), sort_keys=True)
+        before_entry = json.dumps(self.s.entries[0].result, sort_keys=True)
+        before_events = json.dumps(self.s.events, sort_keys=True)
+        self.request("追加质量测量。")
+        rejected = self.s.amend_subgoal("life-s1", parameter_sources={"p": {"channels": user("追加质量测量", 2)}})
+        self.assertEqual(rejected["code"], "CONFIRMED_SOURCE_CANNOT_BE_REVOKED")
+        self.assertIs(self.s.active, goal)
+        self.assertEqual(json.dumps(self.s.goal_card(goal), sort_keys=True), before_goal)
+        self.assertEqual(json.dumps(self.s.entries[0].result, sort_keys=True), before_entry)
+        self.assertEqual(json.dumps(self.s.events, sort_keys=True), before_events)
+        self.request("记录A改成SYNTH-C2。")
+        changed = self.s.amend_subgoal("life-s1", updates={"p": {"channels": ["SYNTH-C2"]}},
+            parameter_sources={"p": {"channels": user("记录A改成SYNTH-C2", 3)}})
+        self.assertEqual(changed["code"], "SCIENTIFIC_REVISION_REQUIRED")
+        self.assertEqual(goal.deliveries[0]["scope"], W)
+        self.assertEqual(len(self.s.entries), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
