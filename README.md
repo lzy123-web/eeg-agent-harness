@@ -1,5 +1,17 @@
 # EEG Agent Harness
 
+> Issue #45 新增默认关闭的**执行期工作记忆**：原 `EEGAgent.run` 接入子目标、逐动作观察、核验归档和真实轨迹恢复；统一 `run/continue_run` 接收自然语言，不需要评测器 turn.kind。379 tests（364通过、15资源跳过）。真实 DeepSeek 合成演示40 calls / 228,734 tokens，连续/事件数值与原采样 oracle 一致，实际发生旧轨迹恢复与工件复用；但复杂目标归档失败，锁定后确认出现重复子目标并在预算保护下停止，**完整真实验收尚未通过**。不替换旧默认，不宣称比强 S 更好。见[完整设计、真实失败和取舍](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)及[合成轨迹摘录](docs/research/evidence/issue45_synthetic_trace_excerpt.json)。本阶段联网已停止，不自动续跑。
+
+工作记忆离线检查（使用现有环境）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m unittest tests.test_working_memory -v
+python -m eeg_harness.working_memory_cli --help
+```
+
+实验 API 为 `eeg_harness.working_memory_agent.WorkingMemoryEEGAgent(client, records)` 的 `run(text)` / `continue_run(text)`；真实 LLM 必须使用有跨运行账本的客户端且记录为合成。CLI `python -m eeg_harness.working_memory_cli --real --request "自然语言请求"` 可重复 `--request` 继续同会话。服务/模型/凭据使用已有 `EEG_HARNESS_LLM_*` 环境变量；不在源码放密钥。Issue #45 预算不能重置；本轮余量不足以安全预约完整调用，后续须另行授权。当前新模式支持连续信息/幅值/PSD/质量及事件切片/计数/质量/功率；旧版模型推理仍在原入口，新工作记忆模式尚未接入。真实数据离线分析沿用原入口，不走此联网研究模式。
+
 > Issue #43（Draft PR #37）把已见精确结果与新读回结果统一交接给末轮回答，并统一字段路径和多对象科学范围校验。离线真实工具/独立 oracle 与 17 项定向测试通过；有界合成 DeepSeek 共 37 calls / 82,393 tokens。新连续完整任务 S/HC/F 严格初筛均 4/4，但 HC 的版本/过程措辞不忠实；新事件＋连续任务 F 5/5、S 原严格 4/5（有同范围有效计数替代证据，人工核查完整）、HC 4/5 且安全部分答复。旧 Issue #42 结果保留；强 S 仍为简单默认，HC 独立优势未证。见[协议](docs/research/EEG_TASK_MEMORY_ISSUE43_PROTOCOL.md)与[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE43_RESULTS.md)。离线入口：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue43 --offline`。
 
 > Issue #41（Draft PR #37）在原任务记忆上新增小型真实结果内联、较大结果字段索引与全臂共用的按需精确读回。独立合成确认四问 F/S/H/HC 严格有效分别 3/4、4/4、3/4、4/4；HC 与强 S 均 5 次调用，分别 10,030/10,416 实际 API tokens，但 HC 墙钟延迟更高。连续及事件短闭环 S/HC 均正确，HC 成本反高；事件闭环是明确标注的协议后补充，不能混成主确认。请求 `deepseek-chat`，实际返回 `deepseek-flash`；Issue #41 独立阶段累计 59 completion / 123,623 tokens，已停止。原始失败及评分器追加审计均保留。见[冻结协议](docs/research/EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md)和[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE41_RESULTS.md)。无付费复验：`$env:PYTHONPATH='src'; python -m unittest tests.test_task_memory_issue41 -q`。

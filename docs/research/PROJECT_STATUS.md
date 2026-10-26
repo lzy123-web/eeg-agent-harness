@@ -1,11 +1,14 @@
 # 项目状态
 
-## Issue #45：执行期工作记忆与统一 Agent 集成（进行中）
+## Issue #45：有界交付，真实完整任务验收尚未通过
 
-- 已提交设计依据 `94aaaf3`，核对 HiAgent 原论文和官方实际加载代码；不复制未明确许可的源码。当前实现为 opt-in 原 `EEGAgent.run` 记忆钩子、显式科学子目标和原 Executor 逐动作执行，旧入口不变。
+- 已提交设计依据 `94aaaf3`，核对 HiAgent 原论文和官方实际加载代码；不复制未明确许可的源码。实现 `1f5f6fe` 为 opt-in 原 `EEGAgent.run` 记忆钩子、科学子目标和原 Executor 逐动作执行，旧入口不变。修订1 `0226293` 明确计算scope反馈；修订2及确认锁定 `bf744c6` 增加实际交付状态、合法关闭/身份别名、减少重复交接及预算预留保护。后续只做诊断/离线审计和文档，没有第三轮方法优化。
 - 新代码：`working_memory.py`、`working_memory_agent.py`、`working_memory_cli.py`；实验输入/后验核验单独在 `research/working_memory_validation.py`。保留旧 Issue #36–44 结果，不把本轮实现当成收益证明。
-- 离线：`python -m compileall -q src tests`、`python -m unittest discover -s tests -q` 通过，374 tests = 359 passed + 15 resource-gated skipped。作用域/工件/版本、真实数值 oracle、归档上下文替换、轨迹恢复、证据交接、澄清/部分回答/边界均覆盖。
-- 真实模型本检查点尚未运行，Issue #45 独立账本上限 96 completions / 240,000 tokens。下一步执行已固定开发请求、分析首次失败、锁定后执行不同组合确认。仍不支持本模式真实数据联网、跨进程持久化、全意图完备性证明、筛选/重参考/模型推理。
+- 最终离线：`python -m compileall -q src tests`、`python -m unittest discover -s tests -q`、`python -m pip check`、`git diff --check` 通过，**379 tests = 364 passed + 15 resource-gated skipped**；工作记忆24项。`python -m eeg_harness.research.working_memory_validation --offline-audit` 核验5条真实数值观察，全部与独立原采样 oracle 一致，包含未归档结果；不能表述为5个完整任务通过。
+- 真实 DeepSeek：40/40 响应报告 `deepseek-flash`（请求 `deepseek-chat`），累计 **40/96 calls、228,734/240,000 API tokens**，无未结算；仅合成元信息/工具结果出站。首次2次失败保留，复跑31次发生事件/连续实际分析、统一续接修订、自然触发旧轨迹恢复后复用原artifact。首轮归档 repeated_action，续接完成新分析但旧事件暂挂，不能记整体成功。锁定后7次确认真实计算RMS/PSD/信息，但重复子目标后在第8次网络请求前预算预约失败，未最终交付。
+- 预算不足原因明确：开发阶段仅请求数限制未有效保住原预留100k tokens，已记录工程缺陷并增加跨运行token预留保护。原确认缩小后仍未完整结束；未追加额度，停止一切真实调用。旧日志的 `llm_error` 由账本证实为预算阻断，新代码诊断已分为 `budget_exhausted`，不修改原始记录。原计划跨记录事件确认及真实短任务/缺参未执行。
+- 交付主文档 `EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md`，公开最小合成轨迹 `evidence/issue45_synthetic_trace_excerpt.json`；完整响应/messages/账本留忽略目录。当前仍不支持真实数据联网、跨进程会话恢复、全意图完备性证明、新模式模型推理/筛选/重参考。发现的关键缺口是子目标中多个真实有效输出只有terminal归档，模型可能重复分析。下一阶段唯一优先项为“多结果交付与归档闭合”，先离线失败回放，之后经新预算授权再做完整确认；本轮不继续开发。旧强 S 默认、历史方法/结果、Draft PR #37 保持。
+- 最终诊断/测试代码提交 `a15c173`，379项回归适用于该代码；随后只追加中文交付与合成证据摘录。推送前确认未纳入凭据、私有路径、真实 EEG、权重、本地配置或完整 API 日志；忽略账本保留，不重置额度。远端最终文档/CI状态在发布核查后追加。
 
 ## 2026-10-26 完成：Issue #44 任务记忆架构与工作点资格评审
 
