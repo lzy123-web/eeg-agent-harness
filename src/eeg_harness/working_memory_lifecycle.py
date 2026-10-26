@@ -148,7 +148,7 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
         for item in deliveries:
             key, scope, name = item["key"], item["scope"], item["tool"]
             required = ("labels", "tmin", "tmax") if name in EVENT_TOOLS else REQUIRED_PARAMETERS.get(name, ())
-            given = sources.get(key, self._user_source())
+            given = self._normalize_source_map(sources.get(key, self._user_source()), set(required) | set(scope))
             verified[key] = {}
             for field in set(required) | (set(scope) & {"channels", "start", "end", "labels", "tmin", "tmax"}):
                 if field not in scope:
@@ -160,6 +160,22 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
                 else:
                     verified[key][field] = clone(source)
         return issues, verified
+
+    @staticmethod
+    def _normalize_source_map(source, allowed_fields):
+        """Accept an unambiguous structural alias, never infer scientific values.
+
+        Both {fields: {start: source, end: source}} and {start: source,
+        end: source} denote the same per-parameter sources. An unknown field or
+        malformed source prevents this normalization; normal source checks are
+        still applied to every supplied value afterwards.
+        """
+        if (isinstance(source, dict) and source and "kind" not in source and "fields" not in source
+                and set(source) <= allowed_fields
+                and all(isinstance(value, dict) and value.get("kind") in {"user", "result", "artifact", "profile"}
+                        for value in source.values())):
+            return {"fields": clone(source)}
+        return source
 
     @staticmethod
     def _remember_sources(sources, verified):
@@ -354,11 +370,13 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
         sources = clone(getattr(goal, "parameter_sources", {}))
         for key, incoming in (parameter_sources or {}).items():
             if key in {d["key"] for d in ds}:
+                target = next(d for d in ds if d["key"] == key)
+                required = ("labels", "tmin", "tmax") if target["tool"] in EVENT_TOOLS else REQUIRED_PARAMETERS.get(target["tool"], ())
+                incoming = self._normalize_source_map(incoming, set(target["scope"]) | set(required))
                 old_fields = clone(getattr(goal, "verified_sources", {}).get(key, {}))
                 if isinstance(incoming, dict) and "fields" in incoming:
                     old_fields.update(clone(incoming["fields"]))
                 else:
-                    target = next(d for d in ds if d["key"] == key)
                     for f in target["scope"]:
                         if f not in old_fields or f in updates.get(key, {}):
                             old_fields[f] = clone(incoming)

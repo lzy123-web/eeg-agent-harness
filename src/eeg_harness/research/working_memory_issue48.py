@@ -222,7 +222,8 @@ def relevant_clarification(result, requirement):
                     delivery.get("scope", {}).get(k) != v for k, v in requirement["scope"].items()):
                 continue
             missing = {i["field"] for i in goal.get("admission_issues", [])
-                       if i.get("delivery") == delivery["key"] and i.get("code") == "MISSING_SCIENTIFIC_PARAMETER"}
+                       if i.get("delivery") == delivery["key"] and i.get("code") in {
+                           "MISSING_SCIENTIFIC_PARAMETER", "UNVERIFIED_PARAMETER_SOURCE"}}
             if set(requirement["missing_fields"]).issubset(missing):
                 return True
     return False

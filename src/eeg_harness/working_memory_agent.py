@@ -241,10 +241,11 @@ class WorkingMemoryController:
                           "channels": list(r.channel_names), "duration": r.duration_seconds,
                           "event_labels": sorted({e.label for e in r.events.events}) if r.events else []}
                     for key, r in store.records.items()}
+        index_card = self._lifecycle_index if self.lifecycle else self._index_summary
         payload = {"user_requests": self.requests, "current_request": self.requests[-1], "current_turn": store.turn,
                    "records": metadata, "active_record": store.active_record,
-                   "archived_summaries": [self._index_summary(c, selected) for c in summaries],
-                   "active_subgoal": self._index_summary(store.summary(store.active), selected) if store.active else None,
+                   "archived_summaries": [index_card(c, selected) for c in summaries],
+                   "active_subgoal": index_card(store.summary(store.active), selected) if store.active else None,
                    "restored_trajectories": list(self.restored.values()),
                    "exact_evidence": union["items"], "control_feedback": self.feedback,
                    "evidence_workspace": {"selected_result_ids": sorted(selected | {e["task_id"] for e in self.turn_evidence}),
@@ -266,7 +267,9 @@ class WorkingMemoryController:
                 # Grounded progress and exact values already carry resolved
                 # observations. Keep the latest feedback; full native traces
                 # remain recoverable outside the bounded working view.
-                pairs = pairs[-1:] if self.context_mode == "working" else []
+                # pending is the complete latest native batch. Appending it
+                # beside a goal-projected subset would duplicate that batch.
+                pairs = []
             # Successful close/restore is already represented in the grounded
             # archive/restoration payload. Retain neither half of that duplicate
             # protocol pair. Rejections still remain observable for recovery.
@@ -350,6 +353,40 @@ class WorkingMemoryController:
                 proof.pop("omitted_fields", None)
                 proof["representation"] = "index_only; read_evidence returns exact values"
         return index
+
+    @staticmethod
+    def _lifecycle_index(card, selected):
+        """A locator/progress view, not a second serialization of the archive.
+
+        Full sources, criterion revision history and scientific configuration
+        remain in the actual goal/results and are restored verbatim. Current
+        exact evidence retains values/units/configuration in the common union.
+        """
+        keep = ("subgoal_id", "title", "created_turn", "record", "status", "deliveries", "criteria",
+                "dependencies", "unresolved", "admission_issues", "delivery_check", "result_ids",
+                "references", "failed_attempts")
+        out = {k: clone(card[k]) for k in keep if k in card}
+        grouped = {}
+        for delivery, fields in card.get("parameter_sources", {}).items():
+            groups = {}
+            for name, source in fields.items():
+                ident = encoded(source)
+                groups.setdefault(ident, {"fields": [], "source": clone(source)})["fields"].append(name)
+            grouped[delivery] = list(groups.values())
+        out["verified_sources"] = grouped
+        out["contract_revision_count"] = len(card.get("contract_revisions", []))
+        if card.get("status") != "completed":
+            out["output_contracts"] = clone(card.get("output_contracts", {}))
+        out["results"] = []
+        for result in card.get("results", []):
+            row = {k: clone(result[k]) for k in ("task_id", "record", "capability", "parameters",
+                    "revision_of", "delivery_key", "binding_valid", "superseded_by", "artifact_id") if k in result}
+            proof = result.get("evidence", {})
+            row.update(source=proof.get("source"), unit_or_kind=proof.get("unit_or_kind"),
+                       readable_fields=clone(proof.get("readable_fields", [])),
+                       representation="locator; current exact values are in exact_evidence, otherwise read_evidence")
+            out["results"].append(row)
+        return out
 
     def _dispatch(self, request):
         name, args = request.name, dict(request.arguments)

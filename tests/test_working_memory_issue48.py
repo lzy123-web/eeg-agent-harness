@@ -156,6 +156,10 @@ class Issue48ProtocolTest(unittest.TestCase):
             "record": "B", "status": "awaiting_input", "deliveries": [{"key": "p", "tool": "event_bandpower", "scope": {"labels": ["target"]}}],
             "admission_issues": [{"delivery": "p", "field": field, "code": "MISSING_SCIENTIFIC_PARAMETER"} for field in ("tmin", "tmax")]}]}}
         self.assertTrue(stage.relevant_clarification(pending, required))
+        provisional = json.loads(json.dumps(pending))
+        for issue in provisional["working_memory"]["subgoals"][0]["admission_issues"]:
+            issue["code"] = "UNVERIFIED_PARAMETER_SOURCE"
+        self.assertTrue(stage.relevant_clarification(provisional, required))
         for bad in ("record", "labels", "field", "premature"):
             altered = json.loads(json.dumps(pending))
             goal = altered["working_memory"]["subgoals"][0]

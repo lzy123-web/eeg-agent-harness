@@ -233,6 +233,48 @@ class LifecycleTest(unittest.TestCase):
             parameter_sources={"criteria": {"0": user(self.s.user_requests[-1], 2)}})
         self.assertEqual(result["code"], "UNGROUNDED_CRITERION")
 
+    def test_equivalent_direct_field_source_map_and_wrapped_map(self):
+        quote = "记录A SYNTH-C1 在0到2秒的幅值及功率"
+        sources = {field: user(quote) for field in W}
+        for wrapped in (False, True):
+            with self.subTest(wrapped=wrapped):
+                s = ReliableWorkingMemoryStore("equivalent", synthetic_records())
+                s.user_requests, s.turn = [quote], 1
+                begun = s.begin_subgoal("功率", "A", deliveries=[item("p", "psd", W)],
+                    parameter_sources={"p": {"fields": sources} if wrapped else sources})
+                self.assertEqual(begun["status"], "active", begun)
+                self.assertEqual(begun["contract"]["parameter_sources"]["p"], sources)
+                s.execute_numeric("psd", W)
+                self.assertEqual(s.close_subgoal("completed")["status"], "completed")
+
+    def test_direct_field_map_amendment_does_not_relax_source_checks(self):
+        self.request("记录A SYNTH-C1的功率。")
+        self.s.begin_subgoal("功率", "A", deliveries=[item("p", "psd", {"channels": ["SYNTH-C1"]})])
+        self.request("使用0到2秒，追加质量测量。")
+        reply = user("使用0到2秒", 3)
+        result = self.s.amend_subgoal("life-s1", updates={"p": {"start": 0, "end": 2}},
+            parameter_sources={"p": {"start": reply, "end": reply}})
+        self.assertEqual(result["status"], "active", result)
+        # A syntactically valid source quote with no channel cannot authorize a
+        # different science choice. Alias normalization supplies no inheritance.
+        self.s.active = None
+        bad = {"channels": user("追加质量测量", 3), "start": reply, "end": reply}
+        blocked = self.s.begin_subgoal("错误来源", "A", deliveries=[item("p", "psd", W)], parameter_sources={"p": bad})
+        self.assertEqual(blocked["status"], "awaiting_input")
+        self.assertTrue(any(i["field"] == "channels" for i in blocked["issues"]))
+        self.assertFalse(self.s.entries)
+
+    def test_unknown_or_malformed_direct_source_map_is_not_normalized(self):
+        quote = "记录A SYNTH-C1 在0到2秒的幅值及功率"
+        for extra in ({"answer": user(quote)}, {"channels": {"kind": "trusted_by_model", "quote": quote}}):
+            with self.subTest(extra=extra):
+                self.s.active = None
+                given = {field: user(quote) for field in W}
+                given.update(extra)
+                result = self.s.begin_subgoal(str(extra), "A", deliveries=[item("p", "psd", W)], parameter_sources={"p": given})
+                self.assertEqual(result["status"], "awaiting_input")
+                self.assertFalse(self.s.entries)
+
 
 if __name__ == "__main__":
     unittest.main()

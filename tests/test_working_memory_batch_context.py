@@ -157,6 +157,72 @@ class BatchContextTest(unittest.TestCase):
         self.assertEqual(interfaces[0], interfaces[1])
         self.assertEqual(interfaces[1], interfaces[2])
 
+    def test_compact_index_preserves_archive_exact_science_and_one_latest_batch(self):
+        window = {"channels": ["SYNTH-C1"], "start": 0, "end": 2}
+        psd_goal = ("begin_subgoal", {"title": "A的连续功率", "record": "A", "deliveries": [
+            {"key": "p", "tool": "psd", "scope": window}]})
+
+        def inspect_and_close(messages):
+            # The latest batch spans a closed metadata goal and an active PSD
+            # goal: replaying active.exchanges plus pending used to duplicate
+            # the active goal's projected subset of this same native batch.
+            assistant_batches = [m for m in messages if m["role"] == "assistant"]
+            self.assertEqual(len(assistant_batches), 1)
+            self.assertEqual([c["id"] for c in assistant_batches[0]["tool_calls"]],
+                             [f"batch-{i}" for i in range(5)])
+            self.assert_paired(messages)
+            controller, store = agent.working_memory, agent.working_memory.store
+            payload = json.loads(messages[1]["content"])
+            entry = store.entries[-1]
+            exact = next(e for e in payload["exact_evidence"] if e["task_id"] == entry.task_id)
+            self.assertEqual(exact["record"], "A")
+            self.assertEqual(exact["parameters"], window)
+            self.assertEqual(exact["source"], entry.evidence["source"])
+            self.assertEqual(exact["revision_of"], None)
+            field = next(f for f in exact["fields"] if f["path"] == ["SYNTH-C1", "alpha"])
+            self.assertEqual(field["value"], entry.result["SYNTH-C1"]["alpha"])
+            self.assertEqual(field["semantics"], {"kind": "absolute_band_power", "unit": "V²"})
+            compact = payload["active_subgoal"]
+            self.assertEqual(compact["results"][0]["readable_fields"],
+                             store.summary(store.active)["results"][0]["evidence"]["readable_fields"])
+            self.assertNotIn("evidence", compact["results"][0])
+            self.assertEqual(len(compact["verified_sources"]["p"]), 1)
+            self.assertEqual(set(compact["verified_sources"]["p"][0]["fields"]), set(window))
+            # View construction is read-only. Full sources, exact outputs,
+            # native exchanges and original contract histories stay outside it.
+            before = json.dumps([store.summary(g) for g in store.subgoals], sort_keys=True)
+            native_before = json.dumps(controller.exchanges, sort_keys=True)
+            controller.build_messages()
+            self.assertEqual(before, json.dumps([store.summary(g) for g in store.subgoals], sort_keys=True))
+            self.assertEqual(native_before, json.dumps(controller.exchanges, sort_keys=True))
+            full = store.summary(store.active)
+            self.assertIn("fields", full["results"][0]["evidence"])
+            self.assertIn("parameter_sources", full)
+            return "close_subgoal", {"status": "completed"}
+
+        actions = [batch(begin("A", "meta"), ("record_info", {}),
+                         ("close_subgoal", {"status": "completed"}), psd_goal, ("psd", window)),
+                   inspect_and_close, finish()]
+        agent, _ = self.agent(actions)
+        result = agent.run("记录A的SYNTH-C1在0到2秒计算功率，并查询记录A元信息。")
+        self.assertEqual(result.stop_reason, "completed")
+        self.assertEqual(len(agent.working_memory.store.entries), 2)
+
+    def test_full_mode_retains_all_native_history_after_new_turn(self):
+        window = {"channels": ["SYNTH-C1"], "start": 0, "end": 2}
+        agent, client = self.agent([
+            ("record_info", {}), ("psd", window), finish(),
+            ("read_evidence", {"task_id": "batch-t2", "record": "A", "parameters": window,
+                               "field_paths": [["SYNTH-C1", "alpha"]]}), finish()], context_mode="full")
+        self.assertEqual(agent.run("记录A的SYNTH-C1在0到2秒计算功率并查询元信息。").stop_reason, "completed")
+        old_pairs = json.loads(json.dumps(agent.working_memory.exchanges))
+        self.assertEqual(agent.continue_run("查回刚才A窗口的alpha精确值。").stop_reason, "completed")
+        self.assertEqual(client.seen[3][2:], [message for pair in old_pairs for message in pair])
+        self.assertEqual(agent.working_memory.exchanges[:len(old_pairs)], old_pairs)
+        self.assertEqual(len(agent.working_memory.store.entries), 2)
+        for messages in client.seen:
+            self.assert_paired(messages)
+
 
 if __name__ == "__main__":
     unittest.main()
