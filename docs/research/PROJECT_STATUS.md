@@ -9,6 +9,7 @@
 - 预算不足原因明确：开发阶段仅请求数限制未有效保住原预留100k tokens，已记录工程缺陷并增加跨运行token预留保护。原确认缩小后仍未完整结束；未追加额度，停止一切真实调用。旧日志的 `llm_error` 由账本证实为预算阻断，新代码诊断已分为 `budget_exhausted`，不修改原始记录。原计划跨记录事件确认及真实短任务/缺参未执行。
 - 交付主文档 `EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md`，公开最小合成轨迹 `evidence/issue45_synthetic_trace_excerpt.json`；完整响应/messages/账本留忽略目录。当前仍不支持真实数据联网、跨进程会话恢复、全意图完备性证明、新模式模型推理/筛选/重参考。发现的关键缺口是子目标中多个真实有效输出只有terminal归档，模型可能重复分析。下一阶段唯一优先项为“多结果交付与归档闭合”，先离线失败回放，之后经新预算授权再做完整确认；本轮不继续开发。旧强 S 默认、历史方法/结果、Draft PR #37 保持。
 - 最终诊断/测试代码提交 `a15c173`，379项回归适用于该代码；随后只追加中文交付与合成证据摘录。推送前确认未纳入凭据、私有路径、真实 EEG、权重、本地配置或完整 API 日志；忽略账本保留，不重置额度。远端最终文档/CI状态在发布核查后追加。
+- 发布核查：交付提交 `36047c2` 已普通推送，本地/远端无分叉、工作区干净；对应 [GitHub Actions unit-tests #263](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40269435985) 已成功（安装、compile、全部资源独立测试步骤通过）。[Issue #45 结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/45#issuecomment-6408294364)已发布，PR #37 正文及评论已更新，保持 Draft/open，Issue保留开放以反映验收缺口。本条为纯文档状态同步，不产生新模型调用或方法修改。
 
 ## 2026-10-26 完成：Issue #44 任务记忆架构与工作点资格评审
 
