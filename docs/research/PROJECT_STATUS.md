@@ -17,6 +17,8 @@
 - 下一阶段唯一优先目标：把来源登记技术修正、独立交付、旧请求欠账与资源停线统一成可执行的公共恢复路径；先复现B/A实际失败，不加关键词、不新造Planner，不用继续付费试跑代替定义。需要更紧预算时必须证明动作/视图上界。
 - 实现及唯一开发修订已普通推送；本次证据/文档完成验证后提交并推送。PR保持Draft，不合并main；阶段已停止，待用户审查，不自动开展下阶段。
 
+- 发布留痕：证据/文档提交`1e7102fc230335903e7a91f05600f71b5be0478d`已普通推送；[Issue #49阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/49#issuecomment-6424408157)和[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6424408690)已发布，PR正文新增本轮并保留旧历史，仍Draft/open/unmerged。Issue保持打开，未将未通过的完整验收误关闭。
+
 ## Issue #48：阶段交付结束，完整自主会话验收未通过
 
 - 起点安全fetch/快进到`7259345ed23bb21fd39744f69b67132f0270a2d7`，沿用`research/point1-eeg-task-memory`及Draft PR #37。保持P1“有限上下文中正确继续多轮EEG分析”，不启动P2或新Planner/Executor。
