@@ -1,5 +1,20 @@
 # EEG Agent Harness
 
+> **Issue #48 已结束有界实现与真实确认；完整自主验收仍未通过。** 新增opt-in `lifecycle`：有来源的科学子目标、缺参待补与同目标修正、批次协议保护、分项成本记录和同入口强摘要/full。453项离线回归（438通过、15跳过）；真实DeepSeek＋合成数据共37 completion / 321,201 tokens，首次失败均保留。C实际澄清后在同一目的建立Epoch；B自主恢复原过程并进入下一模型输入，但没有完成续算。A重复已完成目的；D最终回答遭会话保守预约拦截。C/B的0.75秒窗不符合原功率工具≥1秒要求，是确认准备疏漏，不能据此判断记忆优劣。45个已产生数值字段oracle通过，不代表四会话成功。见[本轮协议、结果与准确边界](docs/research/EEG_WORKING_MEMORY_ISSUE48_PROTOCOL_AND_RESULTS.md)、[合成证据](docs/research/evidence/issue48_lifecycle_confirmation.json)。阶段已停止联网，不自动续用余额。
+
+新版统一接口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", context_mode="working")`的`run(text)`/`continue_run(text)`；`context_mode="summary"`或`"full"`共用真实工具、档案、来源核验和读取权限。方法主体在`working_memory_lifecycle.py`/`working_memory_agent.py`，不是评测脚本提供正确任务序列。旧默认、历史模式及结果保留；强S已离线检查，本轮没有新增真实多臂效果比较。真实数据仍限本地离线处理。
+
+Issue #48 无API回归及审计：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -q
+# 以下审计需要本机保留日志，输出必须是新文件：
+python -m eeg_harness.research.working_memory_issue48_audit --output artifacts/point1_task_memory/issue48/new-readonly-audit.json
+python -m eeg_harness.working_memory_cli --help
+```
+
 > **Issue #47 已完成有界阶段交付，复杂自主验收未通过。** 三项可靠性修复：跨目标正常关闭不再被重复保护误停、完整档案与当前精确工作集分离、字段级单位/语义独立核验。412 tests（397通过、15资源跳过）。真实DeepSeek＋合成数据共36 completion / 277,191 tokens；短查询成功，复杂连续＋事件交付、自然修订及缺参澄清未通过，首次失败保留。23个已产生字段独立数值检查通过，不代表完整任务成功。本阶段停止联网。明天写开题请先读[学校栏目写作包](docs/research/THESIS_PROPOSAL_WRITING_PACK.md)、[20项参考文献BibTeX](docs/research/THESIS_PROPOSAL_REFERENCES.bib)、[主方法与真实诊断](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)及[公开合成证据](docs/research/evidence/issue47_reliability_and_confirmation.json)。以下各阶段数字保持历史口径，不能拼接成新版成绩。
 
 > 后续用户阶段任务：已补齐 opt-in `memory_version="multi_result"` 的多结果交付/归档、参数修订、结果与原工件复用，保留 Issue #45 单结果模式和失败。397 tests（382通过、15资源跳过）；两轮受控 Fake＋真实工具的连续/事件闭环及5项独立数值检查通过，**新版本真实模型自主效果未验证，本轮外部调用0次**。优先阅读[集中开题简报](docs/research/THESIS_PROPOSAL_RESEARCH_BRIEF.md)、[主方法文档末节](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)和[合成证据样例](docs/research/evidence/multi_result_closure_example.json)。师兄私有资产仅做复用设计，未拷贝或运行其模型。
