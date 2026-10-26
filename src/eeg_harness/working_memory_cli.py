@@ -3,6 +3,7 @@
 import argparse
 from datetime import datetime, timezone
 import json
+import re
 from pathlib import Path
 
 from .llm import OpenAICompatibleClient, LLMServiceError
@@ -55,12 +56,36 @@ def budgeted_client(phase, *, phase_cap=40):
                                 model_label=raw.model, phase=phase, phase_request_cap=phase_cap)
 
 
-def run_requests(requests, client, *, records=None, session_id="interactive", context_mode="working"):
+def new_stage_client(config_path):
+    """Explicit future authorization manifest; never reopens Issue45's quota.
+
+    The file records a human-authorized budget; creating it is not authorization.
+    Disabled/missing limits fail before credentials or network are accessed.
+    """
+    config = json.loads(Path(config_path).read_text(encoding="utf-8-sig"))
+    stage = config.get("stage", "")
+    if (config.get("enabled") is not True or not re.fullmatch(r"[a-z][a-z0-9-]{2,63}", stage)
+            or stage.startswith("issue") or any(type(config.get(k)) is not int or config[k] <= 0
+                                               for k in ("max_requests", "max_tokens"))):
+        raise ValueError("A new explicitly authorized stage and positive cumulative limits are required")
+    raw = OpenAICompatibleClient.from_env()
+    raw.max_retries, raw.timeout, raw.max_tokens = 0, min(raw.timeout, 45), min(raw.max_tokens, 1200)
+    directory = PROJECT_ROOT / "artifacts" / "working_memory_stages" / stage
+    directory.mkdir(parents=True, exist_ok=True)
+    journal = JournaledBudgetClient(raw, directory / "responses.jsonl",
+                                   max_requests=config["max_requests"], max_total_tokens=config["max_tokens"])
+    client = ReservedPhaseClient(journal, directory / "budget.jsonl", max_requests=config["max_requests"],
+                                 max_tokens=config["max_tokens"], model_label=raw.model, phase="confirmation")
+    return client, directory
+
+
+def run_requests(requests, client, *, records=None, session_id="interactive", context_mode="working",
+                 memory_version="single", output_root=None):
     """Only ordinary requests and loaded records enter the method. No turn kinds."""
     agent = WorkingMemoryEEGAgent(client, records or synthetic_records(),
-                                  session_id=session_id, context_mode=context_mode)
+                                  session_id=session_id, context_mode=context_mode, memory_version=memory_version)
     results = []
-    directory = PRIVATE / session_id
+    directory = (Path(output_root) if output_root is not None else PRIVATE) / session_id
     directory.mkdir(parents=True, exist_ok=True)
     for number, request in enumerate(requests, 1):
         result = agent.run(request) if number == 1 else agent.continue_run(request)
@@ -82,11 +107,15 @@ def main(argv=None):
     parser.add_argument("--request", action="append", required=True, help="Natural-language request; repeat for continuation")
     parser.add_argument("--real", action="store_true", required=True)
     parser.add_argument("--context-mode", choices=("working", "full"), default="working")
+    parser.add_argument("--memory-version", choices=("single", "multi_result"), default="single")
+    parser.add_argument("--budget-config", type=Path, required=True,
+                        help="Private JSON for a separately authorized stage; no default quota")
     args = parser.parse_args(argv)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
-    client = budgeted_client("interactive", phase_cap=16)
-    run_requests(args.request, client, session_id=f"interactive-{stamp}", context_mode=args.context_mode)
-    print(json.dumps(ledger_totals(LEDGER)))
+    client, directory = new_stage_client(args.budget_config)
+    run_requests(args.request, client, session_id=f"interactive-{stamp}", context_mode=args.context_mode,
+                 memory_version=args.memory_version, output_root=directory)
+    print(json.dumps(ledger_totals(client.ledger)))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,2877 @@
+{
+  "protocol": "controlled offline mechanism test; not model autonomy or comparative efficacy",
+  "memory_version": "multi_result_v1",
+  "external_completions": 0,
+  "requests": [
+    "A 的 SYNTH-C1，连续 0–2 秒幅值与频带功率；另给 stimulus 条件事件后 0–1 秒试次数和频带功率，不筛选。",
+    "在原事件试次上追加质量测量，保留已算功率；连续窗口改为 0–3 秒，比较旧新结果。"
+  ],
+  "stop_reasons": [
+    "completed",
+    "completed"
+  ],
+  "synthetic_configuration": "research.task_memory.synthetic_records; 128 Hz, 2 channels, 8 s; A/B",
+  "independent_oracle_checks": [
+    {
+      "task_id": "example-t1",
+      "path": [
+        "SYNTH-C1",
+        "rms"
+      ],
+      "tool_value": "1.41e-05",
+      "independent_value": 1.4142135677367759e-05,
+      "absolute_difference": 4.213567736775854e-08,
+      "valid": true
+    },
+    {
+      "task_id": "example-t2",
+      "path": [
+        "SYNTH-C1",
+        "alpha"
+      ],
+      "tool_value": "2.00e-10",
+      "independent_value": 1.9999999920083944e-10,
+      "absolute_difference": 7.991605672364357e-19,
+      "valid": true
+    },
+    {
+      "task_id": "example-t4",
+      "path": [
+        "valid_epoch_count"
+      ],
+      "tool_value": 3,
+      "independent_value": 3,
+      "absolute_difference": 0.0,
+      "valid": true
+    },
+    {
+      "task_id": "example-t5",
+      "path": [
+        "conditions",
+        "stimulus",
+        "channels",
+        "SYNTH-C1",
+        "alpha"
+      ],
+      "tool_value": 3.2799997787269497e-10,
+      "independent_value": 3.2799997787269497e-10,
+      "absolute_difference": 0.0,
+      "valid": true
+    },
+    {
+      "task_id": "example-t7",
+      "path": [
+        "SYNTH-C1",
+        "alpha"
+      ],
+      "tool_value": "2.00e-10",
+      "independent_value": 1.9999999920083944e-10,
+      "absolute_difference": 7.991605672364357e-19,
+      "valid": true
+    }
+  ],
+  "statement": {
+    "task_id": "example-t5",
+    "record": "A",
+    "capability": "event_bandpower",
+    "parameters": {
+      "labels": [
+        "stimulus"
+      ],
+      "tmin": 0.0,
+      "tmax": 1.0
+    },
+    "revision_of": null,
+    "source": "synthetic://task-memory-A",
+    "source_stage": "event_epochs",
+    "analysis_configuration": {
+      "sfreq": 128.0,
+      "reference": "synthetic native reference",
+      "montage": "synthetic two-channel layout",
+      "processing_metadata": [
+        {
+          "operation": "synthetic_signal_generation"
+        }
+      ],
+      "time_reference": "event_relative",
+      "freq_bands": {
+        "delta": [
+          0.5,
+          4.0
+        ],
+        "theta": [
+          4.0,
+          8.0
+        ],
+        "alpha": [
+          8.0,
+          13.0
+        ],
+        "beta": [
+          13.0,
+          30.0
+        ],
+        "gamma": [
+          30.0,
+          70.0
+        ]
+      }
+    },
+    "unit_or_kind": "V²",
+    "evidence_token": "wm-set:4d3ec10d0e3dc32b005b69a454fb5304aea86d5bbdf5a176c8a3e0f47bd6d60c",
+    "field_path": [
+      "conditions",
+      "stimulus",
+      "channels",
+      "SYNTH-C1",
+      "alpha"
+    ],
+    "value": 3.2799997787269497e-10,
+    "use": "historical",
+    "generation": "deterministic_template",
+    "interpretation_sources": [],
+    "subgoal_status": "completed",
+    "limitations": [
+      "仅合成数据接口验证；未验证报告模型效果；不提供临床解释"
+    ],
+    "text": "合成记录 A，范围 {\"labels\":[\"stimulus\"],\"tmax\":1.0,\"tmin\":0.0}，event_bandpower 的 conditions/stimulus/channels/SYNTH-C1/alpha = 3.2799997787269497e-10 V²；证据 example-t5，修订自 无。此为研究计算描述，不支持诊断或能力等级。"
+  },
+  "statement_check": {
+    "valid": true,
+    "checks": {
+      "task_id": true,
+      "record": true,
+      "capability": true,
+      "parameters": true,
+      "revision_of": true,
+      "source": true,
+      "source_stage": true,
+      "analysis_configuration": true,
+      "unit_or_kind": true,
+      "evidence_token": true,
+      "field_path": true,
+      "value": true,
+      "use": true,
+      "generation": true,
+      "interpretation_sources": true,
+      "subgoal_status": true,
+      "limitations": true,
+      "text": true,
+      "no_unverified_fields": true
+    },
+    "scope": "structured scalar claim and deterministic wording only"
+  },
+  "subgoals": [
+    {
+      "subgoal_id": "example-s1",
+      "title": "连续幅值及功率",
+      "record": "A",
+      "deliverable": "amplitude",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "start": 0,
+        "end": 2
+      },
+      "checks": [],
+      "criteria": [],
+      "revision_of": null,
+      "dependencies": [],
+      "status": "completed",
+      "task_id": null,
+      "unresolved": [],
+      "deliveries": [
+        {
+          "key": "amp",
+          "tool": "amplitude",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "required": true,
+          "revision_of": null
+        },
+        {
+          "key": "power",
+          "tool": "psd",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "required": true,
+          "revision_of": null
+        }
+      ],
+      "result_ids": [
+        "example-t1",
+        "example-t2"
+      ],
+      "reused_results": {},
+      "contract_version": "multi_result_v1",
+      "delivery_check": {
+        "valid": true,
+        "code": null,
+        "deliveries": [
+          {
+            "key": "amp",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t1"
+          },
+          {
+            "key": "power",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t2"
+          }
+        ]
+      },
+      "available_control": "read_evidence/restore_subgoal or continue a new requirement",
+      "results": [
+        {
+          "task_id": "example-t1",
+          "record": "A",
+          "capability": "amplitude",
+          "parameters": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 1,
+          "subgoal_id": "example-s1",
+          "delivery_key": "amp",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "loaded_record",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "record_absolute"
+            },
+            "unit_or_kind": "V",
+            "evidence_token": "wm-set:cdf3fef32fd7eca404eeb5f39a4703b484e3d4962a77d3cb7eb442da4583d60b",
+            "subgoal_id": "example-s1",
+            "delivery_key": "amp",
+            "fields": [
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "mean_abs"
+                ],
+                "value": "1.27e-05"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "rms"
+                ],
+                "value": "1.41e-05"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "max_val"
+                ],
+                "value": "2.00e-05"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "min_val"
+                ],
+                "value": "-2.00e-05"
+              }
+            ],
+            "omitted_fields": 0,
+            "readable_fields": [
+              [
+                "SYNTH-C1",
+                "mean_abs"
+              ],
+              [
+                "SYNTH-C1",
+                "rms"
+              ],
+              [
+                "SYNTH-C1",
+                "max_val"
+              ],
+              [
+                "SYNTH-C1",
+                "min_val"
+              ]
+            ]
+          },
+          "artifact_id": null
+        },
+        {
+          "task_id": "example-t2",
+          "record": "A",
+          "capability": "psd",
+          "parameters": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 2,
+          "subgoal_id": "example-s1",
+          "delivery_key": "power",
+          "binding_valid": true,
+          "superseded_by": [
+            "example-t7"
+          ],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "loaded_record",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "record_absolute",
+              "freq_bands": {
+                "delta": [
+                  0.5,
+                  4.0
+                ],
+                "theta": [
+                  4.0,
+                  8.0
+                ],
+                "alpha": [
+                  8.0,
+                  13.0
+                ],
+                "beta": [
+                  13.0,
+                  30.0
+                ],
+                "gamma": [
+                  30.0,
+                  70.0
+                ]
+              }
+            },
+            "unit_or_kind": "V²",
+            "evidence_token": "wm-set:99ddae4b2f4e1bb29b149efd12947a047adc6b6c63e42d3844b32e8412e5aa49",
+            "subgoal_id": "example-s1",
+            "delivery_key": "power",
+            "fields": [
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "delta"
+                ],
+                "value": "1.88e-26"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "theta"
+                ],
+                "value": "1.51e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "alpha"
+                ],
+                "value": "2.00e-10"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "beta"
+                ],
+                "value": "2.35e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "gamma"
+                ],
+                "value": "5.39e-25"
+              }
+            ],
+            "omitted_fields": 0,
+            "readable_fields": [
+              [
+                "SYNTH-C1",
+                "delta"
+              ],
+              [
+                "SYNTH-C1",
+                "theta"
+              ],
+              [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              [
+                "SYNTH-C1",
+                "beta"
+              ],
+              [
+                "SYNTH-C1",
+                "gamma"
+              ]
+            ]
+          },
+          "artifact_id": null
+        }
+      ],
+      "failed_attempts": []
+    },
+    {
+      "subgoal_id": "example-s2",
+      "title": "事件试次数及功率",
+      "record": "A",
+      "deliverable": "epoch_summary",
+      "scope": {
+        "labels": [
+          "stimulus"
+        ],
+        "tmin": 0,
+        "tmax": 1
+      },
+      "checks": [],
+      "criteria": [],
+      "revision_of": null,
+      "dependencies": [],
+      "status": "completed",
+      "task_id": null,
+      "unresolved": [],
+      "deliveries": [
+        {
+          "key": "count",
+          "tool": "epoch_summary",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "required": true,
+          "revision_of": null
+        },
+        {
+          "key": "power",
+          "tool": "event_bandpower",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "required": true,
+          "revision_of": null
+        }
+      ],
+      "result_ids": [
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "reused_results": {},
+      "contract_version": "multi_result_v1",
+      "delivery_check": {
+        "valid": true,
+        "code": null,
+        "deliveries": [
+          {
+            "key": "count",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t4"
+          },
+          {
+            "key": "power",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t5"
+          }
+        ]
+      },
+      "available_control": "read_evidence/restore_subgoal or continue a new requirement",
+      "results": [
+        {
+          "task_id": "example-t3",
+          "record": "A",
+          "capability": "create_epochs",
+          "parameters": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 3,
+          "subgoal_id": "example-s2",
+          "delivery_key": null,
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "event_epochs",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "event_relative"
+            },
+            "unit_or_kind": "Epoch artifact descriptor",
+            "evidence_token": "wm-set:068e2ca13e6030528ce5b5565b95f35342be931b886d4f1b17b1403e5b6fd88c",
+            "subgoal_id": "example-s2",
+            "delivery_key": null,
+            "fields": [
+              {
+                "path": [
+                  "artifact_id"
+                ],
+                "value": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+              },
+              {
+                "path": [
+                  "artifact_fingerprint"
+                ],
+                "value": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+              },
+              {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "rejected_epoch_count"
+                ],
+                "value": 0
+              },
+              {
+                "path": [
+                  "shape",
+                  0
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "shape",
+                  1
+                ],
+                "value": 2
+              },
+              {
+                "path": [
+                  "shape",
+                  2
+                ],
+                "value": 128
+              },
+              {
+                "path": [
+                  "channel_names",
+                  0
+                ],
+                "value": "SYNTH-C1"
+              },
+              {
+                "path": [
+                  "channel_names",
+                  1
+                ],
+                "value": "SYNTH-C2"
+              },
+              {
+                "path": [
+                  "sfreq"
+                ],
+                "value": 128.0
+              },
+              {
+                "path": [
+                  "tmin"
+                ],
+                "value": 0.0
+              },
+              {
+                "path": [
+                  "tmax"
+                ],
+                "value": 1.0
+              }
+            ],
+            "omitted_fields": 15,
+            "readable_fields": [
+              [
+                "artifact_id"
+              ],
+              [
+                "artifact_fingerprint"
+              ],
+              [
+                "valid_epoch_count"
+              ],
+              [
+                "rejected_epoch_count"
+              ],
+              [
+                "shape",
+                0
+              ],
+              [
+                "shape",
+                1
+              ],
+              [
+                "shape",
+                2
+              ],
+              [
+                "channel_names",
+                0
+              ],
+              [
+                "channel_names",
+                1
+              ],
+              [
+                "sfreq"
+              ],
+              [
+                "tmin"
+              ],
+              [
+                "tmax"
+              ],
+              [
+                "baseline"
+              ],
+              [
+                "reference"
+              ],
+              [
+                "event_labels",
+                0
+              ],
+              [
+                "event_labels",
+                1
+              ],
+              [
+                "event_labels",
+                2
+              ],
+              [
+                "event_onsets_seconds",
+                0
+              ],
+              [
+                "event_onsets_seconds",
+                1
+              ],
+              [
+                "event_onsets_seconds",
+                2
+              ],
+              [
+                "source",
+                "kind"
+              ],
+              [
+                "source",
+                "reference_sha256"
+              ],
+              [
+                "parameters",
+                "selected_labels",
+                0
+              ],
+              [
+                "parameters",
+                "window_semantics"
+              ],
+              [
+                "parameters",
+                "sampling_alignment"
+              ],
+              [
+                "parameters",
+                "event_source",
+                "kind"
+              ],
+              [
+                "parameters",
+                "event_source",
+                "reference_sha256"
+              ]
+            ]
+          },
+          "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+        },
+        {
+          "task_id": "example-t4",
+          "record": "A",
+          "capability": "epoch_summary",
+          "parameters": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 4,
+          "subgoal_id": "example-s2",
+          "delivery_key": "count",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "event_epochs",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "event_relative"
+            },
+            "unit_or_kind": "epoch counts",
+            "evidence_token": "wm-set:1cf0999592fdc49585e670e0b2006de9e2893db8bffdf2aefe930ebd38e7526a",
+            "subgoal_id": "example-s2",
+            "delivery_key": "count",
+            "fields": [
+              {
+                "path": [
+                  "artifact_id"
+                ],
+                "value": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+              },
+              {
+                "path": [
+                  "artifact_fingerprint"
+                ],
+                "value": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+              },
+              {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "rejected_epoch_count"
+                ],
+                "value": 0
+              },
+              {
+                "path": [
+                  "shape",
+                  0
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "shape",
+                  1
+                ],
+                "value": 2
+              },
+              {
+                "path": [
+                  "shape",
+                  2
+                ],
+                "value": 128
+              },
+              {
+                "path": [
+                  "channel_names",
+                  0
+                ],
+                "value": "SYNTH-C1"
+              },
+              {
+                "path": [
+                  "channel_names",
+                  1
+                ],
+                "value": "SYNTH-C2"
+              },
+              {
+                "path": [
+                  "sfreq"
+                ],
+                "value": 128.0
+              },
+              {
+                "path": [
+                  "tmin"
+                ],
+                "value": 0.0
+              },
+              {
+                "path": [
+                  "tmax"
+                ],
+                "value": 1.0
+              }
+            ],
+            "omitted_fields": 15,
+            "readable_fields": [
+              [
+                "artifact_id"
+              ],
+              [
+                "artifact_fingerprint"
+              ],
+              [
+                "valid_epoch_count"
+              ],
+              [
+                "rejected_epoch_count"
+              ],
+              [
+                "shape",
+                0
+              ],
+              [
+                "shape",
+                1
+              ],
+              [
+                "shape",
+                2
+              ],
+              [
+                "channel_names",
+                0
+              ],
+              [
+                "channel_names",
+                1
+              ],
+              [
+                "sfreq"
+              ],
+              [
+                "tmin"
+              ],
+              [
+                "tmax"
+              ],
+              [
+                "baseline"
+              ],
+              [
+                "reference"
+              ],
+              [
+                "event_labels",
+                0
+              ],
+              [
+                "event_labels",
+                1
+              ],
+              [
+                "event_labels",
+                2
+              ],
+              [
+                "event_onsets_seconds",
+                0
+              ],
+              [
+                "event_onsets_seconds",
+                1
+              ],
+              [
+                "event_onsets_seconds",
+                2
+              ],
+              [
+                "source",
+                "kind"
+              ],
+              [
+                "source",
+                "reference_sha256"
+              ],
+              [
+                "parameters",
+                "selected_labels",
+                0
+              ],
+              [
+                "parameters",
+                "window_semantics"
+              ],
+              [
+                "parameters",
+                "sampling_alignment"
+              ],
+              [
+                "parameters",
+                "event_source",
+                "kind"
+              ],
+              [
+                "parameters",
+                "event_source",
+                "reference_sha256"
+              ]
+            ]
+          },
+          "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+        },
+        {
+          "task_id": "example-t5",
+          "record": "A",
+          "capability": "event_bandpower",
+          "parameters": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 5,
+          "subgoal_id": "example-s2",
+          "delivery_key": "power",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "event_epochs",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "event_relative",
+              "freq_bands": {
+                "delta": [
+                  0.5,
+                  4.0
+                ],
+                "theta": [
+                  4.0,
+                  8.0
+                ],
+                "alpha": [
+                  8.0,
+                  13.0
+                ],
+                "beta": [
+                  13.0,
+                  30.0
+                ],
+                "gamma": [
+                  30.0,
+                  70.0
+                ]
+              }
+            },
+            "unit_or_kind": "V²",
+            "evidence_token": "wm-set:4d3ec10d0e3dc32b005b69a454fb5304aea86d5bbdf5a176c8a3e0f47bd6d60c",
+            "subgoal_id": "example-s2",
+            "delivery_key": "power",
+            "fields": [
+              {
+                "path": [
+                  "artifact_id"
+                ],
+                "value": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+              },
+              {
+                "path": [
+                  "artifact_fingerprint"
+                ],
+                "value": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+              },
+              {
+                "path": [
+                  "method"
+                ],
+                "value": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs"
+              },
+              {
+                "path": [
+                  "interpretation"
+                ],
+                "value": "absolute event-window bandpower; not baseline-normalized ERD/ERS"
+              },
+              {
+                "path": [
+                  "frequency_resolution_hz"
+                ],
+                "value": 1.0
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "epoch_count"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "delta"
+                ],
+                "value": 3.52590958596168e-26
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "theta"
+                ],
+                "value": 1.869591131724944e-25
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "alpha"
+                ],
+                "value": 3.2799997787269497e-10
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "beta"
+                ],
+                "value": 4.50064582720993e-25
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "gamma"
+                ],
+                "value": 1.1663037799695777e-24
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C2",
+                  "delta"
+                ],
+                "value": 3.629643299192653e-26
+              }
+            ],
+            "omitted_fields": 4,
+            "readable_fields": [
+              [
+                "artifact_id"
+              ],
+              [
+                "artifact_fingerprint"
+              ],
+              [
+                "method"
+              ],
+              [
+                "interpretation"
+              ],
+              [
+                "frequency_resolution_hz"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "epoch_count"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "delta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "theta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "alpha"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "beta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "gamma"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "delta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "theta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "alpha"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "beta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "gamma"
+              ]
+            ]
+          },
+          "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+        }
+      ],
+      "failed_attempts": []
+    },
+    {
+      "subgoal_id": "example-s3",
+      "title": "保留旧事件功率并追加质量",
+      "record": "A",
+      "deliverable": "event_bandpower",
+      "scope": {
+        "labels": [
+          "stimulus"
+        ],
+        "tmin": 0,
+        "tmax": 1
+      },
+      "checks": [],
+      "criteria": [],
+      "revision_of": null,
+      "dependencies": [],
+      "status": "completed",
+      "task_id": null,
+      "unresolved": [],
+      "deliveries": [
+        {
+          "key": "power",
+          "tool": "event_bandpower",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "required": true,
+          "revision_of": null
+        },
+        {
+          "key": "quality",
+          "tool": "epoch_quality",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "required": true,
+          "revision_of": null
+        }
+      ],
+      "result_ids": [
+        "example-t6"
+      ],
+      "reused_results": {
+        "power": "example-t5"
+      },
+      "contract_version": "multi_result_v1",
+      "delivery_check": {
+        "valid": true,
+        "code": null,
+        "deliveries": [
+          {
+            "key": "power",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t5"
+          },
+          {
+            "key": "quality",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t6"
+          }
+        ]
+      },
+      "available_control": "read_evidence/restore_subgoal or continue a new requirement",
+      "results": [
+        {
+          "task_id": "example-t6",
+          "record": "A",
+          "capability": "epoch_quality",
+          "parameters": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 6,
+          "subgoal_id": "example-s3",
+          "delivery_key": "quality",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "event_epochs",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "event_relative"
+            },
+            "unit_or_kind": "quality measurements",
+            "evidence_token": "wm-set:46322abdd2e79c4d8689952ec05a35d7633c51fc47ff8a38e45b3653df65e98f",
+            "subgoal_id": "example-s3",
+            "delivery_key": "quality",
+            "fields": [
+              {
+                "path": [
+                  "evidence_id"
+                ],
+                "value": "evidence-0eee54b4089cdd7b"
+              },
+              {
+                "path": [
+                  "evidence_type"
+                ],
+                "value": "epoch_quality"
+              },
+              {
+                "path": [
+                  "profile_id"
+                ],
+                "value": "edf_native"
+              },
+              {
+                "path": [
+                  "source_stage"
+                ],
+                "value": "EpochSet_after_declared_record_processing_and_optional_baseline"
+              },
+              {
+                "path": [
+                  "artifact_id"
+                ],
+                "value": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+              },
+              {
+                "path": [
+                  "artifact_fingerprint"
+                ],
+                "value": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+              },
+              {
+                "path": [
+                  "epoch_counts",
+                  "requested_or_boundary_checked"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "epoch_counts",
+                  "created"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "epoch_counts",
+                  "boundary_rejected"
+                ],
+                "value": 0
+              },
+              {
+                "path": [
+                  "epoch_counts",
+                  "quality_flagged"
+                ],
+                "value": 0
+              },
+              {
+                "path": [
+                  "epoch_counts",
+                  "quality_usable"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "condition_counts_before_quality",
+                  "stimulus"
+                ],
+                "value": 3
+              }
+            ],
+            "omitted_fields": 9,
+            "readable_fields": [
+              [
+                "evidence_id"
+              ],
+              [
+                "evidence_type"
+              ],
+              [
+                "profile_id"
+              ],
+              [
+                "source_stage"
+              ],
+              [
+                "artifact_id"
+              ],
+              [
+                "artifact_fingerprint"
+              ],
+              [
+                "epoch_counts",
+                "requested_or_boundary_checked"
+              ],
+              [
+                "epoch_counts",
+                "created"
+              ],
+              [
+                "epoch_counts",
+                "boundary_rejected"
+              ],
+              [
+                "epoch_counts",
+                "quality_flagged"
+              ],
+              [
+                "epoch_counts",
+                "quality_usable"
+              ],
+              [
+                "condition_counts_before_quality",
+                "stimulus"
+              ],
+              [
+                "condition_counts_quality_usable",
+                "stimulus"
+              ],
+              [
+                "usable_fraction_of_created"
+              ],
+              [
+                "thresholds",
+                "flatline_delta_volts"
+              ],
+              [
+                "thresholds",
+                "flatline_fraction"
+              ],
+              [
+                "thresholds",
+                "high_amplitude_volts"
+              ],
+              [
+                "thresholds",
+                "high_amplitude_fraction"
+              ],
+              [
+                "thresholds",
+                "line_noise_ratio"
+              ],
+              [
+                "threshold_status"
+              ],
+              [
+                "validity"
+              ]
+            ]
+          },
+          "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+        },
+        {
+          "task_id": "example-t5",
+          "record": "A",
+          "capability": "event_bandpower",
+          "parameters": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 5,
+          "subgoal_id": "example-s2",
+          "delivery_key": "power",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": true,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "event_epochs",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "event_relative",
+              "freq_bands": {
+                "delta": [
+                  0.5,
+                  4.0
+                ],
+                "theta": [
+                  4.0,
+                  8.0
+                ],
+                "alpha": [
+                  8.0,
+                  13.0
+                ],
+                "beta": [
+                  13.0,
+                  30.0
+                ],
+                "gamma": [
+                  30.0,
+                  70.0
+                ]
+              }
+            },
+            "unit_or_kind": "V²",
+            "evidence_token": "wm-set:4d3ec10d0e3dc32b005b69a454fb5304aea86d5bbdf5a176c8a3e0f47bd6d60c",
+            "subgoal_id": "example-s2",
+            "delivery_key": "power",
+            "fields": [
+              {
+                "path": [
+                  "artifact_id"
+                ],
+                "value": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+              },
+              {
+                "path": [
+                  "artifact_fingerprint"
+                ],
+                "value": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+              },
+              {
+                "path": [
+                  "method"
+                ],
+                "value": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs"
+              },
+              {
+                "path": [
+                  "interpretation"
+                ],
+                "value": "absolute event-window bandpower; not baseline-normalized ERD/ERS"
+              },
+              {
+                "path": [
+                  "frequency_resolution_hz"
+                ],
+                "value": 1.0
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "epoch_count"
+                ],
+                "value": 3
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "delta"
+                ],
+                "value": 3.52590958596168e-26
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "theta"
+                ],
+                "value": 1.869591131724944e-25
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "alpha"
+                ],
+                "value": 3.2799997787269497e-10
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "beta"
+                ],
+                "value": 4.50064582720993e-25
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C1",
+                  "gamma"
+                ],
+                "value": 1.1663037799695777e-24
+              },
+              {
+                "path": [
+                  "conditions",
+                  "stimulus",
+                  "channels",
+                  "SYNTH-C2",
+                  "delta"
+                ],
+                "value": 3.629643299192653e-26
+              }
+            ],
+            "omitted_fields": 4,
+            "readable_fields": [
+              [
+                "artifact_id"
+              ],
+              [
+                "artifact_fingerprint"
+              ],
+              [
+                "method"
+              ],
+              [
+                "interpretation"
+              ],
+              [
+                "frequency_resolution_hz"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "epoch_count"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "delta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "theta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "alpha"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "beta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C1",
+                "gamma"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "delta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "theta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "alpha"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "beta"
+              ],
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "gamma"
+              ]
+            ]
+          },
+          "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+        }
+      ],
+      "failed_attempts": []
+    },
+    {
+      "subgoal_id": "example-s4",
+      "title": "比较连续旧新窗口",
+      "record": "A",
+      "deliverable": "psd",
+      "scope": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "start": 0,
+        "end": 2
+      },
+      "checks": [],
+      "criteria": [],
+      "revision_of": null,
+      "dependencies": [],
+      "status": "completed",
+      "task_id": null,
+      "unresolved": [],
+      "deliveries": [
+        {
+          "key": "old",
+          "tool": "psd",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "required": true,
+          "revision_of": null
+        },
+        {
+          "key": "new",
+          "tool": "psd",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 3
+          },
+          "required": true,
+          "revision_of": "example-t2"
+        }
+      ],
+      "result_ids": [
+        "example-t7"
+      ],
+      "reused_results": {
+        "old": "example-t2"
+      },
+      "contract_version": "multi_result_v1",
+      "delivery_check": {
+        "valid": true,
+        "code": null,
+        "deliveries": [
+          {
+            "key": "old",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t2"
+          },
+          {
+            "key": "new",
+            "required": true,
+            "status": "satisfied",
+            "result_id": "example-t7"
+          }
+        ]
+      },
+      "available_control": "read_evidence/restore_subgoal or continue a new requirement",
+      "results": [
+        {
+          "task_id": "example-t7",
+          "record": "A",
+          "capability": "psd",
+          "parameters": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 3
+          },
+          "revision_of": "example-t2",
+          "status": "completed",
+          "sequence": 7,
+          "subgoal_id": "example-s4",
+          "delivery_key": "new",
+          "binding_valid": true,
+          "superseded_by": [],
+          "reused": false,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "loaded_record",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "record_absolute",
+              "freq_bands": {
+                "delta": [
+                  0.5,
+                  4.0
+                ],
+                "theta": [
+                  4.0,
+                  8.0
+                ],
+                "alpha": [
+                  8.0,
+                  13.0
+                ],
+                "beta": [
+                  13.0,
+                  30.0
+                ],
+                "gamma": [
+                  30.0,
+                  70.0
+                ]
+              }
+            },
+            "unit_or_kind": "V²",
+            "evidence_token": "wm-set:ca30e52e63e37821677d7876285e937dc6646f9147e9b25c5f04dc93d65eb7d6",
+            "subgoal_id": "example-s4",
+            "delivery_key": "new",
+            "fields": [
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "delta"
+                ],
+                "value": "1.88e-26"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "theta"
+                ],
+                "value": "1.51e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "alpha"
+                ],
+                "value": "2.00e-10"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "beta"
+                ],
+                "value": "2.35e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "gamma"
+                ],
+                "value": "5.39e-25"
+              }
+            ],
+            "omitted_fields": 0,
+            "readable_fields": [
+              [
+                "SYNTH-C1",
+                "delta"
+              ],
+              [
+                "SYNTH-C1",
+                "theta"
+              ],
+              [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              [
+                "SYNTH-C1",
+                "beta"
+              ],
+              [
+                "SYNTH-C1",
+                "gamma"
+              ]
+            ]
+          },
+          "artifact_id": null
+        },
+        {
+          "task_id": "example-t2",
+          "record": "A",
+          "capability": "psd",
+          "parameters": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "revision_of": null,
+          "status": "completed",
+          "sequence": 2,
+          "subgoal_id": "example-s1",
+          "delivery_key": "power",
+          "binding_valid": true,
+          "superseded_by": [
+            "example-t7"
+          ],
+          "reused": true,
+          "evidence": {
+            "source": "synthetic://task-memory-A",
+            "source_stage": "loaded_record",
+            "analysis_configuration": {
+              "sfreq": 128.0,
+              "reference": "synthetic native reference",
+              "montage": "synthetic two-channel layout",
+              "processing_metadata": [
+                {
+                  "operation": "synthetic_signal_generation"
+                }
+              ],
+              "time_reference": "record_absolute",
+              "freq_bands": {
+                "delta": [
+                  0.5,
+                  4.0
+                ],
+                "theta": [
+                  4.0,
+                  8.0
+                ],
+                "alpha": [
+                  8.0,
+                  13.0
+                ],
+                "beta": [
+                  13.0,
+                  30.0
+                ],
+                "gamma": [
+                  30.0,
+                  70.0
+                ]
+              }
+            },
+            "unit_or_kind": "V²",
+            "evidence_token": "wm-set:99ddae4b2f4e1bb29b149efd12947a047adc6b6c63e42d3844b32e8412e5aa49",
+            "subgoal_id": "example-s1",
+            "delivery_key": "power",
+            "fields": [
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "delta"
+                ],
+                "value": "1.88e-26"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "theta"
+                ],
+                "value": "1.51e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "alpha"
+                ],
+                "value": "2.00e-10"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "beta"
+                ],
+                "value": "2.35e-25"
+              },
+              {
+                "path": [
+                  "SYNTH-C1",
+                  "gamma"
+                ],
+                "value": "5.39e-25"
+              }
+            ],
+            "omitted_fields": 0,
+            "readable_fields": [
+              [
+                "SYNTH-C1",
+                "delta"
+              ],
+              [
+                "SYNTH-C1",
+                "theta"
+              ],
+              [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              [
+                "SYNTH-C1",
+                "beta"
+              ],
+              [
+                "SYNTH-C1",
+                "gamma"
+              ]
+            ]
+          },
+          "artifact_id": null
+        }
+      ],
+      "failed_attempts": []
+    }
+  ],
+  "events": [
+    {
+      "event": "started",
+      "subgoal_id": "example-s1",
+      "record": "A",
+      "delivery_keys": [
+        "amp",
+        "power"
+      ],
+      "turn": 1
+    },
+    {
+      "event": "archived",
+      "subgoal_id": "example-s1",
+      "result_ids": [
+        "example-t1",
+        "example-t2"
+      ],
+      "turn": 1
+    },
+    {
+      "event": "started",
+      "subgoal_id": "example-s2",
+      "record": "A",
+      "delivery_keys": [
+        "count",
+        "power"
+      ],
+      "turn": 1
+    },
+    {
+      "event": "archived",
+      "subgoal_id": "example-s2",
+      "result_ids": [
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "turn": 1
+    },
+    {
+      "event": "restored",
+      "subgoal_id": "example-s2",
+      "reason": "使用原试次而非重建 Epoch 来追加质量测量",
+      "turn": 2
+    },
+    {
+      "event": "started",
+      "subgoal_id": "example-s3",
+      "record": "A",
+      "delivery_keys": [
+        "power",
+        "quality"
+      ],
+      "turn": 2
+    },
+    {
+      "event": "result_reused",
+      "subgoal_id": "example-s3",
+      "delivery_key": "power",
+      "result_id": "example-t5",
+      "turn": 2
+    },
+    {
+      "event": "archived",
+      "subgoal_id": "example-s3",
+      "result_ids": [
+        "example-t6",
+        "example-t5"
+      ],
+      "turn": 2
+    },
+    {
+      "event": "started",
+      "subgoal_id": "example-s4",
+      "record": "A",
+      "delivery_keys": [
+        "old",
+        "new"
+      ],
+      "turn": 2
+    },
+    {
+      "event": "result_reused",
+      "subgoal_id": "example-s4",
+      "delivery_key": "old",
+      "result_id": "example-t2",
+      "turn": 2
+    },
+    {
+      "event": "archived",
+      "subgoal_id": "example-s4",
+      "result_ids": [
+        "example-t7",
+        "example-t2"
+      ],
+      "turn": 2
+    }
+  ],
+  "actual_decision_visibility": [
+    {
+      "turn": 1,
+      "before_action": 1,
+      "active_subgoal": null,
+      "restored_subgoals": [],
+      "exact_result_ids": [],
+      "context_bytes": 2995
+    },
+    {
+      "turn": 1,
+      "before_action": 2,
+      "active_subgoal": "example-s1",
+      "restored_subgoals": [],
+      "exact_result_ids": [],
+      "context_bytes": 5592
+    },
+    {
+      "turn": 1,
+      "before_action": 3,
+      "active_subgoal": "example-s1",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1"
+      ],
+      "context_bytes": 8954
+    },
+    {
+      "turn": 1,
+      "before_action": 4,
+      "active_subgoal": "example-s1",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2"
+      ],
+      "context_bytes": 12691
+    },
+    {
+      "turn": 1,
+      "before_action": 5,
+      "active_subgoal": null,
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2"
+      ],
+      "context_bytes": 9076
+    },
+    {
+      "turn": 1,
+      "before_action": 6,
+      "active_subgoal": "example-s2",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2"
+      ],
+      "context_bytes": 11735
+    },
+    {
+      "turn": 1,
+      "before_action": 7,
+      "active_subgoal": "example-s2",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3"
+      ],
+      "context_bytes": 19361
+    },
+    {
+      "turn": 1,
+      "before_action": 8,
+      "active_subgoal": "example-s2",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4"
+      ],
+      "context_bytes": 27021
+    },
+    {
+      "turn": 1,
+      "before_action": 9,
+      "active_subgoal": "example-s2",
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 34970
+    },
+    {
+      "turn": 1,
+      "before_action": 10,
+      "active_subgoal": null,
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 27754
+    },
+    {
+      "turn": 2,
+      "before_action": 11,
+      "active_subgoal": null,
+      "restored_subgoals": [],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 23056
+    },
+    {
+      "turn": 2,
+      "before_action": 12,
+      "active_subgoal": null,
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 28039
+    },
+    {
+      "turn": 2,
+      "before_action": 13,
+      "active_subgoal": "example-s3",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 30765
+    },
+    {
+      "turn": 2,
+      "before_action": 14,
+      "active_subgoal": "example-s3",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5"
+      ],
+      "context_bytes": 34671
+    },
+    {
+      "turn": 2,
+      "before_action": 15,
+      "active_subgoal": "example-s3",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6"
+      ],
+      "context_bytes": 42284
+    },
+    {
+      "turn": 2,
+      "before_action": 16,
+      "active_subgoal": null,
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6"
+      ],
+      "context_bytes": 37866
+    },
+    {
+      "turn": 2,
+      "before_action": 17,
+      "active_subgoal": "example-s4",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6"
+      ],
+      "context_bytes": 40495
+    },
+    {
+      "turn": 2,
+      "before_action": 18,
+      "active_subgoal": "example-s4",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6"
+      ],
+      "context_bytes": 42740
+    },
+    {
+      "turn": 2,
+      "before_action": 19,
+      "active_subgoal": "example-s4",
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6",
+        "example-t7"
+      ],
+      "context_bytes": 46522
+    },
+    {
+      "turn": 2,
+      "before_action": 20,
+      "active_subgoal": null,
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6",
+        "example-t7"
+      ],
+      "context_bytes": 43148
+    },
+    {
+      "turn": 2,
+      "before_action": 21,
+      "active_subgoal": null,
+      "restored_subgoals": [
+        "example-s2"
+      ],
+      "exact_result_ids": [
+        "example-t1",
+        "example-t2",
+        "example-t3",
+        "example-t4",
+        "example-t5",
+        "example-t6",
+        "example-t7"
+      ],
+      "context_bytes": 44628
+    }
+  ],
+  "action_observations": [
+    {
+      "subgoal_id": "example-s1",
+      "observations": [
+        {
+          "request": {
+            "name": "amplitude",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          },
+          "result": {
+            "request_id": "example-a1",
+            "tool_name": "amplitude",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "mean_abs": "1.27e-05",
+                "rms": "1.41e-05",
+                "max_val": "2.00e-05",
+                "min_val": "-2.00e-05"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.192
+          },
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t1"
+        },
+        {
+          "request": {
+            "name": "psd",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            }
+          },
+          "result": {
+            "request_id": "example-a2",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.499
+          },
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t2"
+        }
+      ]
+    },
+    {
+      "subgoal_id": "example-s2",
+      "observations": [
+        {
+          "request": {
+            "name": "create_epochs",
+            "arguments": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            }
+          },
+          "result": {
+            "request_id": "example-a3",
+            "tool_name": "create_epochs",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72",
+              "artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798",
+              "valid_epoch_count": 3,
+              "rejected_epoch_count": 0,
+              "shape": [
+                3,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "stimulus",
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0,
+                5.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "d565359744ac36a8988d79a8c8a7762c748a24a209b8cb4f8c3b169e454ea387"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "c8c7f07d853b9385ecc36b1410c180f2b1910153710d11eeb5d279d6e03908e2"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.293
+          },
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t3"
+        },
+        {
+          "request": {
+            "name": "epoch_summary",
+            "arguments": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+            }
+          },
+          "result": {
+            "request_id": "example-a4",
+            "tool_name": "epoch_summary",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72",
+              "artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798",
+              "valid_epoch_count": 3,
+              "rejected_epoch_count": 0,
+              "shape": [
+                3,
+                2,
+                128
+              ],
+              "channel_names": [
+                "SYNTH-C1",
+                "SYNTH-C2"
+              ],
+              "sfreq": 128.0,
+              "tmin": 0.0,
+              "tmax": 1.0,
+              "baseline": null,
+              "reference": "synthetic native reference",
+              "event_labels": [
+                "stimulus",
+                "stimulus",
+                "stimulus"
+              ],
+              "event_onsets_seconds": [
+                1.0,
+                3.0,
+                5.0
+              ],
+              "rejected": [],
+              "source": {
+                "kind": "synthetic",
+                "reference_sha256": "d565359744ac36a8988d79a8c8a7762c748a24a209b8cb4f8c3b169e454ea387"
+              },
+              "parameters": {
+                "selected_labels": [
+                  "stimulus"
+                ],
+                "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                "sampling_alignment": "round(seconds * sfreq)",
+                "event_source": {
+                  "kind": "synthetic",
+                  "reference_sha256": "c8c7f07d853b9385ecc36b1410c180f2b1910153710d11eeb5d279d6e03908e2"
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 0.328
+          },
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t4"
+        },
+        {
+          "request": {
+            "name": "event_bandpower",
+            "arguments": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+            }
+          },
+          "result": {
+            "request_id": "example-a5",
+            "tool_name": "event_bandpower",
+            "success": true,
+            "data": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72",
+              "artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798",
+              "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+              "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+              "frequency_resolution_hz": 1.0,
+              "conditions": {
+                "stimulus": {
+                  "epoch_count": 3,
+                  "channels": {
+                    "SYNTH-C1": {
+                      "delta": 3.52590958596168e-26,
+                      "theta": 1.869591131724944e-25,
+                      "alpha": 3.2799997787269497e-10,
+                      "beta": 4.50064582720993e-25,
+                      "gamma": 1.1663037799695777e-24
+                    },
+                    "SYNTH-C2": {
+                      "delta": 3.629643299192653e-26,
+                      "theta": 1.8449999109511803e-10,
+                      "alpha": 9.438448866698457e-26,
+                      "beta": 2.6491479841580087e-25,
+                      "gamma": 6.739257976614902e-25
+                    }
+                  }
+                }
+              }
+            },
+            "error": null,
+            "duration_ms": 1.211
+          },
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t5"
+        }
+      ]
+    },
+    {
+      "subgoal_id": "example-s3",
+      "observations": [
+        {
+          "request": {
+            "name": "epoch_quality",
+            "arguments": {
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72"
+            }
+          },
+          "result": {
+            "request_id": "example-a6",
+            "tool_name": "epoch_quality",
+            "success": true,
+            "data": {
+              "evidence_id": "evidence-0eee54b4089cdd7b",
+              "evidence_type": "epoch_quality",
+              "profile_id": "edf_native",
+              "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+              "artifact_id": "epochs-33cc70e4-057a-4ff9-b033-1ac84c32db72",
+              "artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798",
+              "epoch_counts": {
+                "requested_or_boundary_checked": 3,
+                "created": 3,
+                "boundary_rejected": 0,
+                "quality_flagged": 0,
+                "quality_usable": 3
+              },
+              "condition_counts_before_quality": {
+                "stimulus": 3
+              },
+              "condition_counts_quality_usable": {
+                "stimulus": 3
+              },
+              "quality_flag_reasons": {},
+              "flagged_epoch_indices": [],
+              "usable_fraction_of_created": 1.0,
+              "thresholds": {
+                "flatline_delta_volts": 1e-08,
+                "flatline_fraction": 0.95,
+                "high_amplitude_volts": 0.0002,
+                "high_amplitude_fraction": 0.01,
+                "line_noise_ratio": 0.2
+              },
+              "threshold_status": "empirical_not_clinically_calibrated",
+              "validity": "screening_suggestion_only; no automatic deletion performed"
+            },
+            "error": null,
+            "duration_ms": 0.366
+          },
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0.0,
+            "tmax": 1.0
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t6"
+        }
+      ]
+    },
+    {
+      "subgoal_id": "example-s4",
+      "observations": [
+        {
+          "request": {
+            "name": "psd",
+            "arguments": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 3
+            }
+          },
+          "result": {
+            "request_id": "example-a7",
+            "tool_name": "psd",
+            "success": true,
+            "data": {
+              "SYNTH-C1": {
+                "delta": "1.88e-26",
+                "theta": "1.51e-25",
+                "alpha": "2.00e-10",
+                "beta": "2.35e-25",
+                "gamma": "5.39e-25"
+              }
+            },
+            "error": null,
+            "duration_ms": 0.594
+          },
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 3
+          },
+          "source": "synthetic://task-memory-A",
+          "result_id": "example-t7"
+        }
+      ]
+    }
+  ]
+}

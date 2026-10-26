@@ -231,3 +231,66 @@ python -m eeg_harness.working_memory_cli --real --request "当前 A 的采样率
 - 归档展示所有结果的定位/范围/版本/状态与有界事实，原始结果与轨迹留外部；标量读取继续沿用公共证据接口。
 - 复用是显式合法绑定，不重新算、不复制旧值冒充新分析；参数修订必须新要求/新版本。数据或工件不同，即使数值相同也不能据此认定可复用。
 - 必须验证：旧缺口复现、连续/事件多结果、部分失败续接、同工具多参数、错版本/范围拒绝、恢复进入下一次模型输入、独立数值 oracle。Fake 只作机制控制；本阶段不调用付费 API。
+
+## 后续阶段实装：显式交付列表与完整结果集合
+
+本节为 `2c34049` 之后的新版本，不改写以上 Issue #45 成绩。入口 `WorkingMemoryEEGAgent(..., memory_version="multi_result")`；默认 `single` 仍走旧实现。原 `EEGAgent.run/continue_run → WorkingMemoryController → ExecutionContext.execute → Executor` 不变，数值工具、Welch 计算及原输出精度均未修改。
+
+### 为什么这样适配
+
+|实际问题|采用的机制与理由|更简单替代及代价|可观察行为|
+|---|---|---|---|
+|一个科学目的有幅值、功率、质量等多个结果|`deliveries` 为局部 key、tool、scope、required、revision_of 的有限列表；不预设动作序列|单工具子目标无法表达整体交付，增加 begin/close；列表则增加模型声明和程序匹配成本|缺任何必需项不得 completed；可选失败单列|
+|实际成功但非 terminal 的结果不可正式读取|每次数值成功立即形成 TaskEntry；子目标汇总全部 result_ids|保留全部轨迹也能找到，但要重复读取/解析长过程|create_epochs、检查、最终分析均独立定位；成功结果可属于未完成目标|
+|旧窗口功率被用来满足新窗口要求|结果绑定真实记录指纹、参数、配置、工件身份；revision_of 保存旧新关系|仅 task_id/文本标签便宜但不能核查改变的科学对象|修订范围不符、同值但不同 artifact、数据变化均拒绝复用|
+|恢复后重算已完成项|显式 reuse_result 绑定准确旧结果；恢复轨迹取得真实 artifact_id 后追加分析|让模型自行读轨迹也可继续，但不形成可验证完成关系|已有 PSD 无新增数值调用；同 Epoch 增加质量测量|
+|归档成功后遗漏先前证据|Controller 合并每个结果摘要事实、本轮执行和读回证据|全历史也有效但成本高；公共交接不算候选独有优势|下一次实际 messages 同时含已见值及新读值|
+
+以上完成合同与版本正确性是软件和科学应用要求，**不是新的通用记忆算法**。HiAgent 继承点仍是当前子目标行动—观察、完成后摘要替换、按需恢复原过程；EEG 适配在科学对象、时间基准、单位和多结果交付的程序约束。摘要为结构化真实事实，不让模型改写数值，也没有再增加摘要模型调用。
+
+### 核心代码与执行边界
+
+- `working_memory_deliveries.py::MultiResultWorkingMemoryStore` 仅扩展存储、完成检查和复用；原 store 新增两个默认空 hook，不复制数值执行器。
+- `begin_subgoal` 校验交付 schema；同工具不同窗口有不同 key；每个子目标绑定一个 record，跨记录仍分别声明。实际通道、时间和资源的校验仍由原工具 Executor 执行。
+- `remember_observation` 为全部成功输出保存原结果；额外测量可针对已声明科学对象，但不会满足另一工具/范围的要求。
+- `completion_check` 检查每项最新有效绑定或最新匹配执行、真实 criteria、数据/配置身份；同一事件范围的必需结果必须来自同一 artifact。可选失败保留在 summary，不使已完成的必需项失败。
+- `reuse_result` 不计算、不生成新结果；校验 record、tool、scope、revision lineage、数据/配置与 artifact 身份。后续新执行覆盖该项的复用绑定；显式复用可在一次失败尝试后重新绑定已有有效结果。失败记录不删除。
+- `summary` 列出完整结果集合、读回定位、`superseded_by`、`binding_valid`、必要缺口和失败。每个结果预览前 12 个真实标量，最多显示 64 个字段地址；原结果/过程仍在会话档案中。不存在“只归档最后一个结果”。
+- `working_memory_agent.py::build_messages` 在下一行动前构建当前观察、归档结果集合、恢复轨迹与精确证据并集；新模式有匹配列表 schema 的提示，旧模式 prompt 保持。
+- `applications/evidence_statement.py` 仅示范结构化标量声明及固定模板核验；不理解任意医学文本，不产生诊断或等级，不调用 TC 模型。
+
+完成逻辑可简写为：对每个必要项找到**实际工具相同、科学范围相同、版本/对象仍有效**的结果，检查用户声明的可核条件；事件同范围结果须绑定同一实际工件；全部满足才允许 completed。没有以 gold/case ID/未来问题决定保留内容，也没有证明 LLM 声明列表已穷尽自然语言意图。`finish_task` 仍不证明自由文本最终回答完整或正确。
+
+### 离线诊断、修订与验证
+
+1. 旧模式回放：amplitude 子目标内执行 amplitude＋PSD，2 个真实观察但只有 amplitude 一个 TaskEntry；作为回归测试保留，未“修正”旧成绩。
+2. 设计审查发现“先失败后复用”若始终以最后一次数值尝试为准，会把后来的合法绑定误判失败。新实现使用明确的绑定/后续执行覆盖规则；同时保留失败历史。另把旧工具科学计数法字符串作为数值条件比较，未改变工具输出。
+3. 首次新测试 13 项中 2 项错误：验证代码猜了不存在的 `epoch_counts`、`mean_absolute_power` 字段。检查真实工具输出后改为 `valid_epoch_count` 与 band 标量；不修改科学真值，不删检查，归类为测试接口错误，不是 LLM 失败。
+4. 受控 Agent 两轮共 21 次 Fake 决策、7 次真实数值执行、4 个科学子目标、7 个结果。连续幅值/PSD＋事件 trial count/bandpower；第二轮恢复事件轨迹、复用旧 bandpower、在原 artifact 上补测 epoch_quality，并生成新窗口 PSD。create_epochs、事件 bandpower 各仅执行一次。每次实际模型请求的可见结果 ID、恢复轨迹和行动前时点都有记录。
+5. 5 项独立原采样 oracle：连续 RMS、旧/新 PSD alpha、事件有效试次数、事件 alpha；工具字符串精度按 rtol=0.005、atol=1e-13 核对。不是统计性能实验。记录 A 为 128 Hz、2 导、8 秒合成 EEG，事件数据亦为合成。
+6. `397 tests = 382 passed + 15 resource-gated skipped`；其中原工作记忆24项、新多结果13项、声明/入口/完整样例5项。compileall 通过。资源跳过不算推理成功。本阶段外部 completion **0**，Issue #45 账本不动。
+
+复现（已激活项目 Python 环境）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -q
+python -m eeg_harness.research.working_memory_deliveries_validation --output artifacts/working_memory_multi_result/new-example.json
+```
+
+输出文件以 `x` 创建，旧结果不覆盖。公开合成样例见 `evidence/multi_result_closure_example.json`；完整原始模型结果仍引用旧 Issue #45 文件，新样例明确标记 Controlled/Fake。
+
+### 真实确认入口与待验证边界
+
+无新授权，本轮不创建启用的预算文件。未来获得明确预算后，在忽略目录配置 `{ "enabled": true, "stage": "new-authorized-stage", "max_requests": 实际授权数, "max_tokens": 实际授权数 }`，环境变量设置服务；使用：
+
+```powershell
+python -m eeg_harness.working_memory_cli --real --memory-version multi_result --budget-config artifacts/new-stage.json --request "A 的 SYNTH-C1，连续0到2秒幅值与频带功率；另给stimulus事件后0到1秒试次数和功率，不筛选。" --request "在同一批事件试次上追加质量测量；连续窗口改为0到3秒并与旧结果比较。"
+```
+
+另用独立会话做短请求/缺参确认。CLI 不接受默认旧配额，新账本跨运行累计；配置文件不是授权本身，必须先有用户授权。`budgeted_client` 旧研究函数保留供历史复现，**不得用于本阶段续跑**。
+
+建议下一次只验三类用途：多结果完整请求、自然修订/追加、短请求或澄清；优先预留完整会话，失败不得挑问法删去。由真实模型决定列表和动作，评价器只事后读日志。当前仅 A（离线机制）完成；新版本 B（模型自主触发）、C（真实完整交付）、D（公平相对收益）均未验证。旧真实恢复现象只说明旧版本发生过，不能替代新版本确认。
+
+已知代价/限制：指纹校验读取本地数组，成本随记录大小增长；当前会话内的不可变约定和归档尚非跨进程持久恢复；摘要仍有开销，原公共精确证据上限8个结果/24KB、总消息96KB会安全停止，复杂会话不能无限堆结果。一次子目标允许最多12项，但模型执行可能先遇到公共证据容量边界，不能保证12项联合完成。新模式只开放现有9种记录/连续/事件数值工具，未迁移模型推理、筛选、重参考；无临床有效性主张。下一步应验证真实多结果交付是否减少重复分析，而非继续增加工具、调摘要阈值或重启规划研究。

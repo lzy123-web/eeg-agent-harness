@@ -218,7 +218,9 @@ class WorkingMemoryStore(GranularEpisodeSession):
         observation = {"request": {"name": name, "arguments": clone(arguments)},
                        "result": clone(rendered), "record": goal.record,
                        "scope": clone(goal.scope), "source": context.record.source}
+        self.decorate_observation(goal, observation, context)
         goal.observations.append(observation)
+        self.remember_observation(goal, observation, context)
         goal.status = "active" if rendered["success"] else "blocked"
         goal.unresolved = [] if rendered["success"] else [rendered["error"]["code"]]
         out = {"status": "observed" if rendered["success"] else "blocked",
@@ -228,6 +230,12 @@ class WorkingMemoryStore(GranularEpisodeSession):
         if goal.implicit and rendered["success"]:
             out["archive"] = self.close_subgoal("completed")
         return out
+
+    def decorate_observation(self, goal, observation, context):
+        """Optional data contract hook; legacy single-result mode is unchanged."""
+
+    def remember_observation(self, goal, observation, context):
+        """Optional result storage hook, after the original Executor returns."""
 
     def completion_check(self, goal):
         successful = [o for o in goal.observations if o["result"]["success"]]

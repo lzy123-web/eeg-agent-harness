@@ -59,6 +59,40 @@ SYSTEM = """你是合成 EEG 研究助手。通过原 EEG 工具逐步分析，�
 """
 
 
+def multi_result_controls():
+    controls = clone(CONTROLS)
+    controls[0] = control("begin_subgoal", "Declare one scientific purpose with required and optional delivery items, not an action sequence. Different scopes of the same tool are separate items.", {
+        "title": STRING, "record": STRING,
+        "deliveries": {"type": "array", "items": {"type": "object", "properties": {
+            "key": STRING, "tool": {"type": "string", "enum": sorted(NUMERIC_TOOLS)},
+            "scope": {"type": "object", "description": "Continuous: channels/start/end; event: labels/tmin/tmax; record metadata: {}. No output-channel selector in event scope."},
+            "required": {"type": "boolean"}, "revision_of": STRING},
+            "required": ["key", "tool", "scope"], "additionalProperties": False}},
+        "dependencies": STRINGS,
+        "criteria": {"type": "array", "items": {"type": "object", "properties": {
+            "delivery": STRING, "path": {"type": "array"}, "op": {"type": "string", "enum": ["eq", "gte", "lte"]},
+            "value": {}}, "required": ["delivery", "path", "op", "value"], "additionalProperties": False}},
+    }, ["title", "record", "deliveries"])
+    controls.append(control("reuse_result", "Bind a previously computed exact result to an active delivery instead of recomputing. Program verifies record, scope, version and current object identity. This is not reading a scalar or restoring a trajectory.", {
+        "delivery_key": STRING, "task_id": STRING}, ["delivery_key", "task_id"]))
+    return controls
+
+
+MULTI_RESULT_SYSTEM = """
+你是合成 EEG 研究助手；不作诊断，不猜参数、标签或科学阈值。用户原文持续可见。
+每次一个工具，依据实际观察再决定下一步。简单记录/连续查询可直接执行并自动归档，默认记录见 active_record。
+当前采用多结果交付契约：begin_subgoal 的 deliveries 列出同一科学目的的必需/可选工具结果及各自 scope，而不是预先决定动作序列。相同工具的不同窗口须分别声明。
+连续 scope 为通道和记录绝对时间 start/end；事件 scope 为 labels/tmin/tmax 相对秒，不含输出通道选择。先获得真实 Epoch ID 再测量；不支持基线校正、筛选、重参考或模型推理，不能假装已执行。
+每个成功结果都有独立 task_id；整个子目标有 subgoal_id，多个结果时二者不可混用。修订使用对应 delivery 的 revision_of 指向准确旧结果。
+已成功结果立即可读，子目标完成须所有 required 项及 criteria 满足；可选失败保留限制但不否定已完成必需项。
+criteria 用 delivery 键和真实字段表达用户明确要求的条件；工具成功不代表科学条件成立。未满足时不能宣称成功。
+恢复过程使用 restore_subgoal；在同一真实工件上继续计算可直接使用恢复出的 artifact_id。已有适用结果用 reuse_result 绑定到相同交付项，不必重复计算。参数变更须新结果，不能拿旧窗口顶替。
+摘要的 results 列出所有实际结果、读回地址、修订关系；历史结果存在不等于仍满足当前数据状态，binding_valid=false 时不可作当前证据。
+read_evidence 查精确字段；restore_subgoal 查处理过程，二者有不同用途。索引不是数值。频带绝对功率单位 V²，幅值 V，保持来源、版本和时间基准。
+close_subgoal(completed) 需通过程序检查；未决时 suspend，继续原范围可 resume_subgoal。finish_task 区分完成、部分交付、缺参澄清；回答不能省略必要结果或把试次窗口功率解释为 ERD/ERS、诊断或能力评分。
+"""
+
+
 class WorkingMemoryController:
     def __init__(self, store, *, context_mode="working", max_restores=4,
                  max_context_bytes=96000, no_progress_limit=3, timeout_seconds=300):
@@ -96,7 +130,10 @@ class WorkingMemoryController:
 
     def tool_definitions(self):
         registry = next(iter(self.store.contexts.values())).executor.registry
-        return [registry.get(n).public_definition() for n in sorted(NUMERIC_TOOLS)] + clone(CONTROLS)
+        return [registry.get(n).public_definition() for n in sorted(NUMERIC_TOOLS)] + self.control_definitions()
+
+    def control_definitions(self):
+        return multi_result_controls() if hasattr(self.store, "reuse_result") else clone(CONTROLS)
 
     def check_stop(self):
         if self.cancelled:
@@ -111,11 +148,13 @@ class WorkingMemoryController:
         store = self.store
         summaries = [store.summary(g) for g in store.subgoals if g is not store.active]
         visible = []
-        for card in summaries:
-            entry = store.find_entry(card["task_id"])
-            if entry:
-                visible.append({**_entry_meta(entry), "fields": [
-                    {**f, "via": ["summary"]} for f in card["evidence"]["fields"]]})
+        cards = summaries + ([store.summary(store.active)] if store.active and hasattr(store, "reuse_result") else [])
+        for card in cards:
+            for result_card in card.get("results", [card]):
+                entry = store.find_entry(result_card["task_id"])
+                if entry:
+                    visible.append({**_entry_meta(entry), "fields": [
+                        {**f, "via": ["summary"]} for f in result_card["evidence"]["fields"]]})
         union, _ = merge_evidence(visible, self.turn_evidence)
         if union["status"] != "ok":
             self.stop_reason = "evidence_capacity"
@@ -130,7 +169,7 @@ class WorkingMemoryController:
                    "active_subgoal": store.summary(store.active) if store.active else None,
                    "restored_trajectories": list(self.restored.values()),
                    "exact_evidence": union["items"], "control_feedback": self.feedback}
-        messages = [{"role": "system", "content": SYSTEM},
+        messages = [{"role": "system", "content": MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM},
                     {"role": "user", "content": encoded(payload).decode("utf-8")}]
         if self.context_mode == "full":
             pairs = self.exchanges
@@ -159,7 +198,7 @@ class WorkingMemoryController:
         store = self.store
         if name in NUMERIC_TOOLS:
             return store.execute_numeric(name, args)
-        spec = next((c["function"] for c in CONTROLS if c["function"]["name"] == name), None)
+        spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name), None)
         if spec is None:
             return store._error("TOOL_NOT_AVAILABLE", "Tool is not enabled in this mode")
         _validate_schema(args, spec["parameters"])
@@ -264,8 +303,14 @@ class WorkingMemoryEEGAgent(EEGAgent):
     """Convenience constructor; run/continue use the original EEGAgent.run."""
 
     def __init__(self, llm_client, records, *, session_id="wm", max_rounds=24,
-                 max_tool_calls=24, config=None, **memory_options):
-        store = WorkingMemoryStore(session_id, records, config=config)
+                 max_tool_calls=24, config=None, memory_version="single", **memory_options):
+        if memory_version not in {"single", "multi_result"}:
+            raise ValueError("memory_version must be single or multi_result")
+        if memory_version == "multi_result":
+            from .working_memory_deliveries import MultiResultWorkingMemoryStore
+            store = MultiResultWorkingMemoryStore(session_id, records, config=config)
+        else:
+            store = WorkingMemoryStore(session_id, records, config=config)
         controller = WorkingMemoryController(store, **memory_options)
         super().__init__(llm_client, next(iter(store.contexts.values())), max_rounds,
                          max_tool_calls, working_memory=controller)
