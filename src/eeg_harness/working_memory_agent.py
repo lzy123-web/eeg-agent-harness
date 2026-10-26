@@ -8,7 +8,7 @@ from .executor import _validate_schema
 from .tooling import ToolResult
 from .working_memory import WorkingMemoryStore, NUMERIC_TOOLS, TERMINALS, clone, encoded
 from .research.task_memory_evidence import merge_evidence, _entry_meta, scalar_paths, MAX_EVIDENCE_BYTES
-from .result_semantics import result_field_semantics, UnsupportedResultField
+from .result_semantics import result_field_semantics, UnsupportedResultField, read_scalar
 
 
 def control(name, description, properties, required):
@@ -100,7 +100,7 @@ SOURCE_SCHEMA = {"type": "object", "description":
     "Only literal supported values and matching record/scope pass; source:user alone is not authority."}
 
 
-def lifecycle_controls():
+def lifecycle_controls(request_closure=False):
     controls = multi_result_controls()
     begin = controls[0]["function"]
     begin["parameters"]["properties"]["parameter_sources"] = {
@@ -109,6 +109,17 @@ def lifecycle_controls():
         "Existing result/task IDs only, not future delivery keys. Omit when no actual historical result is needed.")
     begin["parameters"]["properties"]["criteria"]["description"] = (
         "Only an explicit user acceptance threshold, not invented tool prerequisites. No criteria needed merely to query a count or power. Use declared field paths, e.g. list_events.labels.<label>.")
+    begin["parameters"]["properties"]["recompute_source"] = SOURCE_SCHEMA
+    if request_closure:
+        begin["parameters"]["properties"]["requirements"] = {"type": "array", "items": {
+            "type": "object", "properties": {"quote": STRING, "delivery_keys": STRINGS},
+            "required": ["quote", "delivery_keys"], "additionalProperties": False},
+            "description": "Alongside this goal, quote the original requested outputs and associate each with local delivery keys; not an action sequence or an independent proof of full intent."}
+        finish = next(c["function"] for c in controls if c["function"]["name"] == "finish_task")
+        finish["parameters"]["properties"].update(coverage={"type": "array", "items": {
+            "type": "object", "properties": {"quote": STRING, "result_ids": STRINGS, "unresolved": STRING},
+            "required": ["quote", "result_ids"], "additionalProperties": False}}, coverage_complete={"type": "boolean"})
+        finish["parameters"]["required"] += ["coverage", "coverage_complete"]
     controls.append(control("amend_subgoal", "Correct technical field expressions or fill previously missing scientific parameters in the SAME pending goal; cannot weaken conditions or change known scope. A scientific revision needs a new goal with revision_of.", {
         "subgoal_id": STRING,
         "updates": {"type": "object", "description": "Map delivery key to only missing scope fields"},
@@ -131,10 +142,19 @@ read_evidence读取准确字段；restore_subgoal恢复真实行动—观察以�
 finish_task区分完整、部分和澄清，回答提供请求的关键值/比较、范围、单位及限制。功率V²、幅值V、频率Hz、计数无量纲，以字段语义为准。不得只在存储中完成而省略最后答案。
 """
 
+REQUEST_CLOSURE_SYSTEM = """
+本入口同时维护原请求进度：复杂目的在begin_subgoal同轮可用requirements把用户原文要求关联到delivery_keys；不用额外登记回合。当前request_progress区分声明已完成与原请求完整，不可漏掉原文中的其它输出。
+相同科学结果有效时用返回的旧结果和进度，不因换title/key重算；明确用户重算才给recompute_source，科学范围改变走新版本。
+归档不是重新开始的信号。已完成原需求就finish_task，coverage逐项引用相关用户原文和实际看见的result_ids，coverage_complete只是你对原需求的复核声明，程序不会证明所有语言语义。
+finish_task可以依据真实完成检查自动归档已有效的当前目的，无需为了收尾再调用close。缺项、能力限制或资源限制用partial/clarification_required和真实未决事项，不写completed。
+质量阈值只能根据实际质量工具结果说明；用户未给验收阈值不等于系统没有经验规则，未测量不能声称质量合格。普通两值相对差不是基线归一化ERD/ERS。
+"""
+
 
 class WorkingMemoryController:
     def __init__(self, store, *, context_mode="working", max_restores=4,
-                 max_context_bytes=96000, no_progress_limit=3, timeout_seconds=300):
+                 max_context_bytes=96000, no_progress_limit=3, timeout_seconds=300,
+                 request_closure=False):
         if context_mode not in {"working", "full", "summary"}:
             raise ValueError("Unknown context mode")
         self.store = store
@@ -150,6 +170,11 @@ class WorkingMemoryController:
         self.outcomes = []
         self.restored = {}
         self.lifecycle = hasattr(store, "amend_subgoal")
+        self.request_closure = request_closure
+        if request_closure and not self.lifecycle:
+            raise ValueError("Request closure uses the scientifically grounded lifecycle")
+        from .working_memory_request import RequestProgress
+        self.request_progress = RequestProgress(self) if request_closure else None
 
     def begin_turn(self, request):
         if not isinstance(request, str) or not request.strip():
@@ -178,8 +203,15 @@ class WorkingMemoryController:
         self.pending = []
         self.feedback = None
         self.started = time.monotonic()
+        self.final_only = False
+        self.finalization_reason = None
+        self.visible_evidence_ids = set()
+        if self.request_progress:
+            self.request_progress.begin_turn(request)
 
     def tool_definitions(self):
+        if self.request_closure and getattr(self, "final_only", False):
+            return self.final_tools()
         registry = next(iter(self.store.contexts.values())).executor.registry
         numeric = [clone(registry.get(n).public_definition()) for n in sorted(NUMERIC_TOOLS)]
         if self.lifecycle:
@@ -187,11 +219,15 @@ class WorkingMemoryController:
                 tool["function"]["parameters"]["properties"]["parameter_sources"] = SOURCE_SCHEMA
                 tool["function"]["parameters"]["properties"]["record"] = {
                     "type": "string", "description": "Optional known record alias for a direct short task; no alias means current record. An active scientific goal cannot silently switch records."}
+                if self.request_closure:
+                    spec = registry.get(tool["function"]["name"])
+                    if spec.preconditions:
+                        tool["function"]["description"] += " Actual execution prerequisites: " + json.dumps(spec.preconditions)
         return numeric + self.control_definitions()
 
     def control_definitions(self):
         if self.lifecycle:
-            return lifecycle_controls()
+            return lifecycle_controls(self.request_closure)
         return multi_result_controls() if hasattr(self.store, "reuse_result") else clone(CONTROLS)
 
     def check_stop(self):
@@ -203,7 +239,16 @@ class WorkingMemoryController:
             return "no_progress"
         return self.stop_reason
 
-    def build_messages(self):
+    def final_tools(self):
+        return [c for c in self.control_definitions() if c["function"]["name"] == "finish_task"]
+
+    def prepare_finalization(self, reason="budget_reserve"):
+        self.final_only, self.finalization_reason = True, reason
+
+    def build_final_messages(self, reason="budget_reserve"):
+        return self.build_messages(record_decision=False, final_preview=reason), self.final_tools()
+
+    def build_messages(self, *, record_decision=True, final_preview=None):
         store = self.store
         summaries = [store.summary(g) for g in store.subgoals if g is not store.active]
         visible = []
@@ -257,7 +302,12 @@ class WorkingMemoryController:
             # Uses no EEG-specific retrieval weights or future query/gold.
             payload["generic_summary"] = self._generic_summary(selected)
             payload.pop("archived_summaries")
-        messages = [{"role": "system", "content": LIFECYCLE_SYSTEM if self.lifecycle else MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM},
+        if self.request_progress:
+            payload["request_progress"] = self.request_progress.view()
+            if self.final_only or final_preview:
+                payload["delivery_phase"] = {"reason": final_preview or self.finalization_reason,
+                    "instruction": "No further numerical expansion. Use finish_task now with actual visible evidence and explicit missing work; only complete if the original request is covered."}
+        messages = [{"role": "system", "content": (LIFECYCLE_SYSTEM if self.lifecycle else MULTI_RESULT_SYSTEM if hasattr(store, "reuse_result") else SYSTEM) + (REQUEST_CLOSURE_SYSTEM if self.request_closure else "")},
                     {"role": "user", "content": encoded(payload).decode("utf-8")}]
         if self.context_mode == "full":
             pairs = self.exchanges
@@ -274,29 +324,74 @@ class WorkingMemoryController:
             # archive/restoration payload. Retain neither half of that duplicate
             # protocol pair. Rejections still remain observable for recovery.
             pending = self.pending
-            if pending and pending[-1]["name"] in {"restore_subgoal", "close_subgoal"} and json.loads(pending[-1]["content"])["success"]:
+            if not self.request_closure and pending and pending[-1]["name"] in {"restore_subgoal", "close_subgoal"} and json.loads(pending[-1]["content"])["success"]:
                 pending = []
             if pending and (not pairs or pairs[-1] != pending):
                 pairs = pairs + [pending]
         for pair in pairs:
             messages.extend(clone(pair))
-        if len(encoded(messages)) > self.max_context_bytes:
-            self.stop_reason = "context_capacity"
+        message_bytes = len(json.dumps(messages, ensure_ascii=False).encode("utf-8")) if self.request_closure else len(encoded(messages))
+        if message_bytes > self.max_context_bytes:
+            if record_decision:
+                self.stop_reason = "context_capacity"
             return []
-        self.decisions.append({"turn": store.turn, "before_action": len(self.exchanges) + 1,
+        if record_decision:
+            self.visible_evidence_ids = self._visible_results(messages) if self.request_closure else {e["task_id"] for e in union["items"]}
+            self.decisions.append({"turn": store.turn, "before_action": len(self.exchanges) + 1,
                                "active_subgoal": store.active.subgoal_id if store.active else None,
                                "messages": clone(messages), "context_bytes": len(encoded(messages)),
                                "input_components_bytes": {
                                    "system": len(encoded(messages[0])),
                                    "tool_schema": len(encoded(self.tool_definitions())),
                                    "user_original": len(encoded({k:payload[k] for k in ("user_requests", "current_request")})),
-                                   "current_state": len(encoded({k:payload[k] for k in ("records", "active_record", "active_subgoal", "control_feedback", "evidence_workspace")})),
+                                   "current_state": len(encoded({k:payload[k] for k in ("records", "active_record", "active_subgoal", "control_feedback", "evidence_workspace", "request_progress", "delivery_phase") if k in payload})),
                                    "history_index_or_summary": len(encoded(payload.get("generic_summary", payload.get("archived_summaries", [])))),
                                    "exact_evidence": len(encoded(payload["exact_evidence"])),
                                    "active_or_full_trajectory": len(encoded(pairs)),
                                    "restored_trajectory": len(encoded(payload["restored_trajectories"])),
                                }})
         return messages
+
+    def _visible_results(self, messages):
+        """Recognize actual values across ALL shared context representations.
+
+        Strong summary/full may answer directly from an exact fact outside the
+        selected union. A locator alone never counts. This is result-level
+        provenance, not a proof that every assertion in final prose is true.
+        """
+        visible = set()
+        def scan(value):
+            if isinstance(value, list):
+                for item in value:
+                    scan(item)
+            elif isinstance(value, dict):
+                ident = value.get("task_id")
+                entry = self.store.find_entry(ident) if isinstance(ident, str) else None
+                fields = value.get("fields") or (value.get("evidence") or {}).get("fields")
+                if entry and isinstance(fields, list) and fields and self.store._binding_valid(entry):
+                    try:
+                        if all(isinstance(f, dict) and read_scalar(entry.result, f["path"]) == f["value"] for f in fields):
+                            visible.add(entry.task_id)
+                    except (KeyError, TypeError, ValueError, UnsupportedResultField):
+                        pass
+                ident = value.get("result_id")
+                entry = self.store.find_entry(ident) if isinstance(ident, str) else None
+                result = value.get("result") if isinstance(value.get("result"), dict) else {}
+                if entry and result.get("success") and result.get("data") == entry.result and self.store._binding_valid(entry):
+                    visible.add(entry.task_id)
+                for item in value.values():
+                    if isinstance(item, (dict, list)):
+                        scan(item)
+        for message in messages:
+            if message.get("role") not in {"user", "tool"}:
+                # Assistant free text and proposed tool arguments are not
+                # observations, even if they imitate a real evidence shape.
+                continue
+            try:
+                scan(json.loads(message.get("content") or "null"))
+            except (ValueError, TypeError):
+                pass
+        return visible
 
     def _generic_summary(self, selected):
         summary = []
@@ -364,7 +459,7 @@ class WorkingMemoryController:
         """
         keep = ("subgoal_id", "title", "created_turn", "record", "status", "deliveries", "criteria",
                 "dependencies", "unresolved", "admission_issues", "delivery_check", "result_ids",
-                "references", "failed_attempts")
+                "references", "failed_attempts", "recompute_source", "prior_equivalent_results")
         out = {k: clone(card[k]) for k in keep if k in card}
         grouped = {}
         for delivery, fields in card.get("parameter_sources", {}).items():
@@ -391,6 +486,8 @@ class WorkingMemoryController:
     def _dispatch(self, request):
         name, args = request.name, dict(request.arguments)
         store = self.store
+        if self.request_closure and self.final_only and name != "finish_task":
+            return store._error("FINAL_DELIVERY_ONLY", "Resources are reserved for a grounded final or partial answer, not further numerical actions")
         if name in NUMERIC_TOOLS:
             if self.lifecycle:
                 sources = args.pop("parameter_sources", None)
@@ -401,6 +498,16 @@ class WorkingMemoryController:
         if spec is None:
             return store._error("TOOL_NOT_AVAILABLE", "Tool is not enabled in this mode")
         _validate_schema(args, spec["parameters"])
+        if name == "begin_subgoal" and self.request_progress:
+            requirements = args.pop("requirements", [])
+            problem = self.request_progress.validate_requirements(requirements, args.get("deliveries", []))
+            if problem:
+                return store._error("INVALID_REQUEST_REQUIREMENT", problem)
+            result = store.begin_subgoal(**args)
+            goal = store.find_subgoal(result.get("subgoal_id"))
+            if result.get("status") not in {"rejected", "blocked"} and goal:
+                self.request_progress.bind(requirements, args.get("deliveries", []), goal)
+            return result
         if name == "restore_subgoal":
             if self.restore_count >= self.max_restores:
                 return store._error("RESTORE_LIMIT", "Trajectory restoration limit reached")
@@ -422,6 +529,14 @@ class WorkingMemoryController:
             unresolved = args.get("unresolved", [])
             if status not in {"completed", "partial", "clarification_required"}:
                 return store._error("INVALID_STATUS", "Unknown delivery status")
+            if self.request_progress:
+                problem = self.request_progress.review(status, args.get("coverage"), args.get("coverage_complete"))
+                if problem:
+                    return store._error("REQUEST_COVERAGE_NOT_DELIVERED", problem)
+                if status == "completed" and store.active and store.completion_check(store.active)["valid"]:
+                    # Programmatic closure verifies the actual contract; the
+                    # model still owns the final scientific answer and review.
+                    store.close_subgoal("completed")
             pending = [g for g in store.subgoals if g.status != "completed" and
                        (g.turn == store.turn or g.subgoal_id in self.restored or g.subgoal_id in self.touched_goals)]
             if status == "completed" and (store.active or unresolved or pending):
@@ -432,6 +547,8 @@ class WorkingMemoryController:
             if status in {"completed", "partial"} and not store.entries:
                 return store._error("NO_EVIDENCE", "No actual analysis has been delivered")
             self.stop_reason, self.final_answer = status, args["answer"]
+            if self.request_progress:
+                self.request_progress.frames[-1]["coverage_review"]["accepted"] = True
             return {"status": status, "unresolved": unresolved, "answer": self.final_answer}
         return getattr(store, name)(**args)
 
@@ -524,6 +641,7 @@ class WorkingMemoryController:
                 "requests": clone(self.requests), "subgoals": [self.store.summary(g) for g in self.store.subgoals],
                 "events": clone(self.store.events), "decisions": clone(self.decisions),
                 "exchanges": clone(self.exchanges), "outcomes": clone(self.outcomes),
+                "request_progress": clone(self.request_progress.frames) if self.request_progress else None,
                 "record_traces": {k: c.trace.to_dict() for k, c in self.store.contexts.items()}}
 
 

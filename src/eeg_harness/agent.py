@@ -118,7 +118,24 @@ class EEGAgent:
                 if memory.stop_reason:
                     return finish(memory.stop_reason, memory.final_answer, round_number - 1)
             try:
-                assistant = self.llm_client.complete(messages, tools)
+                if memory is not None and getattr(memory, "request_closure", False):
+                    tools = memory.tool_definitions()
+                    if round_number == self.max_rounds or total_calls >= self.max_tool_calls - 1:
+                        memory.prepare_finalization("bounded_action_limit")
+                    elif hasattr(self.llm_client, "prepare_decision") and not memory.final_only:
+                        final_messages, final_tools = memory.build_final_messages()
+                        if self.llm_client.prepare_decision(messages, tools, final_messages, final_tools):
+                            memory.prepare_finalization("budget_reserve")
+                    if memory.final_only:
+                        messages, tools = memory.build_messages(), memory.final_tools()
+                        if memory.stop_reason:
+                            return finish(memory.stop_reason, memory.final_answer, round_number - 1)
+                        assistant = self.llm_client.complete(messages, tools, tool_choice={
+                            "type": "function", "function": {"name": "finish_task"}})
+                    else:
+                        assistant = self.llm_client.complete(messages, tools)
+                else:
+                    assistant = self.llm_client.complete(messages, tools)
             except Exception as exc:
                 error = (
                     exc.to_dict() if isinstance(exc, LLMServiceError)

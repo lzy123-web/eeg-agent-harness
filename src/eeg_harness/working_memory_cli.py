@@ -80,10 +80,11 @@ def new_stage_client(config_path):
 
 
 def run_requests(requests, client, *, records=None, session_id="interactive", context_mode="working",
-                 memory_version="single", output_root=None):
+                 memory_version="single", output_root=None, request_closure=False):
     """Only ordinary requests and loaded records enter the method. No turn kinds."""
     agent = WorkingMemoryEEGAgent(client, records or synthetic_records(),
-                                  session_id=session_id, context_mode=context_mode, memory_version=memory_version)
+                                  session_id=session_id, context_mode=context_mode, memory_version=memory_version,
+                                  request_closure=request_closure)
     results = []
     directory = (Path(output_root) if output_root is not None else PRIVATE) / session_id
     directory.mkdir(parents=True, exist_ok=True)
@@ -108,13 +109,14 @@ def main(argv=None):
     parser.add_argument("--real", action="store_true", required=True)
     parser.add_argument("--context-mode", choices=("working", "full", "summary"), default="working")
     parser.add_argument("--memory-version", choices=("single", "multi_result", "lifecycle"), default="single")
+    parser.add_argument("--request-closure", action="store_true", help="Use common request progress and evidence-grounded final delivery with lifecycle")
     parser.add_argument("--budget-config", type=Path, required=True,
                         help="Private JSON for a separately authorized stage; no default quota")
     args = parser.parse_args(argv)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     client, directory = new_stage_client(args.budget_config)
     run_requests(args.request, client, session_id=f"interactive-{stamp}", context_mode=args.context_mode,
-                 memory_version=args.memory_version, output_root=directory)
+                 memory_version=args.memory_version, output_root=directory, request_closure=args.request_closure)
     print(json.dumps(ledger_totals(client.ledger)))
 
 

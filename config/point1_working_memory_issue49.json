@@ -1,0 +1,46 @@
+{
+  "protocol_version": "issue49-v1",
+  "purpose": "Bounded ordinary-request delivery and reuse confirmation; no efficacy leaderboard",
+  "limits": {"completions":80,"api_tokens":500000,"development_completions":24,"development_tokens":150000,"confirmation_completions":56,"confirmation_tokens":350000},
+  "confirmation_order": ["D","C","A","B"],
+  "model_settings": {"max_output_tokens":1600,"max_retries":0,"timeout_seconds":45},
+  "agent_settings": {"max_rounds":24,"max_tool_calls":24,"timeout_seconds":600,"memory_version":"lifecycle","request_closure":true},
+  "budget_policy": {"final_message_bytes_ceiling":96000,"future_floor_kind":"measured_initial_plus_settled_final_wire_reservations","future_floor_rounding":1000,"future_floors":{"D":38000,"C":44000,"A":40000,"B":50000},"enforce_confirmation_order":true,"confirmation_case_attempts_once":true},
+  "development": {"record_variant":"original","requests":[
+    "请给记录A中SYNTH-C1在0到2秒的RMS和alpha绝对功率，说明范围和单位。",
+    "连续窗口改成2到4秒，比较新旧alpha功率并保留旧结果；另给stimulus事件后0到1秒的实际试次数和SYNTH-C1的alpha绝对功率，不做基线或筛选。"
+  ]},
+  "confirmation": {
+    "D":{"requests":["合成记录B的采样率、时长和通道名称是什么？"]},
+    "C":{"requests":[
+      "请分析记录B的target条件事件相关theta绝对功率，通道SYNTH-C2。不做基线校正或筛选。",
+      "使用事件发生后0到1.25秒，其余沿用刚才的要求。请给出实际试次数、theta功率及范围和单位。"
+    ],"continuation_gate":"clarification_required"},
+    "A":{"requests":[
+      "请给出记录A中SYNTH-C1在0到2秒的RMS和alpha绝对功率，说明范围与单位。",
+      "把同一通道的连续分析窗口改为4到6秒，比较这两个窗口的alpha绝对功率并说明增加还是减少，保留旧窗口结果。",
+      "再告诉我第一次0到2秒窗口的RMS精确结果及来源，不需要重新计算。"
+    ]},
+    "B":{"requests":[
+      "请分析记录B：给出SYNTH-C1在1到3秒的RMS与alpha绝对功率；另统计target条件事件后0到1.25秒的有效试次数，并给出该条件SYNTH-C2的theta绝对功率。不做基线校正、不筛选，分别解释连续与事件范围。",
+      "请沿用刚才事件分析的原试次和处理选择，追加质量测量，说明实际使用的质量标准、未配置的阈值及是否筛选。再比较这批target试次上SYNTH-C1与SYNTH-C2的theta绝对功率，已有适用结果不要重算，并说明沿用了什么处理依据。"
+    ]}
+  },
+  "data_definition": {
+    "sfreq":128.0,"duration_seconds":8.0,"channels":["SYNTH-C1","SYNTH-C2"],
+    "A":{"channel_1":"10Hz:7uV before3s,13uV afterwards; plus24Hz:2uV","channel_2":"6Hz:11uV before4s,5uV afterwards","events":[["target",1.0],["standard",2.5],["target",4.25],["standard",6.0]]},
+    "B":{"channel_1":"10Hz:9uV plus5Hz:3uV","channel_2":"6Hz:10uV before4s,5uV afterwards; plus28Hz:2uV","events":[["target",1.0],["standard",2.5],["target",3.5],["standard",5.0],["target",6.5]]}
+  },
+  "evaluation_only": {
+    "never_send_to_agent":true,
+    "C_reply_gate":{"record":"B","tool":"event_bandpower","scope":{"labels":["target"]},"missing_fields":["tmin","tmax"]},
+    "tolerance":{"continuous_rtol":0.005,"event_rtol":0.000001,"atol":5e-13},
+    "preflight":{"event_scope":{"labels":["target"],"tmin":0,"tmax":1.25},"continuous_old":{"channels":["SYNTH-C1"],"start":0,"end":2},"continuous_new":{"channels":["SYNTH-C1"],"start":4,"end":6},"mixed_continuous":{"channels":["SYNTH-C1"],"start":1,"end":3},"negative_event_window_seconds":0.75},
+    "D":["actual B metadata and natural final answer"],
+    "C":["no guessed scientific analysis before appropriate clarification","same B/target/C2 purpose after supplement","3 boundary-valid trials and theta exact value with V², event-relative window"],
+    "A":["initial RMS and alpha final delivery","4..6s vs0..2s alpha and revision relationship","increase is grounded in actual values","historical RMS from original result without recomputation"],
+    "B":["all continuous and event requested results delivered","count is boundary-valid not quality-passing","quality on identical artifact, no filtering or baseline","existing power reused for C1/C2 comparison","processing/quality statements grounded in actual outputs"],
+    "equivalent_behavior":["one or several subgoals permitted","all-channel or all-band computation allowed with requested fields delivered","direct valid visible evidence permitted; no gratuitous restore requirement","count available from create_epochs or event_bandpower accepted","complete, partial, correct clarification, rejection and resource stop scored separately"],
+    "failure_classes":["intent_coverage","scientific_contract","reuse_or_version","numerical_execution","working_context","delivery_or_final_expression","budget_or_protocol"]
+  }
+}

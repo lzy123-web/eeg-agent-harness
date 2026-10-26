@@ -12,6 +12,7 @@ from .executor import _validate_schema
 from .result_semantics import UnsupportedResultField, read_scalar, result_field_semantics
 from .working_memory import NUMERIC_TOOLS, clone, encoded
 from .working_memory_deliveries import DeliverySubgoal, MultiResultWorkingMemoryStore
+from .tooling import ToolRequest
 from .research.integrated_method.v3 import EVENT_CAPABILITIES, REQUIRED_PARAMETERS
 
 
@@ -80,6 +81,138 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_requests = []
+        self.recompute_used = set()
+
+    def _scientific_contract_check(self, name, scope, record):
+        """One admission surface for creation, amendment and actual actions.
+
+        The original Executor schema may expose operations this opt-in interface
+        has not authorized. In particular a processing transform is not a new
+        'missing field' merely because create_epochs can execute it.
+        """
+        if name not in NUMERIC_TOOLS or not isinstance(scope, dict):
+            return self._error("INVALID_SCOPE", "Enabled tool and structured scientific scope required")
+        registry = self.contexts[record].executor.registry
+        schema = clone(registry.get("create_epochs" if name in EVENT_TOOLS else name).parameters)
+        allowed = {"labels", "tmin", "tmax"} if name in EVENT_TOOLS else set(schema.get("properties", {}))
+        if set(scope) - allowed:
+            return self._error("INVALID_SCOPE", "Scientific scope contains unsupported fields or processing transforms")
+        schema["required"] = []
+        try:
+            _validate_schema(scope, schema)
+        except (ValueError, TypeError):
+            return self._error("INVALID_SCOPE", "Provided scope fields violate the scientific input contract")
+        return None
+
+    @staticmethod
+    def _delivery_identity(delivery):
+        return [delivery["tool"], delivery["scope"], delivery.get("revision_of")]
+
+    def _contract_identity(self, deliveries, criteria, dependencies):
+        """Ignore presentation labels, not scientific conditions or versions."""
+        by_key = {d["key"]: self._delivery_identity(d) for d in deliveries}
+        outputs = sorted(encoded([by_key[d["key"]], d.get("required", True)]) for d in deliveries)
+        conditions = sorted(encoded([by_key[c["delivery"]], c["path"], c["op"], c["value"]]) for c in criteria)
+        return outputs, conditions, sorted(dependencies or [])
+
+    def _recompute_authorized(self, source):
+        # This is a bounded explicit command check, not general intent proof.
+        # Negated/ambiguous authorization is conservative; science is still
+        # independently grounded by the ordinary per-field sources.
+        quote = self._quote(source)
+        if not quote or source.get("turn", len(self.user_requests)) != len(self.user_requests):
+            return False
+        action = r"重新(?:计算|分析)|重算|\brecompute\b|\brecalculate\b"
+        whole = self.user_requests[-1]
+        negated = r"(?:不需要|不要|无需|不必|不用|不|don't|do not|no need to)\s*(?:再次进行|再次|进行|再)?\s*(?:"+action+r")"
+        return bool(re.search(action, quote, re.I)) and not re.search(negated, whole, re.I)
+
+    def _recompute_key(self, record, delivery, *, turn=None):
+        binding = self._binding(self.contexts[record], delivery["tool"])
+        # Revision IDs describe result lineage, not a new authorization. The
+        # actual record/configuration changing does constitute a fresh state.
+        return encoded([self.turn if turn is None else turn, record, delivery["tool"], delivery["scope"],
+                        binding["record_fingerprint"], binding["config"]])
+
+    def _original_artifacts(self, goal, scope):
+        entries = [self.find_entry(ident) for ident in goal.dependencies]
+        direct = set()
+        for delivery in goal.deliveries:
+            if delivery["scope"] != scope:
+                continue
+            for source in getattr(goal, "verified_sources", {}).get(delivery["key"], {}).values():
+                if source.get("kind") == "result":
+                    entries.append(self.find_entry(source.get("result_id")))
+                elif source.get("kind") == "artifact":
+                    artifact = self.contexts[goal.record].artifacts.get(source.get("artifact_id"))
+                    recorded = any(e.record == goal.record and e.parameters == scope
+                                   and e.evidence["binding"]["artifact_id"] == source.get("artifact_id") for e in self.entries)
+                    if recorded or artifact and {"labels": list(artifact.parameters["selected_labels"]),
+                                                  "tmin": artifact.tmin, "tmax": artifact.tmax} == scope:
+                        direct.add(source["artifact_id"])
+        return direct | {e.evidence["binding"]["artifact_id"] for e in entries if e and e.record == goal.record
+                         and e.parameters == scope and e.evidence["binding"]["artifact_id"]}
+
+    def _available_entry(self, goal, delivery, *, artifact_id=None):
+        """Find valid evidence, never substitute equal content for artifact ID."""
+        allowed_artifacts = self._scope_artifacts(goal, delivery["scope"])[0]
+        if len(allowed_artifacts) > 1:
+            return None
+        if artifact_id is not None:
+            if allowed_artifacts and artifact_id not in allowed_artifacts:
+                return None
+            allowed_artifacts = {artifact_id}
+        candidates = []
+        for entry in self.entries:
+            owner = self.find_subgoal(entry.evidence.get("subgoal_id"))
+            known = set(goal.dependencies) | set(goal.result_ids) | set(goal.reused.values())
+            if (owner is None or owner.turn != self.turn and entry.task_id not in known
+                    or (entry.record, entry.capability, entry.parameters) !=
+                       (goal.record, delivery["tool"], delivery["scope"])
+                    or delivery.get("revision_of") is not None and entry.revision_of != delivery["revision_of"]
+                    or not self._binding_valid(entry)):
+                continue
+            ident = entry.evidence["binding"]["artifact_id"]
+            if allowed_artifacts and ident not in allowed_artifacts and entry.capability in EVENT_TOOLS:
+                continue
+            candidates.append(entry)
+        if len({e.evidence["binding"]["artifact_id"] for e in candidates if e.evidence["binding"]["artifact_id"]}) > 1:
+            return None  # A declared dependency or exact action ID must disambiguate.
+        return candidates[-1] if candidates else None
+
+    def _scope_artifacts(self, goal, scope):
+        def identities(ids):
+            return {e.evidence["binding"]["artifact_id"] for ident in ids
+                    for e in [self.find_entry(ident)] if e and e.record == goal.record
+                    and e.parameters == scope and e.evidence["binding"]["artifact_id"]}
+        original = self._original_artifacts(goal, scope)
+        produced = identities([o["result_id"] for o in goal.observations if o["request"]["name"] == "create_epochs"
+                               and o["scope"] == scope and o["result"]["success"] and o.get("result_id")])
+        declaration = next((d for d in goal.deliveries if d["tool"] == "create_epochs" and d["scope"] == scope), None)
+        rebuild = bool(declaration and getattr(goal, "recompute_source", None))
+        pinned = produced if rebuild and produced else original or identities(list(goal.result_ids) + list(goal.reused.values()))
+        return pinned, original or produced, declaration, rebuild
+
+    def _completed_equivalent(self, old, requested):
+        normalized = clone(requested.deliveries)
+        check = self.completion_check(old)
+        if not check["valid"]:
+            return False
+        for d in normalized:
+            matches = [p for p in old.deliveries if (p["tool"], p["scope"], p["required"]) ==
+                       (d["tool"], d["scope"], d["required"])
+                       and (d.get("revision_of") is None or d["revision_of"] == p.get("revision_of"))]
+            if len(matches) != 1:
+                return False
+            prior = matches[0]
+            d["revision_of"] = prior.get("revision_of")
+            state = next(s for s in check["deliveries"] if s["key"] == prior["key"])
+            entry = self.find_entry(state["result_id"])
+            pinned = self._scope_artifacts(requested, d["scope"])[0]
+            if pinned and (len(pinned) != 1 or entry.evidence["binding"]["artifact_id"] not in pinned):
+                return False
+        return (self._contract_identity(old.deliveries, old.criteria, old.dependencies) ==
+                self._contract_identity(normalized, requested.criteria, requested.dependencies))
 
     def _quote(self, source):
         if not isinstance(source, dict) or source.get("kind") != "user":
@@ -120,6 +253,9 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
                     return ranges == {(float(scope[pair[0]]), float(scope[pair[1]]))}
                 numbers = {float(x) for x in re.findall(rf"(?<![A-Za-z0-9.])({NUMBER})(?![\d.])", quote)}
                 return float(value) in numbers
+            if key == "line_frequency":
+                return type(value) in {int, float} and any(float(x) == float(value) for x in re.findall(
+                    rf"(?<![A-Za-z0-9.])({NUMBER})\s*(?:Hz|赫兹)", quote, re.I))
             return False
         entry = None
         if kind == "result":
@@ -150,7 +286,7 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
             required = ("labels", "tmin", "tmax") if name in EVENT_TOOLS else REQUIRED_PARAMETERS.get(name, ())
             given = self._normalize_source_map(sources.get(key, self._user_source()), set(required) | set(scope))
             verified[key] = {}
-            for field in set(required) | (set(scope) & {"channels", "start", "end", "labels", "tmin", "tmax"}):
+            for field in set(required) | set(scope):
                 if field not in scope:
                     issues.append({"delivery": key, "field": field, "code": "MISSING_SCIENTIFIC_PARAMETER"})
                     continue
@@ -228,7 +364,7 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
 
     def begin_subgoal(self, title, record, deliverable=None, scope=None, *, deliveries=None,
                       checks=None, revision_of=None, dependencies=None, criteria=None, implicit=False,
-                      parameter_sources=None):
+                      parameter_sources=None, recompute_source=None):
         sources = clone(parameter_sources or {})
         if not isinstance(sources, dict) or record not in self.records or not isinstance(title, str) or not title.strip():
             return self._error("INVALID_SUBGOAL", "Known record, nonempty title and source map required")
@@ -241,7 +377,6 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
         if not isinstance(deliveries, list) or not 1 <= len(deliveries) <= 12:
             return self._error("INVALID_DELIVERIES", "Declare one to twelve deliveries")
         ds = clone(deliveries)
-        registry = self.contexts[record].executor.registry
         for d in ds:
             if not isinstance(d, dict) or set(d) - {"key", "tool", "scope", "required", "revision_of"}:
                 return self._error("INVALID_DELIVERY", "Unknown delivery fields")
@@ -255,24 +390,30 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
                 if parent is None or (parent.record, parent.capability) != (record, d["tool"]):
                     return self._error("INVALID_REVISION_PARENT", "Revision needs exact same-record/capability prior result")
                 d["revision_of"] = parent.task_id
-            schema = clone(registry.get("create_epochs" if d["tool"] in EVENT_TOOLS else d["tool"]).parameters)
-            schema["required"] = []
-            try:
-                _validate_schema(d["scope"], schema)
-            except (ValueError, TypeError):
-                return self._error("INVALID_SCOPE", "Provided scope fields violate the original tool schema")
-            if d["tool"] in EVENT_TOOLS and set(d["scope"]) - {"labels", "tmin", "tmax"}:
-                return self._error("INVALID_SCOPE", "Event scope is labels/tmin/tmax; no implicit processing transform")
+            invalid = self._scientific_contract_check(d["tool"], d["scope"], record)
+            if invalid:
+                return invalid
         if len({d["key"] for d in ds}) != len(ds) or not any(d["required"] for d in ds):
             return self._error("DUPLICATE_OR_EMPTY_CONTRACT", "Unique delivery keys and at least one required result are needed")
-        if any(self.find_entry(ident) is None for ident in dependencies or []):
+        if not isinstance(dependencies or [], list) or any(self.find_entry(ident) is None for ident in dependencies or []):
             return self._error("INVALID_DEPENDENCY", "Dependencies identify existing result IDs, not future delivery keys or artifact IDs")
+        dependencies = [self.find_entry(ident).task_id for ident in dependencies or []]
         criteria = clone(criteria or [])
         if not isinstance(criteria, list):
             return self._error("INVALID_CRITERION", "Criteria must be a list")
         invalid = self._criteria_check(criteria, ds, record, sources)
         if invalid:
             return invalid
+        if recompute_source is not None and not self._recompute_authorized(recompute_source):
+            return self._error("UNVERIFIED_RECOMPUTATION", "A fresh computation needs an explicit current user recomputation quote; unchanged valid evidence is otherwise reusable")
+        force_recompute = bool(recompute_source and any(self._recompute_key(record, d) not in self.recompute_used for d in ds))
+        for d in ds:
+            parent = self.find_entry(d.get("revision_of"))
+            permission_unused = bool(recompute_source and self._recompute_key(record, d) not in self.recompute_used)
+            if parent and parent.parameters == d["scope"] and self._binding_valid(parent) and not permission_unused:
+                self.last_owner = parent.evidence.get("subgoal_id")
+                return {**self._error("UNCHANGED_SCIENTIFIC_REVISION", "A new parent ID does not authorize another calculation on unchanged science; use this valid result, or quote a new explicit user recomputation request"),
+                        "task_id": parent.task_id, "scope": clone(parent.parameters), "no_new_execution": True}
         # Repeated same unfinished purpose is idempotent within its originating
         # request; explicit later recalculation remains possible as a new goal.
         for g in self.subgoals:
@@ -297,19 +438,42 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
             turn=self.turn, deliveries=ds, status="awaiting_input" if issues else "active")
         goal.parameter_sources, goal.verified_sources, goal.admission_issues = self._remember_sources(sources, verified), verified, issues
         goal.contract_revisions = []
+        goal.recompute_source = clone(recompute_source) if force_recompute else None
+        goal.prior_equivalent_results = {d["key"]: [e.task_id for e in self.entries
+            if (e.record, e.capability, e.parameters, e.revision_of) ==
+               (record, d["tool"], d["scope"], d.get("revision_of")) and self._binding_valid(e)]
+            for d in ds} if force_recompute else {}
+        if not issues and not force_recompute:
+            for previous in reversed(self.subgoals):
+                if (previous.turn == self.turn and previous.record == record and previous.status == "completed"
+                        and self._completed_equivalent(previous, goal)):
+                    self.last_owner = previous.subgoal_id
+                    self.events.append({"event": "completed_contract_reused", "subgoal_id": previous.subgoal_id,
+                                        "turn": self.turn, "reason": "same_request_scientific_equivalence"})
+                    return {"status": "reused_completed", "subgoal_id": previous.subgoal_id,
+                            "summary": self.summary(previous), "progress": self.completion_check(previous),
+                            "next_action": "Already archived with valid results; address other requested outputs or finish_task. No new computation occurred."}
+            for delivery in ds:
+                entry = self._available_entry(goal, delivery)
+                if entry:
+                    goal.reused[delivery["key"]] = entry.task_id
         goal.unresolved = [f"{i['delivery'] or 'record'}.{i['field']}: {i['code']}" for i in issues]
         self.subgoals.append(goal)
         self.active, self.active_record, self.last_owner = goal, record, goal.subgoal_id
         self.events.append({"event": "awaiting_input" if issues else "admitted", "subgoal_id": goal.subgoal_id,
                             "turn": self.turn, "issues": clone(issues)})
         return {"status": goal.status, "subgoal_id": goal.subgoal_id, "contract": self.goal_card(goal),
-                "issues": clone(issues), "next_action": "ask missing scientific choices, then amend_subgoal" if issues else "execute missing deliveries; successes are linked automatically"}
+                "issues": clone(issues), "progress": self.completion_check(goal),
+                "next_action": "ask missing scientific choices, then amend_subgoal" if issues else
+                    "Check progress: valid old results are already linked; execute only missing deliveries, then close_subgoal"}
 
     def goal_card(self, goal):
         card = super().goal_card(goal)
         card.update(contract_version="reliable_lifecycle_v1", parameter_sources=clone(getattr(goal, "verified_sources", {})),
                     admission_issues=clone(getattr(goal, "admission_issues", [])),
-                    contract_revisions=clone(getattr(goal, "contract_revisions", [])))
+                    contract_revisions=clone(getattr(goal, "contract_revisions", [])),
+                    recompute_source=clone(getattr(goal, "recompute_source", None)),
+                    prior_equivalent_results=clone(getattr(goal, "prior_equivalent_results", {})))
         card["references"] = {"subgoal_id": goal.subgoal_id, "delivery_keys": [d["key"] for d in goal.deliveries],
                               "result_ids": clone(goal.result_ids),
                               "meaning": "delivery keys name required outputs; dependencies/revision_of need actual result_ids; artifacts come from tool results"}
@@ -350,6 +514,10 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
                 if name in getattr(goal, "verified_sources", {}).get(key, {}) and d["scope"].get(name) != value:
                     return self._error("SCIENTIFIC_REVISION_REQUIRED", "Known scientific scope is immutable; declare a new version referencing the old result")
                 d["scope"][name] = value
+        for d in ds:
+            invalid = self._scientific_contract_check(d["tool"], d["scope"], goal.record)
+            if invalid:
+                return invalid
         for index, path in (criterion_paths or {}).items():
             try:
                 i = int(index)
@@ -391,14 +559,6 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
         invalid = self._criteria_check(cs, ds, goal.record, sources)
         if invalid:
             return invalid
-        registry = self.contexts[goal.record].executor.registry
-        for d in ds:
-            schema = clone(registry.get("create_epochs" if d["tool"] in EVENT_TOOLS else d["tool"]).parameters)
-            schema["required"] = []
-            try:
-                _validate_schema(d["scope"], schema)
-            except (ValueError, TypeError):
-                return self._error("INVALID_SCOPE", "Supplement violates tool input schema")
         issues, verified = self._sources_check(ds, goal.record, sources)
         # A failed replacement source cannot erase an earlier confirmation and
         # subsequently turn a scientific revision into an apparent supplement.
@@ -433,6 +593,10 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
             if state["status"] not in {"satisfied", "condition_unsatisfied"}:
                 continue
             entry = self.find_entry(state["result_id"])
+            pinned = self._scope_artifacts(goal, d["scope"])[0]
+            if d["tool"] in EVENT_TOOLS and pinned and (len(pinned) != 1 or entry.evidence["binding"]["artifact_id"] not in pinned):
+                state.update(status="artifact_mismatch", error_code="ARTIFACT_IDENTITY_MISMATCH")
+                continue
             for c in (c for c in goal.criteria if c["delivery"] == d["key"]):
                 expected = field_contract(d["tool"], c["path"], self.records[goal.record], d["scope"], self.config)
                 if expected is None:
@@ -464,6 +628,15 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
         return result
 
     def execute_numeric(self, name, arguments, parameter_sources=None, record=None):
+        if name not in NUMERIC_TOOLS:
+            return self._error("TOOL_NOT_AVAILABLE", "This working-memory interface does not authorize the tool")
+        target_record = record or (self.active.record if self.active else self.active_record)
+        if target_record in self.contexts:
+            actual = self._scientific_scope(name, arguments, self.contexts[target_record])
+            if actual is not None:
+                invalid = self._scientific_contract_check(name, actual, target_record)
+                if invalid:
+                    return invalid
         if record is not None:
             if record not in self.records:
                 return self._error("RECORD_NOT_FOUND", "Choose a visible record alias")
@@ -481,7 +654,7 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
             self.active = None
             out = super().execute_numeric(name, arguments)
             self.active = pending
-            return out
+            return self._numeric_feedback(out)
         if self.active is not None and getattr(self.active, "admission_issues", []):
             return {**self._error("SCIENTIFIC_PARAMETERS_UNCONFIRMED", "Ask for missing choices; use amend_subgoal after the user's reply"),
                     "subgoal_id": self.active.subgoal_id, "issues": clone(self.active.admission_issues)}
@@ -492,17 +665,72 @@ class ReliableWorkingMemoryStore(MultiResultWorkingMemoryStore):
                 implicit=True, parameter_sources={"main": parameter_sources or self._user_source()})
             if started["status"] != "active":
                 return started
+        goal = self.active
+        if goal is not None:
+            actual = self._scientific_scope(name, arguments, self.contexts[goal.record])
+            target = next((d for d in goal.deliveries if d["tool"] == name and d["scope"] == actual), None)
+            if target and not self._scope_error(goal, ToolRequest(name, arguments, "binding-check"), self.contexts[goal.record]):
+                force = (getattr(goal, "recompute_source", None)
+                         and self._recompute_key(goal.record, target, turn=goal.turn) not in self.recompute_used)
+                entry = None if force else self._available_entry(goal, target, artifact_id=arguments.get("artifact_id"))
+                if entry is not None:
+                    goal.reused[target["key"]] = entry.task_id
+                    self.last_owner = goal.subgoal_id
+                    out = {"status": "reused", "subgoal_id": goal.subgoal_id, "task_id": entry.task_id,
+                           "message": "Existing binding is valid; no numerical execution occurred"}
+                    if goal.implicit:
+                        out["archive"] = self.close_subgoal("completed")
+                    self.events.append({"event": "numeric_result_reused", "turn": self.turn,
+                                        "subgoal_id": goal.subgoal_id, "result_id": entry.task_id})
+                    return self._numeric_feedback(out)
         out = super().execute_numeric(name, arguments)
+        if goal and getattr(goal, "recompute_source", None) and out.get("observation", {}).get("result", {}).get("success"):
+            for d in goal.deliveries:
+                if d["tool"] == name and d["scope"] == out["observation"]["scope"]:
+                    self.recompute_used.add(self._recompute_key(goal.record, d, turn=goal.turn))
+        return self._numeric_feedback(out)
+
+    def _scope_error(self, goal, request, context):
+        mismatch = super()._scope_error(goal, request, context)
+        if mismatch:
+            return mismatch
+        if request.name == "create_epochs" or context.executor.registry.get(request.name).consumes_artifact:
+            scope = self._scientific_scope(request.name, request.arguments, context)
+            pinned, already_bound, declaration, rebuild_authorized = self._scope_artifacts(goal, scope)
+            if request.name == "create_epochs":
+                unused = rebuild_authorized and self._recompute_key(goal.record, declaration, turn=goal.turn) not in self.recompute_used
+                if already_bound and not unused:
+                    return "ORIGINAL_ARTIFACT_ALREADY_BOUND"
+                return None
+            # An incidental extra create cannot override an original process.
+            # Only a declared, explicitly authorized rebuild may replace it.
+            if len(pinned) > 1:
+                return "AMBIGUOUS_ORIGINAL_ARTIFACT"
+            if len(pinned) == 1 and request.arguments.get("artifact_id") not in pinned:
+                return "ARTIFACT_IDENTITY_MISMATCH"
+        return None
+
+    def _numeric_feedback(self, out):
         goal = self.find_subgoal(out.get("subgoal_id"))
         if goal:
             out["progress"] = self.completion_check(goal)
-            out["next_action"] = "All required deliveries satisfied: close_subgoal; do not bind newly computed results again" if out["progress"]["valid"] else "Continue only missing deliveries, or clarify unresolved conditions"
+            if goal.status == "completed":
+                out["next_action"] = "Already archived; do not close/reuse again. Address other original-request outputs or finish_task with actual evidence."
+            elif out["progress"]["valid"]:
+                out["next_action"] = "All declared deliveries satisfied: close_subgoal, then address other original-request outputs or finish_task. No binding is needed."
+            else:
+                out["next_action"] = "Continue only missing deliveries, or clarify unresolved conditions"
         return out
 
     def reuse_result(self, delivery_key, task_id):
         goal = self.active
         entry = self.find_entry(task_id)
         if goal and entry:
+            delivery = next((d for d in goal.deliveries if d["key"] == delivery_key), None)
+            if delivery:
+                pinned = self._scope_artifacts(goal, delivery["scope"])[0]
+                if delivery["tool"] in EVENT_TOOLS and pinned and (len(pinned) != 1 or entry.evidence["binding"]["artifact_id"] not in pinned):
+                    return self._error("ARTIFACT_IDENTITY_MISMATCH", "Reuse must retain the original declared scientific object")
             state = next((s for s in self.completion_check(goal)["deliveries"] if s["key"] == delivery_key), None)
             if state and state["result_id"] == entry.task_id and state["status"] == "satisfied":
                 self.last_owner = goal.subgoal_id
