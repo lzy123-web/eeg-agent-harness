@@ -15,6 +15,7 @@
 - 交付：[设计及代码映射](EEG_WORKING_MEMORY_ISSUE52_DESIGN.md)、[冻结协议、逐例结果、复现与预算](EEG_WORKING_MEMORY_ISSUE52_PROTOCOL.md)、[开题一页总结](EEG_WORKING_MEMORY_ISSUE52_PROPOSAL_SUMMARY.md)、[公开合成证据与首次失败](evidence/issue52_offline_paired_diagnostic.json)。README、主方法和开题包同步；全messages/tools本地忽略保存，公开摘录含真实结果、失败、版本、访问关联及原文件hash，不含真实EEG/密钥/个人路径。
 - 复现：`PYTHONPATH=src python -m compileall -q src tests`；`python -m unittest discover -s tests -q`；`python -m eeg_harness.research.working_memory_issue52 --offline --case T01 --case T02 --case T03 --case T04 --case T05 --case T06 --case T07 --case T08 --output <新的本地JSON文件>`；`--preflight`同样须新输出路径。`--real`在本阶段驱动中拒绝；正式Agent/CLI新`--plan-arm`入口只收自然请求，付费运行须另有明确授权。
 - 下一唯一优先：获新授权后，按冻结协议做一个完整三臂自然会话单位，分开判断规划、验收、依赖证据使用、最终科学交付和总成本；先诊断共同接口误拒，不继续堆功能。若合理强P&E同样可靠且更简单，则采用简单方案并收缩独立增益主张。本阶段至此停止，不开展工作点二。
+- 发布留痕：设计`71e81ee`、核心`ff0cbc2`、冻结`9e5347c`、证据/研究交付`04cb3d5fe3d0f9dff5758b8f951f17c92830e41a`均已普通推送。交付提交的[GitHub Actions unit-tests #313](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40531993144)已success；[Issue #52阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/52#issuecomment-6446211818)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6446222789)已发布，PR正文新增本轮并保留旧历史。核实PR仍Draft/open/unmerged；Issue保持open供审查。本条仅同步发布/CI及“旧阶段账本关闭”的措辞，不改变冻结方法、协议配置或结果。
 
 ## Issue #51：有界研发与冻结确认已结束；完整自主闭环未通过
 
