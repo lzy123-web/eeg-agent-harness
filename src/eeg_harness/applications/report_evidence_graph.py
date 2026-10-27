@@ -214,6 +214,10 @@ class EvidenceClaimGraph:
         return assessment
 
     def _verify(self, claim: Claim) -> ClaimAssessment:
+        if any(self.assessments[parent].status != "VERIFIED_FACT"
+               for parent in claim.depends_on_claims):
+            return ClaimAssessment(claim.claim_id, "BLOCKED",
+                                   ["A required parent claim is not verified"] )
         if claim.kind == "limitation":
             try:
                 status, unresolved = self.resolver.delivery_status(claim.limitation_task, claim.limitation_key)
@@ -303,9 +307,8 @@ class EvidenceClaimGraph:
             elif previous.status == "VERIFIED_FACT" and current.status == "BLOCKED":
                 current.status = "STALE"
                 current.reasons.append("A previously available source result is no longer eligible")
-            elif self.claims[cid].kind == "interpretation" and any(
-                    self.assessments[dep].status != "VERIFIED_FACT"
-                    for dep in self.claims[cid].depends_on_claims):
+            elif any(self.assessments[dep].status != "VERIFIED_FACT"
+                     for dep in self.claims[cid].depends_on_claims):
                 current.status = "STALE"
                 current.reasons.append("Dependent scientific fact is stale")
             self.assessments[cid] = current
@@ -314,8 +317,24 @@ class EvidenceClaimGraph:
                 "assessments": {cid: self.assessments[cid].status for cid in impacted}}
 
     def refresh_all(self) -> dict:
-        return self.refresh({(r.task_id, r.key) for c in self.claims.values() for r in c.refs} |
-                            {(c.limitation_task, c.limitation_key) for c in self.claims.values() if c.limitation_task})
+        """Full read-only audit including pinned historical evidence bindings.
+
+        Ordinary P1 revisions use refresh(changed) to avoid needless work;
+        explicit archive revocation/withdrawal requires this full validation.
+        """
+        ids = list(self.claims)
+        for cid in ids:
+            previous = self.assessments[cid]
+            current = self._verify(self.claims[cid])
+            if previous.signatures and current.signatures and previous.signatures != current.signatures:
+                current.status = "STALE"
+                current.reasons.append("Scientific provenance differs from approved statement")
+            elif previous.status in {"VERIFIED_FACT", "REVIEW_REQUIRED"} and current.status == "BLOCKED":
+                current.status = "STALE"
+                current.reasons.append("Previously referenced evidence or parent is now unavailable")
+            self.assessments[cid] = current
+            self.audit.append({"event":"full_audit","claim_id":cid,"status":current.status})
+        return {"affected_claims":ids, "assessments":{cid:self.assessments[cid].status for cid in ids}}
 
     def release(self, required_outputs: Iterable[tuple[str, str]]) -> dict:
         """Only verified structured facts; interpretations need separate audit.
