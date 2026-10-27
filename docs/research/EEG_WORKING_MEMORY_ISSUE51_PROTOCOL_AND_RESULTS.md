@@ -91,6 +91,8 @@
 
 提交：`75fc2cd`核心架构；`4b0e675`独立协议/预算；`2262943`唯一开发修订；`eceb2b2`冻结候选与审计。交付文档提交另见PROJECT_STATUS。网络状态及远端CI必须据实际记录，不将本地测试写成远端CI通过。
 
+发布核实：以上提交及结果/开题事实`365cb5766fc58e7c671d3590f8732bfb6429bcb3`均已普通推送，早先TLS网络故障已恢复，无分叉、无强推。[交付CI unit-tests #307](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40466989203)success；[Issue阶段评论](https://github.com/lzy123-web/eeg-agent-harness/issues/51#issuecomment-6436209583)与[PR阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6436222531)已发布。PR仍Draft/open/unmerged。CI通过验证代码回归，不改变完整科学会话未通过的结论。
+
 ### 复现与研究判断
 
 离线命令（先按README设置环境，以下不访问API）：

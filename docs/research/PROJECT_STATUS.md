@@ -11,7 +11,8 @@
 - 真实read_result/restore_task均0；第三轮原工件质量未发。历史旧PSD真实用作比较操作数，不能冒充过程恢复；相关恢复续算仅离线/Fake通过。第二层三臂因科学准入未过而未运行，**不是本阶段预算不足**。
 - 当前判断：保留HiAgent启发的EEG任务工作记忆候选，收缩完整可靠与相对收益主张。下一阶段唯一优先是科学义务/辅助尝试分离与自然续接的稳定目的身份；本次不开发第二工作点、不改冻结结果。
 - 交付：[集中报告](EEG_WORKING_MEMORY_ISSUE51_PROTOCOL_AND_RESULTS.md)、[主方法与最终职责](EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开原始合成证据/失败/成本](evidence/issue51_scientific_memory_diagnostic.json)，开题包B.6和README同步。复现命令见集中报告。
-- Git：核心`75fc2cd`普通推送成功；后续普通推送暂遇GitHub TLS握手/直连超时，提交完整保存在本地。未关闭证书验证、未强推、未改main；稍后如恢复将追加核实结果，不能先宣称远端CI通过。
+- Git发布已完成：核心`75fc2cd`、协议`4b0e675`、唯一开发修订`2262943`、冻结`eceb2b2`、证据/开题事实`365cb5766fc58e7c671d3590f8732bfb6429bcb3`均已普通推送。早先TLS握手/直连超时后恢复，安全fetch确认无分叉；未关闭证书验证、未强推、未改main。[交付CI unit-tests #307](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40466989203)已success。
+- [Issue #51阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/51#issuecomment-6436209583)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6436222531)已发布，PR正文新增本阶段并保留旧历史，核实仍Draft/open/unmerged。当前记录只同步发布及CI，不修改冻结候选或增加模型调用；Issue保持open供审查。
 
 以下为本阶段按时间保留的研发过程，最终状态以上述结论为准。
 
