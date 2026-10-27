@@ -119,6 +119,22 @@ class ScientificControllerTest(unittest.TestCase):
         self.assertEqual(evidence[b.task_id]["fields"][0]["value"], b.result["SYNTH-C1"]["alpha"])
         self.assertEqual(len(c.store.entries), 2)
 
+    def test_active_observation_exposes_program_scaled_units_before_answer(self):
+        def final(messages):
+            result = next(json.loads(m["content"])["data"] for m in reversed(messages) if m["role"] == "tool")
+            field = next(f for f in result["quantity_evidence"]["fields"] if f["path"] == ["SYNTH-C1","alpha"])
+            value = float(field["value"])
+            self.assertEqual(field["scaled_display"], f"{value*1e12:.8g} µV²")
+            self.assertIn(" V²",field["canonical_display"])
+            return finish()
+        agent = self.agent([("psd",WINDOW),final])
+        self.assertEqual(agent.run("记录A SYNTH-C1在0到2秒的alpha绝对功率。").stop_reason,"completed")
+        schema = next(t["function"] for t in agent.working_memory.control_definitions() if t["function"]["name"] == "focus_task")
+        branches = schema["parameters"]["properties"]["requirements"]["items"]["oneOf"]
+        psd = next(b for b in branches if "psd" in b["properties"]["tool"]["enum"])
+        self.assertNotIn("band",psd["properties"]["scope"]["properties"])
+        self.assertIn("output_request",psd["properties"])
+
 
 if __name__ == "__main__":
     unittest.main()

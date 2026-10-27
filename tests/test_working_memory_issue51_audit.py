@@ -14,6 +14,25 @@ def request(value):
 
 
 class EvidenceExposureTest(unittest.TestCase):
+    def test_native_quantity_evidence_unit_conversion_is_visible_and_checkable(self):
+        field={"path":["C1","alpha"],"value":2e-10,"semantics":{"unit":"V²"},
+            "canonical_display":"2e-10 V²","scaled_display":"200 µV²"}
+        value={"success":True,"data":{"quantity_evidence":{"task_id":"result-one","fields":[field]}}}
+        rows=audit.quantity_displays_in_request(request(value))
+        self.assertEqual(len(rows),1)
+        self.assertTrue(rows[0]["canonical_display_valid"])
+        self.assertTrue(rows[0]["scaled_display_valid"])
+        self.assertEqual(rows[0]["expected_scaled_value"],200)
+        field["scaled_display"]="0.200 µV²"
+        self.assertFalse(audit.quantity_displays_in_request(request(value))[0]["scaled_display_valid"])
+
+    def test_display_audit_never_promotes_failed_results_or_free_prose(self):
+        value={"success":False,"data":{"task_id":"x","fields":[{
+            "path":["C1","rms"],"value":1e-5,"semantics":{"unit":"V"},
+            "canonical_display":"1e-5 V","scaled_display":"10 µV"}]}}
+        self.assertEqual(audit.quantity_displays_in_request(request(value)),[])
+        self.assertEqual(audit.quantity_displays_in_request({"messages":[{"role":"assistant","content":"200 µV²"}]}),[])
+
     def test_index_and_failed_reads_do_not_count_as_values(self):
         value={"index":{"task_id":"old","readable_fields":[["C1","rms"]]},
                "failed":{"success":False,"data":{"evidence":{"task_id":"old","fields":[{"path":["C1","rms"],"value":99}]}}}}
@@ -91,6 +110,23 @@ class AuditTest(unittest.TestCase):
             manifest["data_sha256"]["A"]="different"
             (directory/"manifest.json").write_text(json.dumps(manifest),encoding="utf8")
             with self.assertRaises(ValueError):audit.audit_run(directory)
+
+    def test_minimal_focus_reply_retains_actual_accepted_model_grouping(self):
+        with tempfile.TemporaryDirectory() as d:
+            directory=self._fixture(Path(d))
+            turn=audit.read_json(directory/"turn-1.json")
+            turn["tool_results"].append({"request_id":"accepted-focus","tool_name":"focus_task","success":True,
+                "data":{"status":"active","subgoal_id":"fixture-s1","title":"actual purpose"},"error":None})
+            (directory/"turn-1.json").write_text(json.dumps(turn),encoding="utf8")
+            response={"raw_assistant_message":{"tool_calls":[{"id":"accepted-focus","function":{
+                "name":"focus_task","arguments":json.dumps({"title":"actual purpose","requirements":[
+                    {"tool":"amplitude","record":"A","scope":{"start":0,"end":2}},
+                    {"tool":"psd","record":"A","scope":{"start":0,"end":2}}]})}}]}}
+            with (directory/"responses.jsonl").open("a",encoding="utf8") as stream:stream.write(json.dumps(response)+"\n")
+            groups=audit.audit_run(directory)["autonomous_grouping_observations"]
+            self.assertEqual(len(groups),1)
+            self.assertEqual(groups[0]["declared_requirement_count"],2)
+            self.assertEqual(groups[0]["accepted_proposal"]["subgoal_id"],"fixture-s1")
 
     def test_changed_frozen_protocol_is_rejected(self):
         with tempfile.TemporaryDirectory() as d:

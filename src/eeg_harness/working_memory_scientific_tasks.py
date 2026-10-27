@@ -30,6 +30,17 @@ def canonical_scope(scope):
     return out
 
 
+def requirement_identity(requirement):
+    """Output wording is not a new computation or scientific authorization."""
+    return (requirement["tool"], requirement["record"], canonical_scope(requirement["scope"]))
+
+
+class RequirementValidationError(ValueError):
+    def __init__(self, errors):
+        super().__init__("Correct the listed result requirements using the actual tool scope; output selection belongs in output_request")
+        self.errors = errors
+
+
 class ScientificTaskStore(ActionWorkingMemoryStore):
     """One scientific purpose can own multiple records, scopes and results.
 
@@ -51,21 +62,57 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             return []
         if not isinstance(requirements, list) or not 1 <= len(requirements) <= 12:
             raise ValueError("Declare one to twelve result requirements")
-        parsed = []
-        for item in requirements:
-            if not isinstance(item, dict) or set(item) - {"tool", "record", "scope"}:
-                raise ValueError("Requirements contain only tool, record and scientific scope")
-            name, alias, scope = item.get("tool"), item.get("record", record), item.get("scope", {})
-            if name not in NUMERIC_TOOLS or alias not in self.records or not isinstance(scope, dict):
-                raise ValueError("An enabled tool, known record and scientific scope are required")
-            invalid = ReliableWorkingMemoryStore._scientific_contract_check(self, name, scope, alias)
-            if invalid:
-                raise ValueError(invalid["message"])
-            row = {"tool": name, "record": alias, "scope": canonical_scope(scope)}
-            if row in parsed:
-                raise ValueError("Duplicate identical result requirements are not two scientific outputs")
-            parsed.append(row)
+        parsed, errors = [], []
+        for index, item in enumerate(requirements):
+            name = item.get("tool") if isinstance(item,dict) else None
+            alias = item.get("record",record) if isinstance(item,dict) else record
+            allowed = []
+            schema = None
+            if isinstance(name,str) and name in NUMERIC_TOOLS and isinstance(alias,str) and alias in self.records:
+                registry = self.contexts[alias].executor.registry
+                schema = clone(registry.get("create_epochs" if name in EVENT_TOOLS else name).parameters)
+                allowed = sorted({"labels","tmin","tmax"} if name in EVENT_TOOLS else set(schema.get("properties",{})))
+                schema["properties"] = {k:v for k,v in schema.get("properties",{}).items() if k in allowed}
+                schema["required"], schema["additionalProperties"] = [], False
+            try:
+                if not isinstance(item,dict) or set(item)-{"tool","record","scope","output_request"}:
+                    raise ValueError("Requirements contain only tool, record, scope and optional textual output_request")
+                scope, output = item.get("scope",{}), item.get("output_request")
+                if schema is None or not isinstance(scope,dict):
+                    raise ValueError("An enabled tool, known record and structured scientific scope are required")
+                if output is not None and (not isinstance(output,str) or len(output)>1200):
+                    raise ValueError("output_request must be plain text of at most 1200 characters; it is not an executable condition")
+                _validate_schema(scope,schema)
+                invalid = ReliableWorkingMemoryStore._scientific_contract_check(self,name,scope,alias)
+                if invalid:
+                    raise ValueError(invalid["message"])
+                row = {"tool":name,"record":alias,"scope":canonical_scope(scope)}
+                if output:
+                    row["output_request"] = output
+                previous = next((r for r in parsed if requirement_identity(r)==requirement_identity(row)),None)
+                if previous is not None:
+                    if output and output != previous.get("output_request"):
+                        self._merge_output_request(previous,row)
+                    else:
+                        raise ValueError("Duplicate identical computation requirements are not two scientific outputs")
+                else:
+                    parsed.append(row)
+            except (ValueError,TypeError) as exc:
+                errors.append({"index":index,"tool":clone(name),"record":clone(alias),
+                    "allowed_scope_fields":allowed,"actual_error":{"code":"INVALID_REQUIREMENT","message":str(exc)},
+                    "guidance":"Omit missing values rather than null; keep requested report fields in textual output_request. Unsupported processing choices are not normalized or authorized."})
+        if errors:
+            raise RequirementValidationError(errors)
         return parsed
+
+    @staticmethod
+    def _merge_output_request(existing, proposed):
+        text = proposed.get("output_request")
+        if text and text != existing.get("output_request"):
+            old = existing.get("output_request")
+            if old and text in old.splitlines():
+                return
+            existing["output_request"] = f"{old}\n{text}" if old else text
 
     def focus_task(self, title, record=None, requirements=None):
         if record is None:
@@ -83,6 +130,8 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             return self._error("INVALID_TASK", "A short scientific purpose and a known default record are required")
         try:
             requested = self._parse_requirements(requirements, record)
+        except RequirementValidationError as exc:
+            return {**self._error("INVALID_REQUIREMENTS",str(exc)),"requirement_errors":clone(exc.errors)}
         except (ValueError, TypeError) as exc:
             return self._error("INVALID_REQUIREMENTS", str(exc))
         candidates = [g for g in self.subgoals if g.title == title and
@@ -105,9 +154,15 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             event = "task_resumed" if goal.status == "suspended" else "task_refocused"
         # Refocusing may add outputs; it cannot silently drop an unfinished one.
         for row in requested:
-            if row not in goal.requirements and row not in goal.declared_requirements:
+            existing = next((i for i,r in enumerate(goal.requirements)
+                if requirement_identity(r)==requirement_identity(row) or
+                   requirement_identity(goal.declared_requirements[i])==requirement_identity(row)),None)
+            if existing is None:
                 goal.requirements.append(row)
                 goal.declared_requirements.append(clone(row))
+            else:
+                self._merge_output_request(goal.requirements[existing],row)
+                self._merge_output_request(goal.declared_requirements[existing],row)
         goal.status = "active"
         self.active, self.active_record, self.last_owner = goal, record, goal.subgoal_id
         self.events.append({"event": event, "subgoal_id": goal.subgoal_id,
@@ -162,7 +217,7 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
     def _remember_implicit_output(goal, name, record, scope):
         if goal.implicit_contract:
             row = {"tool": name, "record": record, "scope": canonical_scope(scope)}
-            if row not in goal.requirements:
+            if not any(requirement_identity(row)==requirement_identity(r) for r in goal.requirements):
                 goal.requirements.append(row)
                 goal.declared_requirements.append(clone(row))
 

@@ -115,6 +115,69 @@ class ScientificTaskTest(unittest.TestCase):
         self.assertEqual(out["code"],"INVALID_REQUIREMENTS")
         self.assertFalse(self.s.subgoals)
 
+    def test_development_scope_output_mixing_retains_failure_and_actionable_errors(self):
+        # Real dev-initial proposed these report selectors/none/null values in
+        # computational scope. Preserve the failure instead of stripping them.
+        proposed = [
+            {"tool":"amplitude","record":"A","scope":W},
+            {"tool":"psd","record":"A","scope":{**W,"band":"alpha"}},
+            {"tool":"event_bandpower","record":"A","scope":{
+                "labels":["stimulus"],"channels":["SYNTH-C2"],"band":"theta",
+                "baseline":"none","rejection":"none","tmin":None,"tmax":None}},
+        ]
+        failed = self.s.focus_task("真实开发目的","A",proposed)
+        self.assertEqual(failed["code"],"INVALID_REQUIREMENTS")
+        self.assertEqual([e["index"] for e in failed["requirement_errors"]],[1,2])
+        self.assertEqual(failed["requirement_errors"][0]["tool"],"psd")
+        self.assertEqual(failed["requirement_errors"][0]["allowed_scope_fields"],["channels","end","start"])
+        self.assertEqual(failed["requirement_errors"][1]["allowed_scope_fields"],["labels","tmax","tmin"])
+        self.assertIn("band",failed["requirement_errors"][0]["actual_error"]["message"])
+        self.assertFalse(self.s.subgoals)
+        self.assertFalse(self.s.entries)
+        corrected = [
+            {"tool":"amplitude","record":"A","scope":W,"output_request":"报告RMS"},
+            {"tool":"psd","record":"A","scope":W,"output_request":"报告alpha频带功率"},
+            {"tool":"event_bandpower","record":"A","scope":{"labels":["stimulus"]},
+             "output_request":"报告SYNTH-C2的theta频带功率；不执行基线校正或筛选"},
+        ]
+        self.assertEqual(self.s.focus_task("真实开发目的","A",corrected)["status"],"active")
+        self.assertFalse(self.s.completion_check(self.s.active)["ready"])
+        self.assertEqual(len(self.s.active.requirements),3)
+        self.assertEqual(self.s.active.requirements[-1]["scope"],{"labels":["stimulus"]})
+        self.assertFalse(self.s.contexts["A"].artifacts)
+
+    def test_null_is_not_accepted_as_a_missing_numeric_parameter(self):
+        failed = self.s.focus_task("null","A",self.requirements(
+            ("event_bandpower","A",{"labels":["stimulus"],"tmin":None,"tmax":None})))
+        actual = failed["requirement_errors"][0]["actual_error"]["message"]
+        self.assertIn("tmin",actual)
+        self.assertIn("number",actual)
+        self.assertFalse(self.s.subgoals)
+
+    def test_output_selection_does_not_duplicate_computation_or_change_completion(self):
+        self.request("记录A SYNTH-C1在0到2秒的alpha和beta功率。")
+        alpha = {"tool":"psd","record":"A","scope":W,"output_request":"报告alpha"}
+        beta = {"tool":"psd","record":"A","scope":W,"output_request":"报告beta"}
+        self.s.focus_task("两个输出","A",[alpha,beta])
+        self.assertEqual(len(self.s.active.requirements),1)
+        self.assertFalse(self.s.completion_check(self.s.active)["ready"])
+        self.assertTrue(self.s.execute_action("psd",W)["progress"]["ready"])
+        self.s.focus_task("两个输出","A",[beta])
+        self.assertEqual(len(self.s.active.requirements),1)
+        self.assertEqual(len(self.s.entries),1)
+        self.assertTrue(self.s.completion_check(self.s.active)["ready"])
+        self.assertEqual(self.s.active.requirements[0]["output_request"],"报告alpha\n报告beta")
+
+    def test_output_request_cannot_authorize_computational_scope(self):
+        self.request("记录A的SYNTH-C1，只告诉我需要什么参数。")
+        self.s.focus_task("description-only","A",[{
+            "tool":"psd","record":"A","scope":{},
+            "output_request":"0到2秒PSD是模型输出描述，不是用户的科学授权"}])
+        rejected = self.s.execute_action("psd",W)
+        self.assertEqual(rejected["code"],"SCIENTIFIC_SCOPE_UNGROUNDED")
+        self.assertFalse(self.s.entries)
+        self.assertFalse(self.s.completion_check(self.s.active)["ready"])
+
     def test_refocus_does_not_drop_pending_or_duplicate_filled_partial_scope(self):
         self.request("记录A SYNTH-C1在0到2秒计算PSD和幅值。")
         contract = self.requirements(("psd","A",{"channels":["SYNTH-C1"]}),("amplitude","A",W))

@@ -8,9 +8,11 @@ import math
 
 from .executor import _validate_schema
 from .result_semantics import read_scalar, result_field_semantics, UnsupportedResultField
-from .working_memory import clone, encoded
+from .working_memory import clone, encoded, NUMERIC_TOOLS
 from .working_memory_agent import control, STRING
 from .working_memory_managed import ManagedMemoryController, managed_controls
+from .working_memory_lifecycle import EVENT_TOOLS
+from .research.task_memory_evidence import scalar_paths
 
 
 SCIENTIFIC_SYSTEM = """你是多轮EEG科学分析助手。通过真实科学工具完成用户目的；数值、来源、版本和工件身份由程序维护。
@@ -23,7 +25,7 @@ requirements里的scope只填用户实际已给条件，缺少的留空，后续
 finish_task给出完整中文结果(completed)、真实未完成项(partial)或缺失科学参数(clarification_required)。检查原始请求所有科学目的；程序的已声明任务完成不证明未声明意图无遗漏。给对象、范围、版本、必要数值、单位、处理状态和限制。优先canonical_display；幅值V/µV，绝对功率V²/µV²不是ERD/ERS、临床结论或能力评分。"""
 
 
-def scientific_controls():
+def scientific_controls(registry=None):
     controls = managed_controls()
     controls[0] = control("focus_task", "Organize one scientific purpose with its required result instances; not an execution sequence. Missing scope parameters can be supplied later. Short single-result work needs no declaration.", {
         "title": STRING, "record": STRING,
@@ -36,6 +38,29 @@ def scientific_controls():
     controls.append(control("compare_results", "Calculate right-minus-left and right/left from two valid numeric scientific fields. Retains both scopes and versions; never infers causality or clinical meaning.", {
         "left_result": STRING, "right_result": STRING, "left_path": path, "right_path": path},
         ["left_result", "right_result", "left_path", "right_path"]))
+    if registry is not None:
+        # Computation parameters and requested reporting fields are different
+        # scientific roles. Derive the former from real tool contracts rather
+        # than leaving an untyped object that invites report selectors inside it.
+        scope_variants = {}
+        names_by_scope = {}
+        for name in sorted(NUMERIC_TOOLS):
+            schema = clone(registry.get("create_epochs" if name in EVENT_TOOLS else name).parameters)
+            if name in EVENT_TOOLS:
+                schema["properties"] = {k:v for k,v in schema["properties"].items() if k in {"labels","tmin","tmax"}}
+            schema.update(required=[], additionalProperties=False)
+            # Identical input contracts share one branch; no repeated scientific
+            # fields/schema for tools operating on the same kind of EEG object.
+            signature = encoded(schema)
+            scope_variants[signature] = schema
+            names_by_scope.setdefault(signature, []).append(name)
+        variants = []
+        for signature, schema in scope_variants.items():
+            variants.append({"type":"object","properties":{
+                "tool":{"type":"string","enum":names_by_scope[signature]}, "record":STRING, "scope":schema,
+                "output_request":{**STRING,"description":"Optional scientific output to report (channel, band, metric). Descriptive purpose only; cannot authorize processing or replace scope."}},
+                "required":["tool","record","scope"],"additionalProperties":False})
+        controls[0]["function"]["parameters"]["properties"]["requirements"]["items"] = {"oneOf": variants}
     return controls
 
 
@@ -50,7 +75,7 @@ class ScientificMemoryController(ManagedMemoryController):
         self.visible_comparisons = []
 
     def control_definitions(self):
-        return scientific_controls()
+        return scientific_controls(next(iter(self.store.contexts.values())).executor.registry)
 
     def _card(self, goal, **kwargs):
         card = super()._card(goal, **kwargs)
@@ -149,7 +174,7 @@ class ScientificMemoryController(ManagedMemoryController):
         if request.name in {"focus_task", "compare_results"}:
             if self.final_only:
                 return self.store._error("FINAL_DELIVERY_ONLY", "Only reserved final delivery is available")
-            spec = next(x["function"] for x in scientific_controls() if x["function"]["name"] == request.name)
+            spec = next(x["function"] for x in self.control_definitions() if x["function"]["name"] == request.name)
             _validate_schema(request.arguments, spec["parameters"])
             if request.name == "focus_task":
                 result = self.store.focus_task(**request.arguments)
@@ -162,10 +187,33 @@ class ScientificMemoryController(ManagedMemoryController):
                             "meaning": "Required results and readiness are in active_task; continue with actual scientific observations"}
                 return result
             return self._compare(**request.arguments)
-        return super()._dispatch(request)
+        result = super()._dispatch(request)
+        if request.name == "restore_task" and result.get("status") == "restored":
+            # The complete verified process is already held in self.restored
+            # and enters the next decision view. A native acknowledgement must
+            # not also duplicate the entire old trajectory in that same view.
+            return {"status":"restored", "subgoal":{k:clone(result["subgoal"][k])
+                    for k in ("subgoal_id","title","status") if k in result["subgoal"]},
+                    "reason":result["reason"],
+                    "action_observation_count":len(result.get("action_observations", [])),
+                    "process_location":"restored_trajectories in the next decision context"}
+        return result
 
     def execute(self, request, *, batch_size=1):
         result = super().execute(request, batch_size=batch_size)
+        observation = (result.data or {}).get("observation") if isinstance(result.data, dict) else None
+        if observation and observation.get("result_id"):
+            entry = self.store.find_entry(observation["result_id"])
+            fields = []
+            for path, value in scalar_paths(entry.result):
+                field = self._field(entry, path, value)
+                if field.get("semantics", {}).get("unit") in {"V", "V²"}:
+                    fields.append(field)
+            if fields:
+                # This sidecar is built from actual values before the next
+                # decision. Archive-only conversions were invisible in active AO.
+                result.data["quantity_evidence"] = {"task_id":entry.task_id,"record":entry.record,
+                    "parameters":clone(entry.parameters),"fields":fields}
         if isinstance(result.data, dict) and isinstance(result.data.get("progress"), dict):
             progress = result.data["progress"]
             rows = progress.get("deliveries", [])

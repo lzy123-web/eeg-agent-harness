@@ -8,7 +8,9 @@ import argparse
 from collections import Counter, defaultdict
 import hashlib
 import json
+import math
 from pathlib import Path
+import re
 
 import numpy as np
 
@@ -83,6 +85,51 @@ def _fields_present(facts, ident, fields):
         for f in fields)
 
 
+def quantity_displays_in_request(request):
+    """Audit actual carried unit displays, never score free natural prose.
+
+    Scaling is checked against the accompanying real evidence value; separate
+    oracle rows validate that value's numerical/source correctness. A display
+    in system instructions, a locator, or a failed result is not exposure.
+    """
+    found={}
+    def numeric_display(text, expected_unit, expected):
+        if not isinstance(text,str):return None
+        match=re.fullmatch(r"\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s+(.+?)\s*",text)
+        if not match or match[2] != expected_unit:return False
+        value=float(match[1])
+        return math.isfinite(value) and math.isclose(value,expected,rel_tol=5e-8,abs_tol=0.0)
+    def scan(value, failed=False):
+        if isinstance(value,list):
+            for item in value:scan(item,failed)
+        elif isinstance(value,dict):
+            failed=failed or value.get("success") is False
+            ident=value.get("task_id") or value.get("result_id")
+            if isinstance(ident,str) and not failed:
+                fields=value.get("fields",[])
+                for field in fields if isinstance(fields,list) else []:
+                    if not isinstance(field,dict):continue
+                    unit=(field.get("semantics") or {}).get("unit")
+                    if unit not in {"V","V²"} or not isinstance(field.get("path"),list):continue
+                    if "canonical_display" not in field and "scaled_display" not in field:continue
+                    try:base=float(field["value"])
+                    except (KeyError,ValueError,TypeError):continue
+                    if not math.isfinite(base):continue
+                    multiplier=1e6 if unit == "V" else 1e12
+                    scaled_unit="µV" if unit == "V" else "µV²"
+                    row={"result_id":ident,"path":field["path"],"value":field["value"],"unit":unit,
+                        "canonical_display":field.get("canonical_display"),"scaled_display":field.get("scaled_display"),
+                        "expected_scaled_value":base*multiplier,"scaled_unit":scaled_unit,
+                        "canonical_display_valid":numeric_display(field.get("canonical_display"),unit,base),
+                        "scaled_display_valid":numeric_display(field.get("scaled_display"),scaled_unit,base*multiplier),
+                        "meaning":"Actual structured-input display; final natural language still requires semantic review"}
+                    key=json.dumps([ident,field["path"],field.get("canonical_display"),field.get("scaled_display")],ensure_ascii=False)
+                    found[key]=row
+            for item in value.values():scan(item,failed)
+    for value in _decoded_messages(request):scan(value)
+    return list(found.values())
+
+
 def _memory_summary(goal):
     out = _goal_excerpt(goal)
     for key in ("contract_version", "requirements", "records", "default_record", "current_execution_record", "pending_actions", "scientific_facts"):
@@ -136,6 +183,7 @@ def _request_views(requests):
                 "field_paths": [f["path"] for f in fields.values()], "field_values_sha256": _digest(list(fields.values()))}
                 for ident, fields in facts.items()],
             "conflicting_exact_fields": conflicts,
+            "quantity_display_exposure":quantity_displays_in_request(request),
             "summary_task_ids": [x.get("subgoal_id") for x in summaries],
             "active_task_id": (payload.get("active_task") or {}).get("subgoal_id"),
             "active_task_completion": (payload.get("active_task") or {}).get("delivery_check"),
@@ -214,6 +262,8 @@ def audit_run(directory):
                 "result_id": data.get("task_id"), "subgoal_id": data.get("subgoal_id")}
             if not action["success"]:
                 row["failure_data"] = data
+            if action["success"] and data.get("quantity_evidence"):
+                row["quantity_evidence"] = data["quantity_evidence"]
             observation = data.get("observation")
             if observation:
                 row["observation"] = observation
@@ -234,7 +284,11 @@ def audit_run(directory):
             if action["tool_name"] == "focus_task" and action["success"]:
                 task = data.get("task") or {}
                 row["declared_task"] = _memory_summary(task)
-                row["declared_requirement_count"] = len(task.get("requirements", []))
+                proposed=(linked.get("arguments") or {}).get("requirements",[])
+                row["accepted_proposal"]={"subgoal_id":data.get("subgoal_id",task.get("subgoal_id")),
+                    "title":(linked.get("arguments") or {}).get("title"),"requirements":proposed,
+                    "meaning":"Actual model proposal accepted by the public control; subsequent fulfillment is checked separately"}
+                row["declared_requirement_count"] = len(proposed) if proposed else len(task.get("requirements", []))
             if action["tool_name"] == "compare_results" and action["success"]:
                 row["verified_comparison"] = data
                 try:
@@ -311,7 +365,8 @@ def audit_run(directory):
             "automatic_valid_reuse": sum(a["tool"] in NUMERIC_TOOLS and a["status"] == "reused" for a in actions),
             "successful_exact_reads": len(reads), "successful_process_restores": len(restores)},
         "autonomous_grouping_observations": [{"turn":a["turn"],"request_index":a["request_index"],
-            "declared_task":a["declared_task"],"declared_requirement_count":a["declared_requirement_count"]}
+            "declared_task":a["declared_task"],"accepted_proposal":a["accepted_proposal"],
+            "declared_requirement_count":a["declared_requirement_count"]}
             for a in actions if a.get("declared_requirement_count",0) > 1],
         "driver_events": read_rows(directory/"driver_events.jsonl"),
         "log_hashes": {p.name: sha(p) for p in sorted(directory.glob("*.json*"))}}
