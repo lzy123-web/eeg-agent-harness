@@ -1,5 +1,20 @@
 # EEG Agent Harness
 
+> **Issue #51 已结束有界研发与冻结确认；完整自主科学会话未通过。** 新 opt-in `scientific` 将完整请求的科学对象绑定、多结果实例完成、真实单位/比较与任务工作上下文接入原 Agent/Executor。617项回归（602通过/15资源跳过）；真实16 completion /187,303 API tokens。模型自主接纳多结果目的，连续与事件数值、旧新比较正确；确认第二轮被辅助失败的完成门控阻断，第三轮未进入。真实精确读回/过程恢复均未触发，未开展强摘要收益比较。见[完整协议、首次失败及预算](docs/research/EEG_WORKING_MEMORY_ISSUE51_PROTOCOL_AND_RESULTS.md)、[主方法与职责](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开合成证据](docs/research/evidence/issue51_scientific_memory_diagnostic.json)。阶段账本已关闭，余量不续用。
+
+最新研究入口：`WorkingMemoryEEGAgent(client, records, memory_version="scientific", context_mode="working")`，仍使用 `run(text)` / `continue_run(text)`；CLI对应 `--memory-version scientific`，支持同权的 `full` / `summary` / `working`。模型提出目的与下一动作，程序按真实记录、范围、结果和工件核验；不接收评测gold或正确行动序列。此模式是待完善的研究候选，不能作为已通过完整自主验收的稳定默认。
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -q
+python -m eeg_harness.research.working_memory_issue51 --preflight --output artifacts/point1_task_memory/issue51/new-preflight.json
+# 已有本机原始日志时，只读审计；输出文件必须尚不存在：
+python -m eeg_harness.research.working_memory_issue51_audit --output artifacts/point1_task_memory/issue51/new-audit.json
+```
+
+只有上述预检/回归不访问API；真实运行必须另有独立授权与追加预算。科学对象字面绑定不等于任意自然语言意图证明，数值通过不等于最终科学交付通过。以下为保留的旧模式与阶段结果。
+
 > **Issue #50 已完成有界架构调整与配对诊断；完整科学回答、记忆独立收益仍未通过/验证。** 新增opt-in `managed`：科学动作局部接纳，程序维护真实来源、结果、版本、工件和归档；同一原Agent/Executor。539项回归（524通过/15资源跳过），34项科学预检。真实26次/309,095tokens：新路径完成事件补窗、连续修订及旧RMS实际读取；最终差值与事件解释仍有错误。第二层三模式完整预算不足，未联网，不宣称压缩收益。见[完整协议与结果](docs/research/EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)、[公开合成证据](docs/research/evidence/issue50_architecture_diagnostic.json)。本阶段已停止，不续用余额。
 
 统一自然入口：`WorkingMemoryEEGAgent(client, records, memory_version="managed", context_mode="working")` 的 `run(text)` / `continue_run(text)`；也支持 `summary`、`full`。CLI使用`--memory-version managed`，不需要gold、turn.kind或正确任务ID。短任务允许直接执行，复杂目的可选focus，程序核验实际结果而非任意语言完整性。真实模型本阶段以full诊断；summary/working有离线数据流验证，未作本阶段真实收益比较。
