@@ -1,5 +1,18 @@
 # EEG Agent Harness
 
+> **Issue #52：共享强 Plan-and-Execute 与 EEG 科学交付/分层证据候选已完成离线阶段，真实自主效果尚未验证。** 新`TaskPlanEEGAgent`继续使用原EEGAgent循环、TaskStore与Executor。A强P&E、B一般任务记忆、C候选共享稳定DAG/结果自动关联/来源版本/工件安全/历史读权/局部重规划；C额外自动核验明确科学条件，并按实际依赖选择摘要、字段或过程。652项回归（637通过/15资源跳过）；八类×三臂93项数值核验通过，T04/T07仍共同保守误拒，未记为完整任务成功。**本阶段0外部completion/0 API tokens，不能宣称自主成功率或成本胜出。** [设计与代码映射](docs/research/EEG_WORKING_MEMORY_ISSUE52_DESIGN.md) · [冻结协议、真实离线结果及预算建议](docs/research/EEG_WORKING_MEMORY_ISSUE52_PROTOCOL.md) · [开题一页总结](docs/research/EEG_WORKING_MEMORY_ISSUE52_PROPOSAL_SUMMARY.md)。
+
+新统一入口：`TaskPlanEEGAgent(client, records, arm="C").run(text)` / `continue_run(text)`；A/B/C及`A-equivalent`、两个消融共享入口和原工具。未来获新授权后原CLI可用`--plan-arm`，没有预置正确DAG或行动次序。当前可运行的离线入口如下（输出必须为新路径）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m eeg_harness.research.working_memory_issue52 --offline --case T01 --case T02 --case T03 --case T04 --case T05 --case T06 --case T07 --case T08 --output artifacts/point1_task_memory/issue52/new-eight-paired.json
+python -m eeg_harness.research.working_memory_issue52 --preflight --output artifacts/point1_task_memory/issue52/new-preflight.json
+python -m unittest discover -s tests -q
+```
+
+离线回放会注入控制计划与动作，仅验证真实工具和机制；不能当作模型从自然语言自主规划。`--real`在本阶段驱动中明确拒绝；不继承旧预算。原`scientific/managed`及以下历史结果保留。
+
 > **Issue #51 已结束有界研发与冻结确认；完整自主科学会话未通过。** 新 opt-in `scientific` 将完整请求的科学对象绑定、多结果实例完成、真实单位/比较与任务工作上下文接入原 Agent/Executor。617项回归（602通过/15资源跳过）；真实16 completion /187,303 API tokens。模型自主接纳多结果目的，连续与事件数值、旧新比较正确；确认第二轮被辅助失败的完成门控阻断，第三轮未进入。真实精确读回/过程恢复均未触发，未开展强摘要收益比较。见[完整协议、首次失败及预算](docs/research/EEG_WORKING_MEMORY_ISSUE51_PROTOCOL_AND_RESULTS.md)、[主方法与职责](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开合成证据](docs/research/evidence/issue51_scientific_memory_diagnostic.json)。阶段账本已关闭，余量不续用。
 
 最新研究入口：`WorkingMemoryEEGAgent(client, records, memory_version="scientific", context_mode="working")`，仍使用 `run(text)` / `continue_run(text)`；CLI对应 `--memory-version scientific`，支持同权的 `full` / `summary` / `working`。模型提出目的与下一动作，程序按真实记录、范围、结果和工件核验；不接收评测gold或正确行动序列。此模式是待完善的研究候选，不能作为已通过完整自主验收的稳定默认。

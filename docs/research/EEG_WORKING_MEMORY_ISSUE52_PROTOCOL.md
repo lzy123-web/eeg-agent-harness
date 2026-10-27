@@ -130,4 +130,18 @@ python -m eeg_harness.research.working_memory_issue52 --preflight --output artif
 python -m unittest discover -s tests -p test_working_memory_issue52.py -q
 ```
 
-运行器专项10个测试通过；主方法、DAG及既有系统的回归数目由阶段报告统一汇总。未来真实自主验证尚未执行，不能把本轮固定计划或固定回答当作它的替代。
+运行器专项10个测试通过；最终完整回归652项（637通过、15资源门控跳过），compileall和pip check通过。未来真实自主验证尚未执行，不能把本轮固定计划或固定回答当作它的替代。
+
+## 9. 冻结归档、消融与可交付结论
+
+代码和协议冻结提交为`9e5347c63d3fc3ca9add42ea8be68b0abd9b59db`。公开[合成离线证据摘录](evidence/issue52_offline_paired_diagnostic.json)保存24条主回放、6条消融/敏感性回放、原请求、实际数值结果/失败、真实版本/工件、应供/实际呈现/适配器绑定后的使用关联、首次失败和本地原文件SHA-256。全量实际messages/tools保留在本地忽略产物中；公开摘录不冒称真实外部API记录。
+
+冻结后使用同一协议执行`offline-ablations-frozen.json`：T06和T08分别运行C-no-delivery、C-no-selection、A-equivalent。6条路径的21项独立数值核验全部通过，与主实验93项分开计数。T06三种模式均正确安全停止，各6次受控决策；T08 C-no-delivery为7次、C-no-selection和A-equivalent为8次，三种均3次数值执行、5项oracle通过。该受控差异来源于自动过程呈现，不是科学验收条件，也不能用来预测真实模型如何选择读取。复现追加命令：
+
+```powershell
+python -m eeg_harness.research.working_memory_issue52 --offline --case T06 --case T08 --arm C-no-delivery --arm C-no-selection --arm A-equivalent --output artifacts/point1_task_memory/issue52/reproduce-ablations.json
+```
+
+单元回归中的同提议注入进一步说明：普通P&E可能接受模型错误的科学满足声明，候选自动门控拒绝；但给强P&E相同自动检查后差异消失。这是可配置验收机制的确定性防护，不是已发生的基座错误统计，也不是普通P&E不能实现的算法能力。原工具数值与科学来源校验共享，不应将公共修复计作候选收益。
+
+阶段判断为B：现已具备具体定义、真实工具链实现和可复现机制证据；还缺完整真实自然使用及相对合理强基线的效用证据。开题可据实写领域适配研究方案和前期实现，不能写已证明自主成功、降低实际费用或独立创新成立。若后续公平配对显示简单P&E同样可靠，应保留公共科学基础、简化候选，而非继续增加规则。最新可直接使用的中文表述见[开题一页总结](EEG_WORKING_MEMORY_ISSUE52_PROPOSAL_SUMMARY.md)。
