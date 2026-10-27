@@ -130,6 +130,28 @@ def quantity_displays_in_request(request):
     return list(found.values())
 
 
+def restored_processes_in_request(request):
+    """Read actual restored AO from model inputs, never infer it from an ACK."""
+    found={}
+    def scan(value,failed=False):
+        if isinstance(value,list):
+            for item in value:scan(item,failed)
+        elif isinstance(value,dict):
+            failed=failed or value.get("success") is False
+            ident=(value.get("subgoal") or {}).get("subgoal_id")
+            observations=value.get("action_observations")
+            if not failed and isinstance(ident,str) and isinstance(observations,list) and observations:
+                sha_value=_digest(observations)
+                found[(ident,sha_value)]={"task_id":ident,"observation_count":len(observations),
+                    "observations_sha256":sha_value,"artifact_ids":sorted(artifact_ids(observations)),
+                    "source_bindings":[{"record":o.get("record"),"source":o.get("source"),
+                        "scope":o.get("scope"),"tool":(o.get("request") or {}).get("name")}
+                        for o in observations if isinstance(o,dict)]}
+            for item in value.values():scan(item,failed)
+    for value in _decoded_messages(request):scan(value)
+    return list(found.values())
+
+
 def _memory_summary(goal):
     out = _goal_excerpt(goal)
     for key in ("contract_version", "requirements", "records", "default_record", "current_execution_record", "pending_actions", "scientific_facts"):
@@ -168,13 +190,8 @@ def _request_views(requests):
         payload = payload_for(request)
         facts, conflicts = evidence_in_request(request)
         actual_facts.append(facts)
-        restored = payload.get("restored_trajectories", [])
-        restored_ids = [(x.get("subgoal") or {}).get("subgoal_id") for x in restored]
-        # A successful native tool response also enters the next actual prompt.
-        for value in _decoded_messages(request):
-            if isinstance(value, dict) and value.get("tool_name") in {"restore_task", "restore_subgoal"} and value.get("success"):
-                data = value.get("data") or {}
-                restored_ids.append((data.get("subgoal") or {}).get("subgoal_id"))
+        processes=restored_processes_in_request(request)
+        restored_ids=[p["task_id"] for p in processes]
         summaries = payload.get("task_summaries", payload.get("archived_summaries", []))
         visible.append({"request_index": index, "request_id": request.get("request_id"),
             "turn": request.get("context", {}).get("turn"),
@@ -188,6 +205,7 @@ def _request_views(requests):
             "active_task_id": (payload.get("active_task") or {}).get("subgoal_id"),
             "active_task_completion": (payload.get("active_task") or {}).get("delivery_check"),
             "restored_task_ids": sorted({x for x in restored_ids if x}),
+            "restored_process_exposure":processes,
             "artifact_locators": sorted(set().union(*(artifact_ids(v) for v in _decoded_messages(request)))),
             "delivery_reason": payload.get("delivery_reason", payload.get("delivery_phase")),
             "actual_wire_payload_bytes": request.get("actual_wire_payload_bytes"),
@@ -277,10 +295,12 @@ def audit_run(directory):
             if action["tool_name"] in {"read_result", "read_evidence"} and action["success"]:
                 row["read_evidence"] = data.get("evidence")
             if action["tool_name"] in {"restore_task", "restore_subgoal"} and action["success"]:
-                row["restored_task_id"] = (data.get("subgoal") or {}).get("subgoal_id")
+                row["restored_task_id"] = data.get("subgoal_id") or (data.get("subgoal") or {}).get("subgoal_id")
                 row["restored_artifact_ids"] = sorted(artifact_ids(data.get("action_observations", [])))
                 row["restored_observation_count"] = len(data.get("action_observations", []))
                 row["restored_observation_sha256"] = _digest(data.get("action_observations", []))
+                row["restore_ack_observation_count"] = data.get("action_observation_count")
+                row["restore_reply_contains_process"] = bool(data.get("action_observations"))
             if action["tool_name"] == "focus_task" and action["success"]:
                 task = data.get("task") or {}
                 row["declared_task"] = _memory_summary(task)
@@ -326,19 +346,25 @@ def audit_run(directory):
                 audit_errors.append({"turn": action["turn"], "request_index": index,
                     "error_type": type(exc).__name__, "message": str(exc), "kind": "read_oracle"})
         if action.get("restored_task_id"):
-            visible = [v["request_index"] for v in visibility if v["request_index"] > index
-                       and action["restored_task_id"] in v["restored_task_ids"]]
+            processes=[{"request_index":v["request_index"],**p}
+                for v in visibility if v["request_index"] > index
+                for p in v["restored_process_exposure"] if p["task_id"] == action["restored_task_id"]]
+            visible=sorted({p["request_index"] for p in processes})
+            exposed_artifacts=sorted({ident for p in processes for ident in p["artifact_ids"]})
             uses = []
             for later_action in actions:
                 obs = later_action.get("observation")
                 if not obs or not obs["result"]["success"] or later_action["request_index"] is None:
                     continue
                 resolved_artifact = obs["request"].get("arguments", {}).get("artifact_id")
-                if resolved_artifact in action["restored_artifact_ids"] and any(v <= later_action["request_index"] for v in visible):
+                if any(resolved_artifact in p["artifact_ids"] and p["request_index"] <= later_action["request_index"] for p in processes):
                     uses.append({"turn": later_action["turn"], "request_index": later_action["request_index"],
                         "tool": later_action["tool"], "actual_artifact_id": resolved_artifact})
             restores.append({"turn": action["turn"], "restore_request_index": index,
-                "task_id": action["restored_task_id"], "artifact_ids": action["restored_artifact_ids"],
+                "task_id": action["restored_task_id"], "artifact_ids": exposed_artifacts,
+                "acknowledged_observation_count":action.get("restore_ack_observation_count"),
+                "reply_contains_process":action.get("restore_reply_contains_process"),
+                "actual_input_processes":processes,
                 "visible_in_later_inputs": visible, "subsequent_real_same_artifact_execution": uses,
                 "temporal_exposure_then_execution": bool(visible and uses),
                 "meaning": "Not a causal proof: the same locator may already have been visible elsewhere"})

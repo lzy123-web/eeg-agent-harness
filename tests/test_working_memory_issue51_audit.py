@@ -14,6 +14,18 @@ def request(value):
 
 
 class EvidenceExposureTest(unittest.TestCase):
+    def test_restore_ack_is_not_the_restored_process(self):
+        ack={"success":True,"data":{"status":"restored","subgoal_id":"g1","action_observation_count":1}}
+        self.assertEqual(audit.restored_processes_in_request(request(ack)),[])
+        process={"subgoal":{"subgoal_id":"g1"},"action_observations":[{
+            "record":"A","source":"synthetic://A","scope":{"labels":["event"]},
+            "request":{"name":"event_bandpower","arguments":{"artifact_id":"epochs-real"}},
+            "result":{"success":True,"data":{"artifact_id":"epochs-real"}}}]}
+        visible=audit.restored_processes_in_request(request({"restored_trajectories":[process]}))
+        self.assertEqual(visible[0]["artifact_ids"],["epochs-real"])
+        self.assertEqual(visible[0]["observation_count"],1)
+        self.assertEqual(audit.restored_processes_in_request(request({"success":False,"data":process})),[])
+
     def test_native_quantity_evidence_unit_conversion_is_visible_and_checkable(self):
         field={"path":["C1","alpha"],"value":2e-10,"semantics":{"unit":"V²"},
             "canonical_display":"2e-10 V²","scaled_display":"200 µV²"}
@@ -110,6 +122,35 @@ class AuditTest(unittest.TestCase):
             manifest["data_sha256"]["A"]="different"
             (directory/"manifest.json").write_text(json.dumps(manifest),encoding="utf8")
             with self.assertRaises(ValueError):audit.audit_run(directory)
+
+    def test_restore_ack_links_to_actual_next_input_then_real_quality_operation(self):
+        with tempfile.TemporaryDirectory() as d:
+            directory=self._fixture(Path(d))
+            agent=stage.build_agent(None,"scientific-working","audit-restore")
+            history=stage.controlled_history(agent,capture_views=True)
+            restore=next(a for a in history["actions"] if a["tool"] == "restore_task")
+            quality=next(a for a in history["actions"] if a["tool"] == "epoch_quality")
+            self.assertNotIn("action_observations",restore["result"]["data"])
+            turn=audit.read_json(directory/"turn-1.json")
+            turn["tool_results"]=[restore["result"],quality["result"]]
+            (directory/"turn-1.json").write_text(json.dumps(turn),encoding="utf8")
+            inputs=[{"request_id":"r1","context":{"turn":1},**request({"current_request":"fixture"})},
+                {"request_id":"r2","context":{"turn":1},**request({"restored_trajectories":list(agent.working_memory.restored.values())})}]
+            outputs=[{"raw_assistant_message":{"tool_calls":[{"id":a["result"]["request_id"],"function":{
+                "name":a["tool"],"arguments":json.dumps(a["arguments"])}}]}} for a in (restore,quality)]
+            for name,rows in (("requests.jsonl",inputs),("responses.jsonl",outputs)):
+                (directory/name).write_text("\n".join(json.dumps(row) for row in rows)+"\n",encoding="utf8")
+            chain=audit.audit_run(directory)["restore_chains"][0]
+            self.assertFalse(chain["reply_contains_process"])
+            self.assertEqual(chain["visible_in_later_inputs"],[2])
+            self.assertTrue(chain["temporal_exposure_then_execution"])
+            self.assertEqual(chain["subsequent_real_same_artifact_execution"][0]["tool"],"epoch_quality")
+            # Same successful acknowledgement and operation without a real
+            # process in the intervening model input is not process exposure.
+            inputs[1]=dict(inputs[1],**request({"restore_ack":restore["result"]["data"]}))
+            (directory/"requests.jsonl").write_text("\n".join(json.dumps(row) for row in inputs)+"\n",encoding="utf8")
+            chain=audit.audit_run(directory)["restore_chains"][0]
+            self.assertFalse(chain["temporal_exposure_then_execution"])
 
     def test_minimal_focus_reply_retains_actual_accepted_model_grouping(self):
         with tempfile.TemporaryDirectory() as d:
