@@ -109,6 +109,44 @@ class ActionMemoryTest(unittest.TestCase):
         self.assertFalse(ok["progress"]["valid"])
         self.assertEqual(self.s.active.pending_actions[0]["arguments"], {"channels": ["SYNTH-C2"]})
 
+    def test_unexecuted_historical_object_can_receive_current_window_without_touch(self):
+        self.request("记录A SYNTH-C1在0到2秒RMS；stimulus事件中SYNTH-C2功率，事件窗稍后提供。")
+        self.s.execute_action("amplitude", W)
+        self.s.execute_action("list_events", {})
+        self.assertFalse(self.s.contexts["A"].artifacts)
+        self.assertTrue(all(not g.pending_actions for g in self.s.subgoals))
+        self.request("事件窗使用发生后0到1.25秒，其余事件条件不变。连续分析窗口改为4到6秒。")
+        scope = {**E, "tmax": 1.25}
+        ambiguous = self.s.execute_action("create_epochs", scope)
+        self.assertEqual(ambiguous["code"], "SCIENTIFIC_SCOPE_UNGROUNDED")
+        result = self.s.execute_action("create_epochs", scope,
+            request_span="事件窗使用发生后0到1.25秒")
+        self.assertTrue(result["observation"]["result"]["success"])
+        sources = self.s.entries[-1].tool_trace[0]["scientific_sources"]
+        self.assertEqual(sources["labels"]["turn"], 1)
+        self.assertEqual(sources["labels"]["basis"], "unique_historical_object_identity")
+        self.assertEqual(sources["tmax"]["turn"], 2)
+        # Historical numerical values never supply the new event window.
+        fabricated = self.s.execute_action("create_epochs", {**E, "tmax": 2},
+            request_span="事件窗使用发生后0到1.25秒")
+        self.assertEqual(fabricated["code"], "SCIENTIFIC_SCOPE_UNGROUNDED")
+
+    def test_ambiguous_historical_objects_or_records_do_not_supply_missing_identity(self):
+        for first in (
+            "记录A stimulus事件窗待定；control事件窗也待定。",
+            "记录A stimulus事件窗待定；记录B stimulus事件窗也待定。",
+        ):
+            with self.subTest(first=first):
+                s = ActionWorkingMemoryStore("ambiguity", synthetic_records())
+                s.user_requests, s.turn = [first, "使用0到1秒，其余不变。"], 2
+                out = s.execute_action("create_epochs", E, record="A")
+                self.assertEqual(out["code"], "SCIENTIFIC_SCOPE_UNGROUNDED")
+                self.assertFalse(s.entries)
+        # Merely existing in record metadata never authorizes an unused label.
+        self.request("记录A SYNTH-C1在0到2秒算RMS。")
+        self.request("使用0到1秒。")
+        self.assertEqual(self.s.execute_action("create_epochs", E)["code"], "SCIENTIFIC_SCOPE_UNGROUNDED")
+
     def test_multi_record_source_span_is_once_per_action(self):
         a = "记录A SYNTH-C1在0到2秒PSD"
         b = "记录B SYNTH-C1在2到4秒PSD"

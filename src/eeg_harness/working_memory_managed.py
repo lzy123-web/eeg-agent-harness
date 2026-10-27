@@ -52,6 +52,10 @@ class ManagedMemoryController(WorkingMemoryController):
             self.store.settle_active()
         super().begin_turn(request)
         self.last_view, self.retrieved = None, {}
+        # A real new user turn must follow the archived native interactions.
+        # Putting its text only in a prefix snapshot leaves the old finish tool
+        # as the conversation's latest event and invites answering that old turn.
+        self.turn_exchange_start = len(self.exchanges)
 
     def control_definitions(self):
         return managed_controls()
@@ -213,8 +217,12 @@ class ManagedMemoryController(WorkingMemoryController):
             "restored_trajectories": list(self.restored.values()),
             "feedback": self.feedback,
             "responsibilities": "Actual sources/results/version bookkeeping is automatic; model scientific interpretation and original-request completeness remain fallible."}
+        previous_pairs = self.exchanges[:self.turn_exchange_start]
+        previous = [clone(m) for pair in pairs if pair in previous_pairs for m in pair]
+        current = [clone(m) for pair in pairs if pair not in previous_pairs for m in pair]
         return [{"role":"system","content":MANAGED_SYSTEM},
-                {"role":"user","content":encoded(payload).decode("utf8")}] + native
+                {"role":"user","content":encoded(payload).decode("utf8")}] + previous + [
+                {"role":"user","content":self.requests[-1]}] + current
 
     def build_messages(self, *, record_decision=True, final_preview=None):
         if getattr(self, "delivery_checkpoint", None):

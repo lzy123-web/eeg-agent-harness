@@ -156,6 +156,49 @@ class ActionWorkingMemoryStore(MultiResultWorkingMemoryStore):
                 "independent_actions_remain_available": True,
                 "subgoal_id": goal.subgoal_id if goal else None}
 
+    def _historical_object_source(self, record, family, values):
+        """Recover a unique actual user object, never historical range values.
+
+        A request exists independently of whether the model previously executed
+        it, declared it pending or restored its task. Only literal metadata
+        identities from the latest relevant unambiguous user request qualify.
+        """
+        source_record = self.contexts[record].record
+        labels = list({e.label for e in source_record.events.events}) if source_record.events else []
+        objects = labels if family == "event" else list(source_record.channel_names)
+        if not values or not set(values).issubset(objects):
+            return None
+        current_mentions = self._mentioned_records(self.user_requests[-1]) if self.user_requests else set()
+        for index in range(len(self.user_requests)-2, -1, -1):
+            whole = self.user_requests[index]
+            mentioned = self._mentioned_records(whole)
+            bound_record = next(iter(mentioned)) if len(mentioned) == 1 else None
+            candidates = []
+            for clause in self._scientific_clauses(whole, objects):
+                local_records = self._mentioned_records(clause)
+                if local_records:
+                    bound_record = next(iter(local_records)) if len(local_records) == 1 else None
+                present = tuple(sorted(x for x in objects if self._contains(clause, x)))
+                # An event's reported channel is not a continuous-data scope.
+                if family == "continuous" and any(self._contains(clause, label) for label in labels):
+                    continue
+                if present:
+                    candidates.append((bound_record, present, clause))
+            relevant = [c for c in candidates if c[0] == record]
+            if not relevant:
+                # No explicit record binding means there is no trustworthy
+                # history scope to import, even if a name happened to occur.
+                continue
+            related_records = {c[0] for c in candidates}
+            if len(related_records) > 1 and current_mentions != {record}:
+                return None
+            alternatives = {c[1] for c in relevant}
+            if alternatives != {tuple(sorted(values))}:
+                return None
+            return {"kind": "user", "turn": index+1, "span": relevant[-1][2],
+                    "basis": "unique_historical_object_identity", "record": record}
+        return None
+
     def _ground_scope(self, name, scope, record, text, inherited):
         """Return confirmed sources and unresolved fields; never infer values."""
         family = self._family(name)
@@ -184,6 +227,10 @@ class ActionWorkingMemoryStore(MultiResultWorkingMemoryStore):
             if (fact["record"], fact["family"], fact["scope"], fact["record_fingerprint"]) == (record, family, scope, current_fingerprint):
                 known.update(clone(fact["sources"]))
         anchors = list(scope.get("labels" if family == "event" else "channels", []))
+        if object_key not in known:
+            historical = self._historical_object_source(record, family, anchors)
+            if historical is not None:
+                known[object_key] = historical
         pieces = self._scientific_clauses(text, anchors)
         source_record = self.contexts[record].record
         event_labels = list({e.label for e in source_record.events.events}) if source_record.events else []
@@ -212,6 +259,11 @@ class ActionWorkingMemoryStore(MultiResultWorkingMemoryStore):
             candidate_pieces = [p for p in candidate_pieces if not any(
                 p.strip() in original and any(self._contains(original, x) for x in foreign)
                 for original in whole_clauses)]
+            # Several unanchored windows are a semantic choice, not a source
+            # fact the program can resolve. A single literal request_span may
+            # select the intended clause; it is not proof of its full meaning.
+            if len({(float(a), float(b)) for p in candidate_pieces for a, b in RANGE.findall(p)}) > 1:
+                candidate_pieces = []
         sources = dict(known)
         for key, value in scope.items():
             if key in sources:
