@@ -106,5 +106,21 @@ class ReportEvidenceGraphTest(unittest.TestCase):
         self.assertEqual(len(self.g.release([("a","alpha")])["released_facts"]),1)
 
 
+    def test_full_audit_rechecks_pinned_old_revision(self):
+        self.g.add(Claim("pinned","measurement",(ref(revision=1),),2e-10,"V²"))
+        del self.r.data[("a","alpha",1)]
+        self.g.refresh_all()
+        self.assertEqual(self.g.assessments["pinned"].status,"STALE")
+
+    def test_dependent_numerical_claim_is_revalidated(self):
+        self.g.add(Claim("parent","measurement",(ref(),),2e-10,"V²"))
+        second=ResultRef("b","beta",("C1","beta"))
+        self.r.authorized.add((("a","alpha",None),("b","beta",None)))
+        self.g.add(Claim("child","ratio",(ref(),second),2.0,"1",depends_on_claims=("parent",)))
+        del self.r.data[("a","alpha",None)]
+        self.g.refresh([("a","alpha")])
+        self.assertEqual(self.g.assessments["child"].status,"STALE")
+
+
 if __name__ == "__main__":
     unittest.main()
