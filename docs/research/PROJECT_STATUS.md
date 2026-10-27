@@ -20,6 +20,8 @@
 - 下一阶段唯一优先目标：保障实际结果之间的派生比较及科学解释边界，再以完整配对单元检验上下文方案。先离线、不得新造回答验证Agent或把修复包装算法；未来真实实验须另行明确授权。本阶段停止，不自动开展工作点二或新方向。
 - Git：初版及修订均已普通推送；本轮最终证据/研究状态另作提交并普通推送，准确发布信息附后。PR保持Draft，不合并main、不强推。
 
+- 发布留痕：证据/研究材料提交`b9796b37b9624742974c6c05cba325b5bc682748`已普通推送；首次遇到临时TLS握手错误，普通重试成功，没有force或改写历史。[Issue #50实际结果](https://github.com/lzy123-web/eeg-agent-harness/issues/50#issuecomment-6434402234)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6434402602)已发布；PR正文新增本阶段并保留旧历史，仍Draft/open/unmerged。Issue保持open供研究审查。本条仅同步发布状态，不新增调用、不改冻结候选或确认成绩。
+
 ## Issue #49：阶段已交付，完整自主验收仍未通过
 
 - 安全fetch起点本地/远端均`0b59cb6fe9732d9baf35680166a7fcd47c68ea26`，工作区干净，承接原研究分支及Draft PR #37；不改main、不改写旧历史。保留Issue48全部失败与协议。
