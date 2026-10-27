@@ -1,14 +1,24 @@
 # 项目状态
 
-## Issue #50：职责重划与有限诊断（进行中）
+## Issue #50：职责重划已交付；完整科学回答及记忆独立收益仍未通过/验证
 
-- 安全fetch后本地/远端均`80271e7fe01afbab59cb57a3f680d9b35bb83ea8`，工作区起始干净，沿用研究分支与Draft PR #37。Issue全文已读，无追加评论。
-- 选择opt-in managed动作级科学接纳与任务工作记忆：模型科学选择，程序自动维护真实结果/来源/范围/版本/归档。取消新入口逐字段quote、coverage及全目标门控；保留旧模式、Executor与旧实验。
-- 先落实实际动作校验、活动行动观察、自动多结果记账和可恢复归档，再做统一入口离线回归。预算重划为实际可发送最终视图快照保护，不沿用96KB未来最坏输入分箱。具体取舍写入主方法文档。
-- 用户新授权独立64completion/400,000tokens，只追加账本；目前0外部调用。先实现/预检，后少量开发→旧/新同完整历史成对→新架构可用才做三模式共同历史后续诊断。最多两次有根因在线开发修订。
-- 联网前compileall/全回归536项（521通过、15资源跳过）、34真实工具独立oracle及容量预检通过，pip check通过。独立审查先修跨对象来源组合、待补清除、错误提议记账、科学子句借窗和已见字段交接；不将Fake/离线当自主成功。
-- 初版`d481c8e`已推送；首次真实开发5次/44,658tokens，首轮连续结果和缺窗partial正确，次轮因消息历史排列缺陷重复旧答no_progress。首次失败和原始inputs全保留；停止在线做开发修订1（真实轮次边界＋离线自然补参来源承接），不修改请求/科学标准。
-- 接续入口：working_memory_actions.py（科学动作/程序记账）、working_memory_managed.py（上下文/正式Controller）、research/working_memory_issue50.py（独立预算/协议），所有数值仍经原Executor。阶段状态随实际验证更新。
+- 安全fetch起点本地/远端均`80271e7fe01afbab59cb57a3f680d9b35bb83ea8`，工作区干净；沿用研究分支与Draft PR #37，保留所有旧模式/历史失败。不改main、不改原算法/Executor。
+- 初版`d481c8e80d0b2da42b0fb0d49f4a23606bbedb07`：opt-in `managed`由模型选择科学任务/动作，程序自动维护真实来源、范围、版本、工件和归档；任务不作全局门控。原Agent run/continue/CLI接入，活动AO、任务摘要、精确读取/过程恢复、本轮已见字段union、实际最终快照预约均已实现。取消新入口重复coverage和每字段来源登记；仍为有界字面科学校验，不声称任意语言语义证明。
+- 初版离线536项（521通过/15资源跳过）、34真工具独立oracle。独立审查修跨对象来源拼接、错误提议变永久要求、错对象待补清除、逗号科学范围借用、分次读字段覆盖与归档后已见数值丢失。不是论文新算法。
+- dev1真实5次/44,658tokens：连续RMS/PSD+正确事件待补；次轮当前请求在旧native finish之前，三次重复旧答no_progress。首次原始输入/输出保留，立即停止在线定位。
+- 唯一开发修订`0867b59d827ff3475bb5b5034bb0d2edb0f6c605`：按真实轮次排列历史/新user/当前AO，且唯一同记录历史对象来源不依赖pending/touch；新范围仍须当前支持。离线539项（524通过/15资源跳过）及34oracle通过。dev2真实7次/71,030tokens，完成事件补窗3Epoch/C2theta、连续alpha修订及正确比较；两次可选request_span技术误拒后自行修正，未抹除失败。没有第二次开发架构修订。
+- 层1冻结候选`0867b59`，协议SHA-256`0116e5aa470f51f1648d6368bff4c6acc53e0f886a52efd4305bd5269f68e055`。旧/full与新/full相同自然请求、数据、工具、模型和资源策略，各一次。确认期间无改代码/提示/窗口/真值，无复跑挑分。
+- 旧/full：6次/76,585tokens，仅事件元信息，合法连续结果被全目标门控阻断；次轮时序no_progress，未到第三轮；附加alpha边界写错。新/full：8次/116,822tokens，真实连续/事件/参数修订及第三轮原RMS读取都完成；**第二轮回答功率增量应6.60e−11却写2.06e−10 V²，并无依据将窗口重叠解释成事件成分混入，故整会话不能判无保留正确**。首轮将事件数称试次数也需区分。新方案成本更高且工作量不同，不宣称降成本。
+- 实际记忆使用：旧t1 RMS读回→第8个真实模型输入→准确最终值/来源/范围/单位；原Epoch ID用于event_bandpower；新PSD明确revision_of旧PSD。真实focus_task=0、restore_task=0，只有自动单步组织；多结果任务与恢复原工件新增质量有离线真工具/Fake证据，不冒称真实自主触发或压缩收益。
+- 层2三个上下文模式的同历史接口/34oracle/受控历史已离线验证，但**未联网**。余90,905tokens不足保守保障三臂两需求完整配对；full首次normal+final lease约84,725，三臂仅首normal预约合计121,944。90k原入场余量不是完成保证，未只跑候选或截断summary。该预算准备局限如实记录；不以经验比例放松上限。
+- 全阶段独立账本已追加关闭：**26 completion /309,095 API tokens**，输入298,783、输出10,312，缓存命中150,656/未命中148,127；全部响应deepseek-flash（请求deepseek-chat）；0HTTP失败/0自动网络重试/0未结预约，API记录耗时合计74.5544秒。货币账单未核实。保留余量但不继续消耗、不叠加旧预算。
+- 只读审计54个新执行数值字段及1个历史读回字段通过，元信息按实际字段另核验。所有数值正确不代替最终回答正确。真实四run、失败、源/版本/工件、原文及成本在[公开合成证据](evidence/issue50_architecture_diagnostic.json)；全messages/tools/responses/账本保留本地忽略目录。没有真实EEG、个人路径、密钥或权重入库/出站。
+- 复现：`PYTHONPATH=src python -m compileall -q src tests`；`python -m unittest discover -s tests -q`；`python -m eeg_harness.research.working_memory_issue50 --preflight`；已有本机日志时`python -m eeg_harness.research.working_memory_issue50_audit --output <新输出文件>`。539项全回归、compileall、pip check通过；资源跳过仍为跳过。
+- 交付：[集中协议/结果/失败/成本](EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)、主方法文档的责任/继承/适配/代价/代码图、统一managed入口、README及开题事实增补。旧研究结论不覆写。
+- 远端验证：冻结候选`0867b59`的[GitHub Actions unit-tests #299](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40452486880)已success；再次fetch确认本地/远端无分叉，PR仍Draft/open/unmerged，Issue无新增纠偏评论。
+- 研究判断：保留公共科学事实与职责分离，短任务不强迫分层/恢复；任务压缩可选。控制架构可运行得到证据，任务记忆相对强摘要的实际独立收益尚未得到本阶段证据，不能宣布工作点一完全验收。
+- 下一阶段唯一优先目标：保障实际结果之间的派生比较及科学解释边界，再以完整配对单元检验上下文方案。先离线、不得新造回答验证Agent或把修复包装算法；未来真实实验须另行明确授权。本阶段停止，不自动开展工作点二或新方向。
+- Git：初版及修订均已普通推送；本轮最终证据/研究状态另作提交并普通推送，准确发布信息附后。PR保持Draft，不合并main、不强推。
 
 ## Issue #49：阶段已交付，完整自主验收仍未通过
 

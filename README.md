@@ -1,8 +1,19 @@
 # EEG Agent Harness
 
-> **Issue #50：执行职责调整，离线门槛已通过，真实诊断待执行。** 新增 opt-in `memory_version="managed"`，模型选择科学行动，程序自动维护来源、真实结果、版本与归档；旧模式和历史结果保留。仍使用原 Agent/Executor。详见[本阶段协议与结果](docs/research/EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)。以下旧阶段数字不作为新版成绩。
+> **Issue #50 已完成有界架构调整与配对诊断；完整科学回答、记忆独立收益仍未通过/验证。** 新增opt-in `managed`：科学动作局部接纳，程序维护真实来源、结果、版本、工件和归档；同一原Agent/Executor。539项回归（524通过/15资源跳过），34项科学预检。真实26次/309,095tokens：新路径完成事件补窗、连续修订及旧RMS实际读取；最终差值与事件解释仍有错误。第二层三模式完整预算不足，未联网，不宣称压缩收益。见[完整协议与结果](docs/research/EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)、[公开合成证据](docs/research/evidence/issue50_architecture_diagnostic.json)。本阶段已停止，不续用余额。
 
-统一自然入口：`WorkingMemoryEEGAgent(client, records, memory_version="managed", context_mode="working")` 的 `run(text)` / `continue_run(text)`；也支持 `summary`、`full`。CLI 使用 `--memory-version managed`，不提供 gold、turn.kind 或正确任务 ID。离线运行 `python -m eeg_harness.research.working_memory_issue50 --preflight`；联网必须经过独立累计预算，不自动启用旧额度。
+统一自然入口：`WorkingMemoryEEGAgent(client, records, memory_version="managed", context_mode="working")` 的 `run(text)` / `continue_run(text)`；也支持 `summary`、`full`。CLI使用`--memory-version managed`，不需要gold、turn.kind或正确任务ID。短任务允许直接执行，复杂目的可选focus，程序核验实际结果而非任意语言完整性。真实模型本阶段以full诊断；summary/working有离线数据流验证，未作本阶段真实收益比较。
+
+```powershell
+$env:PYTHONPATH='src'
+python -m eeg_harness.research.working_memory_issue50 --preflight
+python -m unittest discover -s tests -q
+python -m eeg_harness.working_memory_cli --help
+# 已有本机日志的只读审计，output必须为新文件，不联网：
+python -m eeg_harness.research.working_memory_issue50_audit --output artifacts/point1_task_memory/issue50/new-readonly-audit.json
+```
+
+科学前提及限制：当前记忆入口开放元信息、连续幅值/PSD/质量、事件Epoch/计数/质量/绝对功率；不开放新筛选、基线校正、重参考或模型推理，不代表旧Harness这些能力被删除。科学范围采用真实对象、字面值及有效历史绑定的有界检查，不是完整自然语言意图证明器。实际方法、单位与来源来自工具，任意生成文字仍可能出错。联网必须有新的独立授权和累计预算，以下历史阶段不可重新消费。
 
 > **Issue #49 已完成有界实现与真实确认，完整自主会话验收仍未通过。** opt-in `request_closure`统一科学合同、有效结果复用、原请求交付进度和有证据的收尾；原Agent/Executor保持。490项离线回归（475通过、15资源跳过）；真实37 completion / 289,282 tokens，全部失败保留。D短查询完整；C澄清后的事件数值正确但附加单位与质量措辞有误；A完成连续新旧比较，历史RMS未读回；B受来源登记及旧请求相关性校验阻塞，无质量续算。真实恢复→续算本轮未触发。公共修复适用于working/强summary/full，未开展新的付费优劣比较。见[本轮协议、结果与边界](docs/research/EEG_WORKING_MEMORY_ISSUE49_PROTOCOL_AND_RESULTS.md)及[公开合成证据](docs/research/evidence/issue49_request_closure_confirmation.json)。本阶段联网结束，不自动使用余量。
 
