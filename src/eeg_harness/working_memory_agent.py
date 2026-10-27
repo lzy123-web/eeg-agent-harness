@@ -683,9 +683,12 @@ class WorkingMemoryEEGAgent(EEGAgent):
 
     def __init__(self, llm_client, records, *, session_id="wm", max_rounds=24,
                  max_tool_calls=24, config=None, memory_version="single", **memory_options):
-        if memory_version not in {"single", "multi_result", "lifecycle", "managed"}:
+        if memory_version not in {"single", "multi_result", "lifecycle", "managed", "scientific"}:
             raise ValueError("Unknown working-memory mode")
-        if memory_version == "managed":
+        if memory_version == "scientific":
+            from .working_memory_scientific_tasks import ScientificTaskStore
+            store = ScientificTaskStore(session_id, records, config=config)
+        elif memory_version == "managed":
             from .working_memory_actions import ActionWorkingMemoryStore
             store = ActionWorkingMemoryStore(session_id, records, config=config)
         elif memory_version == "lifecycle":
@@ -696,7 +699,10 @@ class WorkingMemoryEEGAgent(EEGAgent):
             store = MultiResultWorkingMemoryStore(session_id, records, config=config)
         else:
             store = WorkingMemoryStore(session_id, records, config=config)
-        if memory_version == "managed":
+        if memory_version == "scientific":
+            from .working_memory_scientific import ScientificMemoryController
+            controller = ScientificMemoryController(store, **memory_options)
+        elif memory_version == "managed":
             from .working_memory_managed import ManagedMemoryController
             controller = ManagedMemoryController(store, **memory_options)
         else:
