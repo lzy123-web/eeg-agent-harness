@@ -1,6 +1,6 @@
 # 开题统一研究方案：从 EEG 科学结果到有证据支持的报告（2026-10-28）
 
-> **定位**：研究方案与初步原型说明，非已验证的创新结论。承接工作点一研究分支 \`research/point1-eeg-task-memory\` 的 Issue #52；本分支仅做工作二研究与两点统一论证，不合并 main，不改写旧实验。
+> **定位**：研究方案与初步原型说明，非已验证的创新结论。承接工作点一研究分支 `research/point1-eeg-task-memory` 的 Issue #52；本分支仅做工作二研究与两点统一论证，不合并 main，不改写旧实验。
 
 ## 1. 一条逻辑主线
 
@@ -12,9 +12,9 @@
 
 **两项工作不是“一个 Agent 加一个 RAG”。** 它们共享一条可版本化的依赖链：
 
-\`用户科学要求 → P1 子任务/交付项 → 真实 EEG 结果及版本 → P2 计算事实 Claim → 解释 Claim → 报告\`
+`用户科学要求 → P1 子任务/交付项 → 真实 EEG 结果及版本 → P2 计算事实 Claim → 解释 Claim → 报告`
 
-P1 维护前两条依赖，P2 维护后两条依赖。P1 的 \`task_revised/changed_keys\` 事件会传到 P2 的 Claim 失效/核验机制。双方不复制另一套虚构的数值事实。工作一单独无法保证报告忠实；工作二如果只有自然语言摘要，难以知道原结果的真实 EEG 时间窗、事件工件及版本。
+P1 维护前两条依赖，P2 维护后两条依赖。P1 的 `task_revised/changed_keys` 事件会传到 P2 的 Claim 失效/核验机制。双方不复制另一套虚构的数值事实。工作一单独无法保证报告忠实；工作二如果只有自然语言摘要，难以知道原结果的真实 EEG 时间窗、事件工件及版本。
 
 ## 2. 与现有研究的关系：哪里是借鉴，哪里是拟适配
 
@@ -26,51 +26,51 @@ EEGAgent（AAAI 2026）已有 EEG 工具编排与报告；LLMCompiler 已有依�
 
 ### 3.1 P1→P2 唯一权威证据接口
 
-读取 \`TaskPlanController.graph/PlanGraph.resolve_ref(task_id,key,revision)\`，从 \`TaskSpec.outputs\` 得到原 \`result_id\`，再从 TaskStore/TaskEntry 读取真正的 \`result\`、\`parameters\`、\`evidence.source\`、\`evidence.binding\`、\`revision_of\` 和行动—观察定位。
+读取 `TaskPlanController.graph/PlanGraph.resolve_ref(task_id,key,revision)`，从 `TaskSpec.outputs` 得到原 `result_id`，再从 TaskStore/TaskEntry 读取真正的 `result`、`parameters`、`evidence.source`、`evidence.binding`、`revision_of` 和行动—观察定位。
 
-- \`EvidenceRef = (task_id, delivery_key, field_path, revision=current|指定历史版)\`
-- \`EvidenceFact = (value, 字段级单位, record, 实际scope, source, processing_version, 原result_id, fingerprint)\`
-- \`ReportRequirement\` 表示用户要求的报告条目、分析不足及其关联的 P1 交付，不能仅根据 Planner 已声明条目宣称整个原用户意图无遗漏。
+- `EvidenceRef = (task_id, delivery_key, field_path, revision=current|指定历史版)`
+- `EvidenceFact = (value, 字段级单位, record, 实际scope, source, processing_version, 原result_id, fingerprint)`
+- `ReportRequirement` 表示用户要求的报告条目、分析不足及其关联的 P1 交付，不能仅根据 Planner 已声明条目宣称整个原用户意图无遗漏。
 
-**禁止**把 “P1 节点 completed”当作数值真值，把上游失败结果当作有效交付，把工具级单位当字段单位，或者把历史版标成当前结果。所有数值都从实际 ToolResult 读取，复用现有 \`result_semantics.py\` 的字段单位语义。
+**禁止**把 “P1 节点 completed”当作数值真值，把上游失败结果当作有效交付，把工具级单位当字段单位，或者把历史版标成当前结果。所有数值都从实际 ToolResult 读取，复用现有 `result_semantics.py` 的字段单位语义。
 
 ### 3.2 陈述对象与有区别的核验
 
-- \`measurement\`：直接数值事实（例如“记录 A 的 C1 通道在 0–2 s 窗口的 alpha 功率为 x V²”），要求准确 EvidenceRef，程序逐字段检查值/单位/来源/范围/版本。
-- \`difference/ratio\`：两个实际结果的差值/比值，程序计算，不让 LLM 心算，也不由模型自己写“允许比较”取得科学授权。跨窗口/跨记录的比较必须存在 P1 已声明且**实际交付**的合法比较任务，仍仅代表描述性差异。
-- \`limitation\`：对应未交付的具体 \`(task_id, delivery_key)\`，说明实际未完成原因；禁止一条泛泛“部分完成”掩盖其它应覆盖的结果。
-- \`interpretation\`：连接已经核验的事实 Claim 和精确的解释资料段落（source_id、原段落、研究人群、实验范式、适用范围与资料版本）。单有 DOI/URL 不自动通过；需要独立支持判断，涉及健康或个体能力时需专业复核或保留不确定性，不因一般关联升级为个人诊断。
+- `measurement`：直接数值事实（例如“记录 A 的 C1 通道在 0–2 s 窗口的 alpha 功率为 x V²”），要求准确 EvidenceRef，程序逐字段检查值/单位/来源/范围/版本。
+- `difference/ratio`：两个实际结果的差值/比值，程序计算，不让 LLM 心算，也不由模型自己写“允许比较”取得科学授权。跨窗口/跨记录的比较必须存在 P1 已声明且**实际交付**的合法比较任务，仍仅代表描述性差异。
+- `limitation`：对应未交付的具体 `(task_id, delivery_key)`，说明实际未完成原因；禁止一条泛泛“部分完成”掩盖其它应覆盖的结果。
+- `interpretation`：连接已经核验的事实 Claim 和精确的解释资料段落（source_id、原段落、研究人群、实验范式、适用范围与资料版本）。单有 DOI/URL 不自动通过；需要独立支持判断，涉及健康或个体能力时需专业复核或保留不确定性，不因一般关联升级为个人诊断。
 
-实现为 \`PlanGraph/TaskEntry → EvidenceResolver → ClaimGraph → FactVerifier/KnowledgeReview → ReportComposer\`。模型提出候选报告内容，程序持有事实真值、结果身份和修订记录；未知科学解释默认待审核，不存在“自动核验任意自然语言全文”这种保证。
+实现为 `PlanGraph/TaskEntry → EvidenceResolver → ClaimGraph → FactVerifier/KnowledgeReview → ReportComposer`。模型提出候选报告内容，程序持有事实真值、结果身份和修订记录；未知科学解释默认待审核，不存在“自动核验任意自然语言全文”这种保证。
 
 ### 3.3 动态证据更新与定向修订
 
-示例：T2 的 PSD 最初对应 A/0–2 s（R_old），报告有 C1“功率值”、C2“相较另一个窗口升高”、C3“基于该差异的解释”。用户把时间窗改为 4–6 s，P1 产生 R_new，保留 R_old，并发布 \`task_revised(changed_keys=[alpha])\`。
+示例：T2 的 PSD 最初对应 A/0–2 s（R_old），报告有 C1“功率值”、C2“相较另一个窗口升高”、C3“基于该差异的解释”。用户把时间窗改为 4–6 s，P1 产生 R_new，保留 R_old，并发布 `task_revised(changed_keys=[alpha])`。
 
 P2 执行：
 
-1. 根据 \`(task_id,key,current)\` 定位引用受影响结果的 C1；
+1. 根据 `(task_id,key,current)` 定位引用受影响结果的 C1；
 2. 沿 Claim→Claim 依赖找出 C2、C3；使旧事实、比较和解释失效或待重审；
 3. 对当前证据重新计算事实/比较，解释重新检索/核查，生成**新的 Claim 版本**，不悄悄覆盖旧版；
-4. 不依赖 T2 的其它记录 B 陈述保留；\`revision=1\` 明确标注为“历史”的 C1 可以保留历史事实，绝不作为当前事实覆盖需要；
+4. 不依赖 T2 的其它记录 B 陈述保留；`revision=1` 明确标注为“历史”的 C1 可以保留历史事实，绝不作为当前事实覆盖需要；
 5. 证据缺失/未完成则保留安全部分报告并明示限制，不强行编造缺失脑电结果。
 
 这一步是两个研究点在**数据结构和状态更新方法上的真正耦合**，不是传 JSON 或再加一次 RAG。
 
 ## 4. 本次最小代码原型与明确边界
 
-已有 \`applications/evidence_statement.py\` 仅验证**单条确定性模板数值陈述**，不能检查普通 LLM 报告。新增原型设计为 \`applications/report_evidence_graph.py\`：
+已有 `applications/evidence_statement.py` 仅验证**单条确定性模板数值陈述**，不能检查普通 LLM 报告。新增原型设计为 `applications/report_evidence_graph.py`：
 
-- \`TaskPlanEvidenceResolver\`：从实际 P1 PlanGraph + TaskStore 解析当前或指定历史证据，使用真实字段语义；
-- \`EvidenceClaimGraph.add/_verify\`：核查 measurement/difference/ratio/limitation，解释陈述只进入 \`REVIEW_REQUIRED\`；
-- \`affected_by/refresh\`：依赖闭包定位随 P1 修订必须重审的 Claim；同一旧 Claim 不会自动“换数值继续通过”；
-- \`release\`：只输出经过核验的结构化计算事实及明确不足；揭示用户报告要求中的未覆盖交付，不发布未经解释审核的医疗结论。
+- `TaskPlanEvidenceResolver`：从实际 P1 PlanGraph + TaskStore 解析当前或指定历史证据，使用真实字段语义；
+- `EvidenceClaimGraph.add/_verify`：核查 measurement/difference/ratio/limitation，解释陈述只进入 `REVIEW_REQUIRED`；
+- `affected_by/refresh`：依赖闭包定位随 P1 修订必须重审的 Claim；同一旧 Claim 不会自动“换数值继续通过”；
+- `release`：只输出经过核验的结构化计算事实及明确不足；揭示用户报告要求中的未覆盖交付，不发布未经解释审核的医疗结论。
 
 **当前本轮本地独立原型：12 个确定性测试通过**，涵盖错值/单位、缺结果、差值/比值、未授权比较、未完成限制、旧/新版、变更影响、漏报事项及解释文献不足。尚未在正式仓库 CI 上确认，未接实际 LLM 生成、文献 NLI 或 TC 模型，不冒充端到端效果。
 
 ## 5. TC 复用边界：真实可用而不是虚构功能
 
-TC \`autodl_latest_data/stage1+stage2_inference.py\` 的实际逻辑为 Stage1 输入特征文本生成报告，Stage2 从报告输出情绪能力轻/中/重标签；并**不是**输入任意 EEG PSD 就直接完成 ASD 医学诊断。已有研究材料确认当前 Harness 尚缺 TC 输入中 \`higuchi_fd\`、\`arousal_*\`、FAA、\`parietal_alpha\`、\`beta_gamma_mean\` 的一致算法/ROI/标签定义；训练数据划分、能力标签依据和使用许可需另行核实。
+TC `autodl_latest_data/stage1+stage2_inference.py` 的实际逻辑为 Stage1 输入特征文本生成报告，Stage2 从报告输出情绪能力轻/中/重标签；并**不是**输入任意 EEG PSD 就直接完成 ASD 医学诊断。已有研究材料确认当前 Harness 尚缺 TC 输入中 `higuchi_fd`、`arousal_*`、FAA、`parietal_alpha`、`beta_gamma_mean` 的一致算法/ROI/标签定义；训练数据划分、能力标签依据和使用许可需另行核实。
 
 因此主 P2 实验优先使用当前 EEG Executor 已能真实计算且有字段语义合同的通用研究描述报告；TC 作为可选草稿生成器，只在特征映射、权重/资源、许可及目标标签验证后接入。私有 TC 源码/权重/个人数据不提交公开仓库，顶层会执行训练或连接图库的脚本绝不直接 import。Stage2 不等同 ASD 诊断。
 
@@ -120,6 +120,6 @@ D0：给完整结构化 EEG 结果和全部合法分析条件直接生成；D1�
 - Biomedical Claim Verification (BioNLP 2025) https://aclanthology.org/2025.bionlp-1.14/
 - Medical KG Fact-Checking (AAAI 2026) https://ojs.aaai.org/index.php/AAAI/article/view/41317
 - 医学引用核验的局限 (Nature Communications 2025) https://www.nature.com/articles/s41467-025-58551-6
-- P1 前期代码及真实负结果：本仓库 Issue #52 的 DESIGN / PROTOCOL / PROPOSAL_SUMMARY；工作二单句前驱：\`applications/evidence_statement.py\`。
+- P1 前期代码及真实负结果：本仓库 Issue #52 的 DESIGN / PROTOCOL / PROPOSAL_SUMMARY；工作二单句前驱：`applications/evidence_statement.py`。
 
 > 禁止将没有临床验证的 EEG 指标与 ASD、情绪能力等级做个体诊断性关联；报告限于研究用途辅助描述。
