@@ -206,6 +206,8 @@ class WorkingMemoryController:
         self.started = time.monotonic()
         self.final_only = False
         self.finalization_reason = None
+        self.delivery_checkpoint = None
+        self.checkpoint_stale = False
         self.visible_evidence_ids = set()
         if self.request_progress:
             self.request_progress.begin_turn(request)
@@ -241,7 +243,18 @@ class WorkingMemoryController:
         return self.stop_reason
 
     def final_tools(self):
+        if getattr(self, "delivery_checkpoint", None):
+            return clone(self.delivery_checkpoint["tools"])
         return [c for c in self.control_definitions() if c["function"]["name"] == "finish_task"]
+
+    def use_delivery_checkpoint(self, checkpoint):
+        """Use the budget client's actually reserved immutable evidence view.
+
+        No new facts are added after reservation. A stale snapshot cannot imply
+        completion of actions that happened after it; original traces survive.
+        """
+        self.delivery_checkpoint = clone(checkpoint)
+        self.checkpoint_stale = bool(checkpoint.get("stale"))
 
     def prepare_finalization(self, reason="budget_reserve"):
         self.final_only, self.finalization_reason = True, reason
@@ -250,6 +263,14 @@ class WorkingMemoryController:
         return self.build_messages(record_decision=False, final_preview=reason), self.final_tools()
 
     def build_messages(self, *, record_decision=True, final_preview=None):
+        if getattr(self, "delivery_checkpoint", None):
+            messages = clone(self.delivery_checkpoint["messages"])
+            if record_decision:
+                self.visible_evidence_ids = self._visible_results(messages)
+                self.decisions.append({"turn": self.store.turn, "messages": clone(messages),
+                    "delivery_checkpoint": {k: v for k, v in self.delivery_checkpoint.items() if k not in {"messages", "tools"}},
+                    "context_bytes": len(encoded(messages)), "active_subgoal": self.store.active.subgoal_id if self.store.active else None})
+            return messages
         store = self.store
         summaries = [store.summary(g) for g in store.subgoals if g is not store.active]
         visible = []
@@ -528,6 +549,8 @@ class WorkingMemoryController:
         if name == "finish_task":
             status = args["status"]
             unresolved = args.get("unresolved", [])
+            if getattr(self, "checkpoint_stale", False) and status != "partial":
+                return store._error("CHECKPOINT_PARTIAL_ONLY", "Earlier evidence snapshot only; report partial work, not completion or a new scientific ambiguity")
             if status not in {"completed", "partial", "clarification_required"}:
                 return store._error("INVALID_STATUS", "Unknown delivery status")
             if self.request_progress:
@@ -660,9 +683,12 @@ class WorkingMemoryEEGAgent(EEGAgent):
 
     def __init__(self, llm_client, records, *, session_id="wm", max_rounds=24,
                  max_tool_calls=24, config=None, memory_version="single", **memory_options):
-        if memory_version not in {"single", "multi_result", "lifecycle"}:
-            raise ValueError("memory_version must be single, multi_result or lifecycle")
-        if memory_version == "lifecycle":
+        if memory_version not in {"single", "multi_result", "lifecycle", "managed"}:
+            raise ValueError("Unknown working-memory mode")
+        if memory_version == "managed":
+            from .working_memory_actions import ActionWorkingMemoryStore
+            store = ActionWorkingMemoryStore(session_id, records, config=config)
+        elif memory_version == "lifecycle":
             from .working_memory_lifecycle import ReliableWorkingMemoryStore
             store = ReliableWorkingMemoryStore(session_id, records, config=config)
         elif memory_version == "multi_result":
@@ -670,7 +696,11 @@ class WorkingMemoryEEGAgent(EEGAgent):
             store = MultiResultWorkingMemoryStore(session_id, records, config=config)
         else:
             store = WorkingMemoryStore(session_id, records, config=config)
-        controller = WorkingMemoryController(store, **memory_options)
+        if memory_version == "managed":
+            from .working_memory_managed import ManagedMemoryController
+            controller = ManagedMemoryController(store, **memory_options)
+        else:
+            controller = WorkingMemoryController(store, **memory_options)
         super().__init__(llm_client, next(iter(store.contexts.values())), max_rounds,
                          max_tool_calls, working_memory=controller)
 

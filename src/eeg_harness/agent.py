@@ -126,6 +126,9 @@ class EEGAgent:
                         final_messages, final_tools = memory.build_final_messages()
                         if self.llm_client.prepare_decision(messages, tools, final_messages, final_tools):
                             memory.prepare_finalization("budget_reserve")
+                            checkpoint = getattr(self.llm_client, "delivery_checkpoint", None)
+                            if checkpoint is not None:
+                                memory.use_delivery_checkpoint(checkpoint)
                     if memory.final_only:
                         messages, tools = memory.build_messages(), memory.final_tools()
                         if memory.stop_reason:

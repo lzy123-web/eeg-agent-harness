@@ -1,5 +1,9 @@
 # EEG Agent Harness
 
+> **Issue #50：执行职责调整，离线门槛已通过，真实诊断待执行。** 新增 opt-in `memory_version="managed"`，模型选择科学行动，程序自动维护来源、真实结果、版本与归档；旧模式和历史结果保留。仍使用原 Agent/Executor。详见[本阶段协议与结果](docs/research/EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)。以下旧阶段数字不作为新版成绩。
+
+统一自然入口：`WorkingMemoryEEGAgent(client, records, memory_version="managed", context_mode="working")` 的 `run(text)` / `continue_run(text)`；也支持 `summary`、`full`。CLI 使用 `--memory-version managed`，不提供 gold、turn.kind 或正确任务 ID。离线运行 `python -m eeg_harness.research.working_memory_issue50 --preflight`；联网必须经过独立累计预算，不自动启用旧额度。
+
 > **Issue #49 已完成有界实现与真实确认，完整自主会话验收仍未通过。** opt-in `request_closure`统一科学合同、有效结果复用、原请求交付进度和有证据的收尾；原Agent/Executor保持。490项离线回归（475通过、15资源跳过）；真实37 completion / 289,282 tokens，全部失败保留。D短查询完整；C澄清后的事件数值正确但附加单位与质量措辞有误；A完成连续新旧比较，历史RMS未读回；B受来源登记及旧请求相关性校验阻塞，无质量续算。真实恢复→续算本轮未触发。公共修复适用于working/强summary/full，未开展新的付费优劣比较。见[本轮协议、结果与边界](docs/research/EEG_WORKING_MEMORY_ISSUE49_PROTOCOL_AND_RESULTS.md)及[公开合成证据](docs/research/evidence/issue49_request_closure_confirmation.json)。本阶段联网结束，不自动使用余量。
 
 Issue #49 无API检查与审计（output使用新路径）：
