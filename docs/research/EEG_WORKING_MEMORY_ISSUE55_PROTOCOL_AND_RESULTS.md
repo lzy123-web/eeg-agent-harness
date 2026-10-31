@@ -59,6 +59,11 @@ python -m compileall -q src tests
 python -m pip check
 ```
 
+实现与公开证据提交`81be29371855bbeed15edff765971cb512aef9d9`已普通推送。[Issue整改评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6547122720)及PR #37正文/评论已同步。发布检查补充四臂各自逐项运行全部字段引用反例（含源记录也不存在通道的反例），仍零错误放行；专项7项再次通过，候选实现未改。
+
+
+机制提交`81be293`的[GitHub CI unit-tests #336](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41227194003)已success。发布留痕提交仅补文档及四臂反例测试，不改变机制；最终远端SHA以Git及PR发布评论为准。
+
 ---
 
 以下为先前零额度审计阶段原记录，预算和未修复状态只适用于其原提交：

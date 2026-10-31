@@ -9,6 +9,10 @@
 - 未完成：真实运行器费用/累计账本衔接和端到端Fake保护验收、真实模型自主使用与确认。当前付费不具备运行条件，完成安全本地交付；不是宣称Issue整阶段全部验收。
 - 文档/代码职责/限制/复现与公开证据见[Issue55集中材料](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)和[合成证据](evidence/issue55_scope_repair.json)。正常commit/push原分支，PR保持Draft，Issue保持打开；精确SHA/CI随后发布留痕。
 
+- 发布留痕：机制实现与公开证据提交`81be29371855bbeed15edff765971cb512aef9d9`已普通推送；第一次网络连接失败，普通重试成功，没有force。PR #37正文及[Issue #55整改评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6547122720)已更新。后续补充四臂逐一验证源/目标缺通道、歧义、裁剪和交换范围反例，7项专项再次通过，未改变实现。
+
+机制提交`81be293`的[GitHub CI unit-tests #336](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41227194003)已success。发布留痕提交仅补文档及四臂反例测试，不改变机制；最终远端SHA以Git及PR发布评论为准。
+
 ## Issue #55：无需付费阶段交付，真实自主验收待独立授权（2026-11-01）
 
 - 起点本地/远端 `4bd74d10a09fc0b006f1e0db8c20c84c1f02365a`，工作区干净；继续 `research/point1-eeg-task-memory`、Draft PR #37，不改研究内容二。

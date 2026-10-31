@@ -29,9 +29,10 @@ class ScopeRepairTest(unittest.TestCase):
             self.assertEqual(row['metrics']['numeric_executions'],4)
             self.assertTrue(all(r['passed'] for r in row['oracle']))
 
-    def channel_run(self, *, ambiguous=False, missing=False, cropped=False, swap=False, wrong_record=False):
+    def channel_run(self, *, arm="C", ambiguous=False, missing=False, source_missing=False, cropped=False, swap=False, wrong_record=False):
         records={k:replace(v,channel_names=('Lead-X','Lead-Y')) for k,v in synthetic_records().items()}
         if missing: records['B']=replace(records['B'],channel_names=('Absent','Lead-Y'))
+        if source_missing: records['A']=replace(records['A'],channel_names=('Absent','Lead-Y'))
         source='记录A Lead-X在0.5到2.5秒计算RMS'
         target='记录B沿用前述通道选择在3到5秒计算RMS'
         text=source+'；'+('记录A Lead-Y在1到3秒计算RMS；' if ambiguous else '')+target+'。'
@@ -41,7 +42,7 @@ class ScopeRepairTest(unittest.TestCase):
         client=InspectableScriptedClient([('plan_tasks',{'nodes':[node('destination',[
             delivery('r','amplitude',scope,record=alias)])]}),('amplitude',{'channel_reference':ref}),
             ('finish_task',{'status':'partial','answer':'保留实际结果','unresolved':['测试停止']})])
-        agent=TaskPlanEEGAgent(client,records)
+        agent=TaskPlanEEGAgent(client,records,arm=arm)
         agent.run(text)
         return agent.working_memory.store
 
@@ -54,11 +55,12 @@ class ScopeRepairTest(unittest.TestCase):
         self.assertEqual(len(store.contexts['A'].trace.events),0)
 
     def test_ambiguous_missing_channel_cropped_parent_swapped_time_and_record_rejected(self):
-        for option in ('ambiguous','missing','cropped','swap','wrong_record'):
-            with self.subTest(option=option):
-                store=self.channel_run(**{option:True})
-                self.assertEqual(len(store.entries),0)
-                self.assertFalse(any(c.trace.events for c in store.contexts.values()))
+        for arm in ARMS:
+            for option in ('ambiguous','missing','source_missing','cropped','swap','wrong_record'):
+                with self.subTest(arm=arm,option=option):
+                    store=self.channel_run(arm=arm,**{option:True})
+                    self.assertEqual(len(store.entries),0)
+                    self.assertFalse(any(c.trace.events for c in store.contexts.values()))
 
     def test_renamed_event_and_channel_are_roles_not_foreign_time_domains(self):
         for arm in ARMS:
