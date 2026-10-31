@@ -118,3 +118,12 @@ python -m pip check
 ```
 
 本地原证据：`preflight-initial.json`、`preflight-final.json`、`regression.txt`、`regression-final.txt`；不提交生成产物/真实数据/密钥/个人配置。付费原始请求/响应/成本账本尚不存在，不能虚构。GitHub CI及候选精确SHA见下方发布留痕及PROJECT_STATUS。
+
+
+## 发布留痕与原始证据复核
+
+候选代码/协议提交 `fbcc32da66d07c3f3f5251216738858081c48d98` 已普通推送；后续发布留痕只增文档和测试文件末尾空行清理，不改变候选行为或协议。PR #37正文已更新并保留全部阶段历史；[Issue #55阶段评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546114851)已发布，Issue保持打开。
+
+复核本地原始文件：#50确认第二轮 stop=completed，但这不改变原报告的最终差值/解释错误；SHA-256 `b2bbb99dcd9c9890e9fd5cb5109a89a085704b8851f9e1bc90644f1510ef7735`。#51确认第二轮 stop=no_progress，原失败含 AMBIGUOUS_RECORD_SOURCE、INVALID_SOURCE_SPAN 及三次 UNFINISHED_DECLARED_TASK；SHA-256 `a77ed5e8b0e44387e8a0eed72a21161ba652394e59a700e4d2ef3cea036ef8e3`。#52最终八类三臂原文件SHA-256 `326aeb5c501f0afe6962500078c79d366590e5ca33ffb7d1e5aeb04a08d5c8ad`，本轮preflight-final原文件SHA-256 `027161a1e4b9662f16a651fe6b4a0c13000213db75039d1649a273b43112b66c`。路径见各阶段原协议及本节前文，未重写旧失败。
+
+候选提交的[GitHub CI unit-tests #332](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41220050132)已success（编译及完整资源无关测试通过）。本地与远端一致，PR保持Draft；当前明确停在预算门槛。

@@ -12,6 +12,8 @@
 
 # 项目状态
 
+- 发布留痕：候选 `fbcc32da66d07c3f3f5251216738858081c48d98` 已普通推送，本地/远端及PR head一致；[GitHub CI unit-tests #332](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41220050132)已success。PR #37正文与[Issue #55评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546114851)已更新，保持Draft/open/unmerged。后续本条状态提交仅文档及测试末尾空行清理，不改变冻结行为。敏感模式扫描0命中，未提交生成产物、真实EEG、权重或本地配置。当前停在Issue明确预算门槛，等待用户另行授权，未宣称真实验收完成。
+
 ## Issue #52：共享强P&E与候选差异已实现，离线阶段交付；自主收益尚未验证
 
 - 安全起点本地与远端`3d99b4c7644119a4ed5b4e6f1dbf82695da37165`，工作区干净、无分叉；继续原研究分支和Draft PR #37。完整读取Issue52及旧失败，当前新外部授权为**0 completion/0 tokens**，不重开任何旧账本。
