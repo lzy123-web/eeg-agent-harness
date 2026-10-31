@@ -180,3 +180,7 @@
 1. 数据契约和 Profile，消除全局数据及 22/19/2 导冲突。
 2. 工具惰性加载、输入校验和 JSON 输出，形成真正可独立复用的工具接口。
 3. 可复现路径、资源清单与无 LLM 自动化测试，再恢复 Agent 端到端评估。
+
+## Issue55接口审计补记（2026-11-01）
+
+`task_plan_agent.PlannedTaskStore`已共享分离辅助失败与必需结果；`TaskPlanController`仍复用原EEGAgent和Executor。`scientific_request_binding._request_frames/ground_bound_scope`的字面对象/异域约束导致T04/T07共同误拒，未解决；不可从DAG声明推断完整原请求。唯一运行时修正为拒绝不再计实际used。合成输入契约、依赖/寿命/限制、代码职责图及证据等级见[Issue55审计与协议](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。没有模型权重/真实数据依赖，没有新的数值算法。原历史审计和失败记录不改。

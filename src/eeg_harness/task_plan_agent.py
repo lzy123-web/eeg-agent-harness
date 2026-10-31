@@ -532,7 +532,12 @@ class TaskPlanController(ScientificMemoryController):
             result = super()._dispatch(ToolRequest(name,args,request.request_id))
             node.attempts.append({"name":name,"arguments":clone(args),"status":result.get("status"),"code":result.get("code")})
             self._sync_outputs(node,result)
-            self.evidence_log.append({"event":"used","task_id":node.task_id,"tool":name,
+            # An attempted handle is not evidence of successful consumption.
+            # Keep failures in the same audit trail without counting them as use.
+            succeeded = result.get("status") in {"observed", "reused", "compared"}
+            self.evidence_log.append({"event":"used" if succeeded else "use_attempt",
+                "success":succeeded,"result_status":result.get("status"),
+                "error_code":result.get("code"),"task_id":node.task_id,"tool":name,
                 "inherit_result":args.get("inherit_result"),"artifact_id":args.get("artifact_id"),
                 "used_by":"adapter_bound_tool_operands","model_supplied_arguments":clone(dict(request.arguments)),
                 "comparison_operands":[r["result_id"] for r in result.get("operands",[])],
