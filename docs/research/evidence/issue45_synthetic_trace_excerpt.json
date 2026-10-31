@@ -1,0 +1,1557 @@
+{
+  "scope": "synthetic-only; curated actual observations, not a new benchmark",
+  "versions": {
+    "initial": "1f5f6fe",
+    "development_revision": "0226293",
+    "locked_confirmation": "bf744c6"
+  },
+  "sessions": [
+    {
+      "log": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum/turn-1.json",
+      "sha256": "f183dd2c4f32f82d8044eeb846f95e2c660a870ed2883e5404f3bddfafc8de87",
+      "request": "请给 A 的 SYNTH-C1 连续1到3秒的 RMS。如果 RMS 不超过 0.0001 V，再给同一窗的绝对 alpha 功率，否则停止功率部分并说明原因。最后附上采样率和通道名称，不筛选、不重参考。",
+      "stop_reason": "llm_error",
+      "accepted_answer": "LLM 调用失败（LLM_ERROR）。",
+      "actions": [
+        {
+          "action": 1,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s1",
+            "title": "A 记录 SYNTH-C1 1–3 s RMS（条件满足则计算 alpha 绝对功率）",
+            "record": "A",
+            "deliverable": "amplitude",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 1,
+              "end": 3
+            },
+            "checks": [],
+            "criteria": [],
+            "revision_of": null,
+            "dependencies": [],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        },
+        {
+          "action": 2,
+          "tool": "amplitude",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 3,
+          "tool": "record_info",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 4,
+          "tool": "amplitude",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "arguments": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 3,
+            "start": 1
+          },
+          "actual_result": {
+            "SYNTH-C1": {
+              "mean_abs": "1.44e-05",
+              "rms": "1.60e-05",
+              "max_val": "2.26e-05",
+              "min_val": "-2.26e-05"
+            }
+          }
+        },
+        {
+          "action": 5,
+          "tool": "psd",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "arguments": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 3,
+            "start": 1
+          },
+          "actual_result": {
+            "SYNTH-C1": {
+              "delta": "4.24e-26",
+              "theta": "1.62e-25",
+              "alpha": "2.55e-10",
+              "beta": "2.75e-25",
+              "gamma": "1.35e-24"
+            }
+          }
+        },
+        {
+          "action": 6,
+          "tool": "record_info",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "arguments": {}
+        },
+        {
+          "action": 7,
+          "tool": "close_subgoal",
+          "success": true,
+          "status": "completed",
+          "code": null
+        },
+        {
+          "action": 8,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s2",
+            "title": "A 记录 SYNTH-C1 1–3 s RMS（≤0.0001 V 则计算同窗绝对 alpha 功率）",
+            "record": "A",
+            "deliverable": "amplitude",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 1,
+              "end": 3
+            },
+            "checks": [
+              "amplitude",
+              "psd",
+              "record_info"
+            ],
+            "criteria": [
+              {
+                "tool": "amplitude",
+                "path": [
+                  "SYNTH-C1",
+                  "rms"
+                ],
+                "op": "lte",
+                "value": 0.0001
+              }
+            ],
+            "revision_of": null,
+            "dependencies": [],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        }
+      ],
+      "visibility_checkpoints": [
+        {
+          "before_action": 1,
+          "turn": 1,
+          "context_bytes": 3008,
+          "active_subgoal": null,
+          "archived": [],
+          "restored_ids": [],
+          "visible_evidence_ids": [],
+          "native_tool_names": []
+        },
+        {
+          "before_action": 6,
+          "turn": 1,
+          "context_bytes": 9103,
+          "active_subgoal": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s1",
+          "archived": [],
+          "restored_ids": [],
+          "visible_evidence_ids": [],
+          "native_tool_names": [
+            "begin_subgoal",
+            "amplitude",
+            "psd",
+            "record_info"
+          ]
+        }
+      ],
+      "final_subgoals": [
+        {
+          "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s1",
+          "task_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-t1",
+          "deliverable": "amplitude",
+          "status": "completed",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "revision_of": null,
+          "unresolved": []
+        },
+        {
+          "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s2",
+          "task_id": null,
+          "deliverable": "amplitude",
+          "status": "suspended",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 1,
+            "end": 3
+          },
+          "revision_of": null,
+          "unresolved": [
+            "llm_error"
+          ]
+        }
+      ]
+    },
+    {
+      "log": "development-20261026T041329334721-combined_revision/turn-1.json",
+      "sha256": "f36444ecaf9851daa45c6bf8a13d4f0db42315d8ba78f20b0fbcca680e65484f",
+      "request": "请分析记录 A：先检查 stimulus 事件后0到1秒的实际有效试次数和质量；至少有2个有效试次且质量标记为0时，再给出 SYNTH-C1 的事件绝对 alpha 功率。另计算同一通道连续记录0到2秒的 alpha 功率，分别说明两个时间基准。只测量，不筛除、不重参考。",
+      "stop_reason": "no_progress",
+      "accepted_answer": "",
+      "actions": [
+        {
+          "action": 1,
+          "tool": "begin_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 2,
+          "tool": "list_events",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 3,
+          "tool": "begin_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "MISSING_OR_INVALID_SCOPE"
+        }
+      ],
+      "visibility_checkpoints": [
+        {
+          "before_action": 1,
+          "turn": 1,
+          "context_bytes": 3152,
+          "active_subgoal": null,
+          "archived": [],
+          "restored_ids": [],
+          "visible_evidence_ids": [],
+          "native_tool_names": []
+        }
+      ],
+      "final_subgoals": []
+    },
+    {
+      "log": "development-20261026T041516173933-combined_revision/turn-1.json",
+      "sha256": "6ed41a87e18efe30284c4c4b56938b4b63ef8fde8a9e3876c6d6c71ba6728fd1",
+      "request": "请分析记录 A：先检查 stimulus 事件后0到1秒的实际有效试次数和质量；至少有2个有效试次且质量标记为0时，再给出 SYNTH-C1 的事件绝对 alpha 功率。另计算同一通道连续记录0到2秒的 alpha 功率，分别说明两个时间基准。只测量，不筛除、不重参考。",
+      "stop_reason": "repeated_action",
+      "accepted_answer": "",
+      "actions": [
+        {
+          "action": 1,
+          "tool": "begin_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 2,
+          "tool": "list_events",
+          "success": false,
+          "status": "rejected",
+          "code": "SEQUENTIAL_ACTION_REQUIRED"
+        },
+        {
+          "action": 3,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+            "title": "记录A stimulus 0-1s 有效试次与质量检查，及 SYNTH-C1 事件/连续 alpha 功率",
+            "record": "A",
+            "deliverable": "event_bandpower",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            },
+            "checks": [
+              "list_events",
+              "create_epochs",
+              "epoch_summary",
+              "epoch_quality"
+            ],
+            "criteria": [
+              {
+                "tool": "create_epochs",
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2
+              }
+            ],
+            "revision_of": null,
+            "dependencies": [],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        },
+        {
+          "action": 4,
+          "tool": "list_events",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {}
+        },
+        {
+          "action": 5,
+          "tool": "create_epochs",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "valid_epoch_count": 3,
+            "rejected_epoch_count": 0
+          }
+        },
+        {
+          "action": 6,
+          "tool": "epoch_summary",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "expected_artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "valid_epoch_count": 3,
+            "rejected_epoch_count": 0
+          }
+        },
+        {
+          "action": 7,
+          "tool": "epoch_quality",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "expected_artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "epoch_counts": {
+              "requested_or_boundary_checked": 3,
+              "created": 3,
+              "boundary_rejected": 0,
+              "quality_flagged": 0,
+              "quality_usable": 3
+            },
+            "thresholds": {
+              "flatline_delta_volts": 1e-08,
+              "flatline_fraction": 0.95,
+              "high_amplitude_volts": 0.0002,
+              "high_amplitude_fraction": 0.01,
+              "line_noise_ratio": 0.2
+            },
+            "validity": "screening_suggestion_only; no automatic deletion performed"
+          }
+        },
+        {
+          "action": 8,
+          "tool": "event_bandpower",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "expected_artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+            "frequency_resolution_hz": 1.0,
+            "conditions": {
+              "stimulus": {
+                "epoch_count": 3,
+                "channels": {
+                  "SYNTH-C1": {
+                    "delta": 3.52590958596168e-26,
+                    "theta": 1.869591131724944e-25,
+                    "alpha": 3.2799997787269497e-10,
+                    "beta": 4.50064582720993e-25,
+                    "gamma": 1.1663037799695777e-24
+                  },
+                  "SYNTH-C2": {
+                    "delta": 3.629643299192653e-26,
+                    "theta": 1.8449999109511803e-10,
+                    "alpha": 9.438448866698457e-26,
+                    "beta": 2.6491479841580087e-25,
+                    "gamma": 6.739257976614902e-25
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": 9,
+          "tool": "psd",
+          "success": false,
+          "status": "blocked",
+          "code": "SCIENTIFIC_SCOPE_MISMATCH",
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          }
+        },
+        {
+          "action": 10,
+          "tool": "close_subgoal",
+          "success": true,
+          "status": "suspended",
+          "code": null
+        },
+        {
+          "action": 11,
+          "tool": "begin_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "INVALID_DEPENDENCY"
+        },
+        {
+          "action": 12,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "development-20261026T041516173933-combined_revision-s2",
+            "title": "记录A SYNTH-C1 连续0-2s 绝对 alpha 功率（连续时间基准）",
+            "record": "A",
+            "deliverable": "psd",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "end": 2,
+              "start": 0
+            },
+            "checks": [],
+            "criteria": [],
+            "revision_of": null,
+            "dependencies": [],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        },
+        {
+          "action": 13,
+          "tool": "psd",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 2,
+            "start": 0
+          },
+          "arguments": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 0,
+            "end": 2
+          },
+          "actual_result": {
+            "SYNTH-C1": {
+              "delta": "1.88e-26",
+              "theta": "1.51e-25",
+              "alpha": "2.00e-10",
+              "beta": "2.35e-25",
+              "gamma": "5.39e-25"
+            }
+          }
+        },
+        {
+          "action": 14,
+          "tool": "close_subgoal",
+          "success": true,
+          "status": "completed",
+          "code": null
+        },
+        {
+          "action": 15,
+          "tool": "read_evidence",
+          "success": false,
+          "status": "rejected",
+          "code": "TASK_NOT_FOUND"
+        },
+        {
+          "action": 16,
+          "tool": "restore_subgoal",
+          "success": true,
+          "status": "restored",
+          "code": null,
+          "restored_subgoal": "development-20261026T041516173933-combined_revision-s1",
+          "reason": "需要读取已完成的 stimulus 0-1s 事件的 SYNTH-C1 绝对 alpha 功率实际值，本会话无法通过 read_evidence 访问，需恢复行动—观察轨迹核查数值",
+          "restored_tools": [
+            "list_events",
+            "create_epochs",
+            "epoch_summary",
+            "epoch_quality",
+            "event_bandpower",
+            "psd"
+          ]
+        },
+        {
+          "action": 17,
+          "tool": "close_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "NO_ACTIVE_SUBGOAL"
+        },
+        {
+          "action": 18,
+          "tool": "finish_task",
+          "success": false,
+          "status": "rejected",
+          "code": "UNFINISHED_SUBGOAL"
+        },
+        {
+          "action": 19,
+          "tool": "close_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "NO_ACTIVE_SUBGOAL"
+        },
+        {
+          "action": 20,
+          "tool": "finish_task",
+          "success": false,
+          "status": "rejected",
+          "code": "UNFINISHED_SUBGOAL"
+        },
+        {
+          "action": 21,
+          "tool": "close_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "NO_ACTIVE_SUBGOAL"
+        }
+      ],
+      "visibility_checkpoints": [
+        {
+          "before_action": 17,
+          "turn": 1,
+          "context_bytes": 16645,
+          "active_subgoal": null,
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1"
+          ],
+          "native_tool_names": [
+            "close_subgoal"
+          ]
+        },
+        {
+          "before_action": 18,
+          "turn": 1,
+          "context_bytes": 18976,
+          "active_subgoal": null,
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1"
+          ],
+          "native_tool_names": [
+            "finish_task"
+          ]
+        },
+        {
+          "before_action": 19,
+          "turn": 1,
+          "context_bytes": 16697,
+          "active_subgoal": null,
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1"
+          ],
+          "native_tool_names": [
+            "close_subgoal"
+          ]
+        },
+        {
+          "before_action": 20,
+          "turn": 1,
+          "context_bytes": 19557,
+          "active_subgoal": null,
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1"
+          ],
+          "native_tool_names": [
+            "finish_task"
+          ]
+        }
+      ],
+      "final_subgoals": [
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+          "task_id": null,
+          "deliverable": "event_bandpower",
+          "status": "suspended",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "revision_of": null,
+          "unresolved": [
+            "连续0-2s alpha功率需独立scope，尚未交付"
+          ]
+        },
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s2",
+          "task_id": "development-20261026T041516173933-combined_revision-t1",
+          "deliverable": "psd",
+          "status": "completed",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 2,
+            "start": 0
+          },
+          "revision_of": null,
+          "unresolved": []
+        }
+      ]
+    },
+    {
+      "log": "development-20261026T041516173933-combined_revision/turn-2.json",
+      "sha256": "c310685d4d6f05e2077bf24910b7cd0abb9dd1b777cb0660659e340befc71588",
+      "request": "保留刚才的结果，把 A 的连续分析窗口改为3到5秒，比较修改前后的 alpha 功率。另核对刚才事件分析实际使用的质量判据和处理过程，说明是否筛除了试次，再决定能否直接沿用原事件对象为后续分析基础。不要重复计算已有的事件功率。",
+      "stop_reason": "completed",
+      "accepted_answer": "已按要求交付，未重复计算事件功率（沿用已存档的事件功率结果）。\n\n## 一、连续 alpha 功率：修改前 vs 修改后（记录 A，通道 SYNTH-C1，绝对功率 V²）\n\n| 分析 | 连续窗口（记录绝对秒） | alpha (8–13 Hz) 绝对功率 |\n|---|---|---|\n| 修改前（旧结果，保留） | 0–2 s | 2.00e-10 V² |\n| 修改后（新分析） | 3–5 s | 3.92e-10 V² |\n\n- 3–5 s 相对 0–2 s 增至约 1.96 倍（3.92e-10 / 2.00e-10 ≈ 1.96），即高约 96%。\n- 两次分析均为 Welch 绝对带功率，同一通道、同一记录、同一预处理配置（sfreq 128 Hz、合成双通道布局、原始参考），仅时间窗口不同；单位 V²，未做基线归一化，也不是 ERD/ERS。\n- 注意：两个窗口是非重叠的短时窗（各 2 s，频率分辨率约 1 Hz，来自 Welch 配置），这类单段绝对功率的差异只描述该时间段的功率水平，不足以推断条件效应或统计显著性；且记录为合成数据，仅作方法学演示。\n- 修改后的分析以 revises 方式记录为对原 0–2 s 分析的修订（revision_of 指向原任务），旧 0–2 s 结果保留未改动。\n\n## 二、事件分析（stimulus 后 0–1 s）实际使用的质量判据与处理过程\n\n判定对象：Epoch 工件 `epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb`（指纹 sha256:e4d78d64…dcee798），标签 stimulus、窗口 [0, 1) s 相对事件、无基线校正，3 个事件（onset 1.0 / 3.0 / 5.0 s）。\n\n实际使用的经验性阈值（profile: edf_native，threshold_status = empirical_not_clinically_calibrated）：\n- 平坦线：幅值变化 < 1e-08 V 的样本比例 ≥ 0.95\n- 高振幅：|x| > 2e-4 V 的样本比例 > 0.01\n- 线噪声：线噪比阈值 0.2\n\n观察到的计数：\n- 请求/边界检查 3 个，成功创建 3 个，边界拒绝 0 个\n- 质量标记（quality_flagged）= 0，flagged_epoch_indices 为空，quality_flag_reasons 为空\n- 可用试次 3 个（stimulus 3），usable_fraction_of_created = 1.0\n- 拒绝试次 rejected_epoch_count = 0，rejected 列表为空\n\n处理过程与结论：\n- 该质量检查的性质在工件中明确写为 screening_suggestion_only; no automatic deletion performed——即只做筛查建议，没有自动删除任何试次；本次分析也未被要求筛选，全部 3 个试次都进入后续计算。\n- 因此“是否筛除了试次”的答案是：没有筛除，3 个试次全部保留并使用（事件功率即基于这 3 个 epoch 的整段 Welch PSD 后算术平均，非基线归一化 ERD/ERS）。\n- 能否直接沿用原事件对象作为后续分析基础：可以。原 Epoch 工件仍可访问、指纹一致、无边界拒绝、无质量标记、无试次删除，质量检查未改变数据内容；后续若做同样 stimulus 0–1 s 窗口的事件分析，可直接以该 artifact_id + 指纹引用，无需重建。若后续要改窗口、改基线、换标签或换记录，则需新建 epoch 对象，不能沿用本工件。\n\n## 三、局限说明\n- 记录为合成数据（synthetic://task-memory-A），结论仅体现测量流程，不代表真实生理发现。\n- 质量阈值为经验性、未经临床标定，仅作筛查提示。\n- 只有 3 个试次、单通道单段连续窗，不构成统计推断。",
+      "actions": [
+        {
+          "action": 1,
+          "tool": "begin_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "INVALID_REVISION_PARENT"
+        },
+        {
+          "action": 2,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "development-20261026T041516173933-combined_revision-s3",
+            "title": "记录A 连续3-5s SYNTH-C1 绝对 alpha 功率（修订自0-2s分析）",
+            "record": "A",
+            "deliverable": "psd",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "end": 5,
+              "start": 3
+            },
+            "checks": [],
+            "criteria": [],
+            "revision_of": "development-20261026T041516173933-combined_revision-t1",
+            "dependencies": [
+              "development-20261026T041516173933-combined_revision-t1"
+            ],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        },
+        {
+          "action": 3,
+          "tool": "psd",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 5,
+            "start": 3
+          },
+          "arguments": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "start": 3,
+            "end": 5
+          },
+          "actual_result": {
+            "SYNTH-C1": {
+              "delta": "4.35e-26",
+              "theta": "2.05e-25",
+              "alpha": "3.92e-10",
+              "beta": "5.58e-25",
+              "gamma": "1.48e-24"
+            }
+          }
+        },
+        {
+          "action": 4,
+          "tool": "close_subgoal",
+          "success": true,
+          "status": "completed",
+          "code": null
+        },
+        {
+          "action": 5,
+          "tool": "restore_subgoal",
+          "success": true,
+          "status": "restored",
+          "code": null,
+          "restored_subgoal": "development-20261026T041516173933-combined_revision-s1",
+          "reason": "核对事件分析实际使用的质量判据与处理过程（是否筛除试次、原 epoch 对象可否沿用）",
+          "restored_tools": [
+            "list_events",
+            "create_epochs",
+            "epoch_summary",
+            "epoch_quality",
+            "event_bandpower",
+            "psd"
+          ]
+        },
+        {
+          "action": 6,
+          "tool": "close_subgoal",
+          "success": false,
+          "status": "rejected",
+          "code": "NO_ACTIVE_SUBGOAL"
+        },
+        {
+          "action": 7,
+          "tool": "begin_subgoal",
+          "success": true,
+          "status": "active",
+          "code": null,
+          "contract": {
+            "subgoal_id": "development-20261026T041516173933-combined_revision-s4",
+            "title": "记录A stimulus 0-1s 事件分析质量判据与处理过程核对，确认原Epoch对象可否沿用",
+            "record": "A",
+            "deliverable": "epoch_quality",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1
+            },
+            "checks": [
+              "epoch_summary",
+              "epoch_quality"
+            ],
+            "criteria": [],
+            "revision_of": null,
+            "dependencies": [
+              "development-20261026T041516173933-combined_revision-t1"
+            ],
+            "status": "active",
+            "task_id": null,
+            "unresolved": []
+          }
+        },
+        {
+          "action": 8,
+          "tool": "epoch_summary",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "expected_artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "valid_epoch_count": 3,
+            "rejected_epoch_count": 0
+          }
+        },
+        {
+          "action": 9,
+          "tool": "epoch_quality",
+          "success": true,
+          "status": "observed",
+          "code": null,
+          "record": "A",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "arguments": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "expected_artifact_fingerprint": "sha256:e4d78d64c08f2b16bc4a2fb5db8ef17133cd27f0c0a1dcbf5d0de6e70dcee798"
+          },
+          "actual_result": {
+            "artifact_id": "epochs-8af4f318-7c70-4f8d-8f37-41b261b463eb",
+            "epoch_counts": {
+              "requested_or_boundary_checked": 3,
+              "created": 3,
+              "boundary_rejected": 0,
+              "quality_flagged": 0,
+              "quality_usable": 3
+            },
+            "thresholds": {
+              "flatline_delta_volts": 1e-08,
+              "flatline_fraction": 0.95,
+              "high_amplitude_volts": 0.0002,
+              "high_amplitude_fraction": 0.01,
+              "line_noise_ratio": 0.2
+            },
+            "validity": "screening_suggestion_only; no automatic deletion performed"
+          }
+        },
+        {
+          "action": 10,
+          "tool": "close_subgoal",
+          "success": true,
+          "status": "completed",
+          "code": null
+        },
+        {
+          "action": 11,
+          "tool": "finish_task",
+          "success": true,
+          "status": "completed",
+          "code": null
+        }
+      ],
+      "visibility_checkpoints": [
+        {
+          "before_action": 28,
+          "turn": 2,
+          "context_bytes": 21282,
+          "active_subgoal": "development-20261026T041516173933-combined_revision-s4",
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s3",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t2"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1",
+            "development-20261026T041516173933-combined_revision-t2"
+          ],
+          "native_tool_names": [
+            "begin_subgoal"
+          ]
+        },
+        {
+          "before_action": 29,
+          "turn": 2,
+          "context_bytes": 23564,
+          "active_subgoal": "development-20261026T041516173933-combined_revision-s4",
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s3",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t2"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1",
+            "development-20261026T041516173933-combined_revision-t2"
+          ],
+          "native_tool_names": [
+            "begin_subgoal",
+            "epoch_summary"
+          ]
+        },
+        {
+          "before_action": 30,
+          "turn": 2,
+          "context_bytes": 25920,
+          "active_subgoal": "development-20261026T041516173933-combined_revision-s4",
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s3",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t2"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1",
+            "development-20261026T041516173933-combined_revision-t2"
+          ],
+          "native_tool_names": [
+            "begin_subgoal",
+            "epoch_summary",
+            "epoch_quality"
+          ]
+        },
+        {
+          "before_action": 31,
+          "turn": 2,
+          "context_bytes": 30337,
+          "active_subgoal": null,
+          "archived": [
+            {
+              "id": "development-20261026T041516173933-combined_revision-s1",
+              "status": "suspended",
+              "task_id": null
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s2",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t1"
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s3",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t2"
+            },
+            {
+              "id": "development-20261026T041516173933-combined_revision-s4",
+              "status": "completed",
+              "task_id": "development-20261026T041516173933-combined_revision-t3"
+            }
+          ],
+          "restored_ids": [
+            "development-20261026T041516173933-combined_revision-s1"
+          ],
+          "visible_evidence_ids": [
+            "development-20261026T041516173933-combined_revision-t1",
+            "development-20261026T041516173933-combined_revision-t2",
+            "development-20261026T041516173933-combined_revision-t3"
+          ],
+          "native_tool_names": [
+            "close_subgoal"
+          ]
+        }
+      ],
+      "final_subgoals": [
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+          "task_id": null,
+          "deliverable": "event_bandpower",
+          "status": "suspended",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "revision_of": null,
+          "unresolved": [
+            "连续0-2s alpha功率需独立scope，尚未交付"
+          ]
+        },
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s2",
+          "task_id": "development-20261026T041516173933-combined_revision-t1",
+          "deliverable": "psd",
+          "status": "completed",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 2,
+            "start": 0
+          },
+          "revision_of": null,
+          "unresolved": []
+        },
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s3",
+          "task_id": "development-20261026T041516173933-combined_revision-t2",
+          "deliverable": "psd",
+          "status": "completed",
+          "scope": {
+            "channels": [
+              "SYNTH-C1"
+            ],
+            "end": 5,
+            "start": 3
+          },
+          "revision_of": "development-20261026T041516173933-combined_revision-t1",
+          "unresolved": []
+        },
+        {
+          "subgoal_id": "development-20261026T041516173933-combined_revision-s4",
+          "task_id": "development-20261026T041516173933-combined_revision-t3",
+          "deliverable": "epoch_quality",
+          "status": "completed",
+          "scope": {
+            "labels": [
+              "stimulus"
+            ],
+            "tmin": 0,
+            "tmax": 1
+          },
+          "revision_of": null,
+          "unresolved": []
+        }
+      ]
+    }
+  ],
+  "audits": [
+    {
+      "phase": "bounded_confirmation",
+      "protocol_sha256": "10ac38f08fa83aeeed60bd4e5377deb612aae9d5ad0d0d746d4d4ed7f9081502",
+      "sessions": [
+        {
+          "session": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum",
+          "requests": [
+            "请给 A 的 SYNTH-C1 连续1到3秒的 RMS。如果 RMS 不超过 0.0001 V，再给同一窗的绝对 alpha 功率，否则停止功率部分并说明原因。最后附上采样率和通道名称，不筛选、不重参考。"
+          ],
+          "outcomes": [
+            {
+              "stop_reason": "llm_error",
+              "rounds": 8
+            }
+          ],
+          "numeric_audit": [
+            {
+              "task_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-t1",
+              "record": "A",
+              "capability": "amplitude",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "start": 1,
+                "end": 3
+              },
+              "revision_of": null,
+              "path": [
+                "SYNTH-C1",
+                "rms"
+              ],
+              "actual": "1.60e-05",
+              "oracle": 1.598061305042897e-05,
+              "numerically_valid": true
+            }
+          ],
+          "events": [
+            {
+              "event": "started",
+              "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s1",
+              "record": "A",
+              "implicit": false,
+              "turn": 1
+            },
+            {
+              "event": "archived",
+              "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s1",
+              "task_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-t1",
+              "reason": "verified_delivery",
+              "turn": 1
+            },
+            {
+              "event": "started",
+              "subgoal_id": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum-s2",
+              "record": "A",
+              "implicit": false,
+              "turn": 1
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "attempts": 40,
+        "charged_tokens": 228734,
+        "reported_tokens": 228734,
+        "unresolved_attempts": 0
+      }
+    },
+    {
+      "phase": "development",
+      "protocol_sha256": "38f521ce6cd9af4961724618cecf018c726881f21124ae62407ab9e182a7ed03",
+      "sessions": [
+        {
+          "session": "development-20261026T041329334721-combined_revision",
+          "requests": [
+            "请分析记录 A：先检查 stimulus 事件后0到1秒的实际有效试次数和质量；至少有2个有效试次且质量标记为0时，再给出 SYNTH-C1 的事件绝对 alpha 功率。另计算同一通道连续记录0到2秒的 alpha 功率，分别说明两个时间基准。只测量，不筛除、不重参考。",
+            "保留刚才的结果，把 A 的连续分析窗口改为3到5秒，比较修改前后的 alpha 功率。另核对刚才事件分析实际使用的质量判据和处理过程，说明是否筛除了试次，再决定能否直接沿用原事件对象为后续分析基础。不要重复计算已有的事件功率。"
+          ],
+          "outcomes": [
+            {
+              "stop_reason": "no_progress",
+              "rounds": 2
+            }
+          ],
+          "numeric_audit": [],
+          "events": []
+        }
+      ],
+      "budget": {
+        "attempts": 2,
+        "charged_tokens": 6319,
+        "reported_tokens": 6319,
+        "unresolved_attempts": 0
+      }
+    },
+    {
+      "phase": "development",
+      "protocol_sha256": "38f521ce6cd9af4961724618cecf018c726881f21124ae62407ab9e182a7ed03",
+      "sessions": [
+        {
+          "session": "development-20261026T041516173933-combined_revision",
+          "requests": [
+            "请分析记录 A：先检查 stimulus 事件后0到1秒的实际有效试次数和质量；至少有2个有效试次且质量标记为0时，再给出 SYNTH-C1 的事件绝对 alpha 功率。另计算同一通道连续记录0到2秒的 alpha 功率，分别说明两个时间基准。只测量，不筛除、不重参考。",
+            "保留刚才的结果，把 A 的连续分析窗口改为3到5秒，比较修改前后的 alpha 功率。另核对刚才事件分析实际使用的质量判据和处理过程，说明是否筛除了试次，再决定能否直接沿用原事件对象为后续分析基础。不要重复计算已有的事件功率。"
+          ],
+          "outcomes": [
+            {
+              "stop_reason": "repeated_action",
+              "rounds": 20
+            },
+            {
+              "stop_reason": "completed",
+              "rounds": 11
+            }
+          ],
+          "numeric_audit": [
+            {
+              "task_id": "development-20261026T041516173933-combined_revision-t1",
+              "record": "A",
+              "capability": "psd",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "end": 2,
+                "start": 0
+              },
+              "revision_of": null,
+              "path": [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              "actual": "2.00e-10",
+              "oracle": 1.9999999920083944e-10,
+              "numerically_valid": true
+            },
+            {
+              "task_id": "development-20261026T041516173933-combined_revision-t2",
+              "record": "A",
+              "capability": "psd",
+              "parameters": {
+                "channels": [
+                  "SYNTH-C1"
+                ],
+                "end": 5,
+                "start": 3
+              },
+              "revision_of": "development-20261026T041516173933-combined_revision-t1",
+              "path": [
+                "SYNTH-C1",
+                "alpha"
+              ],
+              "actual": "3.92e-10",
+              "oracle": 3.9199996720862273e-10,
+              "numerically_valid": true
+            }
+          ],
+          "events": [
+            {
+              "event": "started",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+              "record": "A",
+              "implicit": false,
+              "turn": 1
+            },
+            {
+              "event": "suspended",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+              "task_id": null,
+              "reason": "unresolved",
+              "turn": 1
+            },
+            {
+              "event": "started",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s2",
+              "record": "A",
+              "implicit": false,
+              "turn": 1
+            },
+            {
+              "event": "archived",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s2",
+              "task_id": "development-20261026T041516173933-combined_revision-t1",
+              "reason": "verified_delivery",
+              "turn": 1
+            },
+            {
+              "event": "restored",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+              "reason": "需要读取已完成的 stimulus 0-1s 事件的 SYNTH-C1 绝对 alpha 功率实际值，本会话无法通过 read_evidence 访问，需恢复行动—观察轨迹核查数值",
+              "turn": 1
+            },
+            {
+              "event": "started",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s3",
+              "record": "A",
+              "implicit": false,
+              "turn": 2
+            },
+            {
+              "event": "archived",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s3",
+              "task_id": "development-20261026T041516173933-combined_revision-t2",
+              "reason": "verified_delivery",
+              "turn": 2
+            },
+            {
+              "event": "restored",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s1",
+              "reason": "核对事件分析实际使用的质量判据与处理过程（是否筛除试次、原 epoch 对象可否沿用）",
+              "turn": 2
+            },
+            {
+              "event": "started",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s4",
+              "record": "A",
+              "implicit": false,
+              "turn": 2
+            },
+            {
+              "event": "archived",
+              "subgoal_id": "development-20261026T041516173933-combined_revision-s4",
+              "task_id": "development-20261026T041516173933-combined_revision-t3",
+              "reason": "verified_delivery",
+              "turn": 2
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "attempts": 33,
+        "charged_tokens": 202622,
+        "reported_tokens": 202622,
+        "unresolved_attempts": 0
+      }
+    }
+  ],
+  "usage": {
+    "attempts": 40,
+    "api_tokens": 228734,
+    "response_models": [
+      "deepseek-flash"
+    ],
+    "remaining_calls_not_a_target": 56,
+    "remaining_tokens_unreservable_for_current_full_request": 11266
+  },
+  "all_successful_numeric_observations_audit": [
+    {
+      "log": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum/turn-1.json",
+      "action": 4,
+      "capability": "amplitude",
+      "record": "A",
+      "parameters": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "actual": "1.60e-05",
+      "oracle": 1.598061305042897e-05,
+      "valid": true
+    },
+    {
+      "log": "bounded_confirmation-20261026T042101478181-observed_rms_then_spectrum/turn-1.json",
+      "action": 5,
+      "capability": "psd",
+      "record": "A",
+      "parameters": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "end": 3,
+        "start": 1
+      },
+      "actual": "2.55e-10",
+      "oracle": 2.553800122762073e-10,
+      "valid": true
+    },
+    {
+      "log": "development-20261026T041516173933-combined_revision/turn-1.json",
+      "action": 8,
+      "capability": "event_bandpower",
+      "record": "A",
+      "parameters": {
+        "labels": [
+          "stimulus"
+        ],
+        "tmin": 0,
+        "tmax": 1
+      },
+      "actual": 3.2799997787269497e-10,
+      "oracle": 3.2799997787269497e-10,
+      "valid": true
+    },
+    {
+      "log": "development-20261026T041516173933-combined_revision/turn-1.json",
+      "action": 13,
+      "capability": "psd",
+      "record": "A",
+      "parameters": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "start": 0,
+        "end": 2
+      },
+      "actual": "2.00e-10",
+      "oracle": 1.9999999920083944e-10,
+      "valid": true
+    },
+    {
+      "log": "development-20261026T041516173933-combined_revision/turn-2.json",
+      "action": 3,
+      "capability": "psd",
+      "record": "A",
+      "parameters": {
+        "channels": [
+          "SYNTH-C1"
+        ],
+        "start": 3,
+        "end": 5
+      },
+      "actual": "3.92e-10",
+      "oracle": 3.9199996720862273e-10,
+      "valid": true
+    }
+  ]
+}

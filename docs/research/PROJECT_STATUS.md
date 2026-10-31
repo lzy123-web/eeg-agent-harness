@@ -1,4 +1,269 @@
+## Issue55最新：共享对象/范围机制整改已交付，真实执行受配置/累计账本阻塞（2026-11-01）
+
+- 承接最新Issue正文及评论6546812918；起点`1fb321d`，fetch确认工作区干净、远端一致。旧“先验收”安排被架构整改替代，原记录保留。
+- 实现channel_reference：完整源/目标父句、唯一通道集、双方元数据和目标独立记录/窗核验；只跨记录引用通道名，不继承数据/窗/工件。TaskPlan上下文呈现真实父句索引，所有臂共用，非关键词/窗口/数据集特判。
+- 修正事件对象中的通道维度被当作异域时基的冲突；未分隔多范围仍拒绝，事件窗不能授权连续计算。原DAG/Executor/TaskEntry、版本/工件约束不改。
+- 同条件前后：T04由partial/1次计算到completed/2次（明确新增字段引用动作）；T07原请求和原动作由partial/1次到两轮completed/4次。24条受控路径111/111oracle通过，非真实模型成功率。
+- 正反回归与全链：666项（651通过、15资源跳过），compileall/pip check通过。首次schema扩张影响旧预算见证的失败保留；修正公开schema范围后恢复，不修改旧预算。
+- 授权144/6M/US$3及开发/确认池继续有效；本次新增0调用/0tokens/0费用。未配置既有服务的端点/模型/凭据；本地未找到可核对用户所述累计消费的Issue55账本，不能推定累计0或新建全额账本。没有要求重复授权，没有启动付费。
+- 未完成：真实运行器费用/累计账本衔接和端到端Fake保护验收、真实模型自主使用与确认。当前付费不具备运行条件，完成安全本地交付；不是宣称Issue整阶段全部验收。
+- 文档/代码职责/限制/复现与公开证据见[Issue55集中材料](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)和[合成证据](evidence/issue55_scope_repair.json)。正常commit/push原分支，PR保持Draft，Issue保持打开；精确SHA/CI随后发布留痕。
+
+- 发布留痕：机制实现与公开证据提交`81be29371855bbeed15edff765971cb512aef9d9`已普通推送；第一次网络连接失败，普通重试成功，没有force。PR #37正文及[Issue #55整改评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6547122720)已更新。后续补充四臂逐一验证源/目标缺通道、歧义、裁剪和交换范围反例，7项专项再次通过，未改变实现。
+
+机制提交`81be293`的[GitHub CI unit-tests #336](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41227194003)已success。发布留痕提交仅补文档及四臂反例测试，不改变机制；最终远端SHA以Git及PR发布评论为准。
+
+## Issue #55：无需付费阶段交付，真实自主验收待独立授权（2026-11-01）
+
+- 起点本地/远端 `4bd74d10a09fc0b006f1e0db8c20c84c1f02365a`，工作区干净；继续 `research/point1-eeg-task-memory`、Draft PR #37，不改研究内容二。
+- 已审计三模块职责/寿命/状态，承接#50/#51/#52及原失败。唯一运行时改动：共享日志将拒绝动作从used改为use_attempt，成功才计实际消费；没有改数值算法、提示或来源门槛。
+- T04跨记录省略和T07混合对象仍共同误拒；保留失败，不用关键词补丁放宽。独立评分反例证明模型DAG完成不能证明原请求完整；遗漏PSD仍判缺项。
+- 新冻结C01/C02/C03八轮自然请求、独立清单/评分、确定性新合成数据和oracle；原Executor12交付/17项数字或结构核验通过。独立账本适配器和自然轮次驱动已实现，CLI付费路径默认拒绝，未开实验账本。
+- 实际验证：659 tests（644通过、15资源跳过、0失败）；compileall、pip check通过。兼容环境为已有eegagent；系统默认Python缺NumPy，未另装依赖。
+- 复现：`python -m eeg_harness.research.working_memory_issue55 --preflight --output <新路径>`；`python -m unittest discover -s tests -q`；`python -m compileall -q src tests`；`python -m pip check`，设置PYTHONPATH=src。
+- 新初始预约19,616–20,150；已知完整工具路径normal+final最大57,948保守单位，非实际API tokens。预算建议144次/6M tokens（开发48/2M、确认96/4M），最大输出2200，零重试；按官方Flash峰时费率条件估算≤US$2.08512、建议货币硬上限US$3，既有端点费率/实际模型须授权后核实。**当前授权0、实际0 calls/0 tokens/0费用**，旧账本未复用。
+- 结论：尚不具备正式公平三臂/消融准入证据；仅可另获授权后做有限自主诊断。源绑定阻塞、完整用户交付、下一模型真实使用和候选独立收益均未通过/未验证。A-equivalent可消解自动验收差别，不把工程修正包装创新。
+- 详细职责图、冻结hash、逐例清单、评分审查与预算依据：[Issue55集中材料](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。Git候选SHA、远端、CI和发布留痕在下条补记；本次将普通commit/push，PR保持Draft。
+
 # 项目状态
+
+- 发布留痕：候选 `fbcc32da66d07c3f3f5251216738858081c48d98` 已普通推送，本地/远端及PR head一致；[GitHub CI unit-tests #332](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41220050132)已success。PR #37正文与[Issue #55评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546114851)已更新，保持Draft/open/unmerged。后续本条状态提交仅文档及测试末尾空行清理，不改变冻结行为。敏感模式扫描0命中，未提交生成产物、真实EEG、权重或本地配置。当前停在Issue明确预算门槛，等待用户另行授权，未宣称真实验收完成。
+
+## Issue #52：共享强P&E与候选差异已实现，离线阶段交付；自主收益尚未验证
+
+- 安全起点本地与远端`3d99b4c7644119a4ed5b4e6f1dbf82695da37165`，工作区干净、无分叉；继续原研究分支和Draft PR #37。完整读取Issue52及旧失败，当前新外部授权为**0 completion/0 tokens**，不重开任何旧账本。
+- 设计`71e81ee`：A强P&E、B一般任务记忆、C科学验收/依赖分层共享真实结果传递、稳定任务/版本、范围/工件安全、合法重规划、全部读取权。所有组正常结果自动绑定；C不独占科学信息。A可调用相同check_deliveries，A-equivalent得到同一自动科学门控时交付差异应消失。
+- 新路径`TaskPlanEEGAgent`仍直接继承原`EEGAgent.run`，数值只经原Store→ExecutionContext→Executor；无新数值工具。共享DAG有显式交付key、输入引用和固定历史revision，稳定任务身份与实际执行episode分离。工作记忆在下一决策前提供活动AO、实际依赖结果或过程，完整档案保留。
+- 有依据修订：工具成功先置TOOL_SUCCEEDED，科学条件满足后才解锁有条件依赖；共享旧binding失效检查避免候选独享安全；修订引用能固定旧版，未改输出真实复用，新值保留revision_of；过程读取回执与上下文去重。所有修订是离线，不包装成真实模型改进。
+- 冻结代码与协议`9e5347c63d3fc3ca9add42ea8be68b0abd9b59db`，核心实现`ff0cbc211213bedd3a3d0912bff160efa98473dc`；配置SHA-256为`25210fc64450adf29749e23d8c5ef2edc954d41a72c26e82831c4c4b7c562ddf`。随后仅保存证据、文档和发布状态，没有按结果继续改方法。原有模式、数值算法和历史实验不改。
+- 最终**652项完整回归：637通过/15资源跳过**，compileall、pip check通过。八类×A/B/C共24条受控路径，**93/93独立数值/计数核验通过**。正常连续、双窗口、混合补参、版本修订及原工件续算三组均能完成；这不是24条自然会话全部成功。T04的跨记录同名通道省略、T07的同句连续/事件范围被共享来源绑定保守误拒，只部分交付；不为追分改请求或扩词。T05真实来源片段由离线脚本定位，不能称模型自行纠错。
+- 科学验收差异：同一个人为错误的“3试次满足至少4个”完成提议下，C拒绝，A/B可接受错误声明；A-equivalent获得同一自动校验后也拒绝。正常T06三组都读取真实事实并安全停止，不宣称候选独占科学正确性。T08受控过程供给C为7次决策，A/B为8次，均3次数值执行；消融去掉选择后恢复8次。只是指定依赖的控制开销，不是实际API收益或自然模型错误率。
+- 冻结后额外6条消融/敏感性回放（T06/T08×C-no-delivery/C-no-selection/A-equivalent）21/21独立数值检查通过，和主表分开保存。三组共享结果自动关联、科学底线、版本绑定及读权，未删除旧测试或刻意缩小上下文。
+- **新增外部completion=0、API tokens=0、外部模型费用=0**；没有读取凭据或创建可消费账本。完整输入预检T03三臂保守预约见证589194、T05为654807（wire bytes＋最大输出的保守单位，不是实耗tokens）；未来最小三臂T03建议申请48次/900000 API tokens，仍须新授权。该见证不是任意自主路径上界，也不把已用开发请求改称未见确认。
+- 研究判断为**B：可支撑开题方案和实现基础，尚不足以支撑已经成立的独立创新结论**。方法差异限于科学条件自动验收、依赖需要驱动的分层证据供给；稳定身份/版本/科学安全是公共基础。A-equivalent表明校验差别可由成熟P&E配置消除；约千行新增控制/数据模型及相应维护成本需由真实完整配对效用证明，不凭测试数宣称贡献。
+- 交付：[设计及代码映射](EEG_WORKING_MEMORY_ISSUE52_DESIGN.md)、[冻结协议、逐例结果、复现与预算](EEG_WORKING_MEMORY_ISSUE52_PROTOCOL.md)、[开题一页总结](EEG_WORKING_MEMORY_ISSUE52_PROPOSAL_SUMMARY.md)、[公开合成证据与首次失败](evidence/issue52_offline_paired_diagnostic.json)。README、主方法和开题包同步；全messages/tools本地忽略保存，公开摘录含真实结果、失败、版本、访问关联及原文件hash，不含真实EEG/密钥/个人路径。
+- 复现：`PYTHONPATH=src python -m compileall -q src tests`；`python -m unittest discover -s tests -q`；`python -m eeg_harness.research.working_memory_issue52 --offline --case T01 --case T02 --case T03 --case T04 --case T05 --case T06 --case T07 --case T08 --output <新的本地JSON文件>`；`--preflight`同样须新输出路径。`--real`在本阶段驱动中拒绝；正式Agent/CLI新`--plan-arm`入口只收自然请求，付费运行须另有明确授权。
+- 下一唯一优先：获新授权后，按冻结协议做一个完整三臂自然会话单位，分开判断规划、验收、依赖证据使用、最终科学交付和总成本；先诊断共同接口误拒，不继续堆功能。若合理强P&E同样可靠且更简单，则采用简单方案并收缩独立增益主张。本阶段至此停止，不开展工作点二。
+- 发布留痕：设计`71e81ee`、核心`ff0cbc2`、冻结`9e5347c`、证据/研究交付`04cb3d5fe3d0f9dff5758b8f951f17c92830e41a`均已普通推送。交付提交的[GitHub Actions unit-tests #313](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40531993144)已success；[Issue #52阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/52#issuecomment-6446211818)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6446222789)已发布，PR正文新增本轮并保留旧历史。核实PR仍Draft/open/unmerged；Issue保持open供审查。本条仅同步发布/CI及“旧阶段账本关闭”的措辞，不改变冻结方法、协议配置或结果。
+
+## Issue #51：有界研发与冻结确认已结束；完整自主闭环未通过
+
+**最终结论**：新scientific模式已接原Agent/Executor，科学对象绑定、多结果需求、活动AO、精确量纲/比较、读回/过程恢复实现并离线验证。真实DeepSeek自主多结果声明、连续/事件执行、旧结果进入比较已有证据；冻结确认第二轮因辅助失败误作科学完成义务而no_progress，未进入第三轮。完整归档与自主过程恢复、相对强摘要收益均未验证；停止在线，不修分重跑。
+
+- 冻结`eceb2b2f18354660708ccd0234052f9a9d43edec`；协议SHA256`60c3888f475863a36115f7f56a041ce6296b5620712c57b51865e950eb43900a`。唯一开发修订`2262943`；早期架构`75fc2cd`、协议`4b0e675`。
+- 全量离线617项：**602通过/15资源跳过**，compileall/pip check通过。46项独立科学预检；三次真实run共39项数值oracle通过，但不替代最终完整交付。
+- 实际费用：**16 completion/187,303 API tokens**（179,878输入+7,425输出），全部返回deepseek-flash，请求deepseek-chat；0HTTP失败/0自动重试/0未结预约。账本已追加关闭，56次/462,697余量不转用；货币账单未核实。
+- 确认第一轮partial正确；第二轮3项科学结果全满足，alpha差`6.6e−11 V²`/比`3.0625`、事件C2theta`4.452099644531906e−11 V²`正确。辅助list_events误拒留pending→三次正确主要内容的finish提案被拒→no_progress。旧s1未因新标题s2完成而正确续接；不是所有科学计算失败，也不能算完整会话成功。
+- 真实read_result/restore_task均0；第三轮原工件质量未发。历史旧PSD真实用作比较操作数，不能冒充过程恢复；相关恢复续算仅离线/Fake通过。第二层三臂因科学准入未过而未运行，**不是本阶段预算不足**。
+- 当前判断：保留HiAgent启发的EEG任务工作记忆候选，收缩完整可靠与相对收益主张。下一阶段唯一优先是科学义务/辅助尝试分离与自然续接的稳定目的身份；本次不开发第二工作点、不改冻结结果。
+- 交付：[集中报告](EEG_WORKING_MEMORY_ISSUE51_PROTOCOL_AND_RESULTS.md)、[主方法与最终职责](EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开原始合成证据/失败/成本](evidence/issue51_scientific_memory_diagnostic.json)，开题包B.6和README同步。复现命令见集中报告。
+- Git发布已完成：核心`75fc2cd`、协议`4b0e675`、唯一开发修订`2262943`、冻结`eceb2b2`、证据/开题事实`365cb5766fc58e7c671d3590f8732bfb6429bcb3`均已普通推送。早先TLS握手/直连超时后恢复，安全fetch确认无分叉；未关闭证书验证、未强推、未改main。[交付CI unit-tests #307](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40466989203)已success。
+- [Issue #51阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/51#issuecomment-6436209583)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6436222531)已发布，PR正文新增本阶段并保留旧历史，核实仍Draft/open/unmerged。当前记录只同步发布及CI，不修改冻结候选或增加模型调用；Issue保持open供审查。
+
+以下为本阶段按时间保留的研发过程，最终状态以上述结论为准。
+
+- 安全起点：本地与远端 `d64474bd444b95b9b4167d66e58f940b50cfffa0`，工作区干净、0 ahead/behind；继续 `research/point1-eeg-task-memory` 和 Draft PR #37。原模式与历史实验保留。
+- 已在原 Executor 的真实合成数值路径复现两个问题：裁剪 B 请求片段可错误执行 A 的范围；`expected_tools=[psd,psd]` 去重导致一次 PSD 后过早归档。
+- 新 opt-in `scientific`：完整请求对象绑定、按记录/范围区分的结果实例完成、活动行动观察到归档/读回/恢复的一体接口；确定性差值/比值只读真实有语义契约字段。模型选择目的与动作；程序维护科学事实；不声称证明任意原请求全部意图。
+- 本阶段独立上限 72 completion /650,000 API 输入输出 tokens，当时尚未调用。先实现、真实工具离线回归和完整会话预算预检；开发最多两次有根因修订，冻结确认不调真值。失败与未触发机制如实留存。
+- 核心实现已接原run/continue/CLI，已提交并普通推送`75fc2cd`。新机制44项离线真工具/Fake回归、46项独立数值预检通过；完整回归 **607项，592通过/15资源跳过**，compileall及pip check通过。完整真实三轮资源见证通过科学动作链；去掉控制回复重复账本后full-native保守预约497,715（不等于实际API tokens），确认500,000池可承受此合法路径。当时真实验收尚未运行。
+- 资源预检已保存本地初稿及最终版：开发只首轮76,056；完整确认497,715，实际compact最终快照备用路径407,724。精简同历史单个完整任务的三臂见证分别79,644/73,411/72,303；只有确认结束并科学审核、实际剩余≥300,000 tokens/18调用才可整组启动。全阶段总上限不因阶段上限求和而增大。
+- 明确保留限制：有界字面对象绑定不是任意语义证明；显式错误要求不会被后续别的合法结果偷偷删除；科学结果集完成不证明整个原请求完整。旧阶段失败仍不改写。
+- dev-initial实际3次/25,544tokens：模型科学分组意图基本正确但scope混入输出选择，被公共合同拒绝；原数值路径7项核验通过，最终功率µV²换算错1000倍。修订1将工具派生计算schema与纯文字输出选择分离，逐项科学错误反馈；活动观察附真实数值单位/缩放，恢复过程单一上下文所有权，原失败保留。修改后主路径490,433保守预约适合500,000确认池；待回归后再开发。
+- 修订1`2262943`的dev-revision1：3次/27,083tokens，模型主动声明5个结果实例成功接纳，3连续结果正确、2事件依赖待补，目标保持suspended。一次INVALID_SOURCE_SPAN自行纠正；缩放值准确。累计6次/52,627，未调用其他服务。完整回归617项（602通过/15跳过）、compileall通过；冻结后全三轮确认一次，不按确认成绩调要求。
+
+## Issue #50：职责重划已交付；完整科学回答及记忆独立收益仍未通过/验证
+
+- 安全fetch起点本地/远端均`80271e7fe01afbab59cb57a3f680d9b35bb83ea8`，工作区干净；沿用研究分支与Draft PR #37，保留所有旧模式/历史失败。不改main、不改原算法/Executor。
+- 初版`d481c8e80d0b2da42b0fb0d49f4a23606bbedb07`：opt-in `managed`由模型选择科学任务/动作，程序自动维护真实来源、范围、版本、工件和归档；任务不作全局门控。原Agent run/continue/CLI接入，活动AO、任务摘要、精确读取/过程恢复、本轮已见字段union、实际最终快照预约均已实现。取消新入口重复coverage和每字段来源登记；仍为有界字面科学校验，不声称任意语言语义证明。
+- 初版离线536项（521通过/15资源跳过）、34真工具独立oracle。独立审查修跨对象来源拼接、错误提议变永久要求、错对象待补清除、逗号科学范围借用、分次读字段覆盖与归档后已见数值丢失。不是论文新算法。
+- dev1真实5次/44,658tokens：连续RMS/PSD+正确事件待补；次轮当前请求在旧native finish之前，三次重复旧答no_progress。首次原始输入/输出保留，立即停止在线定位。
+- 唯一开发修订`0867b59d827ff3475bb5b5034bb0d2edb0f6c605`：按真实轮次排列历史/新user/当前AO，且唯一同记录历史对象来源不依赖pending/touch；新范围仍须当前支持。离线539项（524通过/15资源跳过）及34oracle通过。dev2真实7次/71,030tokens，完成事件补窗3Epoch/C2theta、连续alpha修订及正确比较；两次可选request_span技术误拒后自行修正，未抹除失败。没有第二次开发架构修订。
+- 层1冻结候选`0867b59`，协议SHA-256`0116e5aa470f51f1648d6368bff4c6acc53e0f886a52efd4305bd5269f68e055`。旧/full与新/full相同自然请求、数据、工具、模型和资源策略，各一次。确认期间无改代码/提示/窗口/真值，无复跑挑分。
+- 旧/full：6次/76,585tokens，仅事件元信息，合法连续结果被全目标门控阻断；次轮时序no_progress，未到第三轮；附加alpha边界写错。新/full：8次/116,822tokens，真实连续/事件/参数修订及第三轮原RMS读取都完成；**第二轮回答功率增量应6.60e−11却写2.06e−10 V²，并无依据将窗口重叠解释成事件成分混入，故整会话不能判无保留正确**。首轮将事件数称试次数也需区分。新方案成本更高且工作量不同，不宣称降成本。
+- 实际记忆使用：旧t1 RMS读回→第8个真实模型输入→准确最终值/来源/范围/单位；原Epoch ID用于event_bandpower；新PSD明确revision_of旧PSD。真实focus_task=0、restore_task=0，只有自动单步组织；多结果任务与恢复原工件新增质量有离线真工具/Fake证据，不冒称真实自主触发或压缩收益。
+- 层2三个上下文模式的同历史接口/34oracle/受控历史已离线验证，但**未联网**。余90,905tokens不足保守保障三臂两需求完整配对；full首次normal+final lease约84,725，三臂仅首normal预约合计121,944。90k原入场余量不是完成保证，未只跑候选或截断summary。该预算准备局限如实记录；不以经验比例放松上限。
+- 全阶段独立账本已追加关闭：**26 completion /309,095 API tokens**，输入298,783、输出10,312，缓存命中150,656/未命中148,127；全部响应deepseek-flash（请求deepseek-chat）；0HTTP失败/0自动网络重试/0未结预约，API记录耗时合计74.5544秒。货币账单未核实。保留余量但不继续消耗、不叠加旧预算。
+- 只读审计54个新执行数值字段及1个历史读回字段通过，元信息按实际字段另核验。所有数值正确不代替最终回答正确。真实四run、失败、源/版本/工件、原文及成本在[公开合成证据](evidence/issue50_architecture_diagnostic.json)；全messages/tools/responses/账本保留本地忽略目录。没有真实EEG、个人路径、密钥或权重入库/出站。
+- 复现：`PYTHONPATH=src python -m compileall -q src tests`；`python -m unittest discover -s tests -q`；`python -m eeg_harness.research.working_memory_issue50 --preflight`；已有本机日志时`python -m eeg_harness.research.working_memory_issue50_audit --output <新输出文件>`。539项全回归、compileall、pip check通过；资源跳过仍为跳过。
+- 交付：[集中协议/结果/失败/成本](EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)、主方法文档的责任/继承/适配/代价/代码图、统一managed入口、README及开题事实增补。旧研究结论不覆写。
+- 远端验证：冻结候选`0867b59`的[GitHub Actions unit-tests #299](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40452486880)已success；再次fetch确认本地/远端无分叉，PR仍Draft/open/unmerged，Issue无新增纠偏评论。
+- 研究判断：保留公共科学事实与职责分离，短任务不强迫分层/恢复；任务压缩可选。控制架构可运行得到证据，任务记忆相对强摘要的实际独立收益尚未得到本阶段证据，不能宣布工作点一完全验收。
+- 下一阶段唯一优先目标：保障实际结果之间的派生比较及科学解释边界，再以完整配对单元检验上下文方案。先离线、不得新造回答验证Agent或把修复包装算法；未来真实实验须另行明确授权。本阶段停止，不自动开展工作点二或新方向。
+- Git：初版及修订均已普通推送；本轮最终证据/研究状态另作提交并普通推送，准确发布信息附后。PR保持Draft，不合并main、不强推。
+
+- 发布留痕：证据/研究材料提交`b9796b37b9624742974c6c05cba325b5bc682748`已普通推送；首次遇到临时TLS握手错误，普通重试成功，没有force或改写历史。[Issue #50实际结果](https://github.com/lzy123-web/eeg-agent-harness/issues/50#issuecomment-6434402234)、[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6434402602)已发布；PR正文新增本阶段并保留旧历史，仍Draft/open/unmerged。Issue保持open供研究审查。本条仅同步发布状态，不新增调用、不改冻结候选或确认成绩。
+
+## Issue #49：阶段已交付，完整自主验收仍未通过
+
+- 安全fetch起点本地/远端均`0b59cb6fe9732d9baf35680166a7fcd47c68ea26`，工作区干净，承接原研究分支及Draft PR #37；不改main、不改写旧历史。保留Issue48全部失败与协议。
+- 初版`92e3b4381d46a40bff96469e149dbda8bda0f70c`统一begin/amend/数值执行的科学合同，封住baseline补参绕过；新增真实binding等价复用与有来源的重算，原工件身份贯穿执行/自动绑定/完成复用。RequestProgress将原请求、模型引文要求、实际结果与未决项关联；可见证据核验和自动核验归档走原Agent。三模式公共能力，非独立Planner/新记忆算法。
+- 独立审查修复原工件替换、修订父节点重复消费重算授权、助手自由文本伪造可见证据；保留合法重建/恢复及strong summary/full直接历史回答正例。没有删旧测试或降低科学要求。
+- 联网前488项（473通过/15资源跳过），科学预检28字段复算通过，旧0.75秒功率窗仅负例；七种实际最终输入预算视图通过。独立账本80/500k、开发24/150k、确认共享56/350k；未来D38k/C44k/A40k/B50k为固定最低入场/收尾预留，不是每例硬额度。
+- 真实开发7次/37,289tokens：首轮正确完成，次轮保守最终输入预留提前收尾，模型引用未读旧定位项而被拒三次。唯一开发修订`0599d1ca5aea0d4103fb99532d7e55bb827a5b3a`改善真实可见/未读反馈及合法partial路径，保存点不再误示原需求完成；不降低证据真值或用经验比例缩小预算预留。无开发付费复跑。
+- 冻结候选`0599d1c`、协议SHA-256`b4a9593c2edbdda7eaca2a4768d2901bb84b7178368c3c605ee8d93b0ad8e596`，确认D→C→A→B各一次，期间不改代码/协议/真值。确认后仅补文档与只读审计摘录，不改算法或旧成绩。
+- 四类实际结果：**D完整**（2次/13,564tokens）；**C核心数值完成但科学表述有误**（10/99,427）：同目的澄清补参、3试次及theta3.0917358155695594e−11 V²正确，附加pV²换算错误/未测质量却笼统说无阈值；**A前两轮完整、全会话未完成**（9/67,576）：5.15e−6 V RMS，alpha2.45e−11→8.45e−11 V²及增加正确、旧PSD复用，历史RMS因预算未读回；有旧来源关联但新t3.revision_of为空；**B未完成**（9/71,426）：theta标签来源登记问题使整goal阻断独立连续输出；无原Epoch/质量/比较，末轮旧原文相关性检查误拒安全partial而no_progress。
+- 真实本阶段restore为0，未验证恢复→实际输入→原工件新增测量；离线正例不能替代。C曾提议猜测窗但未执行；A资源停线的clarification_required不是必要科学澄清；B未建立原Epoch，后续不存在恢复前提。不能把所有问题混算成记忆检索失败。
+- 最终离线490项（475通过/15跳过）、compileall及pip check通过；冻结候选[GitHub Actions unit-tests #291](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40378015288)成功。只读审计30个已产生数值字段全部通过（开发6/A11/C13），D/B元信息另按真实字段核验。44个动作、14失败全部保留，12次数值/元信息真正执行；数值正确不代表完整原请求或自然语言附加结论正确。
+- 全阶段 **37 completion / 289,282 API tokens**：输入272,563、输出16,719，缓存159,744/112,819；开发7/37,289，确认30/251,993。全部响应标识deepseek-flash，请求别名deepseek-chat；0HTTP失败、0自动重试、0未结预约。API记录耗时合计92.602秒；无服务账单金额，不编造货币实扣。5次提前仅回答，0出站前硬预约拒绝，阶段与分池未超授权；现停止联网，不续用余量。
+- 交付：[集中协议与结果](EEG_WORKING_MEMORY_ISSUE49_PROTOCOL_AND_RESULTS.md)、[公开合成证据](evidence/issue49_request_closure_confirmation.json)、更新方法文档/README/开题材料事实。原始messages/tools/responses/预算留本机忽略目录；公开摘录含全部失败反馈、原请求/最终答案及四个关键真实输入字段，不冒称全部原始上下文公开。
+- 尚未解决：单一事件来源登记问题连带阻断独立合法输出；旧pending请求的真实引文被相关性规则误拒；最坏最终输入预留过保守；显式revision边不必然登记；最终附加科学措辞/换算仍可错；真实恢复后的续算未验证。强S/full入口可用且共用修复，但没有新的付费多臂比较，不宣称工作模式优于S。
+- 下一阶段唯一优先目标：把来源登记技术修正、独立交付、旧请求欠账与资源停线统一成可执行的公共恢复路径；先复现B/A实际失败，不加关键词、不新造Planner，不用继续付费试跑代替定义。需要更紧预算时必须证明动作/视图上界。
+- 实现及唯一开发修订已普通推送；本次证据/文档完成验证后提交并推送。PR保持Draft，不合并main；阶段已停止，待用户审查，不自动开展下阶段。
+
+- 发布留痕：证据/文档提交`1e7102fc230335903e7a91f05600f71b5be0478d`已普通推送；[Issue #49阶段结果](https://github.com/lzy123-web/eeg-agent-harness/issues/49#issuecomment-6424408157)和[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6424408690)已发布，PR正文新增本轮并保留旧历史，仍Draft/open/unmerged。Issue保持打开，未将未通过的完整验收误关闭。
+
+## Issue #48：阶段交付结束，完整自主会话验收未通过
+
+- 起点安全fetch/快进到`7259345ed23bb21fd39744f69b67132f0270a2d7`，沿用`research/point1-eeg-task-memory`及Draft PR #37。保持P1“有限上下文中正确继续多轮EEG分析”，不启动P2或新Planner/Executor。
+- 初版`ef10142`实现opt-in `memory_version=lifecycle`：科学来源/实际字段合同、待补要求与同目标amend、不可暗改阈值/已确认范围、幂等历史绑定、原Agent串行批次/call_id补齐/逐目标归属、完整档案与当前证据视图、强summary/full共同入口。旧single/multi及历史结果保留。
+- 开发9calls/95,862 tokens，五交付首轮数值完整但附加科学表述有误，续接未完成。修订1`0dfa882`规范化等价字段来源、去重原生批次及归档索引；修订2`8f0193f`事务性阻止撤销已确认来源后同goal改科学范围。两次修订到此结束。
+- 最终候选`8f0193f1b5f81a3b064bffcae45c3292abfa19a0`；确认协议SHA-256 `e45261c125c1206d356bb4840dfb275896c5b695db456f80216064d292616a3d`。冻结后未修改候选/提示/请求/真值，D→C→A→B全部按同一锁定点运行，未补跑挑分。
+- 离线453项：438通过、15资源跳过、0失败，compileall通过；覆盖真实工具来源/类型/缺参、表达纠正保留结果、旧新范围/单位、批次中止配对、共享接口、精确读回/原工件恢复续算和不可撤销确认。Fake仅为机制回归，非模型自主成功。
+- 完成确认后全量回归仍453项/438通过/15跳过；`pip check`无依赖冲突。冻结候选`8f0193f`的[GitHub Actions unit-tests #283](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40361466088)成功。公开合成JSON的45字段、五次预算拦截、全部manifest/费用与本机审计一致，敏感路径/密钥检查通过。
+- 真实确认28calls/225,339tokens：D元信息正确但回答前会话预约停止；C阻止猜窗、实际澄清并同目标补参，Epoch正确，功率未完成；A同一目的重建3次、RMS/PSD各重算3遍后预算停，未执行自然修订/历史追问；B首轮部分交付＋正确短窗澄清，次轮restore真实进入下次模型输入，但无质量/原工件数值续算成功。
+- 必须披露的协议疏漏：C/B的0.75秒窗不符合现有event_bandpower≥1秒前提。工具正确拒绝，不能作为合法功率任务上的记忆失败成绩；冻结后未偷偷改1秒。45项已产生字段独立oracle全过（开发19、确认26），不代表四类任务成功。
+- 全阶段独立账本 **37 completion / 321,201 API tokens**：输入309,891、输出11,310、缓存命中168,448/未命中141,443；均返回deepseek-flash，请求别名deepseek-chat。零HTTP失败/零自动重试/零未结预约。API记录耗时累计65.144秒，非端到端墙钟。服务账单金额未核实。五次出站前保守预约停止包含开发及四会话；并非全局500k额度用尽。现停止联网，不复用余额或挪会话份额。
+- 主交付：[统一协议/结果/根因/复现](EEG_WORKING_MEMORY_ISSUE48_PROTOCOL_AND_RESULTS.md)、[方法集成](EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开合成证据](evidence/issue48_lifecycle_confirmation.json)、`working_memory_issue48_audit.py`只读审计。原messages/tools/responses/预算/首次失败本机保留于忽略目录；没有真实数据/密钥/权重/个人路径提交。
+- 强S和full入口同工具/存储/科学规则/读权，离线可运行且公平性检查通过；本轮没有新增付费多臂比较。不得宣称候选优于S、任意意图被证明、声明齐备即原需求齐备或跨进程恢复已实现。
+- 尚未解决：已完成等价目的可重复进入；归档到最终回答不稳定；保守预算未充分保障最后回答；工具前提与实验准备遗漏；B漏声明用户功率需求；未调用质量却陈述阈值状态；真实轨迹恢复后的科学续算链未完成。
+- 下一阶段唯一优先目标：同一请求有有效交付后可靠结束/有理由继续。精确入口为`ReliableWorkingMemoryStore.begin_subgoal`、`WorkingMemoryController.build_messages`，保留合法用户重算/新版本，先复现A闭环，不增工具或关键词。未来真实验证前先审计协议可执行性及最后回答预算；需新任务授权，不自动开始。
+- 本阶段实现提交已普通推送；最终证据/文档随本次交付提交并推送原分支，保持Draft，不合并main、不强推。当前执行状态为结束，等待用户审查。
+- 发布留痕：证据/文档提交`578c21b5044179dbb5a286f182be97338378981c`已普通推送；[Issue #48结果](https://github.com/lzy123-web/eeg-agent-harness/issues/48#issuecomment-6422239943)及[PR #37阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6422266395)已发布，PR正文保留旧历史并新增本阶段，仍为Draft/open/unmerged。Issue未关闭，完整验收缺口留待审查。
+
+## Issue #47：阶段交付完成；新版复杂自主验收未通过
+
+- 起点本地/远端均 `1d11cc132cef1ef6e423eff60a1f5d4865cbe208`，安全fetch无分叉、工作区干净，继续原研究分支和Draft PR #37。已读取Issue全文，承接而不重新选题。
+- 用户新授权本阶段独立上限48 external completions、300,000 API输入＋输出tokens；旧账本不动。计划开发至多16次/100,000 tokens，确认预留至少32次/200,000；全部请求含失败/重试在新持久账本先预约，零自动重试。先离线通过再启用联网。
+- 三项明确缺口：跨目标正常close被重复保护误停；全历史精确证据合并形成累计8项上限；工具级单位污染计数/频率标量。先保留复现，再最小修复。资料与字段语义按Issue允许分工，集成/真实确认顺序执行。
+- 主要交付：修复及反例，有限真实模型完整确认，按学校栏目编排的 `THESIS_PROPOSAL_WRITING_PACK.md` 和核实BibTeX。学校正文不少于3000字，未规定文献篇数；不把写作建议当校方要求。
+- 联网前锁定时：三项原缺口已真实工具复现，修复后412项测试（397通过/15资源跳过）、compileall通过。公共重复键加入目标身份；全部档案与当前精确证据集分离；字段语义独立核验。确认自然请求及posthoc需求清单在 `config/point1_working_memory_issue47.json`，开发/确认使用不同合成配置；先完成离线后才调用模型。
+- 实现提交 `f29f139` 后首次真实开发6次/27,374tokens，2项数值oracle及多结果合同通过；模型并行工具提议被拒后自行恢复，最终“本次未重算”存在来源时间歧义。保留首次日志；开发修订1添加真实轮次/本轮取得标志，46项工作记忆相关测试通过，无付费复跑旧请求。确认前余额42次/272,626tokens，足以保留原确认32次/200,000预留。
+- 确认锁定 `83e2c00`，未在确认上调整方法/提示。最终 **36 completion / 277,191 API tokens**，输入271,817、输出5,374；开发6/27,374，确认30/249,817；36次实际返回deepseek-flash（请求deepseek-chat），零未结算、零网络失败、零自动重试。跨运行独立账本保留在忽略目录，旧账本不动。两次大请求在出站前被保守预算预约拒绝，实际总量未越300,000；不将预算保护误报API故障，现已停止而非等待余额继续。
+- 真实结果：混合首轮21次/196,983 tokens，主要连续/事件数值已产生，24个工具请求后停止，没有完整回答；续接1次/16,817，未完成新窗口或质量。短查询3次/13,368，正确报告128Hz及SYNTH-C1/C2。缺参5次/22,649，模型自行采用−0.5～0.5秒窗创建Epoch而未澄清，属于实质未通过。开发实际多结果归档、确认实际同轮结果复用；未触发新版旧轨迹恢复，不能算自然修订成功。
+- 诊断：并行批次与逐动作接口不一致、未来交付项名误作实际结果依赖ID、计数条件用错字段路径但进入合同、重复复用造成控制与输入开销；缺参科学范围没有可靠授权来源。共有工具返回正确不等于模型目标/最后交付正确。确认后只增加只读审计，不补句式规则或修改冻结事实。
+- 独立核验：为避免旧代表字段audit只核C1，本轮事后核对所有实际请求频带及C2事件值，23字段通过（开发6、混合17，后者含额外C1五频带）；原结果、误差、范围、首次失败和哈希见 `evidence/issue47_reliability_and_confirmation.json`。`working_memory_issue47_audit.py` 仅读取本机日志和确定性合成原采样，绝不进入Agent决策。完整原始响应/账本不提交。
+- 最终验证：`PYTHONPATH=src python -m compileall -q src tests`；`python -m unittest discover -s tests -q` 为 **412 tests：397 passed、15 resource-gated skipped、0 failed**；`python -m pip check` 无依赖冲突。全部资源跳过仍为跳过。只读审计入口 `python -m eeg_harness.research.working_memory_issue47_audit --output artifacts/point1_task_memory/issue47/new-audit.json`，不覆盖旧输出。
+- 写作交付：`THESIS_PROPOSAL_WRITING_PACK.md` 覆盖学校全部栏目，正文超过3000汉字，附20项核实原始来源与 `THESIS_PROPOSAL_REFERENCES.bib`；目的/方法/继承与适配/两工作点公平实验/技术路线/难点/可行性/框架/相对进度/10问答俱全。TC仅只读接口与资料核查，修正两独立推理函数均名generate_output；未读取或外发其真实样本/特征，未运行模型，不复制私有正文/权重/源码。
+- 研究结论：保留科学子目标工作记忆的领域适配候选，不把重复保护、工作集分页及单位修复列为创新。方法代码和离线机制具备基础，但完整真实交付与公平相对收益未证实。下一阶段唯一优先项为**科学交付合同的正确接纳、必要澄清及有界修正，先完成一条真实跨任务续接**，再冻结比较；本阶段不继续扩展或自动联网。明天可以据实写研究问题/方案/已有原型及失败边界；只需个人模板信息，应用特征/标签/许可等作为后续明确资料缺口。
+- Git：起点、修复和修订均保留，`f29f139`、`83e2c00` 已普通推送原研究分支；本结果与写作材料另作集中提交。PR #37保持Draft，不合并main、不强推；最终交付Commit及CI发布核查随后在本节留痕。
+- 发布核查：结果/材料提交 **`43a5c6d56c37a5ceec757bb34d53437054bfa4c3`** 已普通推送、本地/远端无分叉；其 [GitHub Actions unit-tests #273](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40335873505) 安装、编译、资源独立回归步骤均success。PR #37正文已更新且仍Draft/open；[Issue #47实际结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/47#issuecomment-6417976383)已发布，Issue保留open以反映复杂自主验收缺口。本条仅同步发布状态，不增加调用或改方法。公开文件核查未含密钥、个人资源路径、真实EEG或权重，原始账本与响应经check-ignore确认留本地。
+
+## 后续用户阶段任务：多结果闭环、开题依据与师兄成果复用设计（实现与离线交付完成）
+
+- 安全 fetch 后本地与远端均 `2c34049`、无分叉，继续 PR #37 原研究分支。已完整阅读附件阶段任务、最新主文档和代码。无新外部 completion 授权，保持 Issue #45 账本不动。
+- 核实单终端归档缺口，选定“显式交付要求列表＋实际结果清单”的最小扩展；保留旧单结果模式，不新建 Executor，不按案例写流程。将实现后补充分项完成/失败/修订/复用测试。
+- TC 私有仓库读取可用，本地资产只读核查中；不执行训练/推理/数据库脚本、不复制私有数据/模型。阶段新增工作点二范围仅为复用设计与合成证据接口样例，覆盖早期“不启动工作点二”的本轮范围限制，不扩展为完整报告系统。
+
+- 实现检查点：设计提交 `555fa84` 后完成 opt-in `MultiResultWorkingMemoryStore`、统一 Agent 列表合同/全部结果交接、原工件/结果复用及按版本修订；原 single 模式和原数值执行器不变。新增确定性声明检查样例与 Controlled CLI，真实 CLI 要求独立新授权配置，不再默认打开旧额度。
+- 实测：397 tests（382 passed、15资源跳过），compileall 通过；离线两轮21次受控决策、7次数值工具执行、4子目标7结果，5项独立oracle通过；原事件artifact被恢复后继续质量测量，无重复create_epochs/bandpower。本轮外部模型0次，不把Fake当作真实完整验收。首次2项测试字段假设错误及绑定优先级修订记入主方法文档。
+- 实现及离线样例提交 `24d4cd2`。已新增集中开题简报 `THESIS_PROPOSAL_RESEARCH_BRIEF.md`，核对 HiAgent、EEG Agent、EEGAgentBench、CogEEGAgent、NeuroAct 原文，区分2篇正式论文与3篇预印本，形成问题—依据—机制—代码—验证表、方法图、研究判断与公平实验设计。新版本真实模型自主闭环及相对强 S/直接迁移收益尚未验证，不把合同/证据追踪声称为首次创新。
+- TC 只读审计：私有远端与本机10个关键脚本逻辑一致（7个blob完全一致、3个仅换行差异）；Stage1特征文本→报告，Stage2报告→情绪能力受损等级；不是ASD诊断。模型训练/推理格式及生成上限存在不一致，部分脚本导入即执行训练/写图。远端LoRA为LFS指针，本机有实际adapter但未加载，依赖/许可/标签依据/特征公式仍待核实；没有导入这些脚本、安装依赖或连接数据库。未拷贝私有源码、数据或权重。
+- 复用交付为接口设计和 `evidence_statement.py` 的模板声明示范；公开JSON全部合成，关键值/范围/版本/来源可核查，错值等负例拒绝。没有实际报告模型或临床验证，工作点二仍为拟研究方案。
+- 下一阶段唯一方法优先项：获得独立预算后，验证新多结果模式真实自然续接和完整交付；在此之前不跑排行榜、不扩展记忆分组或Planner。报告复用资料优先补特征定义、标签/拆分与使用许可。容量8项精确证据/24KB、消息96KB、未迁入模型推理/变换、无跨进程恢复与自然语言全意图证明仍为边界。发布结果在完成安全扫描和普通推送后追加。
+- 发布核查：`555fa84`、`24d4cd2`、`d573d04` 已推送，PR #37 正文更新且保持 Draft/open。直连GitHub超时后使用本机已配置代理，仅按命令临时设置，安全fetch确认无远端新提交再普通push；未修改永久Git配置、未强推。`d573d04` 的 [GitHub Actions unit-tests #267](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40325972571) 安装、compile及资源独立回归均成功。本阶段13个变更文件扫描未发现密钥、个人路径、EEG/权重资源；唯一新公开执行JSON为合成样例，SHA256 `f24b2727ec27fa2b9cd6758491697b0c94d69f8b45a2219c872ac50e49ad7153`。本条为纯文档发布状态同步，不产生新调用；完整交付后停止。
+
+## Issue #45：有界交付，真实完整任务验收尚未通过
+
+- 已提交设计依据 `94aaaf3`，核对 HiAgent 原论文和官方实际加载代码；不复制未明确许可的源码。实现 `1f5f6fe` 为 opt-in 原 `EEGAgent.run` 记忆钩子、科学子目标和原 Executor 逐动作执行，旧入口不变。修订1 `0226293` 明确计算scope反馈；修订2及确认锁定 `bf744c6` 增加实际交付状态、合法关闭/身份别名、减少重复交接及预算预留保护。后续只做诊断/离线审计和文档，没有第三轮方法优化。
+- 新代码：`working_memory.py`、`working_memory_agent.py`、`working_memory_cli.py`；实验输入/后验核验单独在 `research/working_memory_validation.py`。保留旧 Issue #36–44 结果，不把本轮实现当成收益证明。
+- 最终离线：`python -m compileall -q src tests`、`python -m unittest discover -s tests -q`、`python -m pip check`、`git diff --check` 通过，**379 tests = 364 passed + 15 resource-gated skipped**；工作记忆24项。`python -m eeg_harness.research.working_memory_validation --offline-audit` 核验5条真实数值观察，全部与独立原采样 oracle 一致，包含未归档结果；不能表述为5个完整任务通过。
+- 真实 DeepSeek：40/40 响应报告 `deepseek-flash`（请求 `deepseek-chat`），累计 **40/96 calls、228,734/240,000 API tokens**，无未结算；仅合成元信息/工具结果出站。首次2次失败保留，复跑31次发生事件/连续实际分析、统一续接修订、自然触发旧轨迹恢复后复用原artifact。首轮归档 repeated_action，续接完成新分析但旧事件暂挂，不能记整体成功。锁定后7次确认真实计算RMS/PSD/信息，但重复子目标后在第8次网络请求前预算预约失败，未最终交付。
+- 预算不足原因明确：开发阶段仅请求数限制未有效保住原预留100k tokens，已记录工程缺陷并增加跨运行token预留保护。原确认缩小后仍未完整结束；未追加额度，停止一切真实调用。旧日志的 `llm_error` 由账本证实为预算阻断，新代码诊断已分为 `budget_exhausted`，不修改原始记录。原计划跨记录事件确认及真实短任务/缺参未执行。
+- 交付主文档 `EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md`，公开最小合成轨迹 `evidence/issue45_synthetic_trace_excerpt.json`；完整响应/messages/账本留忽略目录。当前仍不支持真实数据联网、跨进程会话恢复、全意图完备性证明、新模式模型推理/筛选/重参考。发现的关键缺口是子目标中多个真实有效输出只有terminal归档，模型可能重复分析。下一阶段唯一优先项为“多结果交付与归档闭合”，先离线失败回放，之后经新预算授权再做完整确认；本轮不继续开发。旧强 S 默认、历史方法/结果、Draft PR #37 保持。
+- 最终诊断/测试代码提交 `a15c173`，379项回归适用于该代码；随后只追加中文交付与合成证据摘录。推送前确认未纳入凭据、私有路径、真实 EEG、权重、本地配置或完整 API 日志；忽略账本保留，不重置额度。远端最终文档/CI状态在发布核查后追加。
+- 发布核查：交付提交 `36047c2` 已普通推送，本地/远端无分叉、工作区干净；对应 [GitHub Actions unit-tests #263](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40269435985) 已成功（安装、compile、全部资源独立测试步骤通过）。[Issue #45 结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/45#issuecomment-6408294364)已发布，PR #37 正文及评论已更新，保持 Draft/open，Issue保留开放以反映验收缺口。本条为纯文档状态同步，不产生新模型调用或方法修改。
+
+## 2026-10-26 完成：Issue #44 任务记忆架构与工作点资格评审
+
+- 当前阶段/范围：继续 `research/point1-eeg-task-memory` / Draft PR #37；只审查既有 HiAgent 启发 EEG 任务上下文路线、真实代码与 Issue #36–#43 原始/公开结果。未改 EEG 算法、记忆策略、Executor、旧评分或历史实验；未启动第二工作点、ASD 报告、真实 EEG 外发或新付费实验。
+- 交付：新增 [`POINT1_MEMORY_ARCHITECTURE_AND_ASSESSMENT.md`](POINT1_MEMORY_ARCHITECTURE_AND_ASSESSMENT.md)，用 Mermaid 总体架构与证据传递时序、逐模块文件/函数映射、受控入口的 LLM/程序/脚本职责、跨连续/事件/修订的可重跑 N-long 示例，以及贡献—实现—证据—限制表给出完整判断。报告提交 `4d9ba73`；本状态同步另作纯文档提交。
+- 复核：本地与远端起点均 `0780419280f7eaf6c81f191336bdf7acb8ffe522`，无分叉；本机 Issue #43 确认原始 JSON SHA-256 `0372f7893659793262c8e386336e2e7abda3f073c952584b6459c7476d8eccb3` 与公开报告一致，27 轮记录、独立账本 37 completion / 82,393 tokens；仅在本机核对，未提交原始响应。`python -m eeg_harness.research.task_memory_issue43 --offline` 通过，3＋4 次合成 EEG 真实工具分析的 evidence token 与冻结配置一致；`python -m eeg_harness.research.task_memory_eval --mode replay-v3 --sessions N-long --policies F S H HE` 通过，10 个真实工具任务、4 臂各 5 问，H/HE top-1 与真实读回各 5/5；该回放无真实 LLM，不冒充最终回答成绩。`python -m unittest tests.test_task_memory_issue43 -q` 为 18/18；`python -m unittest discover -s tests -q` 为 355 tests（340 pass、15 resource-gated skip、0 fail）；`git diff --check` 通过。环境使用本机既有 `eegagent` Python，公开复现命令见报告。Issue #44 新增外部 completion **0/64**、API tokens **0/160,000**。
+- 研究判断：首选 **B：已有连贯可运行的应用方法雏形，当前不足以宣称已成立的独立工作点**。成熟任务记忆的 EEG 对象/时间基准/版本/来源/单位适配具有系统意义，但 F/S/H/HC 共享多个科学合同，HC/HE 相对强 S/H 没有稳定独立净收益；Issue #43 公共交接修复不能归 HC 创新。现有证据还不能把科学对象绑定的增量从合理成熟直接迁移中公平隔离；末轮语言仍可能误述版本或过程。原始负结果、严格初筛与追加等价证据审计分别保留。
+- 未解决问题：多轮入口在完整实验中仍由脚本预定分析/历史轮；直接回答无逐断言运行时科学核验；范围解析有限，可能误拒合法表述；Session 仅进程内、条目嵌套值非深度冻结；研究接口只允许合成记录及七种能力，未验证开放自然语言/模型推理/受试者泛化。下一阶段唯一优先候选是**预注册、同信息同读权的强通用任务记忆直接迁移与 EEG 科学绑定的证据闭环归因验证**；若实质等价，则收束记忆为 Harness 基础模块，不再追 HC/HE 表示得分。本阶段完成即停止，不自动运行该后续实验。
+
+## 2026-10-26 完成：Issue #43 统一证据交接与完整任务交付
+
+- 阶段/范围：沿用 `research/point1-eeg-task-memory` / Draft PR #37；工作点一既定 HiAgent 启发 EEG 任务上下文路线，不改旧 CIEDG、Issue #42 历史成绩、EEG Executor/数值算法，不开发第二工作点或 ASD 报告。已安全 `git fetch`，起点本地/远端均为 `5dca165`、无分叉。
+- 代码：新增 `task_memory_evidence.py` 的规范字段路径、首轮精确值＋成功读回有界集合、来源/记录/参数版本/单位去重与冲突拒绝、结构化多对象科学范围绑定；新增 `task_memory_issue43.py` 的 F/S/HC 统一历史回答、最终输入可见性评分、真实工具完整流程及追加审计 CLI。旧 `task_memory_issue42.py` 仅增加可选 handler/scorer 注入，默认历史入口与旧结果不变。公共修复不归 HC 独有。`config/point1_task_memory_issue43.json` 与协议在模型输出前冻结，旧 C-mixed 用作开发反例，新 N-continuous/N-mixed 用作确认。
+- 验证与结果：`PYTHONPATH=src python -m eeg_harness.research.task_memory_issue43 --offline` 使用真实 Registry/Executor 完成新两流程 3＋4 项合成 EEG 分析，独立原样本 oracle 均吻合。消息级旧路径反例与新路径十余种范围/部分读取/去重/失败测试通过。真实 DeepSeek 仅接收合成 EEG 必要元信息/结果：请求 `deepseek-chat`，**37/37 响应报告 `deepseek-flash`**；独立账本 **37/80 completion、82,393/180,000 tokens**（输入 73,410、输出 8,983；0 未结算）。开发旧/新 7 calls/16,330 tokens；新确认 30/66,063。原始响应、账本、首次失败只在 Git 忽略的 `artifacts/point1_task_memory/issue43/`，确认文件 SHA-256 `0372f7893659793262c8e386336e2e7abda3f073c952584b6459c7476d8eccb3`。
+- 完整任务：N-continuous F/S/HC 严格自动均 4/4，但 HC 把未修订 B 标为新版并错误称直接可见值“已读取”，人工不记完全忠实；N-mixed F 5/5，S 原严格 4/5 但同科学对象事件功率中的有效计数 `3` 可替代专用计数条目（追加等价证据审计＋人工核查，原分不改），HC 4/5 且末轮因模型三次提供用户未请求的 `version:new` 被守卫拒绝、仅安全部分答复。不能把部分答复当完整成功。详见 `EEG_TASK_MEMORY_ISSUE43_RESULTS.md`。
+- 测试命令：`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest tests.test_task_memory_issue43 -v`、`python -m unittest discover -s tests -q`、`git diff --check`；全部通过，**355 tests（340 pass、15 resource-gated skip、0 fail）**，定向 18/18。代码/协议分阶段提交 `58ddaf3`、`2c98828`、`046e5cb`；确认后仅追加审计与测试 `8e0f5e3`，未改原评分或方法；研究文档 `0fe8547`、远端交付状态 `5df0c13`。均已普通推送到 PR #37 原研究分支，远端 PR 仍 Draft、未合并 main、未强推。`5df0c13` 的 GitHub Actions [`unit-tests` #255](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40220216829) 为 `success`；[Issue #43 结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/43#issuecomment-6401339272)和[PR #37 阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6401341068)已发布。本条纯文档状态同步另行提交。
+- 研究判断/边界：保留不可变任务历史＋公共科学证据交接，以强 S 作简单默认，HC 可选，HE 不扩展。整体是成熟任务记忆思想的 EEG 领域适配；公共交接修复是工程正确性。两条合成新流程未证明 HC 相对强 S 的稳定论文独立增量、开放语言范围完备性、真实 EEG 泛化或临床意义。下一步仅在导师审查此贡献定位和样本边界后定，不自动追加收费实验、Prompt 特例或第二方向。
+
+## 2026-10-26 完成：Issue #42 任务记忆定型与完整工作流验收
+
+- 当前阶段：继续 Draft PR #37 / `research/point1-eeg-task-memory` 的 HiAgent 启发多轮 EEG 上下文路线，**本阶段已完成并停止**。旧 CIEDG、H/HE 和全部历史实验不变；没有第二工作点、ASD 报告、新 Planner 或新 EEG 数值工具。
+- 代码/协议：新增 `task_memory_issue42.py`、冻结配置、8 项定向离线测试及一份协议/结果报告。统一 CLI 组合已有 `GranularEpisodeSession`、`live_turn`、Registry/Executor 与 F/S/HC 工作视图；连续和事件四任务完整流程含中途证据使用、跨记录或跨条件比较、参数修订。比较读取的公共 verbatim `scope_quote` 保持 EEG 科学范围，所有臂同权。结果评分器在确认后只修中文逗号切句错误，原始响应和原始分数保留，追加审计单列。
+- 数据与模型：仅确定性合成 EEG；实际工具结果与独立原样本 oracle 一致。开发 D-short 三臂全部完成；确认 C-continuous F/S/HC 追加审计后各 6/6，C-mixed 分别 3/6、4/6、5/6，另做两条同历史三臂读取。请求 `deepseek-chat`，52/52 有效响应实际报告 `deepseek-flash`；**独立阶段总计 52 completion / 98,029 tokens**（input 87,785、output 10,244；0 失败、0 未结算），未超 96 / 240,000。原始逐轮响应与预算账本只在 Git 忽略的本地 `artifacts/point1_task_memory/issue42/`。真实 EEG、密钥、权重不外发或入库。
+- 研究判断：不可变任务历史、EEG 对象/参数版本/来源绑定与按需真实证据读回是一套可运行的领域适配；其核心块/摘要/读取思想来自成熟方法。HC 对强 S 仅在连续流程同效略省 556 tokens，而在事件混合流程更贵并漏掉中途连续功率；**独立论文增量尚未证实**。推荐强 S 作默认，HC opt-in，F 短会话/审计用；不为制造优势继续调阈值或延长对话。
+- 遗留问题：模型把事件试次数误作跨能力修订；F/S 的可见 `result_preview` 与底层 `read_fields` 路径不一致；HC 有证据选择漏项；严格原文引文守卫对合法比较可能误拒；自动评分仍不能完美理解标题—数值跨行归属，无外部 EEG 专家评审或多模型泛化。本轮只记录，不在已打开的确认集上修候选再称独立成绩。
+- 验证：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue42 --offline`、`--offline-cost`、`python -m unittest tests.test_task_memory_issue42 -q`、`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**337 tests，322 passed、15 resource-gated skipped、0 failed**。`git diff --check` 通过，私有账本经 `git check-ignore` 确认不入库。对 `6ecf6e3` 的 GitHub Actions [`unit-tests` #249](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40213072639) 已完成，结论 `success`。方法和逐类失败见 `EEG_TASK_MEMORY_ISSUE42_PROTOCOL.md` / `EEG_TASK_MEMORY_ISSUE42_RESULTS.md`。
+- Git：预冻结方法/协议 `38e724d`、开发诊断后锁定 `106df00`、最终结果/评分器追加审计 `6ecf6e3` 均已安全推送到原 Draft PR #37 分支；PR 正文已更新，[Issue #42 结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/42#issuecomment-6400350101)与[PR #37 阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6400351521)已发布。本次状态同步另作纯文档提交；未合并 main、未强推。下一步只等待研究判断审核，不自动启动新的付费实验或方向。
+
+## 2026-10-25 完成：Issue #41 结果保留与读回粒度阶段
+
+- 当前阶段：沿用 Draft PR #37 的 HiAgent 启发 EEG 任务记忆路线；诊断旧 H 小结果读回成本，完成紧凑精确结果卡 HC、公共字段/完整读口、同历史四臂开发与独立确认、一次 S/HC 自然语言闭环。未启动第二工作点、ASD 报告或新的 EEG 数值工具；旧 H/HE、CIEDG 与历史实验不改。
+- 代码与资源：新增 `task_memory_issue41.py`、`config/point1_task_memory_issue41.json`、14 项 Issue #41 定向测试及协议/报告。全部历史由现有 Registry/Executor 在两套确定性合成 EEG 脚本上生成，无真实 EDF、权重或实验室数据出站。HC 对 ≤256 UTF-8 字节的真实结果原样保留，大结果仅索引真实字段；所有 F/S/H/HC 共用科学范围守卫、完整/字段读口。开发中发现多动作/路径显示失败，确认前做一次公共接口修订；确认后仅修通用评分解析并追加审计，原始结果不覆盖。
+- 真实模型：请求 `deepseek-chat`，59/59 个有效响应报告 `deepseek-flash`。Issue #41 **独立累计 59 completion / 123,623 API tokens**（上限 96 / 240,000），开发 22、确认 20、预注册连续闭环 8、协议后补充事件闭环 9；自动重试关闭、0 未结算。私有响应和账本在 Git 忽略的 `artifacts/point1_task_memory/issue41/`，不入库。
+- 同历史严格确认：F 3/4、S 4/4、旧 H 3/4、HC 4/4；分别 4/5/6/5 次响应、11,581/10,416/10,332/10,030 API tokens、0/603/4,124/686 读回字节、8.15/5.85/7.92/7.51 s 累计墙钟。原始自动筛查误拒否定单位和 Unicode 指数；原分数、原始响应仍保留，追加审计后逐例人工核对。F 歧义题没有擅选一个结果，但以 answer 枚举全部候选、不合冻结澄清契约；H 一次错误字段读回。开发原始及修正评分详见 `EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
+- 有限闭环：预注册连续链中 S/HC 各三次自然语言分析加旧 RMS 追问，均 4/4；S 4 call/6,609 tokens，HC 4/6,952，末轮都直答。主确认后发现原闭环遗漏事件对象，追加明确标注的事件集成检查（不混入主确认）：A oddball→B flash 试次→B flash 功率→两通道历史追问，S/HC 均 4/4；S 4 call/8,289 tokens、0 读回字节，HC 5/8,852、3,406 字节，HC 选择完整读回。数值经原数组独立 oracle；完整回答另逐例审阅。
+- 研究结论：小值内联与大值字段读取可运行且减少旧 H 的部分额外读回；相对强 S，HC 仅在四题确认中节省 3.7% tokens，但延迟更高、闭环成本反高，**未证独立 EEG-specific 方法优势**。最简建议保留不可变任务历史/科学读口、小型精确结果卡和完整读回兜底；字段级读回为全臂可选接口，HE 额外分组继续暂置。下一步若获新预算，只应预注册自然、有效的较长历史做强 S vs 紧凑方案的完整成本—正确性配对；本阶段不自动续跑。
+- 验证：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 均通过；**329 tests，314 passed、15 resource-gated skipped、0 failed**。定向 Issue #41 15 项通过；`git diff --check` 无问题，私有原始账本经 `git check-ignore` 确认不入库。完整协议、哈希、逐例、用量和局限见 `EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE41_RESULTS.md`。
+- Git：协议/方法冻结 `dd6040f`，开发失败后的公共接口修订 `a238430`，确认后只修评价器 `026e92c`，逐例报告/审计入口 `fa11d83`，连续阶段状态 `b5a99a3`，协议后补充事件闭环入口 `60235ba`，补充结果报告 `0fd7508`，状态同步 `f1dd48f`。均已普通推送至 `research/point1-eeg-task-memory` / Draft PR #37；代码/报告提交的 GitHub Actions [`unit-tests` #239](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40207756210) 已完成、结论 `success`。Issue #41 [结果评论](https://github.com/lzy123-web/eeg-agent-harness/issues/41#issuecomment-6399659151) 与 PR #37 [阶段评论](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6399661047) 已发布。未强推、未合并 main。
+
+## 2026-10-25 完成：Issue #40 任务记忆效用归因与方法收敛
+
+- 当前阶段：继续工作点一既定 HiAgent 启发任务记忆路线；完成同历史真实模型配对、原因分析、一次公共闭环接口修正及短多轮复核。未更换研究方向，未改 CIEDG/旧实验、数值工具或科学真值；PR #37 继续 Draft。
+- 代码与协议：`config/point1_task_memory_issue40.json` 冻结三份由原真实 Registry/Executor 在合成 EEG 上生成的 3/6/10 任务历史，各取开发/确认追问；新增 `task_memory_issue40.py` 的四臂共同答/读/澄清、独立快照、oracle 后评分、整体配对预算准入、跨运行追加账本与 CLI。公共 `revise` 在有效父任务存在且未提供 capability 时继承父任务类型，显式冲突仍拒绝；属公共接口修复，不是 H/HE 专享机制。首次闭环强迫 F 读取，原始结果保留；`closed-direct` 将末轮改为共用直接答/读取接口，前三轮仍走原 Agent/Executor。
+- 真实 DeepSeek 仅见合成任务元信息和必要结果：请求 `deepseek-chat`，57 次响应均报告 `deepseek-flash`。**独立阶段累计 57 completion / 103,906 API tokens**，低于 96 / 240,000；无重试、无未结算尝试。私有原始响应与账本在 Git 忽略的 `artifacts/point1_task_memory/issue40/`，未上传密钥、模型权重或真实受试者数据。与 Issue #39 账本完全分开。
+- 同历史完整配对：开发/确认各 3 问；F 6/6（6 call、19,031 tokens）、S 6/6（9、19,364）、H 6/6（12、18,141）、HE 5/6（11、18,220）。所有正确答复数值经独立原数组 oracle 与人工文本审阅；HE 一例选对任务却把空归档索引误读为尚未执行，不是检索错误。H 总 tokens 较 F 少约 4.7%，但调用与延迟更高；S 全部完整正确，HE 额外组织无已证增量。
+- 有限闭环：N-short 的 F/H 各 3 次真实自然语言分析＋最终历史追问均 4/4；首次旧历史接口各 5 call，因 F 被强迫读不作成本对比。公共接口修正复核后 F 4 call / 6,496 tokens，H 5 / 6,950，最终 A 连续 alpha `2.00e-10 V²` 未误取 B；这只是已见短链开发复核，不是独立长链结论。
+- 方法判断：最简推荐 H＋全臂共享 EEG 来源/作用域/版本读口守卫；HE 分组暂置，不删旧版。任务 episode/摘要/按需恢复可运行，但相对强 S 的总成本/正确性优势、EEG-specific 独立贡献和自然长会话泛化**尚未验证**。下一步唯一有价值的实验是预注册更长、自然、有效 EEG 任务历史上的 H vs 强 S 同权配对；不继续加 HE 关键词或另建 Planner。
+- 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**314 tests，299 passed、15 resource-gated skipped、0 failed**。定向 Issue #40 6 项通过。详细协议、逐例及限制见 `EEG_TASK_MEMORY_ISSUE40_PROTOCOL.md`、`EEG_TASK_MEMORY_ISSUE40_RESULTS.md`。
+- Git：预冻结协议/公共修订/入口/测试 `dac4961`，结果报告/闭环接口修正 `a11e608`，状态同步 `ab42b01` 均已普通推送到 `research/point1-eeg-task-memory`；PR #37 经远端核对仍为 Draft、未合并。对 `ab42b01` 的 [unit-tests #233](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40200823460) 结论为 `success`。本条为后续纯文档 CI 同步，不修改实验。未强推、未提交私有资源。
+
+## 2026-10-25 完成（长链 S 预算截断）：Issue #39 任务记忆真实使用价值评价
+
+- 独立确认：短集四臂 F/S/H/HE 各 3/3 且最终 RMS `1.41e-05 V` 与独立 oracle 相符；长集完整闭环 H 6/8、HE 5/8、F 5/8，S 在前两轮后因累计 token 上限于第三次请求前停止，不给 S 长链率。H 缺修订能力名、HE 首轮把试次数选成质量、F 幻造未注册能力名，均由公共 Executor/读口安全拒绝或导致后续澄清；HE 的另一事件 alpha 修订/读取数值 `3.2799997787269497e-10 V²` 与独立 oracle 一致，但不抹掉其试次数目标错位。10 条历史最终回答逐条审阅；未发现缺失结果凭空生成，HE 一条为错误质量证据链。确认新增 48 completion / 92,182 tokens，**本阶段累计 126 completion / 292,532 tokens**，已停用剩余 7,468 tokens，不超 160 / 300,000。请求 `deepseek-chat`、有效响应均报告 `deepseek-flash`。
+- 最终方法判断：任务 episode/不可变历史/按需恢复是成熟技术启发的可运行系统能力。相同历史离线工作上下文 H `65,428→47,722` 字符、HE `69,081→50,801`，10/10 top-1 未变；本次真实长链观察到 H/HE 的 tokens 均不低于 F，**但各臂历史已分叉，不能据此作压缩成本的因果判断**。HE 比 H 更贵、少对一项，**EEG 对象组额外增量未证**。开发集修订 H 9/9、HE 5/9 受采样/历史分叉影响，不作因果收益。下一阶段唯一重点是在新授权预算下完成同历史 F/S/H/HE 最终读取与回答配对，补齐 S 长链，隔离公共能力误选与记忆作用；不自动续付费、不开发第二点。
+- 运行和复现：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_eval --mode replay-v3 --memory-variant original` 与 `--memory-variant optimized` 可无 API 比较旧/压缩版；原始真实响应与跨进程预算账本仅在 Git 忽略的 `artifacts/point1_task_memory/issue39/`。最终 `python -m compileall -q src tests`、`python -m pip check` 通过；`python -m unittest discover -s tests -q` 为 **308 tests、293 passed、15 resource-gated skipped、0 failed**。真实受试者数据、密钥、权重未入库或发给外部模型。
+- Git：协议与硬预算 `e0b9a85`、公共父记录修订 `e4d5771`、摘要压缩与确认顺序增补 `ec01ac8`、逐例结论和旧/新版可运行入口 `80253d5` 已普通推送 Draft PR #37；本条仅同步最终提交/测试信息。未合并 main，未强推。远端 CI 在本次状态记录时尚未返回，不能写成已通过。
+- 首次真实阶段：6 completion / 11,072 tokens 的合成 smoke 完成；四臂 `N-medium` 各 12 completion，合计 48 completion / 121,982 tokens，F 9/9、S 8/9、H 7/9、HE 7/9。请求 `deepseek-chat`，实际响应报告 `deepseek-flash`。第 8 轮 HE 已有证据却重复计算，最终数值仍正确，分开记为冗余成本；完整记录见 `EEG_TASK_MEMORY_ISSUE39_RESULTS.md`。新阶段累计 **54 completion / 133,054 tokens**，尚未动用确认集。
+- 开发修订 1：修订动作未显式给记录但父任务 ID 有效时，由真实父任务绑定记录，避免切到 B 后错误修订 A 的任务；显式矛盾仍拒绝。评分按实际执行记录判定，而非强制要求多余字段。定向 17/17 通过；此修复属于公共工程，不声称 EEG 适配收益。
+- 开发复验：同一 `N-medium` H 9/9、HE 5/9，分别 33,410 / 33,886 tokens；HE 的首次无历史分析已选错质量能力，不能归咎检索。阶段累计 78 completion / 200,350 tokens。修订 2 将 H/HE 工作卡的完整结果替为可读回的任务摘要，`C-long` 离线末轮字符 H 4,024、HE 4,762、F 6,432；保留真实值通过公共 `read_task` 恢复。预算驱动地在首次确认前调整长集臂顺序 H→HE→F→S，脚本真值不动；可能无法在 token 上限内完成全四臂，缺失必须公开。`compileall`、307 tests（15 skipped）通过；尚未开始确认，不以离线字符宣称收益。
+- 继续独立分支 `research/point1-eeg-task-memory` 与 Draft PR #37；不修改旧 CIEDG、HiAgent 启发路线或历史实验。新阶段预算独立为 ≤160 次外部 completion / ≤300,000 API tokens；旧 96 次不叠加。首次调用前已冻结协议/公共接口，并从 0 次开启跨运行账本。
+- 冻结开发 `N-medium` 与独立确认 `C-short` / `C-long` 的合成脚本、F/S/H/HE 公共动作/读口、两层研究问题、分层评分和阶段预算；见 `EEG_TASK_MEMORY_ISSUE39_PROTOCOL.md`。新增跨进程、请求前追加的私有预算账本，默认不调用 API。公共修复允许跨记录切换并计算、合法事件功率通道读取，完整历史不重复注入同一结果；四臂同时受益，不属于 HE 专享优化。
+- 预检：冻结确认脚本经原真实工具链完成；新增定向测试覆盖协议和预算重启/失败计账。后续按最多两轮开发修订→独立四臂确认→逐例报告执行。不能将预检写作真实模型结论。
+- 遗留：独立确认、完整最终回答忠实度、HE 相对 H 的独立收益尚未验证。只允许合成 EEG 出站；密钥与原始模型响应保留在 Git 忽略本地目录。阶段结论未定。
+
+## 2026-10-25 当前更新：Issue #38 既定 HiAgent→EEG 任务上下文适配阶段
+
+- 阶段与范围：继续 Draft PR #37 的 `research/point1-eeg-task-memory`，沿用 v1/v2、旧真实响应、负结果和冻结 CIEDG，不重新选题；只做工作点一任务级上下文适配。真实受试者数据、密钥、权重未进入 Git；本轮付费 API 调用 **0**。
+- 代码：新增 opt-in `task_memory_v3.py` 的任务 episode 状态。实际 `analyze/revise` 与原 Registry/Executor 的结果决定 started/blocked/resumed/archived；完成任务摘要只留真实来源、条件、版本、字段和读取 ID，原始数值/trace 经共同 `read_task` 恢复并可成为下一轮焦点。HE 对实际 EEG 对象的多版本任务分组；公共读口对错记录/连续或事件范围/通道/事件标签/窗口/版本作保守拒绝。F/S/H/HE 共享原始历史和读取 API；旧 v1/v2 入口不变。CLI 新增无 API `--mode replay-v3` 及有显式额外授权/预算门的未来 `real-v3` 配对入口。
+- 机制迭代：首次 v3 离线运行发现 HE 给所有单例重复科学绑定，增加上下文而无命中增益；只保留确有多版本的对象组，首次 JSON 保留。本轮没有调科学真值、旧实验或 EEG 算法。方法对应表、真实运行及失败边界见 `EEG_TASK_MEMORY_DESIGN.md` / `EEG_TASK_MEMORY_RESULTS.md` / `EEG_TASK_MEMORY_DECISION.md`。
+- 验证：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3` 生成本地忽略 JSON：3/6/10 项实际工具任务，F/S 目标证据可读 10/10，H/HE top-1 均 10/10；中/长历史实际归档 3/7 条；独立原始样本 oracle 核对读取范围与数值。Fake 多轮经原 Executor 完成分析→修订→历史证据恢复；非法通道 blocked→续接、科学范围误读拒绝与切记录焦点清除通过。`python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q` 在 `eegagent` 环境通过：**300 tests，285 通过、15 skipped、0 失败**。
+- 判断与遗留：完成 HiAgent 启发的任务块/压缩/恢复 EEG 适配的可运行阶段，不是原论文完整复现。HE 对 H 无离线命中增益且中/长平均工作卡分别多 449/448 字符；真实模型理解摘要、最终答案、总 token/调用成本仍未验证。旧 M6 的首轮 analyze/switch 误选不由记忆层修复。下一阶段若单独授权，先冻结新语义评分并以明确预算做 F/S/H/HE 配对闭环；当前开发协议不得冒充未见测试。
+- Git：`ac031e5`（任务 episode 与集成）、`c702581`（摘要写入时点修订、研究文档）、`65737ef`（科学范围补测和状态）均已普通推送至原 Draft PR #37；GitHub Actions [`unit-tests` #213](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40183916297)、[`#215`](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40184205749)、[`#217`](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40184403607) 均成功。PR 和 Issue #38 已给出中文阶段结果；本条提交仅同步最终 Git/CI 状态，不改变方法或实验。未合并 main、未强推。
+
+## 2026-10-25 当前更新：PR #37 阶段审查后的任务记忆 v2（离线设计验收）
+
+- 按 [审查意见](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6395350899) 保留 Issue #36 的公共多轮接口与旧 v1 结果；先冻结 `point1_task_memory_protocol_v2.json` 和中文协议，再实现独立 v2 选择器。原协议、96 次真实 DeepSeek 响应、旧失败与冻结 CIEDG 均未修改；本轮**新增付费调用 0 次**。
+- 方法：任务级不可变历史仍经原 v3/Registry/Executor；S 的完成任务摘要在 6/10 项历史下实际归档 3/7 条，保留真实结果读取 ID。G 有通用文本/字段、记录、显式时间与修订版本检索；E 仅加从真实记录/事件元信息得到的 EEG 通道、事件标签和科学范围排序。`cue/rest/target/standard` 只在合成协议和 EventSet 中，检索核心不写死数据集标签。全臂工作卡共同披露已有来源、来源阶段、单位和配置；不把 HiAgent-inspired 轻量索引称为原论文算法复现。
+- 运行：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v2`。3/6/10 项真实工具任务对应 2/3/5 个追问；F/S 所需目标均可读，G/E/E−science 的 10/10 查询目标均进 top-3 且 top-1 正确。中/长历史已真实触发 top-3 选择和 S 摘要，F 未截断。G 与 E 持平，E 中/长平均工作上下文字符还分别多 213/125；无 EEG 独立收益证据。评分用公共 `read_task` 核对记录、能力、范围、修订、来源、单位及独立 NumPy/SciPy 重算数值；相同 task ID 但错误内容判错。旧 M6 的 analyze/switch 错误归为公共动作失败，本轮 Fake 接口 smoke 通过但**没有真实模型复验或修复该失误**。
+- 实际验证：在现有 `eegagent` 环境执行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`，均通过；**290 tests：275 通过、15 resource-gated skipped、0 失败**。v2 定向 9 项通过。生成的回放 JSON 只在 Git 忽略的本地 `artifacts/point1_task_memory/`，未提交密钥、真实 EEG 或模型权重。
+- 研究判断：v2 使摘要/选择机制真正受测，仍只是**离线共享历史**；不能以此宣称 F/S 的真实问答能力、E 优于强 G 或论文贡献已成立。下一阶段若获新预算，先按 `EEG_TASK_MEMORY_PROTOCOL_V2.md` 的分层清单做四臂同历史真实读取和 G/E 多轮闭环，逐臂计入写入、摘要、检索、读取与回答成本；不自动执行。
+- Git：独立分支 `research/point1-eeg-task-memory`，Draft PR #37，base 为 PR #27 功能分支；`a5164e1` 冻结 v2 设计/协议，`735b6d2` 公共摘要、强通用基线、EEG 作用域检索与语义测试，`530f2ff` 保存离线回放结果与后续预算清单，均已普通推送。对 `530f2ff` 的 GitHub Actions [`unit-tests` #209](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40178863098) 结论为 `success`；本条 CI 状态同步属于后续纯文档提交。不合并 main、不强推。
+
+## 2026-10-25 当前阶段：Issue #36 多轮 EEG 任务上下文管理（本轮研究验证结束）
+
+- 从经核验的 PR #27 功能树 `fb5b85b` 创建独立分支 `research/point1-eeg-task-memory`；未修改旧 CIEDG、PR #35 或 main。核对 HiAgent、LongMemEval、EEGAgent、BrainAgent 原始来源后，冻结 6 条合成多轮脚本及开发/验证切分；明确本研究为成熟记忆技术的 EEG 适配而非新通用算法。
+- 代码：新增公共 `MultiTurnEEGSession`、不可变 `TaskEntry` 和 `read_task`，修订创建新版本；分析调用现有 v3 `run_instances`→Registry/Executor，合成 A/B 记录及事件隔离。F/S/G/E/E−scope 使用同一真实任务/结果历史和统一模型动作/工具接口。公共能力目录由既有 `capability_catalog` 生成；可选第二次 LLM 调用在真实工具结果后作最终答复。新增 CLI、独立数值 oracle 和 8 个定向测试。
+- 回放：最初逐臂重跑造成 artifact ID 不同的无效结果保留；修正后 6 会话、10 个历史查询，F/S/G/E/E−scope 均 10/10 top-k 覆盖；G 与消融 top-1 为 7/10，E 为 9/10。历史最多 3 项，S 的滚动摘要分支未真正触发，不能宣称 E 的闭环优势或 F/S 付费模型成绩。
+- 真实 DeepSeek：仅合成 EEG；请求 `deepseek-chat`，96 个响应均报告 `deepseek-flash`；合计 **96 completions / 113,296 API tokens**，达到请求硬上限，不再继续调用。首轮 M1 G 0/5、E 5/5 主要因共同参数契约，修订后的回归两臂均 0/5；目录化共同契约后开发 M1/M4 两臂各 5/5，首次验证 M6 两臂各 6/6。增加最终文字交付后重复 M6，两臂均 2/6（首轮共同误选 `switch`，级联历史缺失），开发 M1 两臂均 5/5，修改前后 alpha 分别 `2.00e-10`/`3.92e-10 V²` 且最终回答忠实。旧失败不覆盖、重复验证不冒充未见成绩；原始响应留在 Git 忽略的本地 `artifacts/`。
+- 检查：使用 `eegagent` 环境运行 `python -m compileall -q src tests`、`python -m pip check`、`python -m unittest discover -s tests -q`；compileall/pip check 通过，**281 tests，266 通过、15 resource-gated skipped、0 失败**。定向 `pytest -q tests/test_task_memory.py` 为 9/9。数值由原始合成数组的独立 SciPy Welch 验证；真实受试者数据、密钥、原始模型响应均不入 Git。
+- 结论：多轮任务历史与 EEG 证据绑定原型可运行，E 的短历史 top-1 排序有诊断信号，但 G 已同样覆盖并在实际闭环持平；当前证据**不足以把 EEG 适配称为已证实的论文独立方法贡献**。公共动作解析错误和模型最终回答仍需与检索故障分开研究。下一步只建议一个预注册、更长有效历史但非垃圾干扰的独立会话集；若仍持平，收缩为 G + EEG provenance/版本安全工程能力，停止扩充 E 特例。完整报告见 `EEG_TASK_MEMORY_RESULTS.md` / `EEG_TASK_MEMORY_DECISION.md`。
+- Git：`6526cb6` 冻结方法/协议，`565c22e` 共享多轮实现，`fc1b705` 公共参数契约首修（产生回归并保留），`5d5e088` 目录化契约、最终回答及数值测试，`a4751f3` 研究结果/决策/README。均经普通 push 发布到独立分支 `research/point1-eeg-task-memory`；[Draft PR #37](https://github.com/lzy123-web/eeg-agent-harness/pull/37) 以 PR #27 功能分支为 base，保持 Draft。GitHub Actions [unit-tests #205](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/40174847980) 对 `a4751f3` 为 `success`。本状态同步为纯文档后续提交；未强推或合并 main。
 
 ## 2026-10-25 当前更新：Issue #29 工作点一方法论审查（仅文档）
 
@@ -122,7 +387,7 @@ Issue #16：工作点一 CIEDG 已冻结并完成第一版正式公平实验。p
 | 检查项 | 结果 |
 |---|---|
 | Python 源码语法读取 | 38 个 `.py` 文件均可由 `ast.parse` 解析。 |
-| 运行环境 | 使用 `C:\Users\Nick\.conda\envs\eegagent\python.exe`；`pip check` 无损坏依赖。 |
+| 运行环境 | 使用本地 `eegagent` Conda 环境；`pip check` 无损坏依赖。 |
 | 关键环境 | Python 3.10.17、MNE 1.6.1、NumPy 1.24.4、SciPy 1.10.1、PyTorch 2.14.1+cpu。最小基线不依赖 OpenAI。 |
 | 工具注册 | 成功发现 11 个工具。 |
 | EDF 样例 | `gped_049_a_6.edf` 原始 250 Hz、33 信号、241 秒。 |

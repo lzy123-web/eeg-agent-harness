@@ -1,0 +1,381 @@
+{
+  "protocol_version": "issue52-v1",
+  "status": "offline_protocol_freeze_candidate_no_external_authorization",
+  "purpose": "强P&E、一般任务记忆与EEG科学交付/依赖分层记忆的公平机制检验；离线结果不是自主成功率",
+  "authorized_limits": {
+    "external_completions": 0,
+    "api_tokens": 0
+  },
+  "old_stage_budget_reuse": false,
+  "arms": {
+    "A": {
+      "name": "strong_plan_and_execute",
+      "completion": "required actual outputs and shared identity/scope/version checks; model judges stated scientific acceptance; check_deliveries remains available",
+      "context": "normal structured complete results and history/read access"
+    },
+    "B": {
+      "name": "plan_execute_general_task_memory",
+      "completion": "same as A",
+      "context": "current task action-observation, completed summaries, normal exact-result/process reads"
+    },
+    "C": {
+      "name": "scientific_delivery_dependency_memory",
+      "completion": "same shared safety; automatic required-instance acceptance and archive",
+      "context": "input_refs select actual summary/result/process by dependency; escalation remains available"
+    },
+    "C-no-delivery": {
+      "name": "delivery_ablation",
+      "completion": "same as A",
+      "context": "same dependency selection as C"
+    },
+    "C-no-selection": {
+      "name": "selection_ablation",
+      "completion": "same as C",
+      "context": "normal complete result access without dependency-level reduction"
+    },
+    "A-equivalent": {
+      "name": "strong_pe_equivalent_checks_sensitivity",
+      "completion": "same scientific acceptance gate as C",
+      "context": "normal complete results; tests whether the proposed completion difference disappears"
+    }
+  },
+  "shared_contract": [
+    "Same LLM settings, high-level user requests and immutable synthetic records",
+    "Same planner schema, stable task IDs, DAG validation, task revision and dependency invalidation",
+    "Same EEGRecord/TaskStore/TaskEntry/original Executor and numerical algorithms",
+    "Same parameter authorization, record isolation, actual artifact identity, time reference, units and immutable versions",
+    "Same declared required-output set, exact result passing, read/process restoration rights and deterministic comparison",
+    "All arms may inspect acceptance with check_deliveries, replan, clarify and recover; no hidden facts or low-budget handicap",
+    "No real EEG, personal paths, credentials, weights, evaluator gold, case ID, fixed DAG or expected sequence sent to the Agent"
+  ],
+  "model_settings": {
+    "service": "existing_OpenAI_compatible_service_only",
+    "model": "environment_selected_then_locked_with_reported_response_model",
+    "temperature": "lock_actual_supported_setting_before_online",
+    "max_output_tokens": 2200,
+    "max_retries": 0,
+    "timeout_seconds": 90
+  },
+  "agent_settings": {
+    "max_rounds_per_turn": 8,
+    "max_tool_calls_per_turn": 24,
+    "timeout_seconds": 900,
+    "max_context_bytes": 256000
+  },
+  "synthetic_data": {
+    "factory": "eeg_harness.research.task_memory.synthetic_records",
+    "sfreq_hz": 128,
+    "duration_seconds": 8,
+    "channels": [
+      "SYNTH-C1",
+      "SYNTH-C2"
+    ],
+    "base_signal_volts": {
+      "SYNTH-C1": {
+        "sine_hz": 10,
+        "amplitude": 2e-05
+      },
+      "SYNTH-C2": {
+        "sine_hz": 6,
+        "amplitude": 1.5e-05
+      }
+    },
+    "records": {
+      "A": {
+        "scale": 1.0,
+        "gain_from_second_3": 1.4,
+        "events": [
+          [
+            "stimulus",
+            1
+          ],
+          [
+            "control",
+            2
+          ],
+          [
+            "stimulus",
+            3
+          ],
+          [
+            "control",
+            4
+          ],
+          [
+            "stimulus",
+            5
+          ]
+        ]
+      },
+      "B": {
+        "scale": 0.63,
+        "gain_from_second_3": 1.8,
+        "events": [
+          [
+            "stimulus",
+            1.5
+          ],
+          [
+            "control",
+            2.5
+          ],
+          [
+            "stimulus",
+            4.5
+          ],
+          [
+            "control",
+            5.5
+          ]
+        ]
+      }
+    },
+    "development": "unmodified existing deterministic synthetic factory; already-seen mechanism development",
+    "future_confirmation": "same frozen request structures and signal generator; before online freeze a distinct deterministic scale for each record, report it and exact sample hash; not unseen-language evidence",
+    "confirmation_scales": {
+      "A": 0.81,
+      "B": 1.17
+    },
+    "clinical_or_population_claims": false
+  },
+  "cases": [
+    {
+      "id": "T01",
+      "family": "continuous_short",
+      "requests": [
+        "请概括记录A的SYNTH-C1在0到2秒的基础信号情况，给出RMS和alpha绝对功率，写清窗口、单位和数据来源；不要做额外预处理。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Both RMS and alpha absolute power use A/C1 [0,2)s; complete delivery includes both correct numbers and units",
+          "No clinical/causal interpretation; report management/context overhead on this short task"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T02",
+      "family": "same_capability_two_windows",
+      "requests": [
+        "我想比较记录A的SYNTH-C1在0到2秒与4到6秒的alpha绝对功率。请分别给值，再给后窗减前窗的差值和后窗与前窗的比值，保留两个窗口的结果。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Two distinct actual PSD outputs; first success cannot satisfy both required instances",
+          "Difference and ratio from independently computed operands; both source scopes retained"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T03",
+      "family": "mixed_continuous_event_clarification",
+      "requests": [
+        "记录B的SYNTH-C1请分析2到4秒的RMS；另请给记录A的stimulus事件上SYNTH-C2的theta绝对功率。我还没有决定事件相对窗口，先做条件充分的部分，不进行基线校正或筛选。",
+        "记录A的事件相对窗口定为发生后0到1.25秒。继续刚才的事件分析，并说明实际试次数；记录B保持原结果。"
+      ],
+      "followup_policy": "Second request only after a response accurately identifies missing event-relative window and preserves lawful partial work; if it guesses a window record failure, do not silently repair by sending gold.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Independent B/C1 [2,4)s result proceeds before missing event window",
+          "No guessed event window, no reuse of continuous absolute window",
+          "After actual clarification A stimulus [0,1.25)s creates three Epochs; event theta uses same artifact",
+          "B result not recomputed or rebound to A"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T04",
+      "family": "multi_record_binding",
+      "requests": [
+        "记录A的SYNTH-C1只分析0到2秒的RMS；记录B的同名通道只分析2到4秒的RMS。请分别列出记录、窗口、数值和单位，不把两个对象的范围交换。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "A and B same channel still different scientific objects",
+          "Both correct results and no cross-record scope authorization"
+        ],
+        "offline_fault_injections": [
+          "Offline only: propose A with B 2..4s scope and cropped B clause; all arms must reject before numerical execution",
+          "Offline only: explicit valid A/B requests remain executable after the rejected auxiliary attempt"
+        ],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T05",
+      "family": "revision_dependency_invalidation",
+      "requests": [
+        "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率，以及记录B的SYNTH-C1在2到4秒的RMS，保留各自结果。",
+        "把记录A的分析窗口修订为4到6秒，再与原0到2秒的alpha功率比较差值和比值。旧结果仍要保留；记录B的结果不变，不要重算。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Stable task identity through explicit revision; previous result/version remains immutable",
+          "Only actually dependent downstream work invalidated; B unchanged",
+          "New A result links previous A and correct difference/ratio; no old result masquerading as revised range"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T06",
+      "family": "scientific_acceptance_and_optional_failure",
+      "requests": [
+        "请检查记录A的stimulus事件后0到1.25秒试次。我的这次分析要求至少4个实际有效试次才允许把该任务标为满足条件；不足时明确说明缺口，不扩大标签或窗口，也不要筛选或编造试次。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Actual selected in-bounds trial count is three; empirical count, not clinical quality",
+          "Tool success cannot be reported as meeting >=4 condition",
+          "Correct scientific stop with three and unmet requirement is evaluated separately from numerical-task completion"
+        ],
+        "offline_fault_injections": [
+          "Offline only: inject an optional metadata read failure without changing required results; it must not veto unrelated valid deliverables",
+          "Offline only: inject a model complete_node claim despite actual count 3<4. Report whether A/B permit model judgement and C gate rejects; this is a controlled robustness example, not observed model prevalence",
+          "Run A-equivalent with the same automatic predicate gate; do not hide its equivalence"
+        ],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T07",
+      "family": "historical_exact_result_and_artifact_reuse",
+      "requests": [
+        "请给记录A的SYNTH-C1在0到2秒的RMS，并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率，不进行筛选或基线校正。",
+        "请回顾之前的RMS及范围；沿用同一批事件试次追加质量测量，给出实际采用的标准、试次数和标记情况，再列出原theta功率。已有结果不要重算，不要删除任何试次。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Exact historical RMS and theta retained/read and reused without numerical repetition",
+          "Quality executes on original artifact identity; same content/new artifact is not equivalent",
+          "Actual thresholds and measurement limits stated; flags do not mean deletion or clinically validated reliability"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    },
+    {
+      "id": "T08",
+      "family": "process_restoration_and_next_action",
+      "requests": [
+        "请分析记录A的stimulus事件后0到1.25秒试次，给出实际试次数及SYNTH-C2的theta绝对功率，不做基线校正和筛选。",
+        "请核对刚才建立试次和计算功率的实际处理过程，然后在原试次上追加质量测量，解释这次测量增加了哪些证据，以及哪些处理从未执行。已有功率不要重算。"
+      ],
+      "followup_policy": "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.",
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "checks": [
+          "Past process explained from actual AO/source metadata, not synthetic narrated steps",
+          "Record storage, expected dependency evidence, actual next-input visibility and later artifact use separately",
+          "Process restoration optional if complete process already available; no forced restore reward",
+          "Quality uses exact original artifact and no filtering/baseline claims"
+        ],
+        "offline_fault_injections": [],
+        "fault_injection_is_not_natural_llm_error": true
+      }
+    }
+  ],
+  "evaluation_only": {
+    "never_send_to_agent": true,
+    "independent_numeric_oracle": "RMS from float64 raw slices; PSD/Event bandpower from independent raw-sample Welch and band integration; event inclusion from exact onset-relative bounds; compare recomputed operands",
+    "numeric_tolerance": {
+      "relative": 0.005,
+      "absolute": 1e-13,
+      "integer_counts": "exact"
+    },
+    "request_outcomes": [
+      "complete_scientific_delivery",
+      "correct_scientific_stop",
+      "correct_clarification",
+      "safe_partial",
+      "incorrect_or_incomplete"
+    ],
+    "failure_classes": [
+      "intent_or_plan_omission",
+      "scientific_binding",
+      "dependency_or_revision",
+      "delivery_false_positive",
+      "memory_selection",
+      "model_reading",
+      "numeric_execution",
+      "final_answer",
+      "resource_stop"
+    ],
+    "metrics": [
+      "request_complete_rate",
+      "correct_stop_or_clarification_separately",
+      "delivery_false_positive_and_missing_items",
+      "wrong_record_time_reference_or_version_reuse",
+      "actual_numeric_executions_and_duplicates",
+      "recomputation_after_revision",
+      "external_completion_count",
+      "actual_api_input_output_tokens",
+      "wall_latency_and_api_latency_separately",
+      "evidence_expected_presented_used",
+      "read_and_restore_count",
+      "simple_task_management_overhead"
+    ],
+    "scope": "all numerical fields and source/record/window/units/processing/version necessary to original user request; task_id alone is insufficient",
+    "answer_scoring": "independent oracle plus explicit complete/partial/stop classification; no LLM self-scoring; preserve ambiguity for manual audit",
+    "history_use": "same actual result/field or artifact in a later operation is usage evidence; restored content merely appearing is not usage; causal benefit requires paired/ablation evidence",
+    "unseen_claim": false
+  },
+  "paired_run_policy": {
+    "unit": "one complete case conversation across A/B/C from fresh independent stores over identical synthetic samples",
+    "arm_order_latin_square": [
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ]
+    ],
+    "shared_planner_track": "one model-generated DAG from only the natural request may be replayed identically across arms for mechanism isolation; include shared planning cost amortized equally, separately report any autonomous replanning; this is not independent end-to-end planning accuracy",
+    "end_to_end_track": "each arm sees only the original natural requests and metadata; planner proposes DAG and Executor chooses local actions; no evaluator DAG/ID/order; distinguish planner variation from memory effect",
+    "development_vs_confirmation": "development traces may guide bounded revisions; freeze code/protocol/data/model before a single confirmation per unit; do not select best repeated run",
+    "budget": "0 currently; require a new explicit authorization and append-only ledger; preflight whole paired unit including final answer, fail before starting if full unit cannot fit",
+    "interruption": "retain attempted and unattempted arms; an incomplete paired unit is not a candidate success; no paid retry without fresh within-stage reservation",
+    "stopping": "if baseline and candidate equally reliable, do not add complexity to manufacture separation; report short-task cost and equivalent-baseline sensitivity"
+  },
+  "proposed_paid_validation_not_authorized": {
+    "first_units": [
+      "T03",
+      "T05"
+    ],
+    "why": "two complementary complete three-arm conversations cover mixed-object clarification/artifact continuation and stable revision/old-new comparison",
+    "conversations": 6,
+    "user_turns": 12,
+    "max_external_completions": 96,
+    "api_token_budget": null,
+    "token_budget_condition": "derive from measured complete A/B/C wire trajectories plus reserved final views and bounded model actions; publish measured required ceiling before seeking authorization; no guessed monetary amount",
+    "later_units": "Only after first complete paired units are scientifically usable, separately authorize remaining cases/ablations; no old budget transfer"
+  }
+}

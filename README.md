@@ -1,5 +1,128 @@
 # EEG Agent Harness
 
+> **Issue #52：共享强 Plan-and-Execute 与 EEG 科学交付/分层证据候选已完成离线阶段，真实自主效果尚未验证。** 新`TaskPlanEEGAgent`继续使用原EEGAgent循环、TaskStore与Executor。A强P&E、B一般任务记忆、C候选共享稳定DAG/结果自动关联/来源版本/工件安全/历史读权/局部重规划；C额外自动核验明确科学条件，并按实际依赖选择摘要、字段或过程。652项回归（637通过/15资源跳过）；八类×三臂93项数值核验通过，T04/T07仍共同保守误拒，未记为完整任务成功。**本阶段0外部completion/0 API tokens，不能宣称自主成功率或成本胜出。** [设计与代码映射](docs/research/EEG_WORKING_MEMORY_ISSUE52_DESIGN.md) · [冻结协议、真实离线结果及预算建议](docs/research/EEG_WORKING_MEMORY_ISSUE52_PROTOCOL.md) · [开题一页总结](docs/research/EEG_WORKING_MEMORY_ISSUE52_PROPOSAL_SUMMARY.md)。
+
+新统一入口：`TaskPlanEEGAgent(client, records, arm="C").run(text)` / `continue_run(text)`；A/B/C及`A-equivalent`、两个消融共享入口和原工具。未来获新授权后原CLI可用`--plan-arm`，没有预置正确DAG或行动次序。当前可运行的离线入口如下（输出必须为新路径）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m eeg_harness.research.working_memory_issue52 --offline --case T01 --case T02 --case T03 --case T04 --case T05 --case T06 --case T07 --case T08 --output artifacts/point1_task_memory/issue52/new-eight-paired.json
+python -m eeg_harness.research.working_memory_issue52 --preflight --output artifacts/point1_task_memory/issue52/new-preflight.json
+python -m unittest discover -s tests -q
+```
+
+离线回放会注入控制计划与动作，仅验证真实工具和机制；不能当作模型从自然语言自主规划。`--real`在本阶段驱动中明确拒绝；不继承旧预算。原`scientific/managed`及以下历史结果保留。
+
+> **Issue #51 已结束有界研发与冻结确认；完整自主科学会话未通过。** 新 opt-in `scientific` 将完整请求的科学对象绑定、多结果实例完成、真实单位/比较与任务工作上下文接入原 Agent/Executor。617项回归（602通过/15资源跳过）；真实16 completion /187,303 API tokens。模型自主接纳多结果目的，连续与事件数值、旧新比较正确；确认第二轮被辅助失败的完成门控阻断，第三轮未进入。真实精确读回/过程恢复均未触发，未开展强摘要收益比较。见[完整协议、首次失败及预算](docs/research/EEG_WORKING_MEMORY_ISSUE51_PROTOCOL_AND_RESULTS.md)、[主方法与职责](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)、[公开合成证据](docs/research/evidence/issue51_scientific_memory_diagnostic.json)。阶段账本已关闭，余量不续用。
+
+最新研究入口：`WorkingMemoryEEGAgent(client, records, memory_version="scientific", context_mode="working")`，仍使用 `run(text)` / `continue_run(text)`；CLI对应 `--memory-version scientific`，支持同权的 `full` / `summary` / `working`。模型提出目的与下一动作，程序按真实记录、范围、结果和工件核验；不接收评测gold或正确行动序列。此模式是待完善的研究候选，不能作为已通过完整自主验收的稳定默认。
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -q
+python -m eeg_harness.research.working_memory_issue51 --preflight --output artifacts/point1_task_memory/issue51/new-preflight.json
+# 已有本机原始日志时，只读审计；输出文件必须尚不存在：
+python -m eeg_harness.research.working_memory_issue51_audit --output artifacts/point1_task_memory/issue51/new-audit.json
+```
+
+只有上述预检/回归不访问API；真实运行必须另有独立授权与追加预算。科学对象字面绑定不等于任意自然语言意图证明，数值通过不等于最终科学交付通过。以下为保留的旧模式与阶段结果。
+
+> **Issue #50 已完成有界架构调整与配对诊断；完整科学回答、记忆独立收益仍未通过/验证。** 新增opt-in `managed`：科学动作局部接纳，程序维护真实来源、结果、版本、工件和归档；同一原Agent/Executor。539项回归（524通过/15资源跳过），34项科学预检。真实26次/309,095tokens：新路径完成事件补窗、连续修订及旧RMS实际读取；最终差值与事件解释仍有错误。第二层三模式完整预算不足，未联网，不宣称压缩收益。见[完整协议与结果](docs/research/EEG_WORKING_MEMORY_ISSUE50_PROTOCOL_AND_RESULTS.md)、[公开合成证据](docs/research/evidence/issue50_architecture_diagnostic.json)。本阶段已停止，不续用余额。
+
+统一自然入口：`WorkingMemoryEEGAgent(client, records, memory_version="managed", context_mode="working")` 的 `run(text)` / `continue_run(text)`；也支持 `summary`、`full`。CLI使用`--memory-version managed`，不需要gold、turn.kind或正确任务ID。短任务允许直接执行，复杂目的可选focus，程序核验实际结果而非任意语言完整性。真实模型本阶段以full诊断；summary/working有离线数据流验证，未作本阶段真实收益比较。
+
+```powershell
+$env:PYTHONPATH='src'
+python -m eeg_harness.research.working_memory_issue50 --preflight
+python -m unittest discover -s tests -q
+python -m eeg_harness.working_memory_cli --help
+# 已有本机日志的只读审计，output必须为新文件，不联网：
+python -m eeg_harness.research.working_memory_issue50_audit --output artifacts/point1_task_memory/issue50/new-readonly-audit.json
+```
+
+科学前提及限制：当前记忆入口开放元信息、连续幅值/PSD/质量、事件Epoch/计数/质量/绝对功率；不开放新筛选、基线校正、重参考或模型推理，不代表旧Harness这些能力被删除。科学范围采用真实对象、字面值及有效历史绑定的有界检查，不是完整自然语言意图证明器。实际方法、单位与来源来自工具，任意生成文字仍可能出错。联网必须有新的独立授权和累计预算，以下历史阶段不可重新消费。
+
+> **Issue #49 已完成有界实现与真实确认，完整自主会话验收仍未通过。** opt-in `request_closure`统一科学合同、有效结果复用、原请求交付进度和有证据的收尾；原Agent/Executor保持。490项离线回归（475通过、15资源跳过）；真实37 completion / 289,282 tokens，全部失败保留。D短查询完整；C澄清后的事件数值正确但附加单位与质量措辞有误；A完成连续新旧比较，历史RMS未读回；B受来源登记及旧请求相关性校验阻塞，无质量续算。真实恢复→续算本轮未触发。公共修复适用于working/强summary/full，未开展新的付费优劣比较。见[本轮协议、结果与边界](docs/research/EEG_WORKING_MEMORY_ISSUE49_PROTOCOL_AND_RESULTS.md)及[公开合成证据](docs/research/evidence/issue49_request_closure_confirmation.json)。本阶段联网结束，不自动使用余量。
+
+Issue #49 无API检查与审计（output使用新路径）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -v
+python -m eeg_harness.research.working_memory_issue49 --preflight --output artifacts/point1_task_memory/issue49/new-preflight.json
+python -m eeg_harness.research.working_memory_issue49_audit --output artifacts/point1_task_memory/issue49/new-audit.json
+```
+
+统一入口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", request_closure=True, context_mode="working")`，以`run(text)`/`continue_run(text)`接受自然请求；`summary`和`full`使用同一科学契约及读权。CLI对应`--memory-version lifecycle --request-closure`，服务及路径仍使用环境配置，联网需新的明确授权和跨运行预算。阶段脚本不向Agent输入正确task ID、动作顺序或评分真值；审计需要本机原始日志，公开仓库提供合成摘录与可运行离线预检。
+
+以下Issue #48及更早段落是历史产物，保持其原始结果：
+
+> **Issue #48 已结束有界实现与真实确认；完整自主验收仍未通过。** 新增opt-in `lifecycle`：有来源的科学子目标、缺参待补与同目标修正、批次协议保护、分项成本记录和同入口强摘要/full。453项离线回归（438通过、15跳过）；真实DeepSeek＋合成数据共37 completion / 321,201 tokens，首次失败均保留。C实际澄清后在同一目的建立Epoch；B自主恢复原过程并进入下一模型输入，但没有完成续算。A重复已完成目的；D最终回答遭会话保守预约拦截。C/B的0.75秒窗不符合原功率工具≥1秒要求，是确认准备疏漏，不能据此判断记忆优劣。45个已产生数值字段oracle通过，不代表四会话成功。见[本轮协议、结果与准确边界](docs/research/EEG_WORKING_MEMORY_ISSUE48_PROTOCOL_AND_RESULTS.md)、[合成证据](docs/research/evidence/issue48_lifecycle_confirmation.json)。阶段已停止联网，不自动续用余额。
+
+新版统一接口：`WorkingMemoryEEGAgent(client, records, memory_version="lifecycle", context_mode="working")`的`run(text)`/`continue_run(text)`；`context_mode="summary"`或`"full"`共用真实工具、档案、来源核验和读取权限。方法主体在`working_memory_lifecycle.py`/`working_memory_agent.py`，不是评测脚本提供正确任务序列。旧默认、历史模式及结果保留；强S已离线检查，本轮没有新增真实多臂效果比较。真实数据仍限本地离线处理。
+
+Issue #48 无API回归及审计：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m compileall -q src tests
+python -m unittest discover -s tests -q
+# 以下审计需要本机保留日志，输出必须是新文件：
+python -m eeg_harness.research.working_memory_issue48_audit --output artifacts/point1_task_memory/issue48/new-readonly-audit.json
+python -m eeg_harness.working_memory_cli --help
+```
+
+> **Issue #47 已完成有界阶段交付，复杂自主验收未通过。** 三项可靠性修复：跨目标正常关闭不再被重复保护误停、完整档案与当前精确工作集分离、字段级单位/语义独立核验。412 tests（397通过、15资源跳过）。真实DeepSeek＋合成数据共36 completion / 277,191 tokens；短查询成功，复杂连续＋事件交付、自然修订及缺参澄清未通过，首次失败保留。23个已产生字段独立数值检查通过，不代表完整任务成功。本阶段停止联网。明天写开题请先读[学校栏目写作包](docs/research/THESIS_PROPOSAL_WRITING_PACK.md)、[20项参考文献BibTeX](docs/research/THESIS_PROPOSAL_REFERENCES.bib)、[主方法与真实诊断](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)及[公开合成证据](docs/research/evidence/issue47_reliability_and_confirmation.json)。以下各阶段数字保持历史口径，不能拼接成新版成绩。
+
+> 后续用户阶段任务：已补齐 opt-in `memory_version="multi_result"` 的多结果交付/归档、参数修订、结果与原工件复用，保留 Issue #45 单结果模式和失败。397 tests（382通过、15资源跳过）；两轮受控 Fake＋真实工具的连续/事件闭环及5项独立数值检查通过，**新版本真实模型自主效果未验证，本轮外部调用0次**。优先阅读[集中开题简报](docs/research/THESIS_PROPOSAL_RESEARCH_BRIEF.md)、[主方法文档末节](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)和[合成证据样例](docs/research/evidence/multi_result_closure_example.json)。师兄私有资产仅做复用设计，未拷贝或运行其模型。
+
+离线复现新闭环（激活项目环境后）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.working_memory_deliveries_validation --output artifacts/working_memory_multi_result/replay.json
+```
+
+真实工作记忆 CLI 要求另行授权的 `--budget-config`，不再默认开启历史额度；Issue #47 使用独立累计账本且本阶段已停止，不自动续用余额。
+
+> Issue #45 新增默认关闭的**执行期工作记忆**：原 `EEGAgent.run` 接入子目标、逐动作观察、核验归档和真实轨迹恢复；统一 `run/continue_run` 接收自然语言，不需要评测器 turn.kind。379 tests（364通过、15资源跳过）。真实 DeepSeek 合成演示40 calls / 228,734 tokens，连续/事件数值与原采样 oracle 一致，实际发生旧轨迹恢复与工件复用；但复杂目标归档失败，锁定后确认出现重复子目标并在预算保护下停止，**完整真实验收尚未通过**。不替换旧默认，不宣称比强 S 更好。见[完整设计、真实失败和取舍](docs/research/EEG_WORKING_MEMORY_METHOD_AND_INTEGRATION.md)及[合成轨迹摘录](docs/research/evidence/issue45_synthetic_trace_excerpt.json)。本阶段联网已停止，不自动续跑。
+
+工作记忆离线检查（使用现有环境）：
+
+```powershell
+$env:PYTHONPATH='src'
+python -m unittest tests.test_working_memory -v
+python -m eeg_harness.working_memory_cli --help
+```
+
+实验 API 为 `eeg_harness.working_memory_agent.WorkingMemoryEEGAgent(client, records)` 的 `run(text)` / `continue_run(text)`；真实 LLM 必须使用有跨运行账本的客户端且记录为合成。CLI `python -m eeg_harness.working_memory_cli --real --request "自然语言请求"` 可重复 `--request` 继续同会话。服务/模型/凭据使用已有 `EEG_HARNESS_LLM_*` 环境变量；不在源码放密钥。Issue #45 预算不能重置；本轮余量不足以安全预约完整调用，后续须另行授权。当前新模式支持连续信息/幅值/PSD/质量及事件切片/计数/质量/功率；旧版模型推理仍在原入口，新工作记忆模式尚未接入。真实数据离线分析沿用原入口，不走此联网研究模式。
+
+> Issue #43（Draft PR #37）把已见精确结果与新读回结果统一交接给末轮回答，并统一字段路径和多对象科学范围校验。离线真实工具/独立 oracle 与 17 项定向测试通过；有界合成 DeepSeek 共 37 calls / 82,393 tokens。新连续完整任务 S/HC/F 严格初筛均 4/4，但 HC 的版本/过程措辞不忠实；新事件＋连续任务 F 5/5、S 原严格 4/5（有同范围有效计数替代证据，人工核查完整）、HC 4/5 且安全部分答复。旧 Issue #42 结果保留；强 S 仍为简单默认，HC 独立优势未证。见[协议](docs/research/EEG_TASK_MEMORY_ISSUE43_PROTOCOL.md)与[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE43_RESULTS.md)。离线入口：`$env:PYTHONPATH='src'; python -m eeg_harness.research.task_memory_issue43 --offline`。
+
+> Issue #41（Draft PR #37）在原任务记忆上新增小型真实结果内联、较大结果字段索引与全臂共用的按需精确读回。独立合成确认四问 F/S/H/HC 严格有效分别 3/4、4/4、3/4、4/4；HC 与强 S 均 5 次调用，分别 10,030/10,416 实际 API tokens，但 HC 墙钟延迟更高。连续及事件短闭环 S/HC 均正确，HC 成本反高；事件闭环是明确标注的协议后补充，不能混成主确认。请求 `deepseek-chat`，实际返回 `deepseek-flash`；Issue #41 独立阶段累计 59 completion / 123,623 tokens，已停止。原始失败及评分器追加审计均保留。见[冻结协议](docs/research/EEG_TASK_MEMORY_ISSUE41_PROTOCOL.md)和[逐例结果](docs/research/EEG_TASK_MEMORY_ISSUE41_RESULTS.md)。无付费复验：`$env:PYTHONPATH='src'; python -m unittest tests.test_task_memory_issue41 -q`。
+
+> Issue #39（Draft PR #37）现已对 HiAgent 启发的任务记忆做真实 DeepSeek＋合成 EEG 四臂初评与独立确认。短链 F/S/H/HE 均 3/3；长链 H 6/8、HE 5/8、F 5/8，S 因跨运行 300,000-token 硬预算在第 3 轮前停止，**不能得出完整长链四臂优劣结论**。HE 的 EEG 对象/版本附加组织尚无可归因收益，不宣称论文创新已证。全部新阶段 126 completion / 292,532 tokens，请勿自动续跑。见 [冻结与版本化协议](docs/research/EEG_TASK_MEMORY_ISSUE39_PROTOCOL.md)、[逐例及成本](docs/research/EEG_TASK_MEMORY_ISSUE39_RESULTS.md)、[阶段判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 可复验旧/压缩版：`PYTHONPATH=src python -m eeg_harness.research.task_memory_eval --mode replay-v3 --memory-variant original|optimized`（实际执行时二选一）。
+
+> Issue #36 的独立研究分支新增 opt-in 多轮 EEG 任务上下文原型：按真实分析任务保存不可变历史、记录/事件作用域与参数修订，F（完整历史）、S（通用摘要）、G（强通用任务记忆）、E（EEG 作用域适配）共用同一工具/读取接口。合成短会话中 G/E 均能完成核心分析，E 的独立端到端收益**尚未证实**。见 [设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[冻结协议](docs/research/EEG_TASK_MEMORY_PROTOCOL.md)、[逐例结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)和[研究判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。无 API 的回放与定向测试：
+
+PR #37 审查后追加 v2 离线协议：3/6/10 条由真实工具执行的有效历史，6/10 条时摘要和 top-3 选择确实触发；G 已具通用时间/版本检索，事件标签来自合成记录元信息。离线 G/E 均在全部 10 个查询中 top-1 取对，**不能据此宣称真实模型或 EEG 附加排序胜出**。冻结范围、逐例语义评分和下一阶段未授权预算见 [v2 协议](docs/research/EEG_TASK_MEMORY_PROTOCOL_V2.md)与[结果追加](docs/research/EEG_TASK_MEMORY_RESULTS.md)。本轮不调用付费模型。
+
+Issue #38 继续同一 PR 的既定 HiAgent→EEG 路线：opt-in `EpisodeMemorySession` 把当前分析任务的行动/观察与完成任务摘要分开，历史查询经共同只读接口恢复实际证据；H 为任务记忆直接迁移，HE 再组织 EEG 科学对象的多版本关系。错误条件的证据读取由各臂共用范围校验拒绝。F/S/H/HE 在 3/6/10 条合成、真实工具生成的历史中离线可读 10/10，H/HE top-1 均 10/10，HE 暂无增益且上下文略长；**无新付费调用，不能推断真实模型效果**。完整边界见[设计](docs/research/EEG_TASK_MEMORY_DESIGN.md)、[结果](docs/research/EEG_TASK_MEMORY_RESULTS.md)与[阶段判断](docs/research/EEG_TASK_MEMORY_DECISION.md)。
+
+```powershell
+$env:PYTHONPATH = 'src'
+python -m eeg_harness.research.task_memory_eval --mode replay
+python -m eeg_harness.research.task_memory_eval --mode replay-v2
+python -m eeg_harness.research.task_memory_eval --mode replay-v3
+python -m unittest tests.test_task_memory -q
+python -m unittest tests.test_task_memory_v2 -q
+python -m unittest discover -s tests -p test_task_memory_v3.py -q
+```
+
+真实模型入口可加 `--mode real --sessions M1 --policies G E --max-requests 20 --max-total-tokens 50000 --final-answer`，但**本轮既定 96 次外部调用预算已经用尽**，此命令仅供另行批准预算后的复现；只允许合成 EEG，密钥从环境变量读取，原始响应写入被 Git 忽略的本地目录。不能把首次失败后的开发复测当成独立未见成绩。
+
 > PR #27 的跨任务合成开发验收与方法边界见 [冻结协议](docs/research/MULTITASK_ACCEPTANCE_PROTOCOL.md) 和 [实测报告](docs/research/MULTITASK_ACCEPTANCE_REPORT.md)。`v3_acceptance` 可以用固定 Fake 负载离线检查连续、事件、现有模型、组合、澄清与科学停止；真实 DeepSeek 只允许合成输入、显式预算与私有本地日志。旧 CIEDG 正式实验结果不因此改变。
 
 本项目是论文《面向多任务脑电分析的智能体执行框架研究与应用》的通用 EEG Harness 基线。当前实现提供显式 EEG 数据、两类 Profile、标准工具注册与执行、可复现 Trace，以及由 Fake LLM 和真实 DeepSeek API 验证的结构化 Tool Calling Agent Loop；同一运行核心可执行癫痫时间窗推理和事件→Epoch→事件频带特征两类任务。
@@ -98,7 +221,7 @@ EEG_HARNESS_R3_DATA_ROOT（可选，仅本地 R3 资源诊断）
 ## 运行入口
 
 ```powershell
-$python = 'C:\Users\Nick\.conda\envs\eegagent\python.exe'
+$python = 'python'  # 先激活已安装项目依赖的 Conda 环境
 $env:PYTHONPATH = "$PWD\src"
 $env:EEG_HARNESS_EDF_PATH = '<合法 EDF 路径>'
 $env:EEG_HARNESS_MODEL_PATH = '<已有 seizure&normal 权重路径>'

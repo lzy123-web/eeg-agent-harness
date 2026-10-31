@@ -16,9 +16,10 @@ class AgentRunResult:
     tool_results: tuple[dict, ...]
     execution_trace: dict
     llm: dict
+    working_memory: dict | None = None
 
     def to_dict(self):
-        return {
+        result = {
             "final_answer": self.final_answer,
             "stop_reason": self.stop_reason,
             "rounds": self.rounds,
@@ -27,16 +28,21 @@ class AgentRunResult:
             "execution_trace": self.execution_trace,
             "llm": self.llm,
         }
+        if self.working_memory is not None:
+            result["working_memory"] = self.working_memory
+        return result
 
 
 class EEGAgent:
-    def __init__(self, llm_client, context, max_rounds=6, max_tool_calls=8):
+    def __init__(self, llm_client, context, max_rounds=6, max_tool_calls=8,
+                 working_memory=None):
         if max_rounds < 1 or max_tool_calls < 1:
             raise ValueError("Agent limits must be positive")
         self.llm_client = llm_client
         self.context = context
         self.max_rounds = max_rounds
         self.max_tool_calls = max_tool_calls
+        self.working_memory = working_memory
 
     def _system_message(self):
         record = self.context.record
@@ -72,6 +78,9 @@ class EEGAgent:
         }
 
     def run(self, user_request):
+        memory = self.working_memory
+        if memory is not None:
+            memory.begin_turn(user_request)
         messages = [
             {"role": "system", "content": self._system_message()},
             {"role": "user", "content": user_request},
@@ -79,41 +88,71 @@ class EEGAgent:
         tools = self.context.executor.registry.public_definitions(
             self.context.profile.profile_id
         )
+        if memory is not None:
+            tools = memory.tool_definitions()
         collected = []
         total_calls = 0
 
+        def finish(reason, answer, rounds, error=None):
+            self.context.trace.finish(reason)
+            if memory is not None:
+                memory.on_stop(reason)
+                if reason not in {"completed", "partial", "clarification_required"} and hasattr(memory, "progress_notice"):
+                    answer = answer + memory.progress_notice()
+            result = AgentRunResult(
+                final_answer=answer, stop_reason=reason, rounds=rounds,
+                tool_calls=total_calls, tool_results=tuple(collected),
+                execution_trace=self.context.trace.to_dict(),
+                llm=self._llm_summary(error),
+                working_memory=memory.snapshot() if memory is not None else None,
+            )
+            json.dumps(result.to_dict(), ensure_ascii=False, allow_nan=False)
+            return result
+
         for round_number in range(1, self.max_rounds + 1):
+            if memory is not None:
+                stop = memory.check_stop()
+                if stop:
+                    return finish(stop, memory.final_answer, round_number - 1)
+                messages = memory.build_messages()
+                if memory.stop_reason:
+                    return finish(memory.stop_reason, memory.final_answer, round_number - 1)
             try:
-                assistant = self.llm_client.complete(messages, tools)
+                if memory is not None and getattr(memory, "request_closure", False):
+                    tools = memory.tool_definitions()
+                    if round_number == self.max_rounds or total_calls >= self.max_tool_calls - 1:
+                        memory.prepare_finalization("bounded_action_limit")
+                    elif hasattr(self.llm_client, "prepare_decision") and not memory.final_only:
+                        final_messages, final_tools = memory.build_final_messages()
+                        if self.llm_client.prepare_decision(messages, tools, final_messages, final_tools):
+                            memory.prepare_finalization("budget_reserve")
+                            checkpoint = getattr(self.llm_client, "delivery_checkpoint", None)
+                            if checkpoint is not None:
+                                memory.use_delivery_checkpoint(checkpoint)
+                    if memory.final_only:
+                        messages, tools = memory.build_messages(), memory.final_tools()
+                        if memory.stop_reason:
+                            return finish(memory.stop_reason, memory.final_answer, round_number - 1)
+                        assistant = self.llm_client.complete(messages, tools, tool_choice={
+                            "type": "function", "function": {"name": "finish_task"}})
+                    else:
+                        assistant = self.llm_client.complete(messages, tools)
+                else:
+                    assistant = self.llm_client.complete(messages, tools)
             except Exception as exc:
-                self.context.trace.finish("llm_error")
                 error = (
                     exc.to_dict() if isinstance(exc, LLMServiceError)
                     else {"code": "LLM_ERROR", "message": "LLM call failed."}
                 )
-                return AgentRunResult(
-                    final_answer=f"LLM 调用失败（{error['code']}）。",
-                    stop_reason="llm_error",
-                    rounds=round_number,
-                    tool_calls=total_calls,
-                    tool_results=tuple(collected),
-                    execution_trace=self.context.trace.to_dict(),
-                    llm=self._llm_summary(error),
-                )
+                reason = "budget_exhausted" if error["code"] == "STAGE_BUDGET_EXHAUSTED" else "llm_error"
+                return finish(reason, f"LLM 调用停止（{error['code']}）。",
+                              round_number, error)
             tool_calls = assistant.get("tool_calls") or []
             if not tool_calls:
-                self.context.trace.finish("completed")
-                result = AgentRunResult(
-                    final_answer=assistant.get("content") or "",
-                    stop_reason="completed",
-                    rounds=round_number,
-                    tool_calls=total_calls,
-                    tool_results=tuple(collected),
-                    execution_trace=self.context.trace.to_dict(),
-                    llm=self._llm_summary(),
-                )
-                json.dumps(result.to_dict(), ensure_ascii=False, allow_nan=False)
-                return result
+                if memory is not None:
+                    memory.on_unstructured_answer(assistant.get("content") or "")
+                    continue
+                return finish("completed", assistant.get("content") or "", round_number)
 
             messages.append(
                 {
@@ -122,59 +161,59 @@ class EEGAgent:
                     "tool_calls": tool_calls,
                 }
             )
+            exchange = []
+            batch_stop = None
             for call in tool_calls:
-                if total_calls >= self.max_tool_calls:
-                    self.context.trace.finish("tool_call_limit")
-                    return AgentRunResult(
-                        final_answer="达到工具调用次数上限。",
-                        stop_reason="tool_call_limit",
-                        rounds=round_number,
-                        tool_calls=total_calls,
-                        tool_results=tuple(collected),
-                        execution_trace=self.context.trace.to_dict(),
-                        llm=self._llm_summary(),
-                    )
                 function = call.get("function", {})
-                try:
-                    raw_arguments = function.get("arguments", "{}")
-                    arguments = (
-                        json.loads(raw_arguments)
-                        if isinstance(raw_arguments, str)
-                        else raw_arguments
-                    )
-                    request = ToolRequest(
-                        function.get("name", ""), arguments, request_id=call.get("id") or "llm-call"
-                    )
-                    tool_result = self.context.execute(request)
-                    rendered = tool_result.to_dict()
-                except (TypeError, ValueError, json.JSONDecodeError) as exc:
-                    rendered = {
-                        "request_id": call.get("id"),
-                        "tool_name": function.get("name"),
-                        "success": False,
-                        "data": None,
-                        "error": {"code": "INVALID_TOOL_CALL", "message": str(exc)},
-                        "duration_ms": 0.0,
-                    }
-                total_calls += 1
+                # Complete every native call/result pair, even when the batch
+                # is interrupted. Never execute later actions after a stop.
+                if total_calls >= self.max_tool_calls and batch_stop is None:
+                    batch_stop = "tool_call_limit"
+                if memory is not None and batch_stop is None:
+                    batch_stop = memory.check_stop()
+                if batch_stop:
+                    rendered = {"request_id": call.get("id"), "tool_name": function.get("name"),
+                                "success": False, "data": {"executed": False},
+                                "error": {"code": "NOT_EXECUTED", "message": batch_stop}, "duration_ms": 0.0}
+                else:
+                    try:
+                        raw_arguments = function.get("arguments", "{}")
+                        arguments = (
+                            json.loads(raw_arguments)
+                            if isinstance(raw_arguments, str)
+                            else raw_arguments
+                        )
+                        request = ToolRequest(
+                            function.get("name", ""), arguments, request_id=call.get("id") or "llm-call"
+                        )
+                        tool_result = (memory.execute(request, batch_size=len(tool_calls))
+                                       if memory is not None else self.context.execute(request))
+                        rendered = tool_result.to_dict()
+                    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                        rendered = {
+                            "request_id": call.get("id"),
+                            "tool_name": function.get("name"),
+                            "success": False,
+                            "data": None,
+                            "error": {"code": "INVALID_TOOL_CALL", "message": str(exc)},
+                            "duration_ms": 0.0,
+                        }
+                    total_calls += 1
                 collected.append(rendered)
-                messages.append(
-                    {
+                tool_message = {
                         "role": "tool",
                         "tool_call_id": call.get("id"),
                         "name": function.get("name"),
                         "content": json.dumps(rendered, ensure_ascii=False, allow_nan=False),
                     }
-                )
+                messages.append(tool_message)
+                exchange.append(tool_message)
+            if memory is not None:
+                memory.observe_exchange(assistant, exchange)
+                if memory.stop_reason:
+                    return finish(memory.stop_reason, memory.final_answer, round_number)
+            if batch_stop:
+                return finish(batch_stop, "达到工具调用次数上限。" if batch_stop == "tool_call_limit" else "本批剩余动作未执行。", round_number)
 
-        self.context.trace.finish("round_limit")
-        return AgentRunResult(
-            final_answer="达到 Agent 循环轮数上限。",
-            stop_reason="round_limit",
-            rounds=self.max_rounds,
-            tool_calls=total_calls,
-            tool_results=tuple(collected),
-            execution_trace=self.context.trace.to_dict(),
-            llm=self._llm_summary(),
-        )
+        return finish("round_limit", "达到 Agent 循环轮数上限。", self.max_rounds)
 

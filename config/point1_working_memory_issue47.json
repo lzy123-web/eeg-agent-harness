@@ -1,0 +1,24 @@
+{
+  "protocol": "Issue47 bounded autonomous development and confirmation; not comparative efficacy",
+  "limits": {"completions": 48, "api_tokens": 300000, "development_completions": 16, "development_tokens": 100000},
+  "development": {
+    "record_variant": "original",
+    "requests": ["请分析合成记录A中SYNTH-C1在0到2秒的幅值和频带功率，给出RMS及各频带的绝对功率，并说明范围与单位。不做诊断。"]
+  },
+  "mixed": {
+    "record_variant": "confirmation",
+    "requests": [
+      "我想了解合成记录B的信号特征。请给出SYNTH-C2在记录第1到3秒的RMS和各频带绝对功率；另统计rest条件事件后0到1秒可用的试次数，并给出该条件SYNTH-C2的整窗平均频带绝对功率。不筛选、不做基线校正，分别说明科学范围与单位。",
+      "连续分析窗口改为第3到5秒，比较SYNTH-C2的旧新theta功率。事件仍用刚才那批试次，追加质量测量，说明可用数量、采用了什么质量标准以及是否做了筛选。保留旧结果以便追溯；没有预设质量阈值时不要猜。"
+    ]
+  },
+  "short": {"record_variant": "confirmation", "requests": ["合成记录A的采样率和通道名称是什么？"]},
+  "clarification": {"record_variant": "confirmation", "requests": ["请比较两个条件的事件相关频带功率。"]},
+  "evaluation_only": {
+    "notes": "Never pass these criteria or an action sequence to the Agent. Verify after the run against actual tools and raw samples.",
+    "mixed_first": ["B continuous SYNTH-C2 1–3 s RMS and bandpower", "B rest event-relative 0–1 s count and SYNTH-C2 mean absolute bandpower", "no filtering/selection/baseline correction", "complete grounded final answer"],
+    "mixed_second": ["B continuous SYNTH-C2 3–5 s theta compared to original 1–3 s", "preserve original results and revision relationship", "measure quality on the original Epoch artifact", "explain unconfigured thresholds and no selection; do not invent quality-usable count"],
+    "short": "Report actual sampling frequency and channel names",
+    "clarification": "Ask missing scientific window/conditions; no arbitrary analysis"
+  }
+}

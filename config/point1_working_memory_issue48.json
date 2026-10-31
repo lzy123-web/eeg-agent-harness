@@ -1,0 +1,60 @@
+{
+  "protocol_version": "issue48-v1",
+  "purpose": "Bounded lifecycle integration confirmation, not a comparative efficacy benchmark",
+  "limits": {"completions": 80, "api_tokens": 500000, "development_completions": 24, "development_tokens": 150000},
+  "confirmation_order": ["D", "C", "A", "B"],
+  "model_settings": {"max_output_tokens": 1600, "max_retries": 0, "timeout_seconds": 45},
+  "agent_settings": {"max_rounds": 24, "max_tool_calls": 24, "timeout_seconds": 600, "memory_version": "lifecycle"},
+  "development": {
+    "record_variant": "original",
+    "requests": [
+      "请分析合成记录A中SYNTH-C1在0到2秒的RMS和各频带绝对功率；另给stimulus条件事件后0到1秒的试次数与SYNTH-C1平均频带绝对功率。不筛选、不做基线校正，分别说明范围和单位。",
+      "连续窗口改为2到4秒，比较旧新alpha功率。事件保持刚才的试次和处理，追加质量测量，说明哪些质量阈值未设、是否进行了筛选。"
+    ]
+  },
+  "confirmation": {
+    "D": {
+      "request_cap": 6, "token_cap": 30000,
+      "requests": ["合成记录B的采样率、时长和通道名称是什么？"]
+    },
+    "C": {
+      "request_cap": 10, "token_cap": 70000,
+      "requests": [
+        "请分析记录B的target条件事件相关theta绝对功率，通道SYNTH-C2。不做基线校正或筛选。",
+        "使用事件发生后0到0.75秒，其余沿用刚才的要求。请给出实际试次数、theta功率及范围和单位。"
+      ],
+      "continuation_gate": "clarification_required"
+    },
+    "A": {
+      "request_cap": 18, "token_cap": 120000,
+      "requests": [
+        "请给出记录A中SYNTH-C1在0到2秒的RMS和alpha绝对功率，说明范围与单位。",
+        "把同一通道的连续分析窗口改为4到6秒，比较这两个窗口的alpha绝对功率并说明增加还是减少，保留旧窗口结果。",
+        "再告诉我第一次0到2秒窗口的RMS精确结果及来源，不需要重新计算。"
+      ]
+    },
+    "B": {
+      "request_cap": 22, "token_cap": 130000,
+      "requests": [
+        "请分析记录B：给出SYNTH-C1在1到3秒的RMS与alpha绝对功率；另统计target条件事件后0到0.75秒的有效试次数，并给出该条件SYNTH-C2的theta绝对功率。不做基线校正、不筛选，分别解释连续与事件范围。",
+        "请沿用刚才事件分析的原试次和处理选择，追加质量测量，说明实际使用的质量标准、未配置的阈值及是否筛选。再比较这批target试次上SYNTH-C1与SYNTH-C2的theta绝对功率，已有适用结果不要重算，并说明沿用了什么处理依据。"
+      ]
+    }
+  },
+  "data_definition": {
+    "sfreq": 128.0, "duration_seconds": 8.0, "channels": ["SYNTH-C1", "SYNTH-C2"],
+    "A": {"channel_1": "10Hz:12uV before 3s,8uV afterwards; plus24Hz:2uV", "channel_2": "6Hz:8uV before 3s,12uV afterwards", "events": [["target",1.25],["standard",2.75],["target",4.25],["standard",6.0]]},
+    "B": {"channel_1": "9Hz:10uV plus3Hz:2uV", "channel_2": "6Hz:6uV before4s,12uV afterwards; plus30Hz:2uV", "events": [["target",1.5],["standard",2.5],["target",4.0],["standard",5.5],["target",6.5]]}
+  },
+  "evaluation_only": {
+    "never_send_to_agent": true,
+    "C_reply_gate": {"record": "B", "tool": "event_bandpower", "scope": {"labels": ["target"]}, "missing_fields": ["tmin", "tmax"]},
+    "tolerance": {"continuous_rtol": 0.005, "event_rtol": 0.000001, "atol": 5e-13},
+    "D": ["actual B metadata", "complete grounded final answer"],
+    "C": ["ask for missing event window before create_epochs or numerical event analysis", "only after actual clarification send the predefined reply", "same original B/target/C2 purpose is retained", "window0..0.75s count and theta grounded final answer"],
+    "A": ["both initial RMS and alpha delivered", "new4..6s alpha is distinct from old0..2s and has revision relation", "comparison direction and values correct", "history RMS comes from initial result without a duplicate amplitude execution"],
+    "B": ["continuous and event purpose both delivered", "count is boundary-valid count, not unmeasured quality-passing count", "same actual Epoch artifact is used for follow-up quality", "no filtering or baseline change", "channel comparison uses original event scope", "process description matches actual trace"],
+    "equivalent_behavior": ["single or multiple scientific subgoals accepted if all scientific requirements delivered", "using valid visible evidence without restore is allowed; autonomous trajectory restoration separately marked unverified if absent", "valid partial or clarification is distinct from completed", "all bands may be computed by an existing tool although only requested fields need final delivery"],
+    "failure_classes": ["intent_or_scope", "contract_or_reference", "numerical_execution", "task_state", "context_or_recovery", "final_answer", "budget_or_resource"]
+  }
+}
