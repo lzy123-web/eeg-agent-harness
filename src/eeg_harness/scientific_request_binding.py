@@ -239,7 +239,42 @@ def resolve_action_source(store, name, scope, record, request_span=None, *, inhe
                             time_reference=time_reference, request_fingerprint=fingerprint)
 
 
-def ground_bound_scope(store, name, scope, record, resolution, inherited):
+def resolve_channel_reference(store, scope, record, resolution, reference):
+    """Copy only a unique literal channel set, never record/time/artifact.
+
+    Full original parents are mandatory. A model proposes the field relation;
+    the program checks source values, uniqueness, destination metadata and its
+    independently specified interval. This is not a proof of linguistic intent.
+    """
+    if not isinstance(reference, dict) or set(reference) != {'source_span', 'target_span'}:
+        raise ValueError('Channel reference requires complete source_span and target_span')
+    frames = _request_frames(store, store.user_requests[-1])
+    source = [f for f in frames if f.text == reference['source_span']]
+    target = [f for f in resolution.frames if f.text == reference['target_span']]
+    if len(source) != 1 or len(target) != 1:
+        raise ValueError('Reference parents must identify unique complete original clauses')
+    source, target = source[0], target[0]
+    candidates = {f.object_names for f in frames if f.end <= target.start and
+                  f.object_family == 'continuous' and f.object_parent == (f.start,f.end)}
+    if (source.end > target.start or source.object_family != 'continuous' or
+        candidates != {source.object_names} or target.records != (record,) or
+        target.object_family is not None or not source.records):
+        raise ValueError('Ambiguous reference or conflicting destination object; clarify selection')
+    selected = tuple(sorted(scope.get('channels', [])))
+    if (selected != source.object_names or not set(selected).issubset(store.records[record].channel_names) or
+        any(not set(selected).issubset(store.records[r].channel_names) for r in source.records)):
+        raise ValueError('Referenced channels must exist in destination and match literal source')
+    intervals = {(float(a),float(b)) for a,b in RANGE.findall(target.text)}
+    if set(scope) - {'channels','start','end'} or not all(k in scope for k in ('start','end')) or intervals != {(float(scope['start']),float(scope['end']))}:
+        raise ValueError('Destination needs one independently stated complete absolute interval')
+    base = {'kind':'user','turn':store.turn,'span':target.text,
+            'reference_kind':'channel_names_only','source_parent':source.text,
+            'source_records':list(source.records),'destination_record':record,
+            'semantic_interpretation':'model_proposed_field_reference_not_intent_proof'}
+    return {k:{**base,'field':k} for k in ('channels','start','end')}
+
+
+def ground_bound_scope(store, name, scope, record, resolution, inherited, channel_reference=None):
     """Reuse literal grounding, adding coherent same-object multi-window facts.
 
     The old admission checks whole scientific scopes and inherited originals.
@@ -256,6 +291,8 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited):
     sources, missing, unresolved = ActionWorkingMemoryStore._ground_scope(
         store, name, scope, record, "；".join(f.text for f in relevant_frames), inherited)
     context = store.contexts[record]
+    if channel_reference is not None:
+        sources.update(resolve_channel_reference(store, scope, record, resolution, channel_reference))
     channels = set(context.record.channel_names)
     labels = {e.label for e in context.record.events.events} if context.record.events else set()
     pair = ("tmin", "tmax") if family == "event" else ("start", "end")
@@ -279,8 +316,7 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited):
     for left, right in zip(relevant_frames, relevant_frames[1:]):
         left_objects = {v for v in (labels if family == "event" else channels)
                         if store._contains(left.text, v)}
-        left_foreign = any(store._contains(left.text, v)
-                           for v in (channels if family == "event" else labels))
+        left_foreign = family != "event" and any(store._contains(left.text, v) for v in labels)
         right_has_object = any(store._contains(right.text, v) for v in channels | labels)
         gap = whole[left.end:right.start]
         if (anchors and left_objects == anchors and not left_foreign and not RANGE.search(left.text)
@@ -298,8 +334,10 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited):
         for frame in evidence_frames:
             present_objects = {v for v in (labels if family == "event" else channels)
                                if store._contains(frame.text, v)}
-            foreign_domain = any(store._contains(frame.text, v)
-                                 for v in (channels if family == "event" else labels))
+            foreign_domain = family != "event" and any(store._contains(frame.text, v) for v in labels)
+            # Channels select/report within an event; multiple mixed ranges remain ambiguous.
+            if family == "event" and any(store._contains(frame.text, v) for v in channels) and len(RANGE.findall(frame.text)) != 1:
+                continue
             object_source = sources.get(object_key, {})
             prior_identity = (object_source.get("kind") == "result" or
                               object_source.get("kind") == "user" and object_source.get("turn", store.turn) < store.turn)

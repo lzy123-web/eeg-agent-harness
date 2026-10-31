@@ -285,7 +285,7 @@ def main(argv=None):
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args(argv)
     if args.real:
-        parser.error('Issue55 authorization is ZERO; a new explicit authorization and independent ledger are required')
+        parser.error('Issue55 has conditional authorization, but this offline CLI cannot launch paid runs: a verified endpoint, cost ledger and end-to-end live driver are required')
     result=preflight()
     write_new(args.output,result)
     print(json.dumps({'external_completions':0,'science_checks':sum(len(r['oracle']) for r in result['science']),

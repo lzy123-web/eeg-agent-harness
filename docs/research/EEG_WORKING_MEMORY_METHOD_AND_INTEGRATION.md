@@ -644,3 +644,8 @@ sequenceDiagram
 ## Issue55：三模块自主验收前审计（2026-11-01）
 
 现有TaskPlanEEGAgent/PlanGraph/原TaskStore/Executor继续复用，不新造执行链。本轮只修正共享证据日志：拒绝动作计use_attempt，成功observed/reused/compared才计used；这仍不是模型理解证明。独立请求清单能识别DAG已完成但原请求漏PSD；T04同名通道、T07混合对象来源仍共同保守误拒，没有以句式补丁放行。三模块职责/寿命、原始失败归因、新三例八轮协议、17项独立oracle和实际wire/final预算见[Issue55集中材料](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。659项回归644通过/15跳过；0付费调用。当前不具备正式三臂收益准入证据，等待独立授权后有限自主诊断，不能宣称研究内容一已完成。
+
+
+## Issue55共享机制整改（2026-11-01）
+
+三模块继续共用原事实：DAG提供模型选择，来源层核对字段引用与目的记录/范围，实际结果仍进入原TaskEntry供交付核验及分层读回。修复T04/T07的离线机制路径，不等于真实模型成功。 666项回归651通过/15跳过、24条受控路径111项oracle通过；真实服务配置及累计账本无法核实，未启动付费。具体前后证据、安全反例及尚未完成的live入口验收见[Issue55当前阶段](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。

@@ -283,7 +283,7 @@ class ManagedMemoryController(WorkingMemoryController):
         if self.final_only and name != "finish_task":
             return s._error("FINAL_DELIVERY_ONLY", "Only evidence-grounded delivery is currently reserved")
         if name in NUMERIC_TOOLS:
-            controls = {k:args.pop(k) for k in ("record","request_span","inherit_result","recompute") if k in args}
+            controls = {k:args.pop(k) for k in ("record","request_span","inherit_result","recompute","channel_reference") if k in args}
             result = s.execute_action(name,args,**controls)
             # A reused result is an actual read, with its original identity.
             if result.get("status") == "reused" and result.get("task_id"):

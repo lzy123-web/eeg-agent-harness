@@ -103,6 +103,16 @@ class TaskPlanController(ScientificMemoryController):
         ]
         return controls
 
+    def tool_definitions(self):
+        tools = super().tool_definitions()
+        for tool in tools:
+            if tool['function']['name'] in NUMERIC_TOOLS and 'channels' in tool['function']['parameters']['properties']:
+                tool['function']['parameters']['properties']['channel_reference'] = {
+                    'type':'object', 'properties':{'source_span':STRING,'target_span':STRING},
+                    'required':['source_span','target_span'],'additionalProperties':False,
+                    'description':'For explicit user references to channel names across records only: provide complete original source and destination clauses. Copies names, never record/window/artifact. Multiple antecedent channel sets require clarification.'}
+        return tools
+
     def _goal(self, node):
         ident = self.node_goals.get((node.task_id, node.revision))
         return self.store.find_subgoal(ident) if ident else None
@@ -400,6 +410,13 @@ class TaskPlanController(ScientificMemoryController):
         payload.pop("task_summaries",None)
         payload["plan"] = [{**n.to_dict(runtime=False),"status":n.status,"revision":n.revision}
                            for n in self.graph.nodes.values()]
+        # Original request parents expose actual source boundaries, not a gold
+        # plan. A field reference cannot crop away record/object ownership.
+        from .scientific_request_binding import _request_frames
+        payload["scientific_source_frames"] = [
+            {"span":f.text,"records":list(f.records),"object_family":f.object_family,
+             "object_names":list(f.object_names),"start":f.start,"end":f.end}
+            for f in _request_frames(self.store,self.requests[-1])]
         payload["phase"] = "local_execution" if node else "plan_or_final_delivery"
         payload["current_plan_task"] = node.task_id if node else None
         payload["dependency_evidence"] = self._inputs(node) if node else []

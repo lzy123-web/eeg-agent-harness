@@ -331,7 +331,7 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
                 return "ARTIFACT_IDENTITY_MISMATCH"
         return None  # execute_action has admitted this exact scientific object.
 
-    def execute_action(self,name,arguments,record=None,request_span=None,inherit_result=None,recompute=False):
+    def execute_action(self,name,arguments,record=None,request_span=None,inherit_result=None,recompute=False,channel_reference=None):
         from .scientific_request_binding import resolve_action_source, ground_bound_scope
         if name not in NUMERIC_TOOLS or not isinstance(arguments,dict) or type(recompute) is not bool:
             return self._error("INVALID_ACTION","Use an enabled numerical tool and ordinary parameters")
@@ -342,6 +342,8 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
         if inherit_result and (inherited is None or inherited.record != record or not self._binding_valid(inherited)
                 or self._family(inherited.capability) != self._family(name)):
             return self._error("INVALID_INHERITED_RESULT","Use a valid result of the same record and scientific object type")
+        if channel_reference is not None and (name in METADATA or self._family(name) != "continuous"):
+            return self._error("INVALID_CHANNEL_REFERENCE","Channel-name references apply only to continuous selections")
         context,args = self.contexts[record],clone(arguments)
         if inherited and not context.executor.registry.get(name).consumes_artifact:
             args = {**clone(inherited.parameters),**args}
@@ -377,7 +379,10 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             invalid = ReliableWorkingMemoryStore._scientific_contract_check(self,name,scope,record)
             if invalid:
                 return self._pending(name,args,invalid["code"],invalid["message"])
-            sources,missing,ungrounded = ground_bound_scope(self,name,scope,record,resolution,inherited)
+            try:
+                sources,missing,ungrounded = ground_bound_scope(self,name,scope,record,resolution,inherited,channel_reference)
+            except ValueError as exc:
+                return self._pending(name,args,"INVALID_CHANNEL_REFERENCE",str(exc),confirmed_arguments={})
             if missing:
                 return self._pending(name,args,"MISSING_SCIENTIFIC_PARAMETER","Ask only for missing scientific values; independent work can continue",
                     missing_fields=missing,confirmed_arguments={k:clone(v) for k,v in args.items() if k in sources})

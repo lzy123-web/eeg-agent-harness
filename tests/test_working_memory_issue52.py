@@ -89,7 +89,7 @@ class Issue52OfflineRunnerTest(unittest.TestCase):
 
     def test_shared_literal_binding_failures_remain_visible_and_stop_replay(self):
         # Frozen known development limitations, not a candidate failure rate.
-        for case in ('T04', 'T07'):
+        for case in ('T04',):
             for arm in ('A', 'B', 'C'):
                 row = run_case(case, arm)
                 self.assertEqual(row['metrics']['stop_reasons'], ['partial'])

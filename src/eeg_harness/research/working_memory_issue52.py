@@ -263,10 +263,10 @@ def audit_comparisons(controller):
     return rows
 
 
-def run_case(case_id, arm, *, partition="development"):
+def run_case(case_id, arm, *, partition="development", actions=None):
     spec = protocol()
     case = next(c for c in spec["cases"] if c["id"] == case_id)
-    client = ControlledPlanClient(controlled_steps(case_id), spec["model_settings"]["max_output_tokens"])
+    client = ControlledPlanClient(controlled_steps(case_id) if actions is None else actions, spec["model_settings"]["max_output_tokens"])
     records = records_for(partition)
     options = spec["agent_settings"]
     ident = hashlib.sha256(encoded([case_id, arm, partition])).hexdigest()[:12]
