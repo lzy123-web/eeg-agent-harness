@@ -14,7 +14,7 @@ from .working_memory import WorkingMemoryStore, NUMERIC_TOOLS, clone, encoded
 from .working_memory_agent import WorkingMemoryController, control, STRING
 from .working_memory_managed import ManagedMemoryController, managed_controls
 from .working_memory_scientific import ScientificMemoryController
-from .working_memory_scientific_tasks import ScientificTaskStore, canonical_scope
+from .working_memory_scientific_tasks import ScientificTaskStore, canonical_scope, RequirementValidationError
 from .working_memory_lifecycle import METADATA
 from .result_semantics import read_scalar, result_field_semantics
 from .task_plan import PlanGraph, TaskSpec
@@ -165,7 +165,13 @@ class TaskPlanController(ScientificMemoryController):
                 if d.record not in self.store.records or d.capability not in NUMERIC_TOOLS | {"compare_results"}:
                     raise ValueError("Unknown record or enabled capability")
                 if d.capability in NUMERIC_TOOLS:
-                    self.store._parse_requirements([{"tool":d.capability,"record":d.record,"scope":d.scope}],d.record)
+                    try:
+                        self.store._parse_requirements([{"tool":d.capability,"record":d.record,"scope":d.scope}],d.record)
+                    except RequirementValidationError as exc:
+                        for error in exc.errors:
+                            error.update(task_id=node.task_id,output_key=d.key,
+                                guidance='Use the listed actual computation scope fields. Measurement dimensions belong in interpretation; report selections belong in the task goal. Do not invent processing or artifact handles.')
+                        raise
                 elif d.scope or len(d.input_refs)!=2 or any(len(r.fields)!=1 for r in d.input_refs):
                     raise ValueError("A comparison needs two actual input references with one field each, and empty computation scope")
                 for rule in d.acceptance_rule:
@@ -454,7 +460,10 @@ class TaskPlanController(ScientificMemoryController):
             return self.store._error("FINAL_DELIVERY_ONLY","Only the reserved final answer is available")
         if name == "plan_tasks":
             specs = [TaskSpec.from_dict(n) for n in args["nodes"]]
-            self._validate_nodes(specs)
+            try:self._validate_nodes(specs)
+            except RequirementValidationError as exc:
+                return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
+                        'requirement_errors':clone(exc.errors)}
             self.graph.submit(specs)
             self.turn_nodes.update(n.task_id for n in specs)
             return {"status":"planned","task_ids":[n.task_id for n in specs]}
@@ -464,7 +473,10 @@ class TaskPlanController(ScientificMemoryController):
             allowed = old.to_dict(runtime=False)
             allowed.update(args["updates"])
             revised_spec = TaskSpec.from_dict(allowed)
-            self._validate_nodes([revised_spec])
+            try:self._validate_nodes([revised_spec])
+            except RequirementValidationError as exc:
+                return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
+                        'requirement_errors':clone(exc.errors)}
             for old_item in old.required_outputs:
                 new_item = revised_spec.delivery(old_item.key)
                 if old_item.required and (new_item is None or not new_item.required or

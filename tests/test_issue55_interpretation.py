@@ -23,6 +23,19 @@ def run_interpreted(text,tool,scope,meaning,arm='C',records=None,record='A'):
 
 
 class InterpretationTest(unittest.TestCase):
+    def test_plan_scope_error_preserves_original_tool_diagnostic_without_committing(self):
+        bad=delivery('power','event_bandpower',{'labels':['stimulus'],'tmin':0,'tmax':1,'channels':['SYNTH-C2']})
+        for arm in ARMS:
+            a=TaskPlanEEGAgent(InspectableScriptedClient([('plan_tasks',{'nodes':[node('x',[bad])]}),finish()]),synthetic_records(),arm=arm)
+            r=a.run('记录A stimulus事件相对0到1秒的SYNTH-C2功率。')
+            error=r.tool_results[0]['data']
+            self.assertEqual(error['code'],'INVALID_PLAN_REQUIREMENT')
+            detail=error['requirement_errors'][0]
+            self.assertEqual(detail['task_id'],'x');self.assertEqual(detail['output_key'],'power')
+            self.assertEqual(detail['allowed_scope_fields'],['labels','tmax','tmin'])
+            self.assertFalse(a.working_memory.graph.nodes)
+            self.assertFalse(a.working_memory.store.entries)
+
     def test_referenced_measurement_dimension_uses_same_verified_field_relation(self):
         source='记录A SYNTH-C1在0到2秒RMS';target='记录B沿用前述通道在2到4秒RMS'
         meaning={'source_span':target,'time_reference':'record_absolute','measurement_channels':['SYNTH-C1'],
