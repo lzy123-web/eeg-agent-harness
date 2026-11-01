@@ -110,7 +110,7 @@ class TaskPlanController(ScientificMemoryController):
                 tool['function']['parameters']['properties']['channel_reference'] = {
                     'type':'object', 'properties':{'source_span':STRING,'target_span':STRING},
                     'required':['source_span','target_span'],'additionalProperties':False,
-                    'description':'For explicit user references to channel names across records only: provide complete original source and destination clauses. Copies names, never record/window/artifact. Multiple antecedent channel sets require clarification.'}
+                    'description':'Channel reference locator, never selection authority. Supply complete original source/target clauses; target must confirm literal channel names. Copies no record/window/artifact. Unconfirmed or ambiguous selection requires clarification.'}
         return tools
 
     def _goal(self, node):

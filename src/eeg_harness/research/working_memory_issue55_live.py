@@ -1,0 +1,289 @@
+"""Issue55 live session driver and money guard over the original client/leases.
+
+CLI never creates or resets a real allowance. Existing cumulative transactions
+and verified endpoint/rate attestation are required before constructing a client.
+Tests use explicit test-only attestations and temporary ledgers, no credentials.
+"""
+import argparse
+from copy import deepcopy
+from decimal import Decimal
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import time
+
+from ..llm import OpenAICompatibleClient, LLMServiceError
+from ..task_plan_agent import TaskPlanEEGAgent
+from .working_memory_issue50 import Issue50Client
+from .working_memory_issue51 import _usage
+from .task_memory_issue39_budget import _append, _rows, _ledger_lock, StageBudgetExhausted
+from .integrated_method.v2_validation import JournaledBudgetClient
+from .working_memory_issue55 import protocol, records_for, score_obligations, data_manifest, SPEC
+from .working_memory_issue52 import write_new, encoded, protocol as development_protocol, records_for as development_records, audit_entries
+from .task_memory import PROJECT_ROOT
+
+GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546527306'
+LIMITS={'development':(48,2000000),'confirmation':(96,4000000)}
+
+
+def candidate_manifest():
+    """Hash actual code, prompts, protocol and evaluator, including dirty edits."""
+    paths=sorted(list((PROJECT_ROOT/'src').rglob('*.py'))+list((PROJECT_ROOT/'config').rglob('*.json')))
+    hashes={p.relative_to(PROJECT_ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+    return {'files':hashes,'sha256':hashlib.sha256(encoded(hashes)).hexdigest()}
+
+
+def scored_case(case,phase):
+    case=deepcopy(case)
+    if phase=='development' and any(case==c for c in development_protocol()['cases']):
+        inventory=json.loads((PROJECT_ROOT/'config/point1_working_memory_issue55_development_scoring.json').read_text(encoding='utf8'))
+        case['evaluation_only']['obligations']=[dict(zip(inventory['format'],row)) for row in inventory['cases'][case['id']]]
+    return case
+
+
+def admit_session(ledger,case,phase,manifest,attestation,test_only):
+    rows=_rows(ledger)
+    starts=[r for r in rows if r.get('event')=='session_started']
+    if any(r.get('event') in {'safety_stop','stage_closed'} for r in rows):
+        raise StageBudgetExhausted('Stage stopped; audit existing evidence')
+    if not test_only:
+        gate=attestation.get('mechanism_gate',{})
+        if (gate.get('status')!='passed' or gate.get('source_sha256')!=manifest['source']['sha256']
+                or not gate.get('evidence_sha256')):
+            raise StageBudgetExhausted('Mechanism regression gate must pass for this exact source before payment')
+        expected=protocol()['cases'] if phase=='confirmation' else development_protocol()['cases']
+        if case not in expected:
+            raise StageBudgetExhausted('Use original protocol requests, not a substituted case')
+    confirmations=[r for r in starts if r['phase']=='confirmation']
+    if phase=='development' and confirmations:
+        raise StageBudgetExhausted('No development after confirmation freeze')
+    if phase=='confirmation':
+        order=protocol()['confirmation_order']
+        if len(confirmations)>=len(order) or case['id']!=order[len(confirmations)]:
+            raise StageBudgetExhausted('Confirmation is ordered, one-shot, including failed/interrupted attempts')
+        freeze={'source':manifest['source']['sha256'],'data':manifest['data'],
+                'protocol':manifest['protocol_sha256'],'attestation':attestation}
+        previous=next((r['freeze'] for r in rows if r.get('event')=='confirmation_frozen'),None)
+        if previous is not None and previous!=freeze:
+            raise StageBudgetExhausted('Code/data/protocol/model/rates changed after freeze')
+        if not test_only and not any(r.get('event')=='diagnostic_review' and r.get('status')=='passed'
+                and r.get('source_sha256')==manifest['source']['sha256'] for r in rows):
+            raise StageBudgetExhausted('Review finite development results before confirmation')
+        if previous is None:_append(ledger,{'event':'confirmation_frozen','freeze':freeze})
+    _append(ledger,{'event':'session_started','phase':phase,'case':case['id'],
+        'source_sha256':manifest['source']['sha256'],'test_only':test_only,'timestamp_utc':time.time()})
+
+
+def money_totals(rows, rate):
+    starts={r['request_id']:r for r in rows if r.get('event')=='reserved'}
+    settlements={r['request_id']:r for r in rows if r.get('event')=='money_settled'}
+    return sum((Decimal(settlements[i]['charged_usd']) if i in settlements else
+                Decimal(r['reserved_tokens'])*rate/1000000) for i,r in starts.items())
+
+
+def validate_attestation(a, raw, test_only):
+    if a.get('grant') != GRANT or a.get('test_only') is not test_only:
+        raise StageBudgetExhausted('A matching Issue55 grant/test boundary is required')
+    if test_only != bool(getattr(raw,'is_test_client',False)):
+        raise StageBudgetExhausted('Test authorization must never reach a real client')
+    for k in ('input_usd_per_million','output_usd_per_million'):
+        rate=Decimal(str(a.get(k)))
+        if not rate.is_finite() or rate < 0:
+            raise ValueError('Finite nonnegative verified rates required')
+    if not a.get('rate_source') or not a.get('accepted_response_models') or raw.model != a.get('model'):
+        raise StageBudgetExhausted('Pin actual model, response IDs and rate evidence')
+    if not test_only:
+        if raw.model not in {'deepseek-flash','deepseek-chat'}:
+            raise StageBudgetExhausted('Only the existing authorized Flash family is allowed')
+        if hashlib.sha256(raw.base_url.encode()).hexdigest()!=a.get('endpoint_sha256'):
+            raise StageBudgetExhausted('Actual endpoint does not match verified rate attestation')
+    if raw.max_tokens!=2200 or raw.max_retries!=0:
+        raise StageBudgetExhausted('Output must be 2200 and retries zero')
+
+
+class MoneyBudgetClient(Issue50Client):
+    """Reuse wire serialization, native loop hooks and immutable final lease.
+
+    Reservations use the higher input/output price for every reserved token,
+    including current-final lease tokens: conservative, never cache-discounted.
+    Settlement uses noncached input and output counts; missing receipts retain
+    the full reservation. Phase pools are independent and never resized.
+    """
+    def __init__(self,journal,ledger,attestation,phase,*,request_journal,test_only=False):
+        validate_attestation(attestation,journal.client,test_only)
+        if phase not in LIMITS:raise ValueError('Unknown phase')
+        self.client,self.ledger=journal,Path(ledger)
+        self.attestation=deepcopy(attestation)
+        self.rate=max(Decimal(str(attestation[k])) for k in ('input_usd_per_million','output_usd_per_million'))
+        self.context={'phase':phase,'arm':'C'}
+        self.request_journal=Path(request_journal)
+        self.final_only,self.delivery_checkpoint,self._lease=False,None,None
+        rows=_rows(self.ledger)
+        if not rows or rows[0].get('stage')!='issue55' or rows[0].get('test_only',False)!=test_only:
+            raise StageBudgetExhausted('Require existing reconciled Issue55 ledger, never create a new allowance')
+        reconciliation=next((r for r in reversed(rows) if r.get('event')=='issue55_reconciled'),rows[0])
+        if reconciliation.get('grant')!=GRANT or reconciliation.get('reconciled') is not True:
+            raise StageBudgetExhausted('Cumulative calls/tokens/fees must be reconciled to the existing grant')
+        if reconciliation.get('rate_ceiling')!=str(self.rate):
+            raise StageBudgetExhausted('Ledger rate ceiling differs; audit migration, do not reset')
+        if any(r.get('event')=='stage_closed' for r in rows):
+            raise StageBudgetExhausted('Closed stage cannot reopen')
+        starts=[r for r in rows if r.get('event')=='reserved']
+        if len({r['request_id'] for r in starts})!=len(starts) or any(
+                r.get('context',{}).get('phase') not in LIMITS or
+                type(r.get('reserved_tokens')) is not int or r['reserved_tokens']<0 for r in starts):
+            raise StageBudgetExhausted('Duplicate transactions or unassigned historical phase; reconcile without resetting')
+        reservations={r['request_id']:r for r in starts}
+        for event in ('money_settled','received','failed'):
+            entries=[r for r in rows if r.get('event')==event]
+            if len({r['request_id'] for r in entries})!=len(entries):
+                raise StageBudgetExhausted('Repeated settlement or receipt requires reconciliation')
+            for row in entries:
+                if row['request_id'] not in reservations:
+                    raise StageBudgetExhausted('Receipt without original reservation')
+                if event=='money_settled':
+                    amount=Decimal(row['charged_usd'])
+                    if not amount.is_finite() or amount<0:raise StageBudgetExhausted('Invalid historical fee')
+                if row.get('total_tokens') is not None and (type(row['total_tokens']) is not int or
+                        not 0<=row['total_tokens']<=reservations[row['request_id']]['reserved_tokens']):
+                    raise StageBudgetExhausted('Invalid historical token usage')
+        self.scientific_guard=None
+
+    def _fits(self,rows,calls,tokens):
+        if any(r.get('event') in {'stage_closed','safety_stop'} for r in rows):return False
+        total=_usage(rows)
+        phase=_usage(rows,lambda c:c.get('phase')==self.context['phase'])
+        cap=LIMITS[self.context['phase']]
+        return (total[0]+calls<=144 and total[1]+tokens<=6000000 and
+                phase[0]+calls<=cap[0] and phase[1]+tokens<=cap[1] and
+                money_totals(rows,self.rate)+Decimal(tokens)*self.rate/1000000<=Decimal('3'))
+
+    def complete(self,messages,tools,tool_choice='auto'):
+        if self.scientific_guard is not None:
+            self.scientific_guard()
+        try:
+            response=super().complete(messages,tools,tool_choice)
+        finally:
+            # Also accounts failed calls; interruption before this point leaves
+            # a conservative reserved transaction in the persistent ledger.
+            with _ledger_lock(self.ledger):
+                rows=_rows(self.ledger)
+                settled={r['request_id'] for r in rows if r.get('event')=='money_settled'}
+                ends={r['request_id']:r for r in rows if r.get('event') in {'received','failed'}}
+                for start in [r for r in rows if r.get('event')=='reserved' and r['request_id'] not in settled]:
+                    end=ends.get(start['request_id'],{})
+                    usage=end.get('usage',{})
+                    inp,out=usage.get('prompt_tokens'),usage.get('completion_tokens')
+                    valid=(type(inp) is int and type(out) is int and inp>=0 and 0<=out<=2200 and
+                           inp+out==end.get('total_tokens') and inp+out<=start['reserved_tokens'])
+                    cost=(Decimal(inp)*Decimal(str(self.attestation['input_usd_per_million']))+
+                          Decimal(out)*Decimal(str(self.attestation['output_usd_per_million'])))/1000000 if valid else Decimal(start['reserved_tokens'])*self.rate/1000000
+                    _append(self.ledger,{'event':'money_settled','request_id':start['request_id'],
+                        'charged_usd':str(cost),'basis':'usage_noncache_price_upper_bound' if valid else 'conservative_reservation',
+                        'billing_receipt':False})
+                    if end.get('event')=='received' and (not valid and usage or
+                        end.get('response_model_reported') not in self.attestation['accepted_response_models']):
+                        _append(self.ledger,{'event':'safety_stop','reason':'invalid_usage_or_unexpected_model'})
+        if any(r.get('event')=='safety_stop' for r in _rows(self.ledger)):
+            raise LLMServiceError('STAGE_BUDGET_EXHAUSTED','Unexpected response model or invalid usage; stop and audit')
+        return response
+
+
+def run_session(raw,ledger,attestation,case,output,*,phase='development',test_only=False):
+    """No gold is sent to the Agent; scores are written at each turn deadline."""
+    output=Path(output)
+    validate_attestation(attestation,raw,test_only)
+    # Session lock prevents concurrent decision/final reservations consuming
+    # the same stage allowance. All protected files are exclusive/append-only.
+    with _ledger_lock(Path(str(ledger)+'.session')):
+        if output.exists():raise FileExistsError(output)
+        journal=JournaledBudgetClient(raw,output/'responses.jsonl',max_requests=144,max_total_tokens=6000000)
+        client=MoneyBudgetClient(journal,ledger,attestation,phase,request_journal=output/'requests.jsonl',test_only=test_only)
+        records=records_for() if phase=='confirmation' else development_records()
+        agent=TaskPlanEEGAgent(client,records,arm='C',session_id='issue55-session',**protocol()['agent_settings'])
+        manifest={'phase':phase,'case':case['id'],'test_only':test_only,
+            'candidate':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+            'protocol_sha256':hashlib.sha256(SPEC.read_bytes()).hexdigest(),
+            'data':data_manifest(records),'attestation':attestation,'source':candidate_manifest()}
+        admit_session(Path(ledger),case,phase,manifest,attestation,test_only)
+        output.mkdir(parents=True)
+        write_new(output/'manifest.json',manifest)
+        case=scored_case(case,phase)
+        results=[]
+        def scientific_guard():
+            store=agent.working_memory.store
+            problems=[{'kind':'numeric_oracle','row':r} for r in audit_entries(store) if not r['passed']]
+            obligations=case.get('evaluation_only',{}).get('obligations',[])
+            if obligations:
+                allowed=[o for o in obligations if o['turn']<=client.context.get('turn',0)]
+                for entry in store.entries:
+                    # Intermediate epochs may implement a requested event result.
+                    if not any(entry.record==o['record'] and entry.parameters==o['scope'] and
+                        (entry.capability==o['capability'] or entry.capability in {'create_epochs','epoch_summary'} and 'labels' in o['scope'])
+                        for o in allowed):
+                        problems.append({'kind':'unexpected_executed_scope','result_id':entry.task_id})
+            if problems:
+                with _ledger_lock(Path(ledger)):
+                    _append(Path(ledger),{'event':'safety_stop','reason':'scientific_execution_mismatch','problems':problems})
+                raise LLMServiceError('SCIENTIFIC_SAFETY_STOP','Preserve first wrong execution; stop further calls')
+        client.scientific_guard=scientific_guard
+        try:
+            for turn,request in enumerate(case['requests'],1):
+                client.set_context(turn=turn,case_id=case['id'])
+                result=agent.run(request) if turn==1 else agent.continue_run(request)
+                snapshot=result.to_dict()
+                scoring=(score_obligations(case,agent.working_memory.store,turn)
+                         if case.get('evaluation_only',{}).get('obligations') else
+                         {'numeric':audit_entries(agent.working_memory.store),'whole_request_correct':None,
+                          'review_checklist':case.get('evaluation_only',{}).get('checks',[])})
+                scoring['review_checklist']=case.get('evaluation_only',{}).get('checks',case.get('evaluation_only',{}).get('review',[]))
+                write_new(output/f'turn-{turn}.json',{'user_request':request,'result':snapshot,'score_at_deadline':scoring,
+                    'accepted_final_answer':result.final_answer,'cost_upper_bound_usd':str(money_totals(_rows(Path(ledger)),client.rate))})
+                results.append(snapshot)
+                try:scientific_guard()
+                except LLMServiceError:break
+                if result.stop_reason not in {'completed','clarification_required','partial'}:break
+                # No unconditional gold clarification reply after a failed or
+                # irrelevant response. Known missing-window units require an
+                # actual clarification before the prewritten supplement.
+                if turn==1 and case['id'] in {'C02','T03'} and result.stop_reason!='clarification_required':break
+                if turn==1 and case['id'] in {'C02','T03'}:
+                    pending=[p for g in agent.working_memory.store.subgoals for p in g.pending_actions]
+                    missing_action=any(p['record']=='A' and p['tool']=='create_epochs' and
+                            set(p.get('missing_fields',[])) & {'tmin','tmax'} for p in pending)
+                    missing_plan=any(n.status=='WAITING_INPUT' and d.record=='A' and
+                        d.capability=='create_epochs' and d.scope.get('labels')==['stimulus'] and
+                        not all(k in d.scope for k in ('tmin','tmax'))
+                        for n in agent.working_memory.graph.nodes.values() for d in n.required_outputs)
+                    if not (missing_action or missing_plan) or not scoring.get('all_required_results_correct'):
+                        # A status alone cannot prove that the model asked the
+                        # right question. Preserve for review, send no gold reply.
+                        break
+        finally:
+            write_new(output/'session-end.json',{'completed_turns':len(results),'usage':dict(raw.total_usage),
+                'cost_upper_bound_usd':str(money_totals(_rows(Path(ledger)),client.rate)),
+                'phase_usage':_usage(_rows(Path(ledger)),lambda c:c.get('phase')==phase)})
+        return results
+
+
+def main(argv=None):
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--real',action='store_true',required=True)
+    p.add_argument('--ledger',type=Path,required=True)
+    p.add_argument('--attestation',type=Path,required=True)
+    p.add_argument('--phase',choices=LIMITS,required=True)
+    p.add_argument('--case',required=True)
+    p.add_argument('--output',type=Path,required=True)
+    args=p.parse_args(argv)
+    a=json.loads(args.attestation.read_text(encoding='utf8'))
+    if a.get('test_only') is not False:p.error('Test attestation cannot authorize a real request')
+    if not args.ledger.exists():p.error('Existing reconciled cumulative ledger required')
+    cases=protocol()['cases'] if args.phase=='confirmation' else development_protocol()['cases']
+    case=next((c for c in cases if c['id']==args.case),None)
+    if not case:p.error('Unknown case for phase')
+    raw=OpenAICompatibleClient.from_env()
+    raw.max_tokens,raw.max_retries=2200,0
+    run_session(raw,args.ledger,a,case,args.output,phase=args.phase)
+
+if __name__=='__main__':main()

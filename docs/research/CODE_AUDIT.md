@@ -1,3 +1,11 @@
+## Issue55 主审纠偏补审（2026-11-01；历史记录保留）
+
+- 复用链仍为 TaskPlanEEGAgent → ScientificTaskStore → scientific_request_binding → 原 ExecutionContext/Executor → TaskEntry/交付核验/依赖读取。首次反例证明旧“事件+通道+单窗口”放行导致真实错误事件切段。
+- owned_intervals 依据实际元数据对象组/范围位置核验当前轮来源；同组多个窗口延续最近对象组，同类多对象可共享，异类时基不能借用。legacy _ground_scope 缓存先恢复、最终来源再提交，模型channel_reference不得自行创造目标用户选择。
+- 新 working_memory_issue55_live 仅研究运行器，不是第二Planner/Executor。复用 Issue50 wire/final lease、JournaledBudgetClient；固定144/6M/US$3及分池，实际费率核验、费用预约结算、独占/追加账本、逐轮评分/原始证据、一次性确认冻结。旧token-only工厂禁止接入客户端。
+- 输入资源仅项目合成EEG；真实运行需已有客户端环境配置、费率/模型核实记录和累计账本。Fake用临时TEST ONLY账本。没有密钥/真实EEG/模型权重引入。
+- 事实限制：T04安全关系授权仍未解决，自动完整自然语言回答评分/自主记忆使用仍待原始回答独立复核。不能以通过681项回归宣布研究机制验收通过。详见 [纠偏材料](EEG_WORKING_MEMORY_ISSUE55_REVIEWER_REPAIR.md)。
+
 # EEGAgent 源码系统审计
 
 ## 1. 审计范围与结论口径

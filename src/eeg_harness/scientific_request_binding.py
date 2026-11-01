@@ -239,6 +239,38 @@ def resolve_action_source(store, name, scope, record, request_span=None, *, inhe
                             time_reference=time_reference, request_fingerprint=fingerprint)
 
 
+def owned_intervals(store, frame, family, anchors):
+    """Literal range ownership, independently of action type or whole-frame role.
+
+    The closest preceding metadata object anchors a range. A later report
+    channel cannot steal an earlier event range; an earlier event mention
+    cannot authorize a range attached to a subsequent continuous channel.
+    Unanchored supplements are handled separately through validated history.
+    """
+    channels = {c for r in store.records.values() for c in r.channel_names}
+    labels = {e.label for r in store.records.values() if r.events for e in r.events.events}
+    occurrences = []
+    for value in channels | labels:
+        for match in re.finditer(r'(?<![A-Za-z0-9_-])'+re.escape(value)+r'(?![A-Za-z0-9_-])', frame.text):
+            roles = ({'continuous'} if value in channels else set()) | ({'event'} if value in labels else set())
+            occurrences.append((match.end(),value,roles))
+    result = set()
+    previous_end = 0
+    owner_roles, group = set(), set()
+    for interval in RANGE.finditer(frame.text):
+        preceding = [o for o in occurrences if previous_end < o[0] <= interval.start()]
+        previous_end = interval.end()
+        if preceding:
+            owner_roles = max(preceding,key=lambda o:o[0])[2]
+            foreign_end = max((o[0] for o in preceding if o[2] != {family}),default=-1)
+            group = {o[1] for o in preceding if o[0] > foreign_end and o[2] == {family}}
+        # A subsequent range without a new object keeps only the most recent
+        # group, never all objects earlier in the sentence.
+        if owner_roles == {family} and anchors and anchors.issubset(group):
+            result.add(tuple(float(v) for v in interval.groups()))
+    return result
+
+
 def resolve_channel_reference(store, scope, record, resolution, reference):
     """Copy only a unique literal channel set, never record/time/artifact.
 
@@ -258,12 +290,16 @@ def resolve_channel_reference(store, scope, record, resolution, reference):
                   f.object_family == 'continuous' and f.object_parent == (f.start,f.end)}
     if (source.end > target.start or source.object_family != 'continuous' or
         candidates != {source.object_names} or target.records != (record,) or
-        target.object_family is not None or not source.records):
+        target.object_family not in (None,'continuous') or not source.records):
         raise ValueError('Ambiguous reference or conflicting destination object; clarify selection')
     selected = tuple(sorted(scope.get('channels', [])))
     if (selected != source.object_names or not set(selected).issubset(store.records[record].channel_names) or
         any(not set(selected).issubset(store.records[r].channel_names) for r in source.records)):
         raise ValueError('Referenced channels must exist in destination and match literal source')
+    # A proposal may locate evidence, never create target-selection authority.
+    # Without literal target confirmation the relation remains a clarification.
+    if not all(store._contains(target.text,c) for c in selected):
+        raise ValueError('Unconfirmed destination selection: ask the user to name its channels')
     intervals = {(float(a),float(b)) for a,b in RANGE.findall(target.text)}
     if set(scope) - {'channels','start','end'} or not all(k in scope for k in ('start','end')) or intervals != {(float(scope['start']),float(scope['end']))}:
         raise ValueError('Destination needs one independently stated complete absolute interval')
@@ -287,15 +323,32 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited, channe
     object_key = "labels" if family == "event" else "channels"
     anchors = set(scope.get(object_key, []))
     relevant_frames = [f for f in resolution.frames if f.object_family is None or
-                       f.object_family == family and anchors.issubset(f.object_names)]
+                       f.object_family == family and anchors.issubset(f.object_names) or
+                       bool(owned_intervals(store,f,family,anchors))]
+    # Legacy grounding gathers candidates and mutates fact caches. Commit only
+    # the final coherent sources below, after ownership/reference validation.
+    prior_facts = clone(store.active.scientific_facts) if store.active else None
+    prior_admitted = clone(store.admitted_scopes)
     sources, missing, unresolved = ActionWorkingMemoryStore._ground_scope(
         store, name, scope, record, "；".join(f.text for f in relevant_frames), inherited)
+    store.admitted_scopes = prior_admitted
+    if store.active:
+        store.active.scientific_facts = prior_facts
     context = store.contexts[record]
     if channel_reference is not None:
         sources.update(resolve_channel_reference(store, scope, record, resolution, channel_reference))
     channels = set(context.record.channel_names)
     labels = {e.label for e in context.record.events.events} if context.record.events else set()
     pair = ("tmin", "tmax") if family == "event" else ("start", "end")
+    # Legacy literal matching is a candidate generator, not final authority.
+    # Recheck current range pairs against full-parent ownership even when the
+    # legacy path already found their numbers. Historical/exact-result sources
+    # and single-endpoint revisions retain their original provenance.
+    for key in pair:
+        source = sources.get(key, {})
+        if (source.get('kind') == 'user' and source.get('turn') == store.turn
+                and RANGE.search(source.get('span', ''))):
+            sources.pop(key)
     evidence_frames = list(relevant_frames)
     whole = store.user_requests[-1] if store.user_requests else ""
     historical, ambiguous = _historical_scientific_object(store, name, scope)
@@ -334,18 +387,17 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited, channe
         for frame in evidence_frames:
             present_objects = {v for v in (labels if family == "event" else channels)
                                if store._contains(frame.text, v)}
-            foreign_domain = family != "event" and any(store._contains(frame.text, v) for v in labels)
-            # Channels select/report within an event; multiple mixed ranges remain ambiguous.
-            if family == "event" and any(store._contains(frame.text, v) for v in channels) and len(RANGE.findall(frame.text)) != 1:
-                continue
+            owned = owned_intervals(store,frame,family,anchors)
+            foreign_domain = bool((channels if family == "event" else labels) &
+                {v for v in channels | labels if store._contains(frame.text,v)}) and interval not in owned
             object_source = sources.get(object_key, {})
             prior_identity = (object_source.get("kind") == "result" or
                               object_source.get("kind") == "user" and object_source.get("turn", store.turn) < store.turn)
             implicit_identity = (prior_identity and frame in unanchored
                                  and implicit_intervals == {interval})
-            if (present_objects != anchors and not implicit_identity) or foreign_domain:
+            if (not anchors.issubset(present_objects) and not implicit_identity) or foreign_domain:
                 continue
-            intervals = {(float(a), float(b)) for a, b in RANGE.findall(frame.text)}
+            intervals = owned or ({(float(a),float(b)) for a,b in RANGE.findall(frame.text)} if implicit_identity else set())
             # Several records and intervals in one clause may be a respective
             # pairing, not a Cartesian product. Literal values cannot prove
             # which record owns which interval; require explicit separation.

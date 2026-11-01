@@ -25,7 +25,7 @@ SPEC = PROJECT_ROOT / 'config/point1_working_memory_issue55.json'
 
 
 class Issue55BudgetClient:
-    """Factory for the existing wire/final-lease implementation, new ledger only.
+    """Historical token-only accounting inspector; accepts no callable client.
 
     Authority is an explicit caller-supplied receipt of a separate user grant;
     protocol's proposed budget is never treated as authorization.
@@ -35,6 +35,8 @@ class Issue55BudgetClient:
         from .working_memory_issue50 import Issue50Client
         from .working_memory_issue51 import _usage
         from .task_memory_issue39_budget import _append, _rows, _ledger_lock, StageBudgetExhausted
+        if client is not None:
+            raise StageBudgetExhausted('Legacy token-only factory is offline inspection only; use Issue55 money/session driver')
         proposal = protocol()['proposed_budget']
         expected = {'stage':'issue55','completions':proposal['completions'],
                     'api_tokens':proposal['api_tokens']}
@@ -127,7 +129,7 @@ def quality_oracle(record, scope):
 def numeric_check(record, obligation, result):
     rows = []
     for path in obligation['fields']:
-        expected = independent_oracle(record, {'capability': obligation['capability'],
+        expected = independent_oracle(record, {'capability': 'epoch_summary' if obligation['capability']=='create_epochs' else obligation['capability'],
             'parameters': obligation['scope']}, path)
         actual = field_at(result, path)
         rows.append({'field': path, 'actual': actual, 'expected': expected,
@@ -285,7 +287,7 @@ def main(argv=None):
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args(argv)
     if args.real:
-        parser.error('Issue55 has conditional authorization, but this offline CLI cannot launch paid runs: a verified endpoint, cost ledger and end-to-end live driver are required')
+        parser.error('Use working_memory_issue55_live for conditionally authorized runs; this historical preflight CLI is offline only')
     result=preflight()
     write_new(args.output,result)
     print(json.dumps({'external_completions':0,'science_checks':sum(len(r['oracle']) for r in result['science']),
