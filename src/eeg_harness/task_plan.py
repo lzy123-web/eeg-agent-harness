@@ -163,10 +163,11 @@ class TaskSpec:
     attempts: list = field(default_factory=list)
     unresolved: list = field(default_factory=list)
     revision_history: list = field(default_factory=list)
+    control_dependencies: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, value, *, runtime=False):
-        planned = {"task_id", "goal", "dependencies", "required_outputs", "optional_operations"}
+        planned = {"task_id", "goal", "dependencies", "control_dependencies", "required_outputs", "optional_operations"}
         state = {"status", "revision", "outputs", "output_status", "attempts", "unresolved", "revision_history"}
         _object(value, planned | state if runtime else planned,
                 {"task_id", "goal", "required_outputs"}, "TaskSpec")
@@ -180,6 +181,7 @@ class TaskSpec:
                   _text(value["goal"], "TaskSpec.goal", 2000),
                   _strings(value.get("dependencies", []), "TaskSpec.dependencies"), deliveries,
                   _strings(value.get("optional_operations", []), "TaskSpec.optional_operations"))
+        obj.control_dependencies = _strings(value.get('control_dependencies', []), 'TaskSpec.control_dependencies')
         if runtime:
             obj.status = value.get("status", "READY")
             obj.revision = value.get("revision", 1)
@@ -204,6 +206,8 @@ class TaskSpec:
         result = {"task_id": self.task_id, "goal": self.goal,
             "dependencies": self.dependencies, "required_outputs": [r.to_dict() for r in self.required_outputs],
             "optional_operations": self.optional_operations}
+        if self.control_dependencies:
+            result['control_dependencies'] = self.control_dependencies
         if runtime:
             result.update(status=self.status, revision=self.revision, outputs=self.outputs,
                 output_status=self.output_status, attempts=self.attempts, unresolved=self.unresolved,
@@ -215,6 +219,12 @@ class TaskSpec:
 
     def input_refs(self):
         return [ref for delivery in self.required_outputs for ref in delivery.input_refs]
+
+    def control_prerequisites(self):
+        # Legacy duplicated data declarations keep their original semantics.
+        # Explicit control_dependencies are never erased by a data reference.
+        data = {r.task_id for r in self.input_refs()}
+        return set(self.control_dependencies) | (set(self.dependencies) - data)
 
 
 class PlanGraph:
@@ -242,11 +252,12 @@ class PlanGraph:
     @staticmethod
     def _validate(nodes):
         for ident, node in nodes.items():
-            if ident in node.dependencies or any(dep not in nodes for dep in node.dependencies):
+            controls = node.control_prerequisites()
+            if ident in node.dependencies or ident in controls or any(dep not in nodes for dep in controls):
                 raise ValueError(f"Task {ident} has a self or unknown dependency")
             for ref in node.input_refs():
-                if ref.task_id != ident and ref.task_id not in node.dependencies:
-                    raise ValueError(f"Input {ref.task_id}/{ref.key} must be an explicit dependency of {ident}")
+                if ref.task_id not in nodes:
+                    raise ValueError(f"Unknown upstream task {ref.task_id}")
                 version = PlanGraph._version(nodes[ref.task_id], ref.revision)
                 if version is None:
                     raise ValueError(f"Unknown upstream task revision {ref.task_id}@{ref.revision}")
@@ -272,7 +283,12 @@ class PlanGraph:
             if ident in visited:
                 return
             active.add(ident)
-            for dep in nodes[ident].dependencies:
+            node = nodes[ident]
+            # A pinned historical output has no scheduling edge to a newer
+            # producer. Its own existence/status/binding are still checked.
+            deps = node.control_prerequisites() | {r.task_id for r in node.input_refs()
+                if r.task_id != ident and r.revision in (None,nodes[r.task_id].revision)}
+            for dep in sorted(deps):
                 visit(dep)
             active.remove(ident)
             visited.add(ident)
@@ -298,7 +314,8 @@ class PlanGraph:
         self._validate(proposed)
         self.nodes = proposed
         self.history.append({"event": "plan_submitted", "task_ids": ids,
-                             "specifications": [n.to_dict(runtime=False) for n in parsed]})
+                             "specifications": [n.to_dict(runtime=False) for n in parsed],
+                             "dependency_relations":{n.task_id:self.dependency_relations(n) for n in parsed}})
         return parsed
 
     def resolve_ref(self, ref):
@@ -319,22 +336,24 @@ class PlanGraph:
                 "output_status": version["output_status"].get(ref.key),
                 "delivery": next(_copy(d) for d in version["required_outputs"] if d["key"] == ref.key)}
 
+    def dependency_relations(self, node):
+        """Derived auditable relations; never a second mutable edge store."""
+        return {'control': sorted(node.control_prerequisites()),
+            'data':[{'consumer_key':d.key, 'task_id':r.task_id, 'key':r.key,
+                     'revision':r.revision, 'source':'input_refs'}
+                    for d in node.required_outputs for r in d.input_refs]}
+
     def dependency_state(self, task_id):
         node = self.nodes[task_id]
         blocked = []
-        for dep in node.dependencies:
-            upstream = self.nodes[dep]
-            refs = [r for r in node.input_refs() if r.task_id == dep]
-            if not refs:
-                if upstream.status != "TASK_COMPLETED":
-                    blocked.append({"task_id": dep, "reason": "control_dependency_not_completed"})
-                continue
-            for ref in refs:
-                resolved = self.resolve_ref(ref)
-                valid = (resolved["output"] is not None and
-                         resolved["output_status"] in {"DELIVERY_SATISFIED", "TASK_COMPLETED"})
-                if not valid:
-                    blocked.append({"task_id": dep, "key": ref.key, "reason": "required_input_not_delivered"})
+        for dep in sorted(node.control_prerequisites()):
+            if self.nodes[dep].status != 'TASK_COMPLETED':
+                blocked.append({'task_id':dep,'reason':'control_dependency_not_completed'})
+        for ref in node.input_refs():
+            if ref.task_id == task_id:continue # local readiness belongs to the delivery action
+            resolved = self.resolve_ref(ref)
+            if not (resolved['output'] is not None and resolved['output_status'] in {'DELIVERY_SATISFIED','TASK_COMPLETED'}):
+                blocked.append({'task_id':ref.task_id,'key':ref.key,'revision':ref.revision,'reason':'required_input_not_delivered'})
         return {"ready": not blocked, "blocked": blocked}
 
     def ready_nodes(self):
@@ -381,7 +400,7 @@ class PlanGraph:
         This bookkeeping cannot authorize any newly proposed EEG parameters.
         """
         _text(reason, "revision reason", 2000)
-        _object(updates, {"goal", "dependencies", "required_outputs", "optional_operations"}, set(), "revision")
+        _object(updates, {"goal", "dependencies", "control_dependencies", "required_outputs", "optional_operations"}, set(), "revision")
         if not updates:
             raise ValueError("A revision must change at least one planned field")
         old = self.nodes[task_id]
@@ -390,13 +409,19 @@ class PlanGraph:
         spec = old.to_dict(runtime=False)
         spec.update(_copy(updates))
         revised = TaskSpec.from_dict(spec)
+        # Adding a data reference must not silently reclassify an existing
+        # legacy control prerequisite as redundant data. Only an explicit
+        # task-level dependency edit may change that control commitment.
+        if not {'dependencies','control_dependencies'} & set(updates):
+            lost_controls = old.control_prerequisites() - revised.control_prerequisites()
+            revised.control_dependencies = sorted(set(revised.control_dependencies) | lost_controls)
         if revised.to_dict(runtime=False) == old.to_dict(runtime=False):
             raise ValueError("A no-op revision does not create a new version")
         proposed = dict(self.nodes)
         old_items = {d.key: d.to_dict() for d in old.required_outputs}
         new_items = {d.key: d.to_dict() for d in revised.required_outputs}
         changed = {k for k in old_items.keys() | new_items.keys() if old_items.get(k) != new_items.get(k)}
-        if old.dependencies != revised.dependencies:
+        if old.control_prerequisites() != revised.control_prerequisites():
             changed |= set(new_items)
         changed = self.affected_local_outputs(revised,changed)
         revised.revision = old.revision + 1
@@ -415,13 +440,12 @@ class PlanGraph:
         while queue:
             upstream_id = queue.pop(0)
             for ident, node in proposed.items():
-                if ident == task_id or upstream_id not in node.dependencies:
+                if ident == task_id:
                     continue
-                refs = [r for r in node.input_refs() if r.task_id == upstream_id]
                 keys = {d.key for d in node.required_outputs if any(
                     r.task_id == upstream_id and r.revision is None and r.key in affected[upstream_id]
                     for r in d.input_refs)}
-                if not refs:
+                if upstream_id in node.control_prerequisites():
                     keys = {d.key for d in node.required_outputs}
                 keys = self.affected_local_outputs(node,keys)
                 newly = keys - affected.get(ident, set())
@@ -475,7 +499,7 @@ DELIVERY_SCHEMA = {"type": "object", "properties": {
                 "required":["source_span","target_span"],"additionalProperties":False}},
         "required":["source_span","time_reference"],"additionalProperties":False},
     "input_refs": {"type": "array", "items": INPUT_REF_SCHEMA,
-        "description":"Real output dependencies. Same-task keys form an acyclic delivery graph; execute producers before consumers. Cross-task refs also require task dependencies. Pinned revisions retain old evidence."},
+        "description":"The sole data dependency declaration: no duplicate task dependencies needed. Same-task current keys must be acyclic. Pinned revisions retain that version's actual evidence."},
     "required": {"type": "boolean"},
     "acceptance_rule": {"type": "array", "items": {"type": "object", "properties": {
         "path": _PATH, "op": {"type": "string", "enum": ["eq", "gte", "lte"]},
@@ -484,7 +508,10 @@ DELIVERY_SCHEMA = {"type": "object", "properties": {
     "required": ["key", "capability", "record", "scope"], "additionalProperties": False}
 TASK_SPEC_SCHEMA = {"type": "object", "properties": {
     "task_id": _STRING, "goal": _STRING,
-    "dependencies": {"type": "array", "items": _STRING},
+    "dependencies": {"type": "array", "items": _STRING,
+        "description":"Legacy: entries already named in input_refs are redundant data declarations; other entries require whole-task completion. Prefer control_dependencies for explicit control prerequisites."},
+    "control_dependencies": {"type":"array","items":_STRING,
+        "description":"Independent whole-task completion prerequisites, enforced even when also referencing a delivery. Data dependencies need only input_refs."},
     "required_outputs": {"type": "array", "minItems": 1, "maxItems": 12, "items": DELIVERY_SCHEMA},
     "optional_operations": {"type": "array", "items": _STRING}},
     "required": ["task_id", "goal", "required_outputs"], "additionalProperties": False}

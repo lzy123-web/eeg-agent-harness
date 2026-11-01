@@ -61,13 +61,13 @@ class TaskPlanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             TaskSpec.from_dict(task(outputs=[output(), output()]))
 
-    def test_submit_rejects_unknown_reference_cycle_and_undeclared_dependency_atomically(self):
+    def test_submit_rejects_unknown_reference_and_cycle_atomically(self):
         graph = PlanGraph()
         graph.submit([task()])
         before = graph.to_dict()
         for bad in (
             task("child", deps=["missing"]),
-            task("child", outputs=[output(refs=[ref()])]),
+            task("child", outputs=[output(refs=[ref(task_id="missing")])]),
             task("child", deps=["measure"], outputs=[output(refs=[ref(key="missing")])]),
         ):
             with self.subTest(bad=bad), self.assertRaises(ValueError):

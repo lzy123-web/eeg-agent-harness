@@ -29,7 +29,9 @@ OWNER_PROPERTIES={
     'revision':{'type':'integer','minimum':1,'description':'Optional expected task revision; stale values reject.'}}
 SYSTEM = """你是多任务EEG分析Agent。先依据用户原请求提出最小科学任务DAG(plan_tasks)，不是固定工具脚本。
 同一目的可有多个不同窗口或记录的结果key。task_id由你提出后保持稳定；改标题不创建新身份。补参/条件修订用revise_plan，原结果与旧版本保留。
-dependencies表示依赖；input_refs明确依赖哪个key、需要哪些字段以及summary/result/process层级。计划不是科学授权；数值参数仍必须来自真实用户或合法历史。
+input_refs是数据依赖唯一声明，程序派生关系，无需重复dependencies；control_dependencies表示另需整个上游任务完成的控制前提。引用明确key、字段、版本和summary/result/process层级。计划不是科学授权；数值参数仍必须来自真实用户或合法历史。
+新增科学测量用plan_tasks；修改现有交付用revise_plan(task_id,output_key,revision,changes,reason)，只给实际变化，保留未改字段。scope/interpretation按字段合并，引用/条件列表整体替换；改scope须明确给range_ref或source_ref等合法来源，程序不代选。旧updates整任务入口仍可用，但不可与changes混用。
+回顾已有结果直接read_dependency/read_result/restore_task或使用已可见证据，不新建重复计算义务；追加测量只登记真正新增交付并引用实际工件。比较仍须明确两侧标量fields，不猜字段/方向。
 科学动作使用task_id与output_key明确归属，可省略已明确scope；revision可防过期。同批动作依次执行，各自绑定owner，不依赖前面select的可变current。单步旧入口可省owner，但多输出必须明确。无需反复抄工件/结果ID。
 需要上游工件时使用input_refs提供的真实句柄；compare_results对真实结果做描述性差值比值，不心算。跨记录/版本不能混用；事件窗是相对时间，连续窗是记录绝对时间。未授权的处理不能执行。
 所有方案都能read_dependency/read_result或restore_task，精确数值读取与过程恢复不同。摘要足够则不强迫多读；要核对过程再继续时恢复原行动观察，不能把索引当数值。
@@ -98,6 +100,10 @@ class TaskPlanController(ScientificMemoryController):
     def control_definitions(self):
         from .task_plan import task_spec_schema
         schema=task_spec_schema(next(iter(self.store.contexts.values())).executor.registry)
+        delivery_properties=schema['properties']['required_outputs']['items']['properties']
+        patch_properties={k:clone(delivery_properties[k]) for k in ('scope','interpretation','input_refs','acceptance_rule')}
+        patch_properties['interpretation']={'type':'object',
+            'properties':clone(delivery_properties['interpretation']['properties']),'additionalProperties':False}
         controls = [c for c in super().control_definitions()
                     if c["function"]["name"] != "focus_task"]
         next(c["function"] for c in controls if c["function"]["name"] == "compare_results")["parameters"]["required"] = []
@@ -105,10 +111,13 @@ class TaskPlanController(ScientificMemoryController):
             control("plan_tasks", "Propose scientific subtask DAG from the user request. No runtime facts or result IDs may be invented.", {
                 "nodes": {"type": "array", "minItems": 1, "maxItems": 12,
                           "items": schema}}, ["nodes"]),
-            control("revise_plan", "Fill missing conditions or repair required_outputs[].interpretation on this stable task; preserve versions and invalidate affected dependents. Never drop user obligations.", {
+            control("revise_plan", "Modify one existing delivery using output_key, expected revision and changes; scope/interpretation merge explicit fields, lists replace. Unchanged objects/sources/other deliveries are preserved. Or use legacy updates for a whole-task transaction, never both. All paths validate sources/obligations before commit.", {
                 "task_id": STRING, "updates": {"type": "object", "properties": {
                     k:clone(v) for k,v in schema['properties'].items() if k!='task_id'},
-                    "additionalProperties":False}, "reason": STRING}, ["task_id", "updates", "reason"]),
+                    "additionalProperties":False}, "output_key":STRING,
+                "revision":{'type':'integer','minimum':1},
+                "changes":{'type':'object','properties':patch_properties,'additionalProperties':False},
+                "reason": STRING}, ["task_id", "reason"]),
             control("select_task", "Choose a ready independent node; no fabricated dependency satisfaction.", {"task_id": STRING}, ["task_id"]),
             control("complete_node", "Accept one existing delivery with output_key + current revision + actual result_id (or comparison_id value), without closing its task. Omit output_key to complete the whole task after all required results exist. No mandatory extra read when evidence is already visible.", {
                 "task_id": STRING, "output_key": STRING, "revision": {"type":"integer","minimum":1},
@@ -119,6 +128,9 @@ class TaskPlanController(ScientificMemoryController):
                 "task_id": STRING, "key": STRING, "revision":{"type":"integer","minimum":1}, "level": {"type":"string","enum":["summary","result","process"]},
                 "fields": {"type":"array","maxItems":4,"items":{"type":"array","items":{"type":["string","integer"]}}}}, ["task_id","key","level"]),
         ]
+        revision=next(c['function']['parameters'] for c in controls if c['function']['name']=='revise_plan')
+        revision['oneOf']=[{'required':['updates'],'not':{'required':['changes']}},
+            {'required':['output_key','revision','changes'],'not':{'required':['updates']}}]
         finish=next(c['function'] for c in controls if c['function']['name']=='finish_task')
         finish['parameters']['properties']['clarifications']={'type':'array','maxItems':12,'items':{
             'type':'object','properties':{'task_id':STRING,'key':STRING,
@@ -532,6 +544,7 @@ class TaskPlanController(ScientificMemoryController):
         payload.pop("task_summaries",None)
         payload["plan"] = [{**n.to_dict(runtime=False),"status":n.status,"revision":n.revision}
                            for n in self.graph.nodes.values()]
+        payload['dependency_relations']={n.task_id:self.graph.dependency_relations(n) for n in self.graph.nodes.values() if n.input_refs() or n.control_prerequisites()}
         # Original request parents expose actual source boundaries, not a gold
         # plan. A field reference cannot crop away record/object ownership.
         from .scientific_request_binding import source_catalog
@@ -548,6 +561,9 @@ class TaskPlanController(ScientificMemoryController):
         payload["dependency_evidence"] = self._inputs(node) if node else []
         payload["task_summaries"] = [{"task_id":n.task_id,"goal":n.goal,"revision":n.revision,
             "status":n.status,"outputs":{k:self._locator(v) for k,v in n.outputs.items()},
+            "readable_keys":[k for k,v in n.outputs.items() if n.output_status.get(k)!='STALE' and
+                             (self.store._binding_valid(self._entry_for(v)) if self._entry_for(v) else self._valid_comparison(v))],
+            "revision_keys":[d.key for d in n.required_outputs],
             "unresolved":clone(n.unresolved)} for n in self.graph.nodes.values()]
         messages[0]["content"] = SYSTEM + ("\n明确科学条件由程序自动核验。" if self.automatic_acceptance else
             "\n显式科学条件由你据真实结果评估；可用complete_node接受单个真实交付后继续消费者，全部必需交付齐备才能完成整任务。check_deliveries为可选诊断；条件不足可明确partial。")
@@ -596,6 +612,26 @@ class TaskPlanController(ScientificMemoryController):
             except ValueError as exc:
                 raise ContractError(('updates','required_outputs',i,'interpretation'),str(exc)) from exc
 
+    def _revision_updates(self, old, args):
+        """Normalize a single explicit patch into the original atomic contract."""
+        if args.get('revision',old.revision)!=old.revision:
+            raise ContractError(('revision',),'Select the existing task current revision')
+        if 'changes' not in args:
+            if 'output_key' in args:raise ContractError(('output_key',),'Use changes for a delivery patch, or updates for a whole-task revision')
+            return clone(args['updates'])
+        d=old.delivery(args['output_key'])
+        if d is None:raise ContractError(('output_key',),'Unknown existing delivery key; no target is inferred')
+        changes=args['changes']
+        if not changes:raise ContractError(('changes',),'Specify an actual change')
+        if changes.get('scope') and any(d.scope.get(k)!=v for k,v in changes['scope'].items()):
+            if not set(changes.get('interpretation',{})) & {'source_ref','source_span','range_ref','range_span'}:
+                raise ContractError(('changes','interpretation'),'Changed scientific scope requires an explicit lawful source or range locator')
+        rows=[item.to_dict() for item in old.required_outputs]
+        row=next(r for r in rows if r['key']==d.key)
+        for key,value in changes.items():
+            row[key]={**row.get(key,{}),**clone(value)} if key in {'scope','interpretation'} else clone(value)
+        return {'required_outputs':rows}
+
     def _dispatch(self, request):
         name,args = request.name,clone(dict(request.arguments))
         owner={k:args.pop(k) for k in ('task_id','output_key','revision') if k in args} if name in NUMERIC_TOOLS | {'compare_results'} else {}
@@ -635,9 +671,14 @@ class TaskPlanController(ScientificMemoryController):
             self.turn_nodes.update(n.task_id for n in specs)
             return {"status":"planned","task_ids":[n.task_id for n in specs]}
         if name == "revise_plan":
-            old = self.graph.nodes[args["task_id"]]
+            old = self.graph.nodes.get(args['task_id'])
+            if old is None:
+                return {**self.store._error('INVALID_PLAN_REVISION','Unknown existing task; no target is inferred'),'field_path':['task_id']}
+            try:updates=self._revision_updates(old,args)
+            except ContractError as exc:
+                return {**self.store._error('INVALID_PLAN_REVISION',str(exc)),'field_path':exc.path}
             allowed = old.to_dict(runtime=False)
-            allowed.update(args["updates"])
+            allowed.update(updates)
             try:revised_spec = TaskSpec.from_dict(allowed)
             except (ValueError, TypeError, KeyError) as exc:
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
@@ -657,7 +698,7 @@ class TaskPlanController(ScientificMemoryController):
                     return self.store._error("CANNOT_DROP_OBLIGATION","A replan cannot silently remove required results or weaken accepted scientific conditions")
             # Graph revision validates no-op, limits and dependencies before
             # committing. A rejected proposal must not suspend the live goal.
-            try:result = self.graph.revise(args["task_id"],args["updates"],args["reason"])
+            try:result = self.graph.revise(args["task_id"],updates,args["reason"])
             except (ValueError, TypeError) as exc:
                 return self.store._error("INVALID_PLAN_REVISION", str(exc)[:600])
             if self.store.active:
@@ -667,7 +708,8 @@ class TaskPlanController(ScientificMemoryController):
                 self.node_goals.pop((ident,dependent.revision),None)
             self.current = None
             self.turn_nodes.add(args["task_id"])
-            self.plan_events.append({"event":"revision",**clone(result)})
+            self.plan_events.append({"event":"revision",**clone(result),
+                'proposal':clone(args),'normalized_updates':clone(updates)})
             return {"status":"revised",**result}
         if name in {"select_task","complete_node","check_deliveries","wait_node"}:
             if name == 'complete_node' and ('output_key' in args or 'revision' in args or 'result_id' in args):

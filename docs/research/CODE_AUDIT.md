@@ -1,3 +1,9 @@
+## Issue58 增量接口审计补记（2026-11-02）
+
+已实现：`TaskSpec.control_prerequisites`兼容旧重复数据声明并保留独立控制条件；`PlanGraph.dependency_relations/dependency_state/_validate/revise`基于InputRef动态派生数据关系，区分当前与固定历史版本，不维护第二份边状态。原controller的`_revision_updates`只合并明确单交付字段，经原完整TaskSpec、来源、义务校验后调用同一graph.revise；身份不猜测，错误不部分提交。read_dependency/read_result/restore_task及原EEG数值工具不变，六组共享契约。
+
+资源依赖仍为原合成数据/NumPy/SciPy与eegagent环境，无新权重/数据/数值算法。研究夹具原生提案重放、机械迁移链、原live驱动TEST预算见证分别标记；没有服务客户端或凭据发现入口。743项（15跳过）、24链111/111；新接口未真实自主复测，原科学语义边界仍在。调用链、复杂度及待专项授权预算集中于[Issue58报告](EEG_WORKING_MEMORY_ISSUE58.md)，不把共享接口修复作为候选独有收益。
+
 ## Issue56 共享接口审计补记（2026-11-01）
 
 已实现：`scientific_contracts.computation_scope`复用Registry派生科学计算scope；scientific/DAG计划/修订/Store使用同源参数。新有限schema验证负责结构，原Store/Executor负责来源、元数据、物理范围、工件及版本事实，不把类型合法当科学授权。
