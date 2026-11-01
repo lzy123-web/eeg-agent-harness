@@ -506,20 +506,25 @@ class TaskPlanController(ScientificMemoryController):
 
     def clarification_verification(self,delivery,fields):
         """Bounded factual check; unresolvable semantics require external review."""
-        from .scientific_request_binding import source_catalog
-        from .working_memory_lifecycle import RANGE
-        scope=self._effective_scope(delivery)
-        event=self.store._family(delivery.capability)=='event'
-        key='labels' if event else 'channels'
-        pair={'tmin','tmax'} if event else {'start','end'}
-        selected=scope.get(key,[])
-        parents=[f for f in source_catalog(self.store) if f['records']==[delivery.record] and selected
-                 and all(self.store._contains(f['span'],x) for x in selected)]
-        if not set(fields).issubset(pair) or not parents:return 'review_required'
-        # A known full window anywhere in the applicable object history must
-        # not be re-labelled missing just because the proposal omitted it.
-        if any(RANGE.search(f['span']) for f in parents):return 'known_or_ambiguous_value'
-        return 'missing_literal_window'
+        from .scientific_request_binding import window_availability
+        return window_availability(self.store,delivery.capability,self._effective_scope(delivery),delivery.record,fields)['status']
+
+    def _validate_revision_sources(self,old,spec):
+        """Read-only source preflight before graph/version/active-state mutation."""
+        from .scientific_request_binding import resolve_action_source, interpreted_sources
+        for i,d in enumerate(spec.required_outputs):
+            if not d.interpretation or d.capability not in NUMERIC_TOOLS:continue
+            previous=self._entry_for(old.outputs.get(d.key))
+            scope=self._effective_scope(d)
+            pair=('tmin','tmax') if self.store._family(d.capability)=='event' else ('start','end')
+            object_key='labels' if pair[0]=='tmin' else 'channels'
+            if not scope.get(object_key) or not all(k in scope for k in pair):continue # missing conditions remain registerable
+            try:
+                resolution=resolve_action_source(self.store,d.capability,scope,d.record,inherited=previous)
+                if not resolution.ok:raise ValueError(resolution.message)
+                interpreted_sources(self.store,d.capability,scope,d.record,resolution,d.interpretation,previous)
+            except ValueError as exc:
+                raise ContractError(('updates','required_outputs',i,'interpretation'),str(exc)) from exc
 
     def _dispatch(self, request):
         name,args = request.name,clone(dict(request.arguments))
@@ -565,7 +570,9 @@ class TaskPlanController(ScientificMemoryController):
             try:revised_spec = TaskSpec.from_dict(allowed)
             except (ValueError, TypeError, KeyError) as exc:
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
-            try:self._validate_nodes([revised_spec],prefix=('updates',))
+            try:
+                self._validate_nodes([revised_spec],prefix=('updates',))
+                self._validate_revision_sources(old,revised_spec)
             except ContractError as exc:
                 return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,'recovery':{'tool':'revise_plan'}}
             except RequirementValidationError as exc:
@@ -623,9 +630,13 @@ class TaskPlanController(ScientificMemoryController):
                         node.outputs.get(d.key) or not node.unresolved and node.status!='WAITING_INPUT'):
                     return self.store._error('INVALID_CLARIFICATION','Ask only for actual missing scientific fields of an unresolved delivery')
                 text=f"请提供记录{d.record}、任务{node.task_id}、交付{d.key}（{d.capability}，已知条件{json.dumps(effective,ensure_ascii=False)}）所缺的科学参数：{', '.join(fields)}。"
+                from .scientific_request_binding import window_availability
+                assessment=window_availability(self.store,d.capability,effective,d.record,fields)
+                if assessment['status']!='missing_literal_window':
+                    text=f"记录{d.record}、任务{node.task_id}的窗口来源{'已提供，计划漏登记，应通过revise_plan修复' if assessment['status']=='known_user_window' else '需要审核，不能认定用户缺参'}。"
                 questions.append({**clone(question),'record':d.record,'capability':d.capability,
                     'scope':clone(effective),'revision':node.revision,'turn':self.store.turn,'question':text,
-                    'verification':self.clarification_verification(d,fields)})
+                    'verification':assessment['status'],'source_assessment':assessment})
             if questions:args['answer']+='\n\n'+'\n'.join(q['question'] for q in questions)
             pending = [n for n in self.graph.nodes.values() if n.task_id in self.turn_nodes and n.status != "TASK_COMPLETED"]
             if args.get("status") == "completed" and pending:

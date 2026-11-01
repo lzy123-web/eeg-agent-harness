@@ -1,3 +1,14 @@
+## Issue56 最新：两项来源一致性收尾已离线通过，待独立复核（2026-11-01）
+
+- 按评论6558208733从本地/远端1799cf7、干净工作区接续；无重复实验。不重做四项主体设计，旧“离线通过”自评及主审未接受该结论的事实均保留。
+- 已在实际Agent/Store/Executor＋Fake驱动复现：对象相邻分句已有窗口仍错误发送补参；字段引用的后轮合法B改窗被旧目标窗误拒。首次缺评估清单的夹具阻断也保留，未冒充原模型历史。
+- 已修正共享完整父句/对象窗口审查、字段名称与当前范围各自核验、revise提交前只读来源预检。已知窗不再伪称缺参；真正缺窗和只缺tmax可续算；合法B改窗产生可追溯新版本，旧B/A保留，A不重算。
+- 借窗/过时scope/未知或含混引用/错目标/缺目标通道等配对反例原子拒绝；歧义保守待审。原24条三臂受控链111/111数值核验，0控制错误；714项=699通过+15资源跳过，compileall/pip check/diff check通过。
+- 本次新增研究API calls/tokens/费用均0，历史48次/312387tokens/保守US$0.1052811及正式账本、确认池不变。新接口真实自主复测未运行，完整跨轮能力和相对强基线收益仍未证明；原错误语义边界保留。
+- [原报告顶部收尾设计/前后证据/代价/退出条件](EEG_WORKING_MEMORY_ISSUE56.md)，[新增公开证据](evidence/issue56_closeout.json)。正常提交/push及CI回执随后记录；PR37保持Draft、Issue55/56保持open，不再扩张本次整改。
+
+---
+
 ## Issue56 当前交付：离线接口整改通过，自主复测未运行（2026-11-01）
 
 发布回执：实现/证据提交`85cb87fd695449c2c7ddee6e8c24ff7581fe8f7f`已正常推送，远端HEAD核对一致；[CI unit-tests #362](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41306106602)安装、编译、710项回归均成功（695通过、15跳过，CI测试12.774秒）。[Issue56统一汇报](https://github.com/lzy123-web/eeg-agent-harness/issues/56#issuecomment-6557897613)、[Issue55接续说明](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6557910408)、[PR37回执](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6557906650)及PR正文均已更新，历史正文保留。PR仍Draft，Issue55/56仍open。此发布回执单独文档提交，不改变通过验证的源码、协议或账本，不新增API调用。

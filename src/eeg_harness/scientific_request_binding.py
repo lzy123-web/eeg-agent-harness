@@ -4,7 +4,7 @@ This is bounded admission of literal record/object/range facts. It is neither
 an intent parser nor a proof that every natural-language goal was covered.
 The model chooses the action; the existing Executor still does the science.
 """
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, replace, asdict
 import hashlib
 import re
 
@@ -291,6 +291,63 @@ def owned_intervals(store, frame, family, anchors):
     return result
 
 
+def object_evidence_frames(store, frames, family, anchors, record, whole):
+    """The same complete object/adjacent-range parents for execution and asks."""
+    channels={c for r in store.records.values() for c in r.channel_names}
+    labels={e.label for r in store.records.values() if r.events for e in r.events.events}
+    evidence=list(frames)
+    for left,right in zip(frames,frames[1:]):
+        left_objects={v for v in (labels if family=='event' else channels) if store._contains(left.text,v)}
+        left_foreign=family!='event' and any(store._contains(left.text,v) for v in labels)
+        right_has_object=any(store._contains(right.text,v) for v in channels|labels)
+        if (anchors and left_objects==anchors and not left_foreign and not RANGE.search(left.text)
+                and not right_has_object and RANGE.search(right.text)
+                and right.object_parent==left.object_parent
+                and not re.search(r'[^\s;；。\n,，]',whole[left.end:right.start])
+                and record in set(left.records)&set(right.records)):
+            evidence.append(SourceFrame(whole[left.start:right.end],left.start,right.end,
+                tuple(sorted(set(left.records)&set(right.records))),'adjacent_object_and_interval'))
+    return evidence
+
+
+def window_availability(store, name, scope, record, fields):
+    """Read-only absence audit; never invent endpoints or import evaluator gold."""
+    from .working_memory_lifecycle import NUMBER
+    family=store._family(name);key='labels' if family=='event' else 'channels'
+    pair=('tmin','tmax') if family=='event' else ('start','end')
+    anchors=set(scope.get(key,[]));parents=[];intervals=set();uncertain=False
+    if not anchors or not set(fields).issubset(pair):return {'status':'review_required','sources':[]}
+    for turn,whole in enumerate(store.user_requests,1):
+        frames=_request_frames(store,whole)
+        relevant=[f for f in frames if record in f.records and
+            (f.object_family==family and anchors.issubset(f.object_names) or
+             bool(owned_intervals(store,f,family,anchors)))]
+        for f in object_evidence_frames(store,relevant,family,anchors,record,whole):
+            owned=owned_intervals(store,f,family,anchors)
+            literal={(float(a),float(b)) for a,b in RANGE.findall(f.text)}
+            parents.append({'turn':turn,**asdict(f)})
+            if f.records!=(record,):uncertain=True
+            if literal:
+                # An attached range without literal names is resolved by its
+                # complete merged parent above; never classify it as absent.
+                if owned:intervals.update(owned)
+                elif f.object_parent is None or f.object_parent==(f.start,f.end):uncertain=True
+            else:
+                values={float(v) for v in re.findall(rf'(?<![A-Za-z0-9.])({NUMBER})(?![\d.])',f.text)}
+                known={float(scope[k]) for k in pair if k in scope}
+                if values-known:uncertain=True # unassigned scalar: review, not a guessed field
+        # Multiple attached ranges, including a later range after an already
+        # complete interval, are a conflict even when only the first can bind.
+        attached={(float(a),float(b)) for f in relevant for a,b in RANGE.findall(f.text)}
+        if len(attached)>1:uncertain=True
+    if not parents or uncertain or len(intervals)>1:status='review_required'
+    elif intervals:
+        values=next(iter(intervals))
+        status='known_user_window' if all(k not in scope or scope[k]==v for k,v in zip(pair,values)) else 'review_required'
+    else:status='missing_literal_window'
+    return {'status':status,'fields':list(fields),'sources':parents,'windows':[list(v) for v in sorted(intervals)]}
+
+
 def resolve_channel_reference(store, scope, record, resolution, reference, *, interpreted=False, turn=None):
     """Copy only a unique literal channel set, never record/time/artifact.
 
@@ -324,14 +381,18 @@ def resolve_channel_reference(store, scope, record, resolution, reference, *, in
         raise ValueError('Referenced selection conflicts with the explicit target channels')
     if not interpreted and not all(store._contains(target.text,c) for c in selected):
         raise ValueError('Unconfirmed destination selection: ask the user to name its channels')
-    intervals = {(float(a),float(b)) for a,b in RANGE.findall(target.text)}
-    if set(scope) - {'channels','start','end'} or not all(k in scope for k in ('start','end')) or intervals != {(float(scope['start']),float(scope['end']))}:
-        raise ValueError('Destination needs one independently stated complete absolute interval')
+    # The interpreted route checks the selected current/historical window in
+    # interpreted_sources, separately from this channel-only relation. Legacy
+    # action references have no such interpretation and retain their check.
+    if not interpreted:
+        intervals = {(float(a),float(b)) for a,b in RANGE.findall(target.text)}
+        if set(scope) - {'channels','start','end'} or not all(k in scope for k in ('start','end')) or intervals != {(float(scope['start']),float(scope['end']))}:
+            raise ValueError('Destination needs one independently stated complete absolute interval')
     base = {'kind':'user','turn':turn,'span':target.text,
             'reference_kind':'channel_names_only','source_parent':source.text,
             'source_records':list(source.records),'destination_record':record,
             'semantic_interpretation':'model_proposed_field_reference_not_intent_proof'}
-    return {k:{**base,'field':k} for k in ('channels','start','end')}
+    return {k:{**base,'field':k} for k in (('channels',) if interpreted else ('channels','start','end'))}
 
 
 def interpreted_sources(store,name,scope,record,resolution,interpretation,inherited=None):
@@ -390,6 +451,11 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
         if window_turn<store.turn:
             if not exact or any(scope.get(k)!=inherited.parameters.get(k) for k in pair):
                 raise ValueError('Historical window requires the same valid result; revised values need a current range_ref')
+            current_windows={v for f in resolution.frames for v in
+                (owned_intervals(store,f,store._family(name),selected) or
+                 ({(float(a),float(b)) for a,b in RANGE.findall(f.text)} if f.object_parent is None else set()))}
+            if current_windows and current_windows!={tuple(float(scope[k]) for k in pair)}:
+                raise ValueError('Current user window conflicts with the old window; use its current range_ref')
         elif window_frame not in resolution.frames or any(
                 store._contains(window_frame.text,x) for x in available-selected):
             raise ValueError('Current supplement conflicts with the historical object')
@@ -497,19 +563,7 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited, channe
     # original parent, without borrowing intervals past another object or an
     # already complete interval. This is bounded local ownership, not free
     # cross-clause numerical matching or a language-specific task keyword list.
-    for left, right in zip(relevant_frames, relevant_frames[1:]):
-        left_objects = {v for v in (labels if family == "event" else channels)
-                        if store._contains(left.text, v)}
-        left_foreign = family != "event" and any(store._contains(left.text, v) for v in labels)
-        right_has_object = any(store._contains(right.text, v) for v in channels | labels)
-        gap = whole[left.end:right.start]
-        if (anchors and left_objects == anchors and not left_foreign and not RANGE.search(left.text)
-                and not right_has_object and RANGE.search(right.text)
-                and not re.search(r"[^\s;；。\n,，]", gap)
-                and record in set(left.records) & set(right.records)):
-            evidence_frames.append(SourceFrame(whole[left.start:right.end], left.start, right.end,
-                                               tuple(sorted(set(left.records) & set(right.records))),
-                                               "adjacent_object_and_interval"))
+    evidence_frames = object_evidence_frames(store,relevant_frames,family,anchors,record,whole)
     if anchors and all(key in scope for key in pair):
         interval = tuple(float(scope[key]) for key in pair)
         unanchored = [f for f in relevant_frames if f.object_parent is None
