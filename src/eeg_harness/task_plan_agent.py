@@ -228,7 +228,8 @@ class TaskPlanController(ScientificMemoryController):
                                 guidance='Use the listed actual computation scope fields. Measurement dimensions belong in interpretation; report selections belong in the task goal. Do not invent processing or artifact handles.')
                         raise
                 elif d.scope or len(d.input_refs)!=2 or any(len(r.fields)!=1 for r in d.input_refs):
-                    raise ValueError("A comparison needs two actual input references with one field each, and empty computation scope")
+                    raise ContractError((*path[:-1],'input_refs'),
+                        "A comparison needs two actual input references with exactly one scalar field path each, and empty computation scope")
                 for rule in d.acceptance_rule:
                     quote = rule.get("source", "")
                     if not isinstance(quote,str) or not any(quote and quote in r for r in self.requests):
@@ -561,7 +562,8 @@ class TaskPlanController(ScientificMemoryController):
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
             try:self._validate_nodes(specs)
             except ContractError as exc:
-                return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,'recovery':{'tool':'plan_tasks'}}
+                return {**self.store._error('INVALID_PLAN_STRUCTURE' if exc.path[-1]=='input_refs' else 'INVALID_PLAN_SOURCE',str(exc)),
+                        'field_path':exc.path,'recovery':{'tool':'plan_tasks'}}
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
                         'requirement_errors':clone(exc.errors)}
@@ -582,7 +584,8 @@ class TaskPlanController(ScientificMemoryController):
                 self._validate_nodes([revised_spec],prefix=('updates',))
                 self._validate_revision_sources(old,revised_spec)
             except ContractError as exc:
-                return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,'recovery':{'tool':'revise_plan'}}
+                return {**self.store._error('INVALID_PLAN_STRUCTURE' if exc.path[-1]=='input_refs' else 'INVALID_PLAN_SOURCE',str(exc)),
+                        'field_path':exc.path,'recovery':{'tool':'revise_plan'}}
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
                         'requirement_errors':clone(exc.errors)}

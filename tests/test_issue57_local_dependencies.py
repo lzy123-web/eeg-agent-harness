@@ -16,6 +16,23 @@ def group():
 
 
 class LocalDependenciesTest(unittest.TestCase):
+    def test_comparison_missing_fields_reports_contract_without_mutation(self):
+        initial=node('source',[delivery('power','psd')])
+        invalid=node('comparison',[delivery('change','compare_results',{},refs=[
+            reference('source','power','summary'),reference('source','power','result')])],deps=['source'])
+        def check(messages):
+            error=json.loads(messages[-1]['content'])['data']
+            self.assertEqual(error['code'],'INVALID_PLAN_STRUCTURE')
+            self.assertEqual(error['field_path'],['nodes',0,'required_outputs',0,'input_refs'])
+            self.assertIn('one scalar field path',error['message'])
+            self.assertEqual(list(a.working_memory.graph.nodes),['source'])
+            self.assertEqual(len(a.working_memory.store.entries),1)
+            return finish('partial',unresolved=['TEST comparison was rejected'])
+        c=InspectableScriptedClient([('plan_tasks',{'nodes':[initial]}),('psd',{}),
+            ('plan_tasks',{'nodes':[invalid]}),check])
+        a=TaskPlanEEGAgent(c,synthetic_records());r=a.run('记录A的SYNTH-C1在0到2秒计算功率。')
+        self.assertEqual(r.stop_reason,'partial',c.errors)
+
     def test_real_producer_consumer_and_premature_wrong_artifact_rejection(self):
         for arm in ARMS:
             with self.subTest(arm=arm):
