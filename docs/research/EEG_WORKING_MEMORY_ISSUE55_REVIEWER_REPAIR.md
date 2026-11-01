@@ -90,3 +90,5 @@ python -m eeg_harness.research.working_memory_issue55_live --real --ledger <既�
 所有其他本地代码、Fake、回归与证据交付已推进完成。没有以缺配置留下运行器开发待办，也没有为了达标继续堆指代特判。确认候选未付费运行，Fake 使用测试身份的冻结流程不能算原确认案例；现有研究内容二、main、旧结果、旧消费记录均未改。PR #37 保持 Draft，Issue55 保持 open。最终 Git SHA 和远端 CI 记录见 PROJECT_STATUS 的发布补记。
 
 公开材料：[纠偏证据](evidence/issue55_reviewer_repair.json)；历史材料：[原修复证据](evidence/issue55_scope_repair.json)、[原协议与结果](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。新公开证据给出首次复现、全部新受控/Fake 原始文件 SHA-256；受控动作和首次失败保留，未用成功结果覆盖失败。
+
+发布补记：实现提交 `77fc69e1a2a6c1c8331580d004baa0a34293ed0b` 已普通推送；[CI #340](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41272889170) success；[Issue55纠偏评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6553367729)与PR37正文已同步。后续发布留痕提交仅文档，远端SHA见Git与发布评论。

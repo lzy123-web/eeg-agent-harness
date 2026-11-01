@@ -10,6 +10,8 @@
 - 详细设计取舍、前后反证、运行命令/核验记录格式、局限：[主审纠偏与完整入口交付](EEG_WORKING_MEMORY_ISSUE55_REVIEWER_REPAIR.md)；[新公开合成证据](evidence/issue55_reviewer_repair.json)。旧“安全未退化/T04解决”结论已明确纠正，原文和旧结果保留。
 - Git：本条与本次机制/运行器实现同批正常提交并推送；精确SHA、PR37/Issue55和远端CI随后补记。PR保持Draft，Issue保持open，不进入正式公平收益对照。
 
+发布补记：机制/运行器/新证据提交 `77fc69e1a2a6c1c8331580d004baa0a34293ed0b` 已普通推送，本地与远端一致、工作区干净；[GitHub CI unit-tests #340](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41272889170) 已 success。PR37正文与[Issue55纠偏评论](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6553367729)已更新。当前补记仅文档，不改变运行逻辑。7项旧Issue55专项在新CLI说明更新后再次通过；无新增付费，未触及正式账本。整阶段仍因原T04等未通过条件而保持未验收，CI成功不替代研究结论。
+
 以下是历史状态，仅按原提交和当时协议引用；以本节和纠偏文档优先。
 
 ## Issue55最新：共享对象/范围机制整改已交付，真实执行受配置/累计账本阻塞（2026-11-01）
