@@ -150,10 +150,12 @@ class TaskPlanController(ScientificMemoryController):
         return self.store.find_subgoal(ident) if ident else None
 
     def _activate(self, node):
-        if self.current != node.task_id:
-            # A closed node's native pair remains in the external archive. Its
-            # next consumer receives the dependency view, not an accidental
-            # second full-result copy via the controller's pending last pair.
+        if self.current != node.task_id and self.pending and all(
+                message in self.last_view for message in self.pending):
+            # Retire only an already presented native response. Scheduling can
+            # occur before the next model decision: dropping an unseen pair
+            # here would replace the actual observation with an archive index.
+            # observe_exchange replaces this one-pair handoff on the next turn.
             self.pending = []
         if self.store.active and self.store.active is not self._goal(node):
             self.store.settle_active(["Scheduler switched to another independent task"])
@@ -601,6 +603,10 @@ class TaskPlanController(ScientificMemoryController):
             node = self.graph.nodes[args["task_id"]]
             if name == "check_deliveries":return {"status":"checked",**self.delivery_check(node)}
             if name == "select_task":
+                if node.status == 'TASK_COMPLETED':
+                    return {'status':'already_completed','task_id':node.task_id,'revision':node.revision,
+                            'outputs':{k:self._locator(v) for k,v in node.outputs.items()},
+                            'guidance':'Use read_dependency for exact evidence, or revise_plan for changed conditions; no computation is pending.'}
                 if node not in self.graph.ready_nodes() and node.task_id != self.current:
                     return self.store._error("DEPENDENCY_NOT_READY","Required inputs have not actually been delivered")
                 return self._activate(node)
