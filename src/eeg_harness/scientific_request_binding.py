@@ -242,13 +242,16 @@ def resolve_action_source(store, name, scope, record, request_span=None, *, inhe
 def owned_intervals(store, frame, family, anchors):
     """Literal range ownership, independently of action type or whole-frame role.
 
-    The closest preceding metadata object anchors a range. A later report
-    channel cannot steal an earlier event range; an earlier event mention
-    cannot authorize a range attached to a subsequent continuous channel.
+    Within one metadata role, preceding groups locate literal ranges. Mixed
+    roles require an interpretation; word order never chooses their time base.
     Unanchored supplements are handled separately through validated history.
     """
     channels = {c for r in store.records.values() for c in r.channel_names}
     labels = {e.label for r in store.records.values() if r.events for e in r.events.events}
+    # Mixed scientific roles require an explicit interpretation, never the
+    # nearest name. Literal order can locate ranges within one role only.
+    if any(store._contains(frame.text,c) for c in channels) and any(store._contains(frame.text,l) for l in labels):
+        return set()
     occurrences = []
     for value in channels | labels:
         for match in re.finditer(r'(?<![A-Za-z0-9_-])'+re.escape(value)+r'(?![A-Za-z0-9_-])', frame.text):
@@ -271,7 +274,7 @@ def owned_intervals(store, frame, family, anchors):
     return result
 
 
-def resolve_channel_reference(store, scope, record, resolution, reference):
+def resolve_channel_reference(store, scope, record, resolution, reference, *, interpreted=False):
     """Copy only a unique literal channel set, never record/time/artifact.
 
     Full original parents are mandatory. A model proposes the field relation;
@@ -298,7 +301,10 @@ def resolve_channel_reference(store, scope, record, resolution, reference):
         raise ValueError('Referenced channels must exist in destination and match literal source')
     # A proposal may locate evidence, never create target-selection authority.
     # Without literal target confirmation the relation remains a clarification.
-    if not all(store._contains(target.text,c) for c in selected):
+    explicit_target={c for c in store.records[record].channel_names if store._contains(target.text,c)}
+    if explicit_target and explicit_target != set(selected):
+        raise ValueError('Referenced selection conflicts with the explicit target channels')
+    if not interpreted and not all(store._contains(target.text,c) for c in selected):
         raise ValueError('Unconfirmed destination selection: ask the user to name its channels')
     intervals = {(float(a),float(b)) for a,b in RANGE.findall(target.text)}
     if set(scope) - {'channels','start','end'} or not all(k in scope for k in ('start','end')) or intervals != {(float(scope['start']),float(scope['end']))}:
@@ -310,7 +316,72 @@ def resolve_channel_reference(store, scope, record, resolution, reference):
     return {k:{**base,'field':k} for k in ('channels','start','end')}
 
 
-def ground_bound_scope(store, name, scope, record, resolution, inherited, channel_reference=None):
+def interpreted_sources(store,name,scope,record,resolution,interpretation):
+    """Check facts of a proposed meaning, without pretending to parse intent.
+
+    The complete original parent and literal pair remain inspectable. Tool
+    time basis, record ownership, actual metadata and field isolation are
+    deterministic. Whether the proposed relation faithfully explains the
+    user's words is separately evaluated, not certified by string matching.
+    """
+    from .task_plan import _interpretation
+    value=_interpretation(interpretation)
+    frames=[f for f in resolution.frames if f.text==value['source_span']]
+    if len(frames)!=1 or frames[0].records!=(record,):
+        raise ValueError('Interpretation must identify one complete record-bound source parent')
+    frame=frames[0]
+    if value['time_reference']!=resolution.time_reference:
+        raise ValueError('Tool time reference conflicts with the task interpretation')
+    context=store.contexts[record]
+    channels=set(context.record.channel_names)
+    labels={e.label for e in context.record.events.events} if context.record.events else set()
+    measurement=set(value.get('measurement_channels',[]))
+    if not measurement.issubset(channels) or any(not store._contains(frame.text,c) for c in measurement):
+        raise ValueError('Measurement dimensions need actual source names and target metadata')
+    object_key='labels' if resolution.time_reference=='event_relative' else 'channels'
+    available=labels if object_key=='labels' else channels
+    selected=set(scope.get(object_key,[]))
+    if not selected or not selected.issubset(available):
+        raise ValueError('Interpreted object is absent from target metadata')
+    sources={}
+    reference=value.get('channel_reference')
+    if reference:
+        if object_key!='channels' or reference['target_span']!=frame.text:
+            raise ValueError('Field reference applies only to target channel names')
+        sources.update(resolve_channel_reference(store,scope,record,resolution,reference,interpreted=True))
+    elif any(not store._contains(frame.text,x) for x in selected):
+        raise ValueError('Object values must be literal or use an explicit field reference')
+    pair=('tmin','tmax') if object_key=='labels' else ('start','end')
+    if not all(k in scope for k in pair):
+        # An interpretable object may still lack scientific parameters. Keep
+        # only its verified identity, so the existing missing-field path can
+        # suspend and later resume it without inventing a range.
+        return {object_key:{'kind':'user','turn':store.turn,'span':frame.text,
+            'interpretation':clone(value),'semantic_status':'model_interpretation_not_intent_proof',
+            'verified_facts':['source_parent','record','metadata','tool_time_reference']}}
+    span=value.get('range_span',frame.text)
+    if span not in frame.text or frame.text.count(span)!=1:
+        raise ValueError('Window locator must uniquely occur inside the complete source parent')
+    if not all(k in scope for k in pair) or {(float(a),float(b)) for a,b in RANGE.findall(span)} != {tuple(float(scope[k]) for k in pair)}:
+        raise ValueError('Interpretation cannot invent or combine missing window endpoints')
+    # Do not silently change a previously admitted meaning for the same source
+    # interval. A task revision needs independently compatible evidence.
+    for fact in store.admitted_scopes:
+        for source in fact['sources'].values():
+            prior=source.get('interpretation',{})
+            if (source.get('turn')==store.turn and fact['record']==record and prior.get('source_span')==frame.text
+                    and prior.get('range_span',prior.get('source_span'))==span
+                    and prior.get('time_reference') not in (None,value['time_reference'])):
+                raise ValueError('Conflicting time references for the same interpreted source window')
+    base={'kind':'user','turn':store.turn,'span':frame.text,'interpretation':clone(value),
+          'semantic_status':'model_interpretation_not_intent_proof',
+          'verified_facts':['source_parent','record','metadata','literal_window','tool_time_reference']}
+    sources.update({k:{**clone(base),'field':k,**({'field_reference':clone(reference)} if k=='channels' and reference else {})}
+                    for k in (object_key,*pair)})
+    return sources
+
+
+def ground_bound_scope(store, name, scope, record, resolution, inherited, channel_reference=None, interpretation=None):
     """Reuse literal grounding, adding coherent same-object multi-window facts.
 
     The old admission checks whole scientific scopes and inherited originals.
@@ -337,6 +408,7 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited, channe
     context = store.contexts[record]
     if channel_reference is not None:
         sources.update(resolve_channel_reference(store, scope, record, resolution, channel_reference))
+    explained=interpreted_sources(store,name,scope,record,resolution,interpretation) if interpretation else {}
     channels = set(context.record.channel_names)
     labels = {e.label for e in context.record.events.events} if context.record.events else set()
     pair = ("tmin", "tmax") if family == "event" else ("start", "end")
@@ -407,6 +479,7 @@ def ground_bound_scope(store, name, scope, record, resolution, inherited, channe
                 if key not in sources:
                     sources[key] = {"kind": "user", "turn": store.turn, "span": frame.text}
             break
+    sources.update(explained)
     for source in sources.values():
         if source.get("kind") != "user" or source.get("turn") != store.turn:
             continue

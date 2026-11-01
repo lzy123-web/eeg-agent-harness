@@ -20,6 +20,25 @@ def repaired_actions(case):
     return actions
 
 
+def interpreted_actions(case):
+    """Current controlled interpretation fixture, never sent by live driver.
+
+    Natural requests, scopes, tool sequence and evaluation stay unchanged.
+    This demonstrates executable interpretation, not model interpretation skill.
+    """
+    actions=controlled_steps(case)
+    if case=='T04':
+        actions[0][0][1]['nodes'][0]['required_outputs'][1]['interpretation']={
+            'source_span':'记录B的同名通道只分析2到4秒的RMS','time_reference':'record_absolute',
+            'channel_reference':{'source_span':'记录A的SYNTH-C1只分析0到2秒的RMS',
+                                 'target_span':'记录B的同名通道只分析2到4秒的RMS'}}
+    if case=='T07':
+        actions[0][0][1]['nodes'][1]['required_outputs'][0]['interpretation']={
+            'source_span':'并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率',
+            'time_reference':'event_relative','measurement_channels':['SYNTH-C2']}
+    return actions
+
+
 def compact_access(log):
     return [{**{k:v for k,v in row.items() if k not in {'dependencies'}},
         **({'presented_payload_sha256':hashlib.sha256(json.dumps(row['dependencies'],sort_keys=True).encode()).hexdigest(),

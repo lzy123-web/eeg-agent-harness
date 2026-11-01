@@ -331,7 +331,7 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
                 return "ARTIFACT_IDENTITY_MISMATCH"
         return None  # execute_action has admitted this exact scientific object.
 
-    def execute_action(self,name,arguments,record=None,request_span=None,inherit_result=None,recompute=False,channel_reference=None):
+    def execute_action(self,name,arguments,record=None,request_span=None,inherit_result=None,recompute=False,channel_reference=None,interpretation=None):
         from .scientific_request_binding import resolve_action_source, ground_bound_scope
         if name not in NUMERIC_TOOLS or not isinstance(arguments,dict) or type(recompute) is not bool:
             return self._error("INVALID_ACTION","Use an enabled numerical tool and ordinary parameters")
@@ -362,6 +362,9 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
         resolution = resolve_action_source(self,name,args,record,request_span,inherited=inherited)
         if not resolution.ok:
             return self._pending(name,args,resolution.code,resolution.message,confirmed_arguments={})
+        if interpretation and (not isinstance(interpretation,dict) or interpretation.get('time_reference') != resolution.time_reference):
+            return self._pending(name,args,'INVALID_SCIENTIFIC_INTERPRETATION',
+                'Task interpretation conflicts with the actual tool time reference',confirmed_arguments={})
         if name in METADATA:
             scope,sources = clone(args),{}
         elif context.executor.registry.get(name).consumes_artifact:
@@ -380,9 +383,9 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             if invalid:
                 return self._pending(name,args,invalid["code"],invalid["message"])
             try:
-                sources,missing,ungrounded = ground_bound_scope(self,name,scope,record,resolution,inherited,channel_reference)
+                sources,missing,ungrounded = ground_bound_scope(self,name,scope,record,resolution,inherited,channel_reference,interpretation)
             except ValueError as exc:
-                return self._pending(name,args,"INVALID_CHANNEL_REFERENCE",str(exc),confirmed_arguments={})
+                return self._pending(name,args,"INVALID_SCIENTIFIC_INTERPRETATION" if interpretation else "INVALID_CHANNEL_REFERENCE",str(exc),confirmed_arguments={})
             if missing:
                 return self._pending(name,args,"MISSING_SCIENTIFIC_PARAMETER","Ask only for missing scientific values; independent work can continue",
                     missing_fields=missing,confirmed_arguments={k:clone(v) for k,v in args.items() if k in sources})

@@ -29,6 +29,7 @@ dependencies表示依赖；input_refs明确依赖哪个key、需要哪些字段�
 所有方案都能read_dependency/read_result或restore_task，精确数值读取与过程恢复不同。摘要足够则不强迫多读；要核对过程再继续时恢复原行动观察，不能把索引当数值。
 check_deliveries可读所有方案相同的交付诊断。明确质量/计数条件须依据实际结果判断；辅助尝试失败不等于科学交付失败。缺参可wait_node并推进独立节点，最后真实澄清或partial。
 不要删除用户要求或降低科学条件以完成任务。任务完成不证明原自然请求无遗漏。finish_task必须给原用户所需实际数值、单位、来源/范围、新旧版本及未完成事项；不作诊断或无依据的因果解释。
+混合对象或字段省略时，在交付项interpretation记录对完整原文的解释：source_span完整父句、time_reference、measurement_channels，必要时range_span定位该窗口，channel_reference只引用通道名称。事件测量通道不改变相对时基；没有给出的窗口不得填造。程序核验实际来源/元数据/工具兼容，不替你证明语义正确；歧义要澄清。
 """
 
 
@@ -213,6 +214,8 @@ class TaskPlanController(ScientificMemoryController):
         if not entry or not self.store._binding_valid(entry):
             return False
         if entry.record != d.record or entry.capability != d.capability:
+            return False
+        if d.interpretation and d.interpretation['time_reference'] != entry.evidence['analysis_configuration']['time_reference']:
             return False
         scope = self._effective_scope(d)
         if any(canonical_scope(entry.parameters).get(k) != v for k,v in canonical_scope(scope).items()):
@@ -413,9 +416,13 @@ class TaskPlanController(ScientificMemoryController):
         # Original request parents expose actual source boundaries, not a gold
         # plan. A field reference cannot crop away record/object ownership.
         from .scientific_request_binding import _request_frames
+        known_channels={c for r in self.store.records.values() for c in r.channel_names}
+        known_labels={e.label for r in self.store.records.values() if r.events for e in r.events.events}
         payload["scientific_source_frames"] = [
-            {"span":f.text,"records":list(f.records),"object_family":f.object_family,
-             "object_names":list(f.object_names),"start":f.start,"end":f.end}
+            {"span":f.text,"records":list(f.records),"start":f.start,"end":f.end,
+             "literal_metadata":{"channels":sorted(c for c in known_channels if self.store._contains(f.text,c)),
+                                 "event_labels":sorted(l for l in known_labels if self.store._contains(f.text,l))},
+             "role_status":"not_interpreted_by_literal_locator"}
             for f in _request_frames(self.store,self.requests[-1])]
         payload["phase"] = "local_execution" if node else "plan_or_final_delivery"
         payload["current_plan_task"] = node.task_id if node else None
@@ -524,6 +531,10 @@ class TaskPlanController(ScientificMemoryController):
                         return self.store._error("AMBIGUOUS_DELIVERY","Select the exact current output scope/record; no guessed ordering")
                 if selected:
                     args.setdefault("record",selected.record)
+                    if selected.interpretation:
+                        if 'interpretation' in args and args['interpretation'] != selected.interpretation:
+                            return self.store._error('INTERPRETATION_CONFLICT','Revise the task interpretation before changing its meaning')
+                        args['interpretation'] = clone(selected.interpretation)
                     spec = self.store.contexts[selected.record].executor.registry.get(name)
                     if not spec.consumes_artifact:
                         for k,v in self._effective_scope(selected).items():args.setdefault(k,clone(v))

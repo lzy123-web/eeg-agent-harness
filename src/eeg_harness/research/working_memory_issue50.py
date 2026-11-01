@@ -176,6 +176,7 @@ class Issue50Client:
                 raise LLMServiceError("STAGE_BUDGET_EXHAUSTED", "Issue50 actual-wire reservation exceeds the independent stage budget")
             _append(self.ledger, {"event": "reserved", "request_id": ident, "context": dict(self.context),
                 "input_bytes": payload_bytes, "output_cap": raw.max_tokens, "reserved_tokens": reserve,
+                **(self.reservation_metadata(reserve) if hasattr(self, 'reservation_metadata') else {}),
                 "final_only": self.final_only, "timestamp_utc": time.time()})
         start = time.perf_counter()
         try:

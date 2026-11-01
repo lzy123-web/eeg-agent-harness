@@ -92,6 +92,21 @@ def _rule(value):
     return _copy(result)
 
 
+def _interpretation(value):
+    if value == {}:return {}
+    _object(value, {'source_span','time_reference','measurement_channels','range_span','channel_reference'},
+            {'source_span','time_reference'}, 'interpretation')
+    _text(value['source_span'],'interpretation.source_span',4000)
+    if value['time_reference'] not in {'record_absolute','event_relative'}:
+        raise ValueError('Unknown time reference')
+    if 'measurement_channels' in value:_strings(value['measurement_channels'],'measurement_channels')
+    if 'range_span' in value:_text(value['range_span'],'range_span',4000)
+    if 'channel_reference' in value:
+        _object(value['channel_reference'],{'source_span','target_span'},{'source_span','target_span'},'channel_reference')
+        for span in value['channel_reference'].values():_text(span,'reference span',4000)
+    return _copy(value)
+
+
 @dataclass
 class DeliveryItem:
     key: str
@@ -101,10 +116,11 @@ class DeliveryItem:
     input_refs: list[InputRef] = field(default_factory=list)
     required: bool = True
     acceptance_rule: list[dict] = field(default_factory=list)
+    interpretation: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, value):
-        _object(value, {"key", "capability", "record", "scope", "input_refs", "required", "acceptance_rule"},
+        _object(value, {"key", "capability", "record", "scope", "input_refs", "required", "acceptance_rule", "interpretation"},
                 {"key", "capability", "record", "scope"}, "DeliveryItem")
         if not isinstance(value["scope"], dict) or type(value.get("required", True)) is not bool:
             raise ValueError("DeliveryItem scope must be an object and required must be boolean")
@@ -118,12 +134,14 @@ class DeliveryItem:
         return cls(_text(value["key"], "DeliveryItem.key", 100),
                    _text(value["capability"], "DeliveryItem.capability", 100),
                    _text(value["record"], "DeliveryItem.record", 100), _copy(value["scope"]),
-                   parsed_refs, value.get("required", True), [_rule(r) for r in rules])
+                   parsed_refs, value.get("required", True), [_rule(r) for r in rules],
+                   _interpretation(value.get('interpretation', {})))
 
     def to_dict(self):
         return _copy({"key": self.key, "capability": self.capability, "record": self.record,
             "scope": self.scope, "input_refs": [r.to_dict() for r in self.input_refs],
-            "required": self.required, "acceptance_rule": self.acceptance_rule})
+            "required": self.required, "acceptance_rule": self.acceptance_rule,
+            **({'interpretation':self.interpretation} if self.interpretation else {})})
 
 
 @dataclass
@@ -422,6 +440,12 @@ INPUT_REF_SCHEMA = {"type": "object", "properties": {
 DELIVERY_SCHEMA = {"type": "object", "properties": {
     "key": _STRING, "capability": _STRING, "record": _STRING,
     "scope": {"type": "object", "description": "Scientific computation conditions; missing values remain missing, never inferred from the plan."},
+    "interpretation": {"type":"object", "description":"Auditable semantic interpretation, not EEG facts. Use for mixed objects or field references; preserve the complete source clause. Measurement channels do not choose the time base.",
+        "properties":{"source_span":_STRING,"time_reference":{"type":"string","enum":["record_absolute","event_relative"]},
+            "measurement_channels":{"type":"array","items":_STRING},"range_span":_STRING,
+            "channel_reference":{"type":"object","properties":{"source_span":_STRING,"target_span":_STRING},
+                "required":["source_span","target_span"],"additionalProperties":False}},
+        "required":["source_span","time_reference"],"additionalProperties":False},
     "input_refs": {"type": "array", "items": INPUT_REF_SCHEMA},
     "required": {"type": "boolean"},
     "acceptance_rule": {"type": "array", "items": {"type": "object", "properties": {

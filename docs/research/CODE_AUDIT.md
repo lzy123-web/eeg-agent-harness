@@ -1,3 +1,11 @@
+## Issue55 职责收敛补审（2026-11-01；评论6553986150）
+
+- 真实调用链未新增系统：TaskPlanEEGAgent/DeliveryItem.interpretation → ScientificTaskStore.execute_action → scientific_request_binding.interpreted_sources/ground_bound_scope → 原Executor → TaskEntry/交付复用/证据读取。未增加科学工具、模型、数据集或全局EEG状态。
+- owned_intervals只在单一元数据角色内定位字面范围，混合角色不按最近名称猜时基。完整父句与数值/元数据可确定核验；语义解释标记model_interpretation_not_intent_proof，不冒充原文意图事实。字段引用只传通道名，目标记录/窗/工件独立检查，目标冲突/多候选拒绝。
+- 旧底层输入契约/依赖沿用原工具注册表与合成记录，Executor无数值算法改动；DeliveryItem解释为可选字段，旧单一对象接口保留，旧混合父句未提供解释可能需澄清（T07裸动作partial/1次证据保留）。
+- live.scientific_guard从gold精确匹配改为实际来源、时基、scope和数值核验；gold只评价原请求。MoneyBudgetClient仍复用Issue50原子预约/journal/final lease，每笔固化价格和runtime；异常不释放，缺历史依据停机，冻结实际thinking/timeout/端点等。
+- 可复用证据：693项回归（678通过、15资源跳过）、24路径111个数值核验、15项live专项。局限：自洽但错误语义未被程序证明、真实自主/回答未验证、历史费用缺依据不能自动恢复为可付费状态。见[设计/原始哈希/复现](EEG_WORKING_MEMORY_ISSUE55_RESPONSIBILITIES.md)。以下是旧版本审计，不代表当前语义职责。
+
 ## Issue55 主审纠偏补审（2026-11-01；历史记录保留）
 
 - 复用链仍为 TaskPlanEEGAgent → ScientificTaskStore → scientific_request_binding → 原 ExecutionContext/Executor → TaskEntry/交付核验/依赖读取。首次反例证明旧“事件+通道+单窗口”放行导致真实错误事件切段。

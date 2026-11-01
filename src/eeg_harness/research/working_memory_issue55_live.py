@@ -27,6 +27,12 @@ GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-65
 LIMITS={'development':(48,2000000),'confirmation':(96,4000000)}
 
 
+def actual_settings(raw):
+    return {'endpoint_sha256':hashlib.sha256(getattr(raw,'base_url','TEST-ONLY').encode()).hexdigest(),
+        'model':raw.model,'thinking':getattr(raw,'thinking','disabled'),'timeout':raw.timeout,
+        'max_output_tokens':raw.max_tokens,'max_retries':raw.max_retries}
+
+
 def candidate_manifest():
     """Hash actual code, prompts, protocol and evaluator, including dirty edits."""
     paths=sorted(list((PROJECT_ROOT/'src').rglob('*.py'))+list((PROJECT_ROOT/'config').rglob('*.json')))
@@ -63,7 +69,7 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only):
         if len(confirmations)>=len(order) or case['id']!=order[len(confirmations)]:
             raise StageBudgetExhausted('Confirmation is ordered, one-shot, including failed/interrupted attempts')
         freeze={'source':manifest['source']['sha256'],'data':manifest['data'],
-                'protocol':manifest['protocol_sha256'],'attestation':attestation}
+                'protocol':manifest['protocol_sha256'],'attestation':attestation,'runtime':manifest['runtime']}
         previous=next((r['freeze'] for r in rows if r.get('event')=='confirmation_frozen'),None)
         if previous is not None and previous!=freeze:
             raise StageBudgetExhausted('Code/data/protocol/model/rates changed after freeze')
@@ -79,7 +85,8 @@ def money_totals(rows, rate):
     starts={r['request_id']:r for r in rows if r.get('event')=='reserved'}
     settlements={r['request_id']:r for r in rows if r.get('event')=='money_settled'}
     return sum((Decimal(settlements[i]['charged_usd']) if i in settlements else
-                Decimal(r['reserved_tokens'])*rate/1000000) for i,r in starts.items())
+                Decimal(r['reserved_usd']) if 'reserved_usd' in r else
+                Decimal(r['reserved_tokens'])*max(rate,Decimal(str(rows[0].get('rate_ceiling',rate))))/1000000) for i,r in starts.items())
 
 
 def validate_attestation(a, raw, test_only):
@@ -91,7 +98,10 @@ def validate_attestation(a, raw, test_only):
         rate=Decimal(str(a.get(k)))
         if not rate.is_finite() or rate < 0:
             raise ValueError('Finite nonnegative verified rates required')
-    if not a.get('rate_source') or not a.get('accepted_response_models') or raw.model != a.get('model'):
+    models=a.get('accepted_response_models')
+    if (not isinstance(a.get('rate_source'),str) or not a['rate_source'].strip() or
+            not isinstance(models,list) or not models or any(not isinstance(m,str) or not m for m in models) or
+            raw.model != a.get('model')):
         raise StageBudgetExhausted('Pin actual model, response IDs and rate evidence')
     if not test_only:
         if raw.model not in {'deepseek-flash','deepseek-chat'}:
@@ -118,6 +128,10 @@ class MoneyBudgetClient(Issue50Client):
         self.rate=max(Decimal(str(attestation[k])) for k in ('input_usd_per_million','output_usd_per_million'))
         self.context={'phase':phase,'arm':'C'}
         self.request_journal=Path(request_journal)
+        self.runtime=actual_settings(journal.client)
+        self.pricing={k:deepcopy(attestation[k]) for k in ('model','accepted_response_models',
+            'input_usd_per_million','output_usd_per_million','rate_source')}
+        self.pricing['endpoint_sha256']=self.runtime['endpoint_sha256']
         self.final_only,self.delivery_checkpoint,self._lease=False,None,None
         rows=_rows(self.ledger)
         if not rows or rows[0].get('stage')!='issue55' or rows[0].get('test_only',False)!=test_only:
@@ -149,6 +163,40 @@ class MoneyBudgetClient(Issue50Client):
                         not 0<=row['total_tokens']<=reservations[row['request_id']]['reserved_tokens']):
                     raise StageBudgetExhausted('Invalid historical token usage')
         self.scientific_guard=None
+        self.settle_pending()
+
+    def reservation_metadata(self,tokens):
+        return {'pricing':deepcopy(self.pricing),'reserved_usd':str(Decimal(tokens)*self.rate/1000000),
+                'runtime':deepcopy(self.runtime)}
+
+    def settle_pending(self):
+        """Recover using each transaction's original tariff, never today's."""
+        with _ledger_lock(self.ledger):
+            rows=_rows(self.ledger)
+            settled={r['request_id'] for r in rows if r.get('event')=='money_settled'}
+            ends={r['request_id']:r for r in rows if r.get('event') in {'received','failed'}}
+            for start in [r for r in rows if r.get('event')=='reserved' and r['request_id'] not in settled]:
+                pricing=start.get('pricing')
+                if not pricing or 'reserved_usd' not in start:
+                    if not any(r.get('event')=='safety_stop' and r.get('request_id')==start['request_id'] for r in rows):
+                        _append(self.ledger,{'event':'safety_stop','request_id':start['request_id'],
+                            'reason':'historical_pricing_missing','reconciliation_required':True})
+                    continue  # Original reservation stays; do not invent a fee.
+                end=ends.get(start['request_id'],{})
+                usage=end.get('usage',{})
+                inp,out=usage.get('prompt_tokens'),usage.get('completion_tokens')
+                usage_valid=(type(inp) is int and type(out) is int and inp>=0 and 0<=out<=start['output_cap'] and
+                    inp+out==end.get('total_tokens') and inp+out<=start['reserved_tokens'])
+                model_valid=end.get('response_model_reported') in pricing['accepted_response_models']
+                valid=usage_valid and model_valid and end.get('event')=='received'
+                cost=(Decimal(inp)*Decimal(str(pricing['input_usd_per_million']))+
+                    Decimal(out)*Decimal(str(pricing['output_usd_per_million'])))/1000000 if valid else Decimal(start['reserved_usd'])
+                _append(self.ledger,{'event':'money_settled','request_id':start['request_id'],
+                    'charged_usd':str(cost),'basis':'usage_noncache_price_upper_bound' if valid else 'conservative_reservation',
+                    'pricing':pricing,'billing_receipt':False,'reconciliation_required':not valid})
+                if not valid:
+                    _append(self.ledger,{'event':'safety_stop','request_id':start['request_id'],
+                        'reason':'unverified_response_or_interruption','reconciliation_required':True})
 
     def _fits(self,rows,calls,tokens):
         if any(r.get('event') in {'stage_closed','safety_stop'} for r in rows):return False
@@ -160,6 +208,9 @@ class MoneyBudgetClient(Issue50Client):
                 money_totals(rows,self.rate)+Decimal(tokens)*self.rate/1000000<=Decimal('3'))
 
     def complete(self,messages,tools,tool_choice='auto'):
+        self.settle_pending()
+        if actual_settings(self.client.client)!=self.runtime:
+            raise LLMServiceError('CONFIGURATION_CHANGED','Actual client settings differ from the reserved/frozen settings')
         if self.scientific_guard is not None:
             self.scientific_guard()
         try:
@@ -167,24 +218,7 @@ class MoneyBudgetClient(Issue50Client):
         finally:
             # Also accounts failed calls; interruption before this point leaves
             # a conservative reserved transaction in the persistent ledger.
-            with _ledger_lock(self.ledger):
-                rows=_rows(self.ledger)
-                settled={r['request_id'] for r in rows if r.get('event')=='money_settled'}
-                ends={r['request_id']:r for r in rows if r.get('event') in {'received','failed'}}
-                for start in [r for r in rows if r.get('event')=='reserved' and r['request_id'] not in settled]:
-                    end=ends.get(start['request_id'],{})
-                    usage=end.get('usage',{})
-                    inp,out=usage.get('prompt_tokens'),usage.get('completion_tokens')
-                    valid=(type(inp) is int and type(out) is int and inp>=0 and 0<=out<=2200 and
-                           inp+out==end.get('total_tokens') and inp+out<=start['reserved_tokens'])
-                    cost=(Decimal(inp)*Decimal(str(self.attestation['input_usd_per_million']))+
-                          Decimal(out)*Decimal(str(self.attestation['output_usd_per_million'])))/1000000 if valid else Decimal(start['reserved_tokens'])*self.rate/1000000
-                    _append(self.ledger,{'event':'money_settled','request_id':start['request_id'],
-                        'charged_usd':str(cost),'basis':'usage_noncache_price_upper_bound' if valid else 'conservative_reservation',
-                        'billing_receipt':False})
-                    if end.get('event')=='received' and (not valid and usage or
-                        end.get('response_model_reported') not in self.attestation['accepted_response_models']):
-                        _append(self.ledger,{'event':'safety_stop','reason':'invalid_usage_or_unexpected_model'})
+            self.settle_pending()
         if any(r.get('event')=='safety_stop' for r in _rows(self.ledger)):
             raise LLMServiceError('STAGE_BUDGET_EXHAUSTED','Unexpected response model or invalid usage; stop and audit')
         return response
@@ -200,12 +234,13 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
         if output.exists():raise FileExistsError(output)
         journal=JournaledBudgetClient(raw,output/'responses.jsonl',max_requests=144,max_total_tokens=6000000)
         client=MoneyBudgetClient(journal,ledger,attestation,phase,request_journal=output/'requests.jsonl',test_only=test_only)
+        client.settle_pending()
         records=records_for() if phase=='confirmation' else development_records()
         agent=TaskPlanEEGAgent(client,records,arm='C',session_id='issue55-session',**protocol()['agent_settings'])
         manifest={'phase':phase,'case':case['id'],'test_only':test_only,
             'candidate':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
             'protocol_sha256':hashlib.sha256(SPEC.read_bytes()).hexdigest(),
-            'data':data_manifest(records),'attestation':attestation,'source':candidate_manifest()}
+            'data':data_manifest(records),'attestation':attestation,'source':candidate_manifest(),'runtime':actual_settings(raw)}
         admit_session(Path(ledger),case,phase,manifest,attestation,test_only)
         output.mkdir(parents=True)
         write_new(output/'manifest.json',manifest)
@@ -214,15 +249,17 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
         def scientific_guard():
             store=agent.working_memory.store
             problems=[{'kind':'numeric_oracle','row':r} for r in audit_entries(store) if not r['passed']]
-            obligations=case.get('evaluation_only',{}).get('obligations',[])
-            if obligations:
-                allowed=[o for o in obligations if o['turn']<=client.context.get('turn',0)]
-                for entry in store.entries:
-                    # Intermediate epochs may implement a requested event result.
-                    if not any(entry.record==o['record'] and entry.parameters==o['scope'] and
-                        (entry.capability==o['capability'] or entry.capability in {'create_epochs','epoch_summary'} and 'labels' in o['scope'])
-                        for o in allowed):
-                        problems.append({'kind':'unexpected_executed_scope','result_id':entry.task_id})
+            # Gold measures delivery, not which route is allowed. Observe all
+            # actual entries, including metadata and intermediate artifacts.
+            for entry in store.entries:
+                spec=store.contexts[entry.record].executor.registry.get(entry.capability)
+                expected_time='event_relative' if spec.consumes_artifact or spec.produces_artifact else 'record_absolute'
+                observation=entry.tool_trace[-1]
+                actual_scope=store._scientific_scope(entry.capability,observation['request']['arguments'],store.contexts[entry.record])
+                if (not store._binding_valid(entry) or entry.evidence['source']!=store.records[entry.record].source or
+                    entry.evidence['analysis_configuration']['time_reference']!=expected_time or
+                    actual_scope!=entry.parameters or observation['record']!=entry.record):
+                    problems.append({'kind':'actual_binding_mismatch','result_id':entry.task_id})
             if problems:
                 with _ledger_lock(Path(ledger)):
                     _append(Path(ledger),{'event':'safety_stop','reason':'scientific_execution_mismatch','problems':problems})

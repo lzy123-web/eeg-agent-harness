@@ -5,6 +5,7 @@ from eeg_harness.task_plan_agent import TaskPlanEEGAgent
 from eeg_harness.events import EEGEvent, EventSet
 from eeg_harness.research.task_memory import synthetic_records
 from eeg_harness.research.working_memory_issue52 import run_case, controlled_steps
+from eeg_harness.research.working_memory_issue55_repair import interpreted_actions
 from test_task_plan_agent import InspectableScriptedClient, node, delivery
 from test_working_memory import finish
 
@@ -22,9 +23,9 @@ class ScopeRepairTest(unittest.TestCase):
             self.assertEqual(row['metrics']['numeric_executions'],1)
             self.assertTrue(all(r['passed'] for r in row['oracle']))
 
-    def test_original_t07_same_actions_both_turns_and_original_artifact(self):
+    def test_original_t07_interpreted_plan_same_tools_and_original_artifact(self):
         for arm in ARMS:
-            row=run_case('T07',arm)
+            row=run_case('T07',arm,actions=interpreted_actions('T07'))
             self.assertEqual(row['metrics']['stop_reasons'],['completed','completed'])
             self.assertEqual(row['metrics']['numeric_executions'],4)
             self.assertTrue(all(r['passed'] for r in row['oracle']))
@@ -57,9 +58,12 @@ class ScopeRepairTest(unittest.TestCase):
             for tool,scope,expected in [
                 ('create_epochs',{'labels':['stimulus'],'tmin':2,'tmax':4},0),
                 ('amplitude',{'channels':['SYNTH-C1'],'start':2,'end':4},1)]:
-                client=InspectableScriptedClient([('plan_tasks',{'nodes':[node('x',[delivery('o',tool,scope)])]}),
-                    (tool,{}),('finish_task',{'status':'partial','answer':'实际结果','unresolved':['未提供事件窗']})])
-                agent=TaskPlanEEGAgent(client,synthetic_records(),arm=arm)
+                actions=[('plan_tasks',{'nodes':[node('x',[delivery('o',tool,scope)])]}),
+                    (tool,{}),('finish_task',{'status':'partial','answer':'实际结果','unresolved':['未提供事件窗']})]
+                agent=TaskPlanEEGAgent(InspectableScriptedClient(actions),synthetic_records(),arm=arm)
+                actions[0][1]['nodes'][0]['required_outputs'][0]['interpretation']={
+                    'source_span':'记录A先查看stimulus事件信息并计算SYNTH-C1在2到4秒的RMS',
+                    'time_reference':'record_absolute','measurement_channels':['SYNTH-C1']}
                 agent.run('记录A先查看stimulus事件信息并计算SYNTH-C1在2到4秒的RMS。')
                 self.assertEqual(sum(len(c.trace.events) for c in agent.working_memory.store.contexts.values()),expected)
 
@@ -72,9 +76,11 @@ class ScopeRepairTest(unittest.TestCase):
                          '记录B计算Lead-Y在1.5到3.5秒的RMS并查看pulse事件。'):
                 for tool,scope,count in [('create_epochs',{'labels':['pulse'],'tmin':1.5,'tmax':3.5},0),
                                         ('amplitude',{'channels':['Lead-Y'],'start':1.5,'end':3.5},1)]:
-                    client=InspectableScriptedClient([('plan_tasks',{'nodes':[node('x',[delivery('o',tool,scope,record='B')])]}),
-                        (tool,{}),finish('partial',unresolved=['停止测试'])])
-                    agent=TaskPlanEEGAgent(client,records,arm=arm)
+                    actions=[('plan_tasks',{'nodes':[node('x',[delivery('o',tool,scope,record='B')])]}),
+                        (tool,{}),finish('partial',unresolved=['停止测试'])]
+                    agent=TaskPlanEEGAgent(InspectableScriptedClient(actions),records,arm=arm)
+                    actions[0][1]['nodes'][0]['required_outputs'][0]['interpretation']={
+                        'source_span':text.rstrip('。'),'time_reference':'record_absolute','measurement_channels':['Lead-Y']}
                     agent.run(text)
                     self.assertEqual(sum(len(c.trace.events) for c in agent.working_memory.store.contexts.values()),count)
 
