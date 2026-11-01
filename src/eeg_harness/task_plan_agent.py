@@ -92,7 +92,7 @@ class TaskPlanController(ScientificMemoryController):
             control("plan_tasks", "Propose scientific subtask DAG from the user request. No runtime facts or result IDs may be invented.", {
                 "nodes": {"type": "array", "minItems": 1, "maxItems": 12,
                           "items": clone(TASK_SPEC_SCHEMA)}}, ["nodes"]),
-            control("revise_plan", "Fill missing conditions or legitimately revise this stable task; preserve prior versions and invalidate affected dependents. Never drop user obligations.", {
+            control("revise_plan", "Fill missing conditions or repair required_outputs[].interpretation on this stable task; preserve versions and invalidate affected dependents. Never drop user obligations.", {
                 "task_id": STRING, "updates": {"type": "object"}, "reason": STRING}, ["task_id", "updates", "reason"]),
             control("select_task", "Choose a ready independent node; no fabricated dependency satisfaction.", {"task_id": STRING}, ["task_id"]),
             control("complete_node", "Declare scientific acceptance after inspecting all real required results. Does not hide missing outputs.", {"task_id": STRING}, ["task_id"]),
@@ -103,16 +103,6 @@ class TaskPlanController(ScientificMemoryController):
                 "fields": {"type":"array","maxItems":4,"items":{"type":"array","items":{"type":["string","integer"]}}}}, ["task_id","key","level"]),
         ]
         return controls
-
-    def tool_definitions(self):
-        tools = super().tool_definitions()
-        for tool in tools:
-            if tool['function']['name'] in NUMERIC_TOOLS and 'channels' in tool['function']['parameters']['properties']:
-                tool['function']['parameters']['properties']['channel_reference'] = {
-                    'type':'object', 'properties':{'source_span':STRING,'target_span':STRING},
-                    'required':['source_span','target_span'],'additionalProperties':False,
-                    'description':'Channel reference locator, never selection authority. Supply complete original source/target clauses; target must confirm literal channel names. Copies no record/window/artifact. Unconfirmed or ambiguous selection requires clarification.'}
-        return tools
 
     def _goal(self, node):
         ident = self.node_goals.get((node.task_id, node.revision))
@@ -532,6 +522,9 @@ class TaskPlanController(ScientificMemoryController):
                 if selected:
                     args.setdefault("record",selected.record)
                     if selected.interpretation:
+                        if 'channel_reference' in args:
+                            return self.store._error('INTERPRETATION_CONFLICT',
+                                'Numeric actions cannot revise planned field relations. Use revise_plan on required_outputs[].interpretation.channel_reference')
                         if 'interpretation' in args and args['interpretation'] != selected.interpretation:
                             return self.store._error('INTERPRETATION_CONFLICT','Revise the task interpretation before changing its meaning')
                         args['interpretation'] = clone(selected.interpretation)
@@ -558,6 +551,10 @@ class TaskPlanController(ScientificMemoryController):
                     if args[f"{side}_result"]!=ident or args[f"{side}_path"]!=ref.fields[0]:
                         return self.store._error("COMPARISON_DEPENDENCY_MISMATCH","Use the declared actual operands and fields")
             result = super()._dispatch(ToolRequest(name,args,request.request_id))
+            if result.get('code')=='INVALID_SCIENTIFIC_INTERPRETATION':
+                result['recovery']={'tool':'revise_plan','task_id':node.task_id,
+                    'field':'required_outputs[].interpretation',
+                    'message':'Repair the source/field relation in the planned delivery, keeping its required scope. Numeric action arguments cannot override the plan; genuine ambiguity still needs clarification.'}
             node.attempts.append({"name":name,"arguments":clone(args),"status":result.get("status"),"code":result.get("code")})
             self._sync_outputs(node,result)
             # An attempted handle is not evidence of successful consumption.

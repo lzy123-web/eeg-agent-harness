@@ -336,8 +336,8 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation):
     channels=set(context.record.channel_names)
     labels={e.label for e in context.record.events.events} if context.record.events else set()
     measurement=set(value.get('measurement_channels',[]))
-    if not measurement.issubset(channels) or any(not store._contains(frame.text,c) for c in measurement):
-        raise ValueError('Measurement dimensions need actual source names and target metadata')
+    if not measurement.issubset(channels):
+        raise ValueError('Measurement dimensions are absent from target metadata')
     object_key='labels' if resolution.time_reference=='event_relative' else 'channels'
     available=labels if object_key=='labels' else channels
     selected=set(scope.get(object_key,[]))
@@ -350,7 +350,9 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation):
             raise ValueError('Field reference applies only to target channel names')
         sources.update(resolve_channel_reference(store,scope,record,resolution,reference,interpreted=True))
     elif any(not store._contains(frame.text,x) for x in selected):
-        raise ValueError('Object values must be literal or use an explicit field reference')
+        raise ValueError('Object values must be literal or use interpretation.channel_reference with complete source/target clauses')
+    if any(not store._contains(frame.text,c) for c in measurement) and not (reference and measurement.issubset(selected)):
+        raise ValueError('Measurement dimensions need literal source names or the same verified channel field reference')
     pair=('tmin','tmax') if object_key=='labels' else ('start','end')
     if not all(k in scope for k in pair):
         # An interpretable object may still lack scientific parameters. Keep

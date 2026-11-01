@@ -23,6 +23,39 @@ def run_interpreted(text,tool,scope,meaning,arm='C',records=None,record='A'):
 
 
 class InterpretationTest(unittest.TestCase):
+    def test_referenced_measurement_dimension_uses_same_verified_field_relation(self):
+        source='记录A SYNTH-C1在0到2秒RMS';target='记录B沿用前述通道在2到4秒RMS'
+        meaning={'source_span':target,'time_reference':'record_absolute','measurement_channels':['SYNTH-C1'],
+                 'channel_reference':{'source_span':source,'target_span':target}}
+        scope={'channels':['SYNTH-C1'],'start':2,'end':4}
+        for arm in ARMS:
+            a,r=run_interpreted(source+'；'+target+'。','amplitude',scope,meaning,arm,record='B')
+            self.assertEqual(r.stop_reason,'completed');self.assertEqual(len(a.working_memory.store.entries),1)
+            bad=deepcopy(meaning);bad['measurement_channels']=['SYNTH-C2']
+            a,_=run_interpreted(source+'；'+target+'。','amplitude',scope,bad,arm,record='B')
+            self.assertFalse(a.working_memory.store.entries);self.assertFalse(a.working_memory.store.admitted_scopes)
+
+    def test_interpretation_error_recovers_by_plan_revision_not_action_override(self):
+        source='记录A SYNTH-C1在0到2秒RMS';target='记录B沿用前述通道在2到4秒RMS'
+        output=delivery('out','amplitude',{'channels':['SYNTH-C1'],'start':2,'end':4},record='B')
+        output['interpretation']={'source_span':target,'time_reference':'record_absolute','measurement_channels':['SYNTH-C1']}
+        fixed=deepcopy(output);ref={'source_span':source,'target_span':target}
+        fixed['interpretation']['channel_reference']=ref
+        for arm in ARMS:
+            actions=[('plan_tasks',{'nodes':[node('x',[output])]}),('amplitude',{}),
+                ('amplitude',{'channel_reference':ref}),
+                ('revise_plan',{'task_id':'x','updates':{'required_outputs':[fixed]},'reason':'repair field relation'}),
+                ('amplitude',{}),finish()]
+            a=TaskPlanEEGAgent(InspectableScriptedClient(actions),synthetic_records(),arm=arm)
+            r=a.run(source+'；'+target+'。')
+            self.assertEqual(r.stop_reason,'completed');self.assertEqual(len(a.working_memory.store.entries),1)
+            results=[x['data'] for x in r.tool_results]
+            self.assertTrue(any(x.get('recovery',{}).get('tool')=='revise_plan' for x in results))
+            self.assertTrue(any(x.get('code')=='INTERPRETATION_CONFLICT' for x in results))
+            self.assertEqual(a.working_memory.graph.nodes['x'].revision,2)
+            numeric=[t for t in a.working_memory.tool_definitions() if t['function']['name']=='amplitude'][0]
+            self.assertNotIn('channel_reference',numeric['function']['parameters']['properties'])
+
     def test_original_t04_and_t07_requests_scored_without_user_rewording(self):
         for arm in ARMS:
             for ident,count in [('T04',2),('T07',4)]:
