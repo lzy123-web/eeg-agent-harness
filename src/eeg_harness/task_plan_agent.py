@@ -491,9 +491,13 @@ class TaskPlanController(ScientificMemoryController):
                 if old_item.required and (new_item is None or not new_item.required or
                     any(rule not in new_item.acceptance_rule for rule in old_item.acceptance_rule)):
                     return self.store._error("CANNOT_DROP_OBLIGATION","A replan cannot silently remove required results or weaken accepted scientific conditions")
+            # Graph revision validates no-op, limits and dependencies before
+            # committing. A rejected proposal must not suspend the live goal.
+            try:result = self.graph.revise(args["task_id"],args["updates"],args["reason"])
+            except (ValueError, TypeError) as exc:
+                return self.store._error("INVALID_PLAN_REVISION", str(exc)[:600])
             if self.store.active:
                 self.store.settle_active(["Plan revision preserves the previous version"])
-            result = self.graph.revise(args["task_id"],args["updates"],args["reason"])
             for ident in result["invalidated"]:
                 dependent = self.graph.nodes[ident]
                 self.node_goals.pop((ident,dependent.revision),None)

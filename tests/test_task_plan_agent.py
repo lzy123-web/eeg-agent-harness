@@ -6,7 +6,7 @@ expected task order or answer is part of the production Agent entry point.
 import json
 import unittest
 import traceback
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 import numpy as np
 
@@ -105,6 +105,30 @@ class TaskPlanAgentTest(unittest.TestCase):
                         "required_outputs": [bad_delivery]}, "reason": "Invalid test proposal"}),
                     check_revision], arm)
                 self.assert_completed(a.run("记录A SYNTH-C1在0到2秒的alpha功率。"))
+
+    def test_rejected_graph_revision_preserves_active_goal_and_original_version(self):
+        for arm in ARMS:
+            for updates in ({'goal':'科学目的 window'}, {'dependencies':['window']}):
+                with self.subTest(arm=arm,updates=updates):
+                    before={}
+                    def capture(messages):
+                        before['goal']=asdict(a.working_memory.store.active)
+                        before['plan']=a.working_memory.graph.to_dict()
+                        return 'revise_plan',{'task_id':'window','updates':updates,'reason':'TEST invalid revision'}
+                    def verify(messages):
+                        active=a.working_memory.store.active
+                        self.assertIsNotNone(active)
+                        # The rejected attempt is retained in the conversation;
+                        # scientific state must stay identical.
+                        self.assertEqual({k:v for k,v in asdict(active).items() if k!='exchanges'},
+                                         {k:v for k,v in before['goal'].items() if k!='exchanges'})
+                        self.assertEqual(a.working_memory.graph.to_dict(),before['plan'])
+                        data=json.loads(messages[-1]['content'])['data']
+                        self.assertEqual(data['code'],'INVALID_PLAN_REVISION')
+                        return 'psd',{}
+                    a=self.agent([('plan_tasks',{'nodes':[node('window',[delivery('power')])]}),
+                        ('select_task',{'task_id':'window'}),capture,verify,finish()],arm)
+                    self.assert_completed(a.run('记录A SYNTH-C1在0到2秒的alpha功率。'))
 
     def test_two_same_capability_windows_do_not_complete_after_one_result(self):
         for arm in ARMS:

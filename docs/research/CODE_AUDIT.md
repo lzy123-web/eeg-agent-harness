@@ -1,3 +1,9 @@
+## Issue55 真实诊断后补审（2026-11-01）
+
+原服务配置从同项目成功命令恢复，唯一正式账本按正面历史证据首次初始化；48笔真实请求/响应/预约/结算已逐笔对应。初始化新增入口不替代既有client/journal/final lease。实际轨迹促成小范围修订：measurement_channels使用同一已核验字段关系；计划解释错误回到原revise_plan；原RequirementValidationError与纯结构错误透传有限诊断；PlanGraph先验证无变化/循环等再settle活动目标，拒绝保持科学状态。live遵循原补窗协议，不要求特定状态标签或预展开epoch节点。工具算法/数据/gold不变。
+
+最终702项（687通过、15资源跳过）及24路径111数值核验通过；原T04自主开发复查通过，但T07失败、T03/T05未进入第二轮。开发48次用满，确认未准入；不存在待补API配置，自主恢复与跨轮能力仍不足。详见[全部轨迹、费用和局限](EEG_WORKING_MEMORY_ISSUE55_HISTORY_AND_LIVE.md)。下文保留原时点审计。
+
 ## Issue55 职责收敛补审（2026-11-01；评论6553986150）
 
 - 真实调用链未新增系统：TaskPlanEEGAgent/DeliveryItem.interpretation → ScientificTaskStore.execute_action → scientific_request_binding.interpreted_sources/ground_bound_scope → 原Executor → TaskEntry/交付复用/证据读取。未增加科学工具、模型、数据集或全局EEG状态。
