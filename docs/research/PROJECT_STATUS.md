@@ -1,3 +1,12 @@
+## Issue57 进行中：原账本追加授权衔接已离线验证（2026-11-01）
+
+- 从本地/远端16a8b87、干净工作区接续，读取Issue57及追加授权6559557879；无重复进程/锁。Issue56离线验收已由Issue57独立接受，以下历史原文保留。
+- 原预算路径新增幂等、前缀绑定的授权修订；开发累计144次/2M、总240次/6M/US$3，历史48次计入，确认池本阶段禁止。不删除旧失败/停止记录、不新建消费账本。
+- 临时TEST/Fake端到端与全量718项（703通过、15资源跳过）通过；compileall、pip check、diff check通过。已定位同机既有配置，无额外连通探测。首次真实任务前提交此衔接实现，再冻结实际候选；结果待续，不提前声明自主成功。
+- [紧凑协议与结果](EEG_WORKING_MEMORY_ISSUE57.md)。本次提交说明记录授权衔接；阶段最终提交/CI和累计消费在收尾更新。
+
+---
+
 ## Issue56 最新：两项来源一致性收尾已离线通过，待独立复核（2026-11-01）
 
 发布回执：本次收尾实现与证据提交`92dd83a192017ac8c597070dc9f54c226c4b8424`已正常推送，远端HEAD一致；[CI unit-tests #366](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41312685013)安装、编译和全回归均success。[Issue56完整回执](https://github.com/lzy123-web/eeg-agent-harness/issues/56#issuecomment-6558811385)、[Issue55简报](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6558814275)、[PR37简报](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6558816673)和PR正文均已更新；PR仍Draft，Issue保持open。此次仅文档回执提交，不改变已验源码/原协议/正式账本；本次有界整改结束，等待独立审查。
