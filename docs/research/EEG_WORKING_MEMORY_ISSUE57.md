@@ -84,3 +84,5 @@ T05缺fields诊断补齐后只做离线原提案重放；最终剩19次小于冻
 工程实施、有限真实开发、有界修订、可行完整复查与本地证据交付完成；科学目标部分通过，**整组完整会话验收未通过**。现无API配置/消费定位问题需要用户补充。未解决的是多轮复杂计划结构与字段选择稳定性、冗余控制读回、原工件质量续算与新旧比较的自主交付，以及既有自洽错误interpretation仍可能通过部分事实检查的语义边界。原安全反例/首次失败保留，负例回归未发现新增放行；没有声称安全零退化的普遍证明。
 
 下一最小决策是独立审查这些原始轨迹，决定是否接受当前复杂度或在后续明确范围内简化计划输入契约；不自动启动确认、第三批方案、真实三臂比较或额外付费。PR保持Draft，Issue55/57保持open。
+
+发布：实现/证据提交`534f1c2461956aea37a984cf29c6b7623286537d`普通push并核对远端一致，[CI #378](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41322369703) success；[Issue57统一回执](https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560142630)、[Issue55](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6560155937)、[Draft PR37](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6560156263)均已同步，历史正文保留。普通push一度TLS握手失败后原命令重试成功，未关闭TLS校验/改全局配置/强推。83份本机原件索引末次哈希全部一致。此发布回执单独文档提交，不改变候选、原协议或正式消费。

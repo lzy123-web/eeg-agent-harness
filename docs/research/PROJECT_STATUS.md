@@ -1,5 +1,7 @@
 ## Issue57 最终：工程阶段完成，完整科学目标部分通过，待独立审查（2026-11-01）
 
+发布回执：实现/证据提交`534f1c2461956aea37a984cf29c6b7623286537d`已正常推送且远端HEAD一致；[最终行为CI #376](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41321392219)与[证据提交CI #378](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41322369703)均success。[Issue57完整报告](https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560142630)、[Issue55简报](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6560155937)、[PR37简报](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6560156263)及PR正文已更新。工作区无其他修改、无运行锁/实验进程；本发布回执只改文档，无新增API消费或源码变化。PR仍Draft，Issue55/57仍open。
+
 - 原分支/Draft PR37完成追加授权承接与6个真实开发会话、10个用户轮次。T04在0b3e503单轮自审通过；最终0ae0840的T03两轮完整自审通过（真实问窗→原补参→3 Epoch与theta；B不重算）。独立评分null未改，不能跨版本拼成最终4/4。
 - T03原首败及第一次复查失败、T05/T07首轮完整但后轮失败全部保留。T05新旧差比、T07同一原工件质量续算仍只具离线通过；最终候选未真实重测T04/T05。不把模型工具成功等同完整原请求成功。
 - 两批共享修复：未送达工具回执跨调度保留；任务间/任务内交付依赖分别就绪、循环拒绝、局部传递失效、真实工件绑定。第二批补齐比较缺field诊断普通Bug。无新Planner/Executor、名称或窗口特判；所有臂共享，不主张C独有收益。原安全反例继续通过，既有语义边界仍在。
