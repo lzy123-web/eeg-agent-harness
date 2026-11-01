@@ -11,6 +11,8 @@
 - [职责设计、前后证据、命令及局限](EEG_WORKING_MEMORY_ISSUE55_RESPONSIBILITIES.md)；[公开合成证据](evidence/issue55_responsibility_repair.json)。已实现/离线通过/真实未运行/相对收益未验证分别列示；主审旧判断按原版本保留。
 - Git：本条与本次实现、测试及证据同批正常提交并推送，精确SHA/CI在发布补记中记录；PR保持Draft、Issue保持open，不合并main、不改研究内容二。
 
+发布补记：实现/回归/证据提交 `1bb3d6c926c97d9f1ddef584fbeb77c943ba517f` 已普通推送，远端PR头已核对一致；[unit-tests #344](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41279246528) 的安装、编译与全回归全部success。[Issue55统一汇报](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6554217809)及PR37正文已更新。Git直连曾连接重置/超时，临时复用Windows已启用的系统代理后普通推送成功，未改全局配置。当前发布补记为单独文档提交，不改变已测试源码/评分/证据；无新增付费。
+
 以下为历史记录，以本节及最新职责文档优先；不删除旧反例和旧结论。
 
 ## Issue55 最新纠偏交付：错误放行已修复、运行器离线验收通过，整阶段仍未通过（2026-11-01）

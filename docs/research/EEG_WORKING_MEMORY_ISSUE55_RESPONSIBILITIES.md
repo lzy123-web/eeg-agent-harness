@@ -89,3 +89,5 @@ git diff --check
 最小外部补充是：向既有客户端注入原服务端点/模型/凭据（凭据不入库）、对应实际输入/输出费率及允许返回模型证据、Issue55已有逐笔调用/Token/费用和开发/确认池归属的累计记录。原总144/6M/US$3、开发48/2M、确认96/4M、最大输出2200/重试0继续有效。有上述条件即可使用原入口 `python -m eeg_harness.research.working_memory_issue55_live --real --ledger <既有已核对账本> --attestation <核验记录> --phase development --case T04 --output <全新目录>`；核验记录中的机制门槛绑定本次源码与证据哈希，不发送受控解释/gold。有限开发复核通过后才能按原顺序冻结确认，确认后不修改标准/重跑挑选。
 
 尚存内部边界另列：自洽但错误的模型解释、无解释混合父句的兼容代价、最终回答需独立审查、历史费用缺依据需人工核对。本轮不把这些描述为“仅缺API”。阶段最终验收仍等待独立复核；PR37保持Draft、Issue55保持open。
+
+发布：实现提交 `1bb3d6c926c97d9f1ddef584fbeb77c943ba517f` 已普通推送；[GitHub unit-tests #344](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41279246528) 安装、编译、回归全部success。[Issue55汇报](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6554217809)和PR37正文已同步。本发布补记不改变源码、证据或实验标准，CI成功不代替自主研究结论。
