@@ -1,4 +1,18 @@
-## Issue57 最终：工程阶段完成，完整科学目标部分通过，待独立审查（2026-11-01）
+## Issue57 最新：交付接受生命周期限定收尾离线通过，待独立复核（2026-11-02）
+
+执行入口为[评论6560727410](https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560727410)。起点本地/实际远端59652769ae410cade805d60e017958269df91707，工作区干净，原分支/AGENTS.md/运行状态核对完成。本轮不重启历史付费任务。
+
+**已实现**：同任务有条件生产者的非自动组循环等待已在实际Agent/Store/Executor+Fake复现。原complete_node新增交付粒度，原整任务完成仍要求所有必需结果；接受凭证绑定原交付/实际结果/科学binding，正常同步幂等保留，真实范围/条件/结果/绑定变化后不能沿用。自动/模型额外验收责任保留，公共硬约束不松动，无平行架构或个例特判。
+
+**实际验证**：三种结构×六组前后对照，修复前A/B/C-no-delivery有条件同任务功率执行0，修复后六组均执行1次且用同一实际producer工件；其他两结构修复前后均可执行。10个新测试方法覆盖真实回执、重复接受、非法接受、3<4的客观失败与模型错误判断分离、独立分支、改窗历史/工件失效、源绑定故障注入。全量735项=720通过+15资源跳过，原24链111/111数值核验、0控制错误；compileall/pip check/diff check通过。[原研究文档顶部](EEG_WORKING_MEMORY_ISSUE57.md)及[新增公开证据](evidence/issue57_acceptance_closeout.json)记录首次反例、实现取舍、复现命令与本地完整轨迹哈希；旧真实证据未改。
+
+**预算及限制**：新增研究calls/tokens/费用均0，正式账本SHA256前后均6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1；历史125/1234297/US$0.4054206、剩19次不动。新接口尚未真实自主复测；T04v1、T03v4原真实成功仍限原版本，T05/T07完整自主失败不变；完整跨轮能力、稳定性与相对强基线收益未证明。本次通过只指限定离线自验，不是已通过独立主审。下一步仅独立审查，不自动扩大任务。Issue55/57 open，PR37 Draft，main/研究内容二不动。
+
+Git：本节与实现、测试及合成证据同次正常提交；实际提交SHA、远端一致性与CI随后记录于本节发布回执。
+
+---
+
+## Issue57 此前真实开发：工程阶段完成，完整科学目标部分通过，待独立审查（2026-11-01）
 
 发布回执：实现/证据提交`534f1c2461956aea37a984cf29c6b7623286537d`已正常推送且远端HEAD一致；[最终行为CI #376](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41321392219)与[证据提交CI #378](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41322369703)均success。[Issue57完整报告](https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560142630)、[Issue55简报](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6560155937)、[PR37简报](https://github.com/lzy123-web/eeg-agent-harness/pull/37#issuecomment-6560156263)及PR正文已更新。工作区无其他修改、无运行锁/实验进程；本发布回执只改文档，无新增API消费或源码变化。PR仍Draft，Issue55/57仍open。
 

@@ -1,5 +1,64 @@
 # Issue57 新接口真实开发：协议、修订与结果
 
+## 当前入口：交付接受生命周期限定收尾（2026-11-02）
+
+依据[最新限定评论6560727410](https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560727410)，本节取代下方历史付费执行安排作为当前状态；历史6会话、首次失败、原评分及版本关系不修改。**本限定收尾离线自验通过，等待独立复核；新接口未真实自主复测。** 不代表完整自然会话、工作一科研目标或相对强基线收益通过。
+
+开工核对本地及实际远端均为`59652769ae410cade805d60e017958269df91707`，原分支、干净工作区、根AGENTS.md、PR37 Draft，无Python实验进程或Issue55运行锁。未启动旧实验、搜索凭据或变更配置。新增研究API/calls/tokens/费用均为0；正式账本字节SHA256前后同为`6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1`，原125次/1,234,297tokens/保守US$0.4054206及剩19次保持不动。
+
+### 原问题确实复现：可计算的生产者没有合法接受入口
+
+在原完整eegagent环境，使用项目合成记录和实际TaskPlanEEGAgent→PlannedTaskStore→Executor→NumPy/SciPy，Fake仅提供控制决策。原请求为“记录A stimulus事件后0到1.25秒建立试次并计算功率；只有试次数至少2才继续功率分析。”同一节点内epochs交付附3≥2条件，power引用epochs。修复前18条轨迹先保存，再改生产代码。全部属于**独立构造集成反例**，不是六个历史模型会话的原始失败重放。
+
+| 科学计划结构 | 修复前A/B/C-no-delivery的实际功率执行次数（每条） | 修复前C/C-no-selection/A-equivalent（每条） | 修复后六组（每条） |
+| --- | ---: | ---: | ---: |
+| 同任务、有额外条件 | 0 | 1 | 1 |
+| 同任务、无额外条件 | 1 | 1 | 1 |
+| 生产者/消费者分任务、有条件 | 1 | 1 | 1 |
+
+第一次反例中实际3个Epoch、output_valid/predicate/accepted均为真，但非自动组仍TOOL_SUCCEEDED；整节点complete_node因缺power拒绝，power又因生产者未接受拒绝。这是共享接口的循环等待，不能记作C的方法收益。修复后只为非自动组加入合法局部接受动作，自动组继续自动接受；并非给同样动作序列强行打平结果。旧整节点过早完成仍应拒绝。
+
+### 最小整改及职责边界（已实现）
+
+复用`complete_node`：带`output_key + revision + result_id`时只接受该真实交付；只有task_id时保持整任务完成语义。控制器从现有结果核验身份、范围、来源、时基、实际binding及输入依赖，不能接受空结果、错key/owner、旧revision、替换前结果或失效工件。无需先额外check/read；真实证据已送达即可声明。局部接受不归档、不清空消费者、不切换current、不重算；实际控制回执在下一输入可见。
+
+接受凭证直接存于现有`TaskSpec.outputs[key].acceptance`，不是第二个接受仓库。凭证包含责任方、接受时revision、真实条件诊断及完整DeliveryItem+结果身份/来源/处理配置/工件绑定的指纹。`_sync_outputs`只继承仍匹配的凭证，不能因另一结果同步而清回TOOL_SUCCEEDED；新绑定输入也不能夹带旧凭证。相同结果重复接受幂等。图的原有修订/历史机制负责撤销受影响交付；无关标题或节点版本本身不冒充该交付变化，真正的范围、条件、结果或绑定变化会使旧凭证不适用。消费有条件结果时核验其接受凭证及原实际binding。
+
+三层含义分开：真实结果存在→按方法责任接受该交付→全部必需交付齐全并通过原归档契约后完成任务。公共`delivery_check.accepted`始终是客观条件诊断；凭证不把模型判断写成客观真值。A/B/C-no-delivery继续由模型判断额外acceptance_rule，C/C-no-selection/A-equivalent继续程序判断。测试注入3<4却错误接受时，前者可记录owner=model、scientifically_accepted=false并继续，独立评价必须判错；后者拒绝。共同科学硬约束、用户禁止、真实来源/工件核验不受该方法差异豁免。
+
+没有把所有TOOL_SUCCEEDED放行，也没有强制所有基线自动验收、拆分DAG或增加另一套Planner/Executor。实现仅修改原控制器；通用代码无任务编号、事件名、窗口或句式特判。代价是控制schema多三个可选身份字段，以及每个已接受交付的有界凭证/指纹和诊断；每次同步线性扫描原交付列表并散列其元数据，未增加全局历史扫描。模型显式接受多一次必要控制决策，自动组不必多一次；本轮没有测量真实token收益。
+
+### 成对反证、生命周期与回归
+
+- 六组合法生产者→消费者均只执行一次功率、复用同一真实工件。非自动组不额外check即可接受，回执可见；重复接受、读取、切换独立任务、消费者同步后凭证保持，整体完成前无提前归档。
+- 尚无生产者、提前消费、错owner/key/revision/result、错误工件、越出计划范围、用户明示禁止基线处理均拒绝；非法接受不修改图/其他交付。3<4时正确拒绝接受的六组均可保留partial并完成独立B任务；另保留故意错误模型判断及客观失败诊断。
+- 实际两轮链：旧窗接受并消费→合法改窗→旧revision/旧result接受被拒、新producer未经接受不能消费→正确接受新producer并消费。旧工件/历史输出保留、B只计算一次。物理记录替换用明确标注的故障注入检验binding失效；条件与结果替换的指纹接缝另列状态级测试，不冒充自然模型动作。
+- 新增10个测试方法覆盖上述多组路径；全量**735项=720通过+15资源跳过**，原T01–T08×A/B/C **24链、111/111数值核验、0控制错误**；compileall、pip check、diff check通过。跳过为14项外部EDF/模型/R3资源测试及1项未启用的真实LLM网络测试，具体原因保留在全量日志。
+- 开发首次回归有两项失败：负例长串触发原no_progress，改为独立负例会话而不调松生产保护；状态级替换携带旧凭证，修正绑定入口只继承原有效凭证。此为测试开发记录，不是新模型首败；原问题首次完整轨迹未覆盖。
+
+[公开合成证据](evidence/issue57_acceptance_closeout.json)包含三结构×六组前后结果、实际3试次、诊断/责任方/错误码/工件一致性、生命周期及安全反例、24链和完整本地产物哈希。完整messages、Agent结果、快照分别保存在忽略目录`artifacts/point1_task_memory/issue57-closeout/{before,after,lifecycle-safety,controlled24}.json`及测试日志。旧[真实开发证据](evidence/issue57_real_development.json)未改。
+
+复现命令（已激活项目eegagent环境，PowerShell；输出路径必须尚不存在，避免覆盖旧证据）：
+
+```powershell
+$env:PYTHONPATH='src;tests'
+$env:PYTHONIOENCODING='utf-8'
+python tests/test_issue57_acceptance.py --matrix-output artifacts/point1_task_memory/issue57-closeout/recheck.json --local
+python -m unittest discover -s tests -p test_issue57_acceptance.py -v
+python -m unittest discover -s tests -v
+python -m compileall -q src tests
+python -m pip check
+git diff --check
+```
+
+修复前矩阵使用同一夹具`matrix_case(..., local=False)`在5965276代码上运行；当前代码重跑旧整节点动作不等于回退接口。24链沿用`working_memory_issue52.run_case(case, arm, actions=working_memory_issue56.interface_steps(case))`，case=T01…T08、arm=A/B/C，评分/原题不改。
+
+**限制及结束边界：**此次只修交付接受生命周期；新接口未真实自主复测，旧T03v4完整两轮成功不能自动继承，T05/T07完整自主失败不变。语义理解、完整跨轮稳定性、相对强基线收益及全部旧级联版本机制仍未证明。没有重做配置/消费审计，没有推进整体计划接口简化、正式三臂/消融、确认实验或研究内容二。Issue55/57保持open，PR37保持Draft；发布提交与CI见PROJECT_STATUS最新回执，等待独立复核。
+
+---
+
+## 下列为此前真实开发历史（保留原文）
+
 **阶段结论：有限工程整改与开发交付完成，完整科学目标部分通过，等待独立审查。** 已执行6个真实原题会话、10个用户轮次；T04单轮与最终T03两轮经执行者逐项自审通过，T05/T07完整会话未通过。独立`whole_request_correct`/`autonomous_memory_use`仍为null；不同候选不能拼成最终4/4。确认未运行，稳定性与相对强基线收益未证明。
 
 2026-11-01，从本地/远端一致的16a8b87继续原分支和Draft PR37，工作区干净，无实验进程/锁。Issue56独立离线验收已由Issue57正文接受；本阶段结果仍由执行者自查，不替代独立主审。

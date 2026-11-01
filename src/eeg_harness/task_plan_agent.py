@@ -4,6 +4,7 @@ The plan is a model proposal, never a source of scientific authorization. A/B/C
 share identity, provenance, versions, full read rights and local replanning.
 Only acceptance automation and dependency evidence presentation are varied.
 """
+import hashlib
 import json
 import re
 
@@ -17,7 +18,7 @@ from .working_memory_scientific import ScientificMemoryController
 from .working_memory_scientific_tasks import ScientificTaskStore, canonical_scope, RequirementValidationError
 from .working_memory_lifecycle import METADATA
 from .result_semantics import read_scalar, result_field_semantics
-from .task_plan import PlanGraph, TaskSpec
+from .task_plan import PlanGraph, TaskSpec, DeliveryItem
 from .scientific_contracts import ContractError, validate_contract, computation_scope
 
 
@@ -33,6 +34,7 @@ dependencies表示依赖；input_refs明确依赖哪个key、需要哪些字段�
 需要上游工件时使用input_refs提供的真实句柄；compare_results对真实结果做描述性差值比值，不心算。跨记录/版本不能混用；事件窗是相对时间，连续窗是记录绝对时间。未授权的处理不能执行。
 所有方案都能read_dependency/read_result或restore_task，精确数值读取与过程恢复不同。摘要足够则不强迫多读；要核对过程再继续时恢复原行动观察，不能把索引当数值。
 check_deliveries可读所有方案相同的交付诊断。明确质量/计数条件须依据实际结果判断；辅助尝试失败不等于科学交付失败。缺参可wait_node并推进独立节点，最后真实澄清或partial。
+complete_node(task_id,output_key,revision,result_id)只接受对应真实交付，可先接受生产者再执行同任务消费者；不完成或归档整个任务。身份来自当前真实结果，不猜测。省略output_key才表示完成整个任务，须所有必需交付齐全。接受不等于诊断条件成立。
 不要删除用户要求或降低科学条件以完成任务。任务完成不证明原自然请求无遗漏。finish_task必须给原用户所需实际数值、单位、来源/范围、新旧版本及未完成事项；不作诊断或无依据的因果解释。
 混合对象或字段省略时，在交付项interpretation使用scientific_source_frames的source_ref、time_reference、measurement_channels；channel_reference用source_ref/target_ref仅引用通道名称。补参或改窗用revise_plan保留旧source_ref并指向当前range_ref，或改用当前完整来源。引用只是定位，不证明语义；事件测量通道不改变时基，不猜缺窗。旧source_span仅兼容，不与ref并填，不在动作侧另改解释。
 若需要用户补参，finish_task.clarifications列出task_id/key/fields，程序核验实际缺失并把明确问题送达。仅wait_node或写无关问题不算询问。报告频带/指标放goal，scope只放广告中的计算条件。
@@ -108,7 +110,9 @@ class TaskPlanController(ScientificMemoryController):
                     k:clone(v) for k,v in schema['properties'].items() if k!='task_id'},
                     "additionalProperties":False}, "reason": STRING}, ["task_id", "updates", "reason"]),
             control("select_task", "Choose a ready independent node; no fabricated dependency satisfaction.", {"task_id": STRING}, ["task_id"]),
-            control("complete_node", "Declare scientific acceptance after inspecting all real required results. Does not hide missing outputs.", {"task_id": STRING}, ["task_id"]),
+            control("complete_node", "Accept one existing delivery with output_key + current revision + actual result_id (or comparison_id value), without closing its task. Omit output_key to complete the whole task after all required results exist. No mandatory extra read when evidence is already visible.", {
+                "task_id": STRING, "output_key": STRING, "revision": {"type":"integer","minimum":1},
+                "result_id": STRING}, ["task_id"]),
             control("wait_node", "Suspend this node for genuine missing science or inability; other ready nodes remain available.", {"task_id": STRING, "reason": STRING}, ["task_id", "reason"]),
             control("check_deliveries", "Read real output matching and scientific predicate evaluation; equally available to every arm.", {"task_id": STRING}, ["task_id"]),
             control("read_dependency", "Read a real planned output at summary/result/process level. All modes have identical raw evidence and process read rights.", {
@@ -251,6 +255,7 @@ class TaskPlanController(ScientificMemoryController):
                 entry = self._entry_for(output)
                 valid = self.store._binding_valid(entry) if entry else self._valid_comparison(output)
                 if not valid:
+                    output.pop('acceptance', None)
                     node.output_status[key] = "STALE"
                     node.status = "STALE"
                     node.unresolved = ["An actual evidence binding is no longer applicable"]
@@ -291,6 +296,58 @@ class TaskPlanController(ScientificMemoryController):
                 return False
         return True
 
+    def _acceptance_fingerprint(self, delivery, output):
+        # A node's title/revision alone is not a change to this delivery. The
+        # immutable result identity, binding and complete delivery contract are.
+        evidence = {k:v for k,v in output.items() if k not in {'acceptance','revision'}}
+        return hashlib.sha256(encoded({'delivery':delivery.to_dict(), 'evidence':evidence})).hexdigest()
+
+    def _acceptance_valid(self, delivery, output, status):
+        receipt = (output or {}).get('acceptance', {})
+        return (status in {'DELIVERY_SATISFIED','TASK_COMPLETED'} and bool(receipt) and
+                receipt.get('fingerprint') == self._acceptance_fingerprint(delivery, output))
+
+    def _mark_delivery(self, node, delivery, evidence):
+        old = node.outputs.get(delivery.key)
+        receipt = (old or {}).get('acceptance')
+        evidence = {k:clone(v) for k,v in evidence.items() if k != 'acceptance'}
+        status = 'TOOL_SUCCEEDED' if delivery.acceptance_rule else 'DELIVERY_SATISFIED'
+        if (self._acceptance_valid(delivery, old, node.output_status.get(delivery.key)) and
+                receipt['fingerprint'] == self._acceptance_fingerprint(delivery, evidence)):
+            evidence['acceptance'] = clone(receipt)
+            status = 'DELIVERY_SATISFIED'
+        self.graph.mark_output(node.task_id, delivery.key, evidence, status=status)
+
+    def _record_acceptance(self, node, row, owner):
+        d, output = node.delivery(row['key']), node.outputs[row['key']]
+        repeated = self._acceptance_valid(d, output, node.output_status.get(d.key))
+        if not repeated:
+            output['acceptance'] = {'owner':owner, 'accepted_revision':node.revision,
+                'fingerprint':self._acceptance_fingerprint(d, output),
+                'scientifically_accepted':row['accepted'], 'predicates':clone(row['predicates'])}
+            self.plan_events.append({'event':'delivery_accepted','task_id':node.task_id,'key':d.key,
+                'revision':node.revision,'result_id':output.get('result_id',output.get('comparison_id')),
+                'acceptance':clone(output['acceptance'])})
+        node.output_status[d.key] = 'DELIVERY_SATISFIED'
+        return {'status':'delivery_accepted','task_id':node.task_id,'output_key':d.key,
+                'revision':node.revision,'result_id':output.get('result_id',output.get('comparison_id')),
+                'idempotent':repeated,'acceptance':clone(output['acceptance']),'check':clone(row)}
+
+    def _accept_delivery(self, node, key, revision, result_id):
+        d, output = node.delivery(key), node.outputs.get(key)
+        if (not d or not output or revision != node.revision or not result_id or
+                result_id != output.get('result_id',output.get('comparison_id'))):
+            return self.store._error('INVALID_DELIVERY_ACCEPTANCE','Use an existing delivery, current revision and its actual result identity')
+        row = next(r for r in self.delivery_check(node)['outputs'] if r['key']==key)
+        if (not row['output_valid'] or node.output_status.get(key)=='STALE' or
+                any(not self._input_ready(r) for r in d.input_refs)):
+            return self.store._error('INVALID_DELIVERY_ACCEPTANCE','The delivery or its scientific dependency binding is not valid')
+        if self.automatic_acceptance and not row['accepted']:
+            return {**self.store._error('SCIENTIFIC_ACCEPTANCE_FAILED','Real results do not meet the declared conditions'),'check':row}
+        # Model judgment of additional predicates remains a method variable;
+        # neither this receipt nor its owner changes the objective diagnostic.
+        return self._record_acceptance(node,row,'program' if self.automatic_acceptance else 'model')
+
     def _sync_outputs(self, node, result=None):
         # Match only actual results used by this node, not a future answer key or
         # opportunistic archive scan. Normal history reuse enters execute_action.
@@ -302,24 +359,23 @@ class TaskPlanController(ScientificMemoryController):
                     refs = [(self._ref_output(r) or {}).get("result_id") for r in d.input_refs]
                     if (refs == [r["result_id"] for r in result["operands"]] and
                         [r.fields[0] for r in d.input_refs] == [r["field"] for r in result["operands"]]):
-                        self.graph.mark_output(node.task_id,d.key,{"comparison_id":result["comparison_id"],"result":clone(result),"revision":node.revision})
+                        self._mark_delivery(node,d,{"comparison_id":result["comparison_id"],"result":clone(result),"revision":node.revision})
                 continue
             found = [self.store.find_entry(i) for i in identifiers if self._matches(d,self.store.find_entry(i))]
             if found:
                 entry = found[-1]
-                self.graph.mark_output(node.task_id,d.key,{
+                self._mark_delivery(node,d,{
                     "result_id":entry.task_id,"record":entry.record,"actual_scope":clone(entry.parameters),
                     "originating_task":node.task_id,"actual_parameters":clone(entry.parameters),"source":entry.evidence["source"],
                     "processing_version":clone(entry.evidence["binding"]),"revision_of":entry.revision_of,
                     "input_artifact":entry.evidence["binding"]["artifact_id"] if d.capability!="create_epochs" else None,
                     "output_artifact":entry.evidence["binding"]["artifact_id"] if d.capability=="create_epochs" else None,
                     "unit_or_kind":entry.evidence["unit_or_kind"],
-                    "result_pointer":entry.task_id,"AO_pointer":entry.evidence["subgoal_id"],"revision":node.revision},
-                    status="TOOL_SUCCEEDED" if d.acceptance_rule else "DELIVERY_SATISFIED")
+                    "result_pointer":entry.task_id,"AO_pointer":entry.evidence["subgoal_id"],"revision":node.revision})
         if self.automatic_acceptance:
             for row in self.delivery_check(node)["outputs"]:
                 if row["accepted"]:
-                    node.output_status[row["key"]] = "DELIVERY_SATISFIED"
+                    self._record_acceptance(node,row,'program')
 
     def delivery_check(self, node):
         rows = []
@@ -341,6 +397,8 @@ class TaskPlanController(ScientificMemoryController):
                 except (AttributeError,KeyError,ValueError,TypeError):
                     predicates.append({"rule":clone(rule),"passed":False,"reason":"No applicable actual field"})
             rows.append({"key":d.key,"required":d.required,"output_valid":valid,"predicates":predicates,
+                         "acceptance":clone((output or {}).get('acceptance')),
+                         "output_status":node.output_status.get(d.key),
                          "accepted":valid and all(p["passed"] for p in predicates)})
         required = [r for r in rows if r["required"]]
         return {"task_id":node.task_id,"revision":node.revision,"outputs":rows,
@@ -356,7 +414,9 @@ class TaskPlanController(ScientificMemoryController):
             return {**self.store._error("MISSING_DELIVERY","All required scoped output instances must exist"),"check":check}
         if self.automatic_acceptance and not check["scientifically_accepted"]:
             return {**self.store._error("SCIENTIFIC_ACCEPTANCE_FAILED","Real results do not meet the declared scientific conditions"),"check":check}
-        if not proposed and not self.automatic_acceptance and any(d.acceptance_rule for d in node.required_outputs if d.required):
+        if not proposed and not self.automatic_acceptance and any(d.acceptance_rule and
+                not self._acceptance_valid(d,node.outputs.get(d.key),node.output_status.get(d.key))
+                for d in node.required_outputs if d.required):
             node.status = "TOOL_SUCCEEDED"
             return {"status":"acceptance_review_required","check":check}
         goal = self._goal(node)
@@ -365,7 +425,8 @@ class TaskPlanController(ScientificMemoryController):
         node.status = "TASK_COMPLETED"
         for row in check["outputs"]:
             if row["output_valid"] and (row["accepted"] or proposed and not self.automatic_acceptance):
-                node.output_status[row["key"]] = "DELIVERY_SATISFIED"
+                self._record_acceptance(node,row,'program' if self.automatic_acceptance else
+                    'model' if proposed else 'common_output_check')
         if goal:
             # Numerical archive remains the original store; comparisons point to
             # both immutable operands and are additionally retained by controller.
@@ -489,7 +550,7 @@ class TaskPlanController(ScientificMemoryController):
             "status":n.status,"outputs":{k:self._locator(v) for k,v in n.outputs.items()},
             "unresolved":clone(n.unresolved)} for n in self.graph.nodes.values()]
         messages[0]["content"] = SYSTEM + ("\n明确科学条件由程序自动核验。" if self.automatic_acceptance else
-            "\n必需结果齐备后，显式科学条件由你据真实结果评估；可调用check_deliveries，再complete_node或明确partial。")
+            "\n显式科学条件由你据真实结果评估；可用complete_node接受单个真实交付后继续消费者，全部必需交付齐备才能完成整任务。check_deliveries为可选诊断；条件不足可明确partial。")
         messages[1]["content"] = encoded(payload).decode("utf8")
         return messages
 
@@ -609,6 +670,11 @@ class TaskPlanController(ScientificMemoryController):
             self.plan_events.append({"event":"revision",**clone(result)})
             return {"status":"revised",**result}
         if name in {"select_task","complete_node","check_deliveries","wait_node"}:
+            if name == 'complete_node' and ('output_key' in args or 'revision' in args or 'result_id' in args):
+                node = self.graph.nodes.get(args['task_id'])
+                if node is None or not all(k in args for k in ('output_key','revision','result_id')):
+                    return self.store._error('INVALID_DELIVERY_ACCEPTANCE','Local acceptance requires task_id, output_key, revision and result_id')
+                return self._accept_delivery(node,args['output_key'],args['revision'],args['result_id'])
             node = self.graph.nodes[args["task_id"]]
             if name == "check_deliveries":return {"status":"checked",**self.delivery_check(node)}
             if name == "select_task":
@@ -765,6 +831,8 @@ class TaskPlanController(ScientificMemoryController):
     def _input_ready(self, ref):
         resolved=self.graph.resolve_ref(ref)
         if resolved['output_status'] not in {'DELIVERY_SATISFIED','TASK_COMPLETED'}:return False
+        d=DeliveryItem.from_dict(resolved['delivery'])
+        if d.acceptance_rule and not self._acceptance_valid(d,resolved['output'],resolved['output_status']):return False
         entry=self._entry_for(resolved['output'])
         return self.store._binding_valid(entry) if entry else self._valid_comparison(resolved['output'])
 
