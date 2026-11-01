@@ -50,3 +50,6 @@ Issue55授权评论6546527306的GitHub原始时间为2026-10-31 17:08:03 UTC（�
 
 
 9d9bb26下T07复查6次/37,124tokens仍no_progress、零科学计算，第二轮未发出：模型利用新诊断删除不支持scope字段，但随后将input_refs放在TaskSpec顶层，三次重复结构错误。另有一次非法JSON提案，原响应与拒绝均保留。累计28次/185,990tokens/US$0.0630105。补齐同一恢复链最后的纯提案解析诊断：仅在plan/revise的schema与TaskSpec解析边界返回INVALID_PLAN_STRUCTURE及有限长错误；不暴露执行异常、不自动搬字段、不修改计划、不放宽schema。四臂完整链验证错误计划无状态写入→正确提案真实计算→错误修订保持原版本。T07不再付费追跑；剩余开发用于原缺参/修订任务的独立诊断，不将本轮未证实的修订称为T07自主成功。
+
+
+b174b73下T03首次真实运行8次/53,109tokens，B RMS正确，A事件窗未猜测，真实回答明确询问窗口且保留WAITING_INPUT事件功率节点。仅首轮：模型以partial提交，原live却额外要求clarification_required以及预先展开的create_epochs节点，未按原followup_policy发送补窗。累计36次/239,099tokens/US$0.0809349。此为运行器比原协议更窄的续接条件，不是模型没有提问。有限修订允许partial或clarification_required；仍要求独立B交付正确、实际事件工件生产/消费任务WAITING_INPUT且有效范围缺窗，不能靠状态或无关提问获得gold回复。复用registry能力与有效范围，不要求特定DAG路线，不注入解释/工具序列。新增成对Fake端到端测试；修改前测试明确因缺turn-2失败，保留日志。T03真实第二轮未运行，不以修复后的Fake通过冒充跨轮自主成功。

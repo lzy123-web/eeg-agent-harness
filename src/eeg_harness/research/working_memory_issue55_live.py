@@ -326,15 +326,24 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
                 # No unconditional gold clarification reply after a failed or
                 # irrelevant response. Known missing-window units require an
                 # actual clarification before the prewritten supplement.
-                if turn==1 and case['id'] in {'C02','T03'} and result.stop_reason!='clarification_required':break
+                if turn==1 and case['id'] in {'C02','T03'} and result.stop_reason not in {'clarification_required','partial'}:break
                 if turn==1 and case['id'] in {'C02','T03'}:
                     pending=[p for g in agent.working_memory.store.subgoals for p in g.pending_actions]
                     missing_action=any(p['record']=='A' and p['tool']=='create_epochs' and
                             set(p.get('missing_fields',[])) & {'tmin','tmax'} for p in pending)
-                    missing_plan=any(n.status=='WAITING_INPUT' and d.record=='A' and
-                        d.capability=='create_epochs' and d.scope.get('labels')==['stimulus'] and
-                        not all(k in d.scope for k in ('tmin','tmax'))
-                        for n in agent.working_memory.graph.nodes.values() for d in n.required_outputs)
+                    missing_plan=False
+                    for n in agent.working_memory.graph.nodes.values():
+                        for d in n.required_outputs:
+                            spec=agent.working_memory.store.contexts[d.record].executor.registry.get(d.capability)
+                            scope=agent.working_memory._effective_scope(d)
+                            # The protocol allows a lawful partial answer that
+                            # identifies the missing window. It does not require
+                            # a particular stop label or an already expanded DAG.
+                            if (n.status=='WAITING_INPUT' and d.record=='A' and spec and
+                                    (spec.produces_artifact or spec.consumes_artifact) and
+                                    scope.get('labels')==['stimulus'] and
+                                    not all(k in scope for k in ('tmin','tmax'))):
+                                missing_plan=True
                     if not (missing_action or missing_plan) or not scoring.get('all_required_results_correct'):
                         # A status alone cannot prove that the model asked the
                         # right question. Preserve for review, send no gold reply.

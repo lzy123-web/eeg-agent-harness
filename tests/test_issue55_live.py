@@ -246,6 +246,44 @@ class LiveRunnerTest(unittest.TestCase):
             self.assertEqual(raw.request_count,1)
             self.assertFalse((root/'run/turn-2.json').exists())
 
+    def test_lawful_partial_with_actual_missing_window_can_receive_protocol_reply(self):
+        case=next(c for c in development_protocol()['cases'] if c['id']=='T03')
+        for status in ('partial','clarification_required'):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as td:
+                turns=interpreted_actions('T03')
+                turns[0][-1]=finish(status,unresolved=['请提供事件相对窗口；记录B结果已保留'])
+                raw=RawFake([step for turn in turns for step in turn])
+                root=Path(td);ledger,a=setup(root,raw)
+                run_session(raw,ledger,a,case,root/'run',test_only=True)
+                first=json.loads((root/'run/turn-1.json').read_text(encoding='utf8'))
+                second=json.loads((root/'run/turn-2.json').read_text(encoding='utf8'))
+                self.assertEqual(first['result']['stop_reason'],status)
+                self.assertEqual(second['user_request'],case['requests'][1])
+                self.assertTrue(second['score_at_deadline']['all_required_results_correct'])
+        # A partial label or a generic question alone must not unlock the reply.
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);raw=RawFake([finish('partial',unresolved=['无关问题'])]);ledger,a=setup(root,raw)
+            run_session(raw,ledger,a,case,root/'run',test_only=True)
+            self.assertFalse((root/'run/turn-2.json').exists())
+
+    def test_missing_event_window_does_not_require_preexpanded_epoch_node(self):
+        case=next(c for c in development_protocol()['cases'] if c['id']=='T03')
+        for known_window in (False,True):
+            with self.subTest(known_window=known_window), tempfile.TemporaryDirectory() as td:
+                scope={'labels':['stimulus'],**({'tmin':0,'tmax':1.25} if known_window else {})}
+                nodes=[node('rms',[delivery('rms','amplitude',{'channels':['SYNTH-C1'],'start':2,'end':4},record='B')]),
+                       node('power',[delivery('theta','event_bandpower',scope)])]
+                actions=[('plan_tasks',{'nodes':nodes}),('amplitude',{}),
+                    ('wait_node',{'task_id':'power','reason':'缺事件相对窗口'}),
+                    finish('partial',unresolved=['请提供事件相对窗口；B已保留']),
+                    finish('partial',unresolved=['TEST continuation observed'])]
+                root=Path(td);raw=RawFake(actions);ledger,a=setup(root,raw)
+                run_session(raw,ledger,a,case,root/'run',test_only=True)
+                self.assertEqual((root/'run/turn-2.json').exists(),not known_window)
+                if not known_window:
+                    second=json.loads((root/'run/turn-2.json').read_text(encoding='utf8'))
+                    self.assertEqual(second['user_request'],case['requests'][1])
+
     def test_metadata_and_intermediate_evidence_do_not_trigger_gold_whitelist(self):
         for tool in ('record_info','list_events','record_quality'):
             case,actions=case_and_actions()
