@@ -10611,5 +10611,49 @@
     },
     "fix": "Adding only an input reference preserves previous control commitments unless task dependencies are explicitly revised",
     "regression": "test_adding_a_data_reference_cannot_erase_an_existing_legacy_control"
+  },
+  "publication_safety_probe": {
+    "local_path": "artifacts/point1_task_memory/issue58/explicit-channel-probe.json",
+    "sha256": "c0c727ae5706d3ffb867bc8d66663f76cb9c38332396f089ad6e80bd6a13e471",
+    "evidence": {
+      "classification": "independently_constructed_actual_Agent_Store_Executor_safety_probe_not_model_behavior",
+      "base_commit": "ed0c23f87775bc5b830df4380e972145d4898f4f",
+      "first_stop": "completed",
+      "second_stop": "partial",
+      "response": {
+        "request_id": "call-4",
+        "tool_name": "revise_plan",
+        "success": false,
+        "data": {
+          "status": "rejected",
+          "code": "INVALID_PLAN_SOURCE",
+          "message": "Current supplement conflicts with the historical object",
+          "field_path": [
+            "updates",
+            "required_outputs",
+            0,
+            "interpretation"
+          ],
+          "recovery": {
+            "tool": "revise_plan"
+          }
+        },
+        "error": {
+          "code": "INVALID_PLAN_SOURCE",
+          "message": "Current supplement conflicts with the historical object"
+        },
+        "duration_ms": 1.7089000903069973
+      },
+      "atomic": true,
+      "scientific_executions_total": 1
+    }
+  },
+  "publication_verification": {
+    "implementation_commit": "ed0c23f87775bc5b830df4380e972145d4898f4f",
+    "remote_head_verified": true,
+    "ci": "https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41333997162",
+    "conclusion": "success",
+    "tests": 743,
+    "skipped": 15
   }
 }

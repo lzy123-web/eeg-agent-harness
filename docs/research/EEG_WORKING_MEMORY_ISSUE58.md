@@ -84,6 +84,8 @@ python -m eeg_harness.research.working_memory_issue58 --preflight-output artifac
 
 原24链用`working_memory_issue52.run_case(case,arm,actions=working_memory_issue56.interface_steps(case))`；新增链用`working_memory_issue58.incremental_steps(case)`，旧完整表达用`legacy_revision=True`并在10a9ad9原科学源码运行。原生重放只恢复历史UUID分配，不修改助手提案。不能从这些命令推断新模型自主成功。
 
+发布前补充安全核对（独立构造，不是历史模型行为）：实际Agent/Store/Executor先完成A/C1的0–2秒功率，当前用户明确改为C2的4–6秒；故意只改窗并保留旧C1/source_ref、提供当前range_ref。原来源核验返回`INVALID_PLAN_SOURCE: Current supplement conflicts with the historical object`，图与档案原子不变，总数值执行仍1次。没有放宽继承或为新句式追加判断；可核查回执收入同一公开索引。
+
 ## 一次性专项预算预检：未授权、未消费
 
 正式唯一账本只读：125次、1,234,297输入+输出API tokens、保守US$0.4054206；未结0。开发现行上限144次/2M，余19次/765,703 tokens；总240次/6M/US$3，确认96次/4M保持不动且禁止使用。正式账本SHA256前后均`6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1`。原费用是按既有价率的保守计算，不是服务账单。
