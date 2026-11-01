@@ -29,10 +29,9 @@ class InterpretationTest(unittest.TestCase):
             a=TaskPlanEEGAgent(InspectableScriptedClient([('plan_tasks',{'nodes':[node('x',[bad])]}),finish()]),synthetic_records(),arm=arm)
             r=a.run('记录A stimulus事件相对0到1秒的SYNTH-C2功率。')
             error=r.tool_results[0]['data']
-            self.assertEqual(error['code'],'INVALID_PLAN_REQUIREMENT')
-            detail=error['requirement_errors'][0]
-            self.assertEqual(detail['task_id'],'x');self.assertEqual(detail['output_key'],'power')
-            self.assertEqual(detail['allowed_scope_fields'],['labels','tmax','tmin'])
+            self.assertEqual(error['code'],'INVALID_PLAN_STRUCTURE')
+            self.assertEqual(error['field_path'],['nodes',0,'required_outputs',0,'scope','channels'])
+            self.assertIn('labels',error['message']);self.assertIn('tmax',error['message']);self.assertIn('tmin',error['message'])
             self.assertFalse(a.working_memory.graph.nodes)
             self.assertFalse(a.working_memory.store.entries)
 

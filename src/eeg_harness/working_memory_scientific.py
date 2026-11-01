@@ -42,23 +42,12 @@ def scientific_controls(registry=None):
         # Computation parameters and requested reporting fields are different
         # scientific roles. Derive the former from real tool contracts rather
         # than leaving an untyped object that invites report selectors inside it.
-        scope_variants = {}
-        names_by_scope = {}
-        for name in sorted(NUMERIC_TOOLS):
-            schema = clone(registry.get("create_epochs" if name in EVENT_TOOLS else name).parameters)
-            if name in EVENT_TOOLS:
-                schema["properties"] = {k:v for k,v in schema["properties"].items() if k in {"labels","tmin","tmax"}}
-            schema.update(required=[], additionalProperties=False)
-            # Identical input contracts share one branch; no repeated scientific
-            # fields/schema for tools operating on the same kind of EEG object.
-            signature = encoded(schema)
-            scope_variants[signature] = schema
-            names_by_scope.setdefault(signature, []).append(name)
+        from .scientific_contracts import scope_groups
         variants = []
-        for signature, schema in scope_variants.items():
+        for group in scope_groups(registry):
             variants.append({"type":"object","properties":{
-                "tool":{"type":"string","enum":names_by_scope[signature]}, "record":STRING, "scope":schema,
-                "output_request":{**STRING,"description":"Optional scientific output to report (channel, band, metric). Descriptive purpose only; cannot authorize processing or replace scope."}},
+                "tool":{"type":"string","enum":group['names']}, "record":STRING, "scope":group['schema'],
+                "output_request":{**STRING,"description":"Output to report, not a computation condition."}},
                 "required":["tool","record","scope"],"additionalProperties":False})
         controls[0]["function"]["parameters"]["properties"]["requirements"]["items"] = {"oneOf": variants}
     return controls

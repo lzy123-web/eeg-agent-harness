@@ -70,10 +70,9 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
             schema = None
             if isinstance(name,str) and name in NUMERIC_TOOLS and isinstance(alias,str) and alias in self.records:
                 registry = self.contexts[alias].executor.registry
-                schema = clone(registry.get("create_epochs" if name in EVENT_TOOLS else name).parameters)
-                allowed = sorted({"labels","tmin","tmax"} if name in EVENT_TOOLS else set(schema.get("properties",{})))
-                schema["properties"] = {k:v for k,v in schema.get("properties",{}).items() if k in allowed}
-                schema["required"], schema["additionalProperties"] = [], False
+                from .scientific_contracts import computation_scope
+                schema = computation_scope(registry,name)
+                allowed = sorted(schema['properties'])
             try:
                 if not isinstance(item,dict) or set(item)-{"tool","record","scope","output_request"}:
                     raise ValueError("Requirements contain only tool, record, scope and optional textual output_request")

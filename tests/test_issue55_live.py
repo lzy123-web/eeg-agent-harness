@@ -226,7 +226,9 @@ class LiveRunnerTest(unittest.TestCase):
     def test_development_inventory_preserves_t04_missing_result_and_real_event_oracle(self):
         for ident in ('T03','T04','T06','T07'):
             case=next(c for c in development_protocol()['cases'] if c['id']==ident)
-            actions=[action for turn in interpreted_actions(ident) for action in turn]
+            turns=interpreted_actions(ident)
+            if ident=='T03':turns[0][-1][1]['clarifications']=[{'task_id':'epochs','key':'ep','fields':['tmin','tmax']}]
+            actions=[action for turn in turns for action in turn]
             with tempfile.TemporaryDirectory() as td:
                 root=Path(td);raw=RawFake(actions);ledger,a=setup(root,raw)
                 run_session(raw,ledger,a,case,root/'run',test_only=True)
@@ -252,6 +254,7 @@ class LiveRunnerTest(unittest.TestCase):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as td:
                 turns=interpreted_actions('T03')
                 turns[0][-1]=finish(status,unresolved=['请提供事件相对窗口；记录B结果已保留'])
+                turns[0][-1][1]['clarifications']=[{'task_id':'epochs','key':'ep','fields':['tmin','tmax']}]
                 raw=RawFake([step for turn in turns for step in turn])
                 root=Path(td);ledger,a=setup(root,raw)
                 run_session(raw,ledger,a,case,root/'run',test_only=True)
@@ -277,6 +280,7 @@ class LiveRunnerTest(unittest.TestCase):
                     ('wait_node',{'task_id':'power','reason':'缺事件相对窗口'}),
                     finish('partial',unresolved=['请提供事件相对窗口；B已保留']),
                     finish('partial',unresolved=['TEST continuation observed'])]
+                if not known_window:actions[3][1]['clarifications']=[{'task_id':'power','key':'theta','fields':['tmin','tmax']}]
                 root=Path(td);raw=RawFake(actions);ledger,a=setup(root,raw)
                 run_session(raw,ledger,a,case,root/'run',test_only=True)
                 self.assertEqual((root/'run/turn-2.json').exists(),not known_window)

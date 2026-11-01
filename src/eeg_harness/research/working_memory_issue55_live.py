@@ -90,6 +90,29 @@ def scored_case(case,phase):
     return case
 
 
+def followup_decision(case,turn,result,controller,scoring):
+    """Evaluator-only policy gate: internal waiting is never an outward ask."""
+    stops=case.get('evaluation_only',{}).get('allowed_stops',[])
+    policies=json.loads((PROJECT_ROOT/'config/point1_working_memory_followup_policies.json').read_text(encoding='utf8'))['policies']
+    kind=('clarification' if len(stops)>=turn and stops[turn-1]=='clarification_required'
+          else policies.get(case.get('followup_policy'),'ordinary' if not case.get('followup_policy') else 'review_required'))
+    if kind=='ordinary':return {'allowed':True,'reason':'ordinary_user_turn'}
+    if kind=='review_required':return {'allowed':False,'reason':'unrecognized_policy_requires_review'}
+    if result.stop_reason not in {'partial','clarification_required'} or not scoring.get('all_required_results_correct'):
+        return {'allowed':False,'reason':'lawful_partial_delivery_missing'}
+    expected=[d for d in case.get('evaluation_only',{}).get('obligations',[]) if d['turn']==turn+1]
+    for q in controller.clarifications:
+        if q['question'] not in result.final_answer or q['verification']!='missing_literal_window':continue
+        n=controller.graph.nodes.get(q['task_id']);d=n.delivery(q['key']) if n else None
+        if not d or n.revision!=q['revision']:continue
+        missing=set(controller.store._required_fields(d.capability))-set(controller._effective_scope(d))
+        if set(q['fields'])!=missing:continue
+        if any(q['record']==e['record'] and controller.store._family(q['capability'])==controller.store._family(e['capability'])
+                and all(e['scope'].get(k)==v for k,v in q['scope'].items()) and missing.issubset(e['scope']) for e in expected):
+            return {'allowed':True,'reason':'validated_delivered_question','question':q}
+    return {'allowed':False,'reason':'matching_delivered_clarification_absent_or_requires_review'}
+
+
 def admit_session(ledger,case,phase,manifest,attestation,test_only):
     rows=_rows(ledger)
     starts=[r for r in rows if r.get('event')=='session_started']
@@ -323,31 +346,10 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
                 try:scientific_guard()
                 except LLMServiceError:break
                 if result.stop_reason not in {'completed','clarification_required','partial'}:break
-                # No unconditional gold clarification reply after a failed or
-                # irrelevant response. Known missing-window units require an
-                # actual clarification before the prewritten supplement.
-                if turn==1 and case['id'] in {'C02','T03'} and result.stop_reason not in {'clarification_required','partial'}:break
-                if turn==1 and case['id'] in {'C02','T03'}:
-                    pending=[p for g in agent.working_memory.store.subgoals for p in g.pending_actions]
-                    missing_action=any(p['record']=='A' and p['tool']=='create_epochs' and
-                            set(p.get('missing_fields',[])) & {'tmin','tmax'} for p in pending)
-                    missing_plan=False
-                    for n in agent.working_memory.graph.nodes.values():
-                        for d in n.required_outputs:
-                            spec=agent.working_memory.store.contexts[d.record].executor.registry.get(d.capability)
-                            scope=agent.working_memory._effective_scope(d)
-                            # The protocol allows a lawful partial answer that
-                            # identifies the missing window. It does not require
-                            # a particular stop label or an already expanded DAG.
-                            if (n.status=='WAITING_INPUT' and d.record=='A' and spec and
-                                    (spec.produces_artifact or spec.consumes_artifact) and
-                                    scope.get('labels')==['stimulus'] and
-                                    not all(k in scope for k in ('tmin','tmax'))):
-                                missing_plan=True
-                    if not (missing_action or missing_plan) or not scoring.get('all_required_results_correct'):
-                        # A status alone cannot prove that the model asked the
-                        # right question. Preserve for review, send no gold reply.
-                        break
+                if turn<len(case['requests']):
+                    decision=followup_decision(case,turn,result,agent.working_memory,scoring)
+                    write_new(output/f'followup-{turn}.json',decision)
+                    if not decision['allowed']:break
         finally:
             write_new(output/'session-end.json',{'completed_turns':len(results),'usage':dict(raw.total_usage),
                 'cost_upper_bound_usd':str(money_totals(_rows(Path(ledger)),client.rate)),

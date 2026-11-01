@@ -18,18 +18,24 @@ from .working_memory_scientific_tasks import ScientificTaskStore, canonical_scop
 from .working_memory_lifecycle import METADATA
 from .result_semantics import read_scalar, result_field_semantics
 from .task_plan import PlanGraph, TaskSpec
+from .scientific_contracts import ContractError, validate_contract, computation_scope
 
 
 ARMS = ("A", "B", "C", "C-no-delivery", "C-no-selection", "A-equivalent")
+OWNER_PROPERTIES={
+    'task_id':{**STRING,'description':'Explicit owner. Required for every scientific action in a multi-call batch.'},
+    'output_key':{**STRING,'description':'Exact delivery key; use with task_id. No scope copying needed.'},
+    'revision':{'type':'integer','minimum':1,'description':'Optional expected task revision; stale values reject.'}}
 SYSTEM = """你是多任务EEG分析Agent。先依据用户原请求提出最小科学任务DAG(plan_tasks)，不是固定工具脚本。
 同一目的可有多个不同窗口或记录的结果key。task_id由你提出后保持稳定；改标题不创建新身份。补参/条件修订用revise_plan，原结果与旧版本保留。
 dependencies表示依赖；input_refs明确依赖哪个key、需要哪些字段以及summary/result/process层级。计划不是科学授权；数值参数仍必须来自真实用户或合法历史。
-调度器只选择已具备实际依赖的当前节点。你为当前节点选择局部工具动作；程序自动绑定结果key/工件/版本，不用反复抄已知ID。动作可省略已明确scope参数，程序仍核对用户来源。
+科学动作使用task_id与output_key明确归属，可省略已明确scope；revision可防过期。同批动作依次执行，各自绑定owner，不依赖前面select的可变current。单步旧入口可省owner，但多输出必须明确。无需反复抄工件/结果ID。
 需要上游工件时使用input_refs提供的真实句柄；compare_results对真实结果做描述性差值比值，不心算。跨记录/版本不能混用；事件窗是相对时间，连续窗是记录绝对时间。未授权的处理不能执行。
 所有方案都能read_dependency/read_result或restore_task，精确数值读取与过程恢复不同。摘要足够则不强迫多读；要核对过程再继续时恢复原行动观察，不能把索引当数值。
 check_deliveries可读所有方案相同的交付诊断。明确质量/计数条件须依据实际结果判断；辅助尝试失败不等于科学交付失败。缺参可wait_node并推进独立节点，最后真实澄清或partial。
 不要删除用户要求或降低科学条件以完成任务。任务完成不证明原自然请求无遗漏。finish_task必须给原用户所需实际数值、单位、来源/范围、新旧版本及未完成事项；不作诊断或无依据的因果解释。
-混合对象或字段省略时，在交付项interpretation记录对完整原文的解释：source_span完整父句、time_reference、measurement_channels，必要时range_span定位该窗口，channel_reference只引用通道名称。事件测量通道不改变相对时基；没有给出的窗口不得填造。程序核验实际来源/元数据/工具兼容，不替你证明语义正确；歧义要澄清。
+混合对象或字段省略时，在交付项interpretation使用scientific_source_frames的source_ref、time_reference、measurement_channels；channel_reference用source_ref/target_ref仅引用通道名称。补参或改窗用revise_plan保留旧source_ref并指向当前range_ref，或改用当前完整来源。引用只是定位，不证明语义；事件测量通道不改变时基，不猜缺窗。旧source_span仅兼容，不与ref并填，不在动作侧另改解释。
+若需要用户补参，finish_task.clarifications列出task_id/key/fields，程序核验实际缺失并把明确问题送达。仅wait_node或写无关问题不算询问。报告频带/指标放goal，scope只放广告中的计算条件。
 """
 
 
@@ -74,6 +80,9 @@ class TaskPlanController(ScientificMemoryController):
         self.evidence_log = []
         self.plan_events = []
         self.turn_nodes = set()
+        self.action_transitions = []
+        self.clarifications = []
+        self.batch_size = 1
         self.pending_archive = None
         self.automatic_acceptance = arm in {"C", "C-no-selection", "A-equivalent"}
         self.dependency_selection = arm in {"C", "C-no-delivery"}
@@ -82,18 +91,22 @@ class TaskPlanController(ScientificMemoryController):
         super().begin_turn(request)
         self.current = None
         self.turn_nodes = set()
+        self.clarifications = []
 
     def control_definitions(self):
-        from .task_plan import TASK_SPEC_SCHEMA
+        from .task_plan import task_spec_schema
+        schema=task_spec_schema(next(iter(self.store.contexts.values())).executor.registry)
         controls = [c for c in super().control_definitions()
                     if c["function"]["name"] != "focus_task"]
         next(c["function"] for c in controls if c["function"]["name"] == "compare_results")["parameters"]["required"] = []
         controls += [
             control("plan_tasks", "Propose scientific subtask DAG from the user request. No runtime facts or result IDs may be invented.", {
                 "nodes": {"type": "array", "minItems": 1, "maxItems": 12,
-                          "items": clone(TASK_SPEC_SCHEMA)}}, ["nodes"]),
+                          "items": schema}}, ["nodes"]),
             control("revise_plan", "Fill missing conditions or repair required_outputs[].interpretation on this stable task; preserve versions and invalidate affected dependents. Never drop user obligations.", {
-                "task_id": STRING, "updates": {"type": "object"}, "reason": STRING}, ["task_id", "updates", "reason"]),
+                "task_id": STRING, "updates": {"type": "object", "properties": {
+                    k:clone(v) for k,v in schema['properties'].items() if k!='task_id'},
+                    "additionalProperties":False}, "reason": STRING}, ["task_id", "updates", "reason"]),
             control("select_task", "Choose a ready independent node; no fabricated dependency satisfaction.", {"task_id": STRING}, ["task_id"]),
             control("complete_node", "Declare scientific acceptance after inspecting all real required results. Does not hide missing outputs.", {"task_id": STRING}, ["task_id"]),
             control("wait_node", "Suspend this node for genuine missing science or inability; other ready nodes remain available.", {"task_id": STRING, "reason": STRING}, ["task_id", "reason"]),
@@ -102,7 +115,35 @@ class TaskPlanController(ScientificMemoryController):
                 "task_id": STRING, "key": STRING, "revision":{"type":"integer","minimum":1}, "level": {"type":"string","enum":["summary","result","process"]},
                 "fields": {"type":"array","maxItems":4,"items":{"type":"array","items":{"type":["string","integer"]}}}}, ["task_id","key","level"]),
         ]
+        finish=next(c['function'] for c in controls if c['function']['name']=='finish_task')
+        finish['parameters']['properties']['clarifications']={'type':'array','maxItems':12,'items':{
+            'type':'object','properties':{'task_id':STRING,'key':STRING,
+                'fields':{'type':'array','minItems':1,'items':STRING}},
+            'required':['task_id','key','fields'],'additionalProperties':False},
+            'description':'Ask for actual missing fields of a registered delivery. Validated questions are appended to the delivered answer; internal waiting alone is not a question.'}
         return controls
+
+    def tool_definitions(self):
+        tools=super().tool_definitions()
+        for tool in tools:
+            f=tool['function']
+            if f['name'] in NUMERIC_TOOLS | {'compare_results'}:
+                f['parameters']['properties'].update(clone(OWNER_PROPERTIES))
+                f['parameters']['properties'].pop('request_span',None)
+        return tools
+
+    def execute(self,request,*,batch_size=1):
+        self.batch_size=batch_size
+        def state():return {'current':self.current,'active':self.store.active.subgoal_id if self.store.active else None,
+            'nodes':{k:{'revision':n.revision,'status':n.status,'outputs':{key:value.get('result_id') for key,value in n.outputs.items()}}
+                     for k,n in self.graph.nodes.items()},'results':[e.task_id for e in self.store.entries],
+            'active_scope':clone(self.store.active.scope) if self.store.active else None}
+        before=state()
+        result=super().execute(request,batch_size=batch_size)
+        self.action_transitions.append({'call_id':request.request_id,'tool':request.name,'arguments':clone(request.arguments),
+            'before':before,'after':state(),'success':result.success,'error':result.error_code})
+        self.batch_size=1
+        return result
 
     def _goal(self, node):
         ident = self.node_goals.get((node.task_id, node.revision))
@@ -159,9 +200,21 @@ class TaskPlanController(ScientificMemoryController):
         if ready:
             self._activate(ready[0])
 
-    def _validate_nodes(self, specs):
-        for node in specs:
-            for d in node.required_outputs:
+    def _validate_nodes(self, specs, prefix=('nodes',)):
+        from .scientific_request_binding import resolve_source_ref
+        for ni,node in enumerate(specs):
+            for di,d in enumerate(node.required_outputs):
+                path=(*prefix,*((ni,) if prefix==('nodes',) else ()), 'required_outputs',di,'interpretation')
+                for key in ('source_ref','range_ref'):
+                    if key in d.interpretation:
+                        try:
+                            _,frame=resolve_source_ref(self.store,d.interpretation[key])
+                            if frame.records and frame.records!=(d.record,):raise ValueError('Source parent does not uniquely belong to the delivery record')
+                        except ValueError as exc:raise ContractError((*path,key),str(exc)) from exc
+                for key,ref in d.interpretation.get('channel_reference',{}).items():
+                    if key.endswith('_ref'):
+                        try:resolve_source_ref(self.store,ref)
+                        except ValueError as exc:raise ContractError((*path,'channel_reference',key),str(exc)) from exc
                 if d.record not in self.store.records or d.capability not in NUMERIC_TOOLS | {"compare_results"}:
                     raise ValueError("Unknown record or enabled capability")
                 if d.capability in NUMERIC_TOOLS:
@@ -411,15 +464,15 @@ class TaskPlanController(ScientificMemoryController):
                            for n in self.graph.nodes.values()]
         # Original request parents expose actual source boundaries, not a gold
         # plan. A field reference cannot crop away record/object ownership.
-        from .scientific_request_binding import _request_frames
+        from .scientific_request_binding import source_catalog
         known_channels={c for r in self.store.records.values() for c in r.channel_names}
         known_labels={e.label for r in self.store.records.values() if r.events for e in r.events.events}
         payload["scientific_source_frames"] = [
-            {"span":f.text,"records":list(f.records),"start":f.start,"end":f.end,
-             "literal_metadata":{"channels":sorted(c for c in known_channels if self.store._contains(f.text,c)),
-                                 "event_labels":sorted(l for l in known_labels if self.store._contains(f.text,l))},
+            {**f,
+             "literal_metadata":{"channels":sorted(c for c in known_channels if self.store._contains(f['span'],c)),
+                                 "event_labels":sorted(l for l in known_labels if self.store._contains(f['span'],l))},
              "role_status":"not_interpreted_by_literal_locator"}
-            for f in _request_frames(self.store,self.requests[-1])]
+            for f in source_catalog(self.store)]
         payload["phase"] = "local_execution" if node else "plan_or_final_delivery"
         payload["current_plan_task"] = node.task_id if node else None
         payload["dependency_evidence"] = self._inputs(node) if node else []
@@ -451,10 +504,36 @@ class TaskPlanController(ScientificMemoryController):
         messages[1]["content"] = encoded(payload).decode("utf8")
         return messages,tools
 
+    def clarification_verification(self,delivery,fields):
+        """Bounded factual check; unresolvable semantics require external review."""
+        from .scientific_request_binding import source_catalog
+        from .working_memory_lifecycle import RANGE
+        scope=self._effective_scope(delivery)
+        event=self.store._family(delivery.capability)=='event'
+        key='labels' if event else 'channels'
+        pair={'tmin','tmax'} if event else {'start','end'}
+        selected=scope.get(key,[])
+        parents=[f for f in source_catalog(self.store) if f['records']==[delivery.record] and selected
+                 and all(self.store._contains(f['span'],x) for x in selected)]
+        if not set(fields).issubset(pair) or not parents:return 'review_required'
+        # A known full window anywhere in the applicable object history must
+        # not be re-labelled missing just because the proposal omitted it.
+        if any(RANGE.search(f['span']) for f in parents):return 'known_or_ambiguous_value'
+        return 'missing_literal_window'
+
     def _dispatch(self, request):
         name,args = request.name,clone(dict(request.arguments))
+        owner={k:args.pop(k) for k in ('task_id','output_key','revision') if k in args} if name in NUMERIC_TOOLS | {'compare_results'} else {}
+        if owner:
+            try:validate_contract(owner,{'type':'object','properties':OWNER_PROPERTIES,'required':['task_id'],'additionalProperties':False})
+            except ContractError as exc:return {**self.store._error('INVALID_ACTION_OWNER',str(exc)),'field_path':exc.path}
         spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name),None)
         if spec:
+            if name in {'plan_tasks','revise_plan','finish_task'}:
+                try:validate_contract(args,spec['parameters'])
+                except ContractError as exc:
+                    return {**self.store._error('INVALID_PLAN_STRUCTURE',str(exc)), 'field_path':exc.path,
+                        'recovery':{'tool':name,'instruction':'Correct this field using the advertised contract; no state was changed'}}
             try:_validate_schema(args,spec["parameters"])
             except (ValueError, TypeError) as exc:
                 if name not in {"plan_tasks", "revise_plan"}:raise
@@ -468,21 +547,27 @@ class TaskPlanController(ScientificMemoryController):
                 # execution exceptions, file paths or service response bodies.
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
             try:self._validate_nodes(specs)
+            except ContractError as exc:
+                return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,'recovery':{'tool':'plan_tasks'}}
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
                         'requirement_errors':clone(exc.errors)}
-            self.graph.submit(specs)
+            try:self.graph.submit(specs)
+            except ValueError as exc:
+                return {**self.store._error('INVALID_PLAN_GRAPH',str(exc)),'field_path':['nodes'],
+                        'recovery':{'tool':'plan_tasks','instruction':'Correct graph identities or dependencies without changing scientific obligations'}}
             self.turn_nodes.update(n.task_id for n in specs)
             return {"status":"planned","task_ids":[n.task_id for n in specs]}
         if name == "revise_plan":
             old = self.graph.nodes[args["task_id"]]
-            proposed = old.to_dict()
             allowed = old.to_dict(runtime=False)
             allowed.update(args["updates"])
             try:revised_spec = TaskSpec.from_dict(allowed)
             except (ValueError, TypeError, KeyError) as exc:
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
-            try:self._validate_nodes([revised_spec])
+            try:self._validate_nodes([revised_spec],prefix=('updates',))
+            except ContractError as exc:
+                return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,'recovery':{'tool':'revise_plan'}}
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
                         'requirement_errors':clone(exc.errors)}
@@ -520,16 +605,60 @@ class TaskPlanController(ScientificMemoryController):
             return {"status":"waiting","task_id":node.task_id}
         if name == "read_dependency":return self._read(**args)
         if name == "finish_task":
+            proposed_questions=args.pop('clarifications',[])
+            questions=[]
+            for question in proposed_questions:
+                node=self.graph.nodes.get(question['task_id'])
+                d=node.delivery(question['key']) if node else None
+                if not d or d.capability not in NUMERIC_TOOLS:
+                    return self.store._error('INVALID_CLARIFICATION','Identify an existing scientific delivery')
+                registry=self.store.contexts[d.record].executor.registry
+                contract=computation_scope(registry,d.capability)
+                required=set(self.store._required_fields(d.capability))
+                effective=self._effective_scope(d)
+                fields=question['fields']
+                if (args.get('status')=='completed' or len(set(fields))!=len(fields) or
+                        not set(fields).issubset(required-set(effective)) or
+                        any(k not in contract['properties'] for k in fields) or
+                        node.outputs.get(d.key) or not node.unresolved and node.status!='WAITING_INPUT'):
+                    return self.store._error('INVALID_CLARIFICATION','Ask only for actual missing scientific fields of an unresolved delivery')
+                text=f"请提供记录{d.record}、任务{node.task_id}、交付{d.key}（{d.capability}，已知条件{json.dumps(effective,ensure_ascii=False)}）所缺的科学参数：{', '.join(fields)}。"
+                questions.append({**clone(question),'record':d.record,'capability':d.capability,
+                    'scope':clone(effective),'revision':node.revision,'turn':self.store.turn,'question':text,
+                    'verification':self.clarification_verification(d,fields)})
+            if questions:args['answer']+='\n\n'+'\n'.join(q['question'] for q in questions)
             pending = [n for n in self.graph.nodes.values() if n.task_id in self.turn_nodes and n.status != "TASK_COMPLETED"]
             if args.get("status") == "completed" and pending:
                 return {**self.store._error("UNFINISHED_PLAN","Deliver required outputs or report honest partial/clarification"),
                         "pending":[n.task_id for n in pending]}
-            return ManagedMemoryController._dispatch(self,request)
+            result=ManagedMemoryController._dispatch(self,ToolRequest(name,args,request.request_id))
+            if result.get('status') in {'completed','partial','clarification_required'}:
+                self.clarifications=questions
+                result['clarifications']=clone(questions)
+            return result
         if name in NUMERIC_TOOLS | {"compare_results"}:
+            if self.batch_size>1 and 'task_id' not in owner:
+                return self.store._error('ACTION_OWNER_REQUIRED','Each scientific action in a batch needs task_id and output_key; selects do not bind later calls')
+            if owner:
+                node=self.graph.nodes.get(owner.get('task_id'))
+                if node is None or owner.get('revision',node.revision)!=node.revision:
+                    return self.store._error('INVALID_ACTION_OWNER','Use an existing task and its current revision')
+                d=node.delivery(owner.get('output_key'))
+                optional=name in node.optional_operations and 'output_key' not in owner
+                if name not in METADATA and not optional and (d is None or d.capability!=name):
+                    return self.store._error('INVALID_ACTION_OWNER','output_key must name a delivery of this capability')
+                if d and (args.get('record',d.record)!=d.record or any(
+                        args.get(k,v)!=v for k,v in self._effective_scope(d).items())):
+                    return self.store._error('ACTION_OWNER_SCOPE_CONFLICT','Revise the planned delivery before changing its scientific scope')
+                if node not in self.graph.ready_nodes() and node.task_id!=self.current and node.status!='TASK_COMPLETED':
+                    return self.store._error('DEPENDENCY_NOT_READY','Owner has missing dependencies or is waiting; revise or resume it first')
+                activated=self._activate(node)
+                if activated.get('status')!='selected':return activated
             if not self.current:
                 return self.store._error("PLAN_REQUIRED","Propose scientific tasks from the user request first")
             node = self.graph.nodes[self.current]
-            outputs = [d for d in node.required_outputs if d.capability == name]
+            outputs = [d for d in node.required_outputs if d.capability == name and
+                       (not owner or d.key==owner.get('output_key'))]
             if not outputs and name not in node.optional_operations and name not in METADATA:
                 return self.store._error("ACTION_OUTSIDE_NODE","Use the current node's outputs or declared optional operations; replan for another scientific task")
             if name in NUMERIC_TOOLS:
@@ -602,7 +731,8 @@ class TaskPlanController(ScientificMemoryController):
         result = super().snapshot()
         result.update(method_version="shared_plan_execute_v1",arm=self.arm,
             plan=[n.to_dict() for n in self.graph.nodes.values()],plan_events=clone(self.plan_events),
-            graph_history=clone(self.graph.history),evidence_access=clone(self.evidence_log))
+            graph_history=clone(self.graph.history),evidence_access=clone(self.evidence_log),
+            action_transitions=clone(self.action_transitions),clarifications=clone(self.clarifications))
         return result
 
 

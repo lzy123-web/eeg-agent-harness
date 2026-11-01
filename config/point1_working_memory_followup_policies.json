@@ -1,0 +1,7 @@
+{
+  "description": "Evaluation-only interpretation of existing natural followup policies; not agent instructions or changed scientific scoring. Unrecognized policies require review.",
+  "policies": {
+    "Send next ordinary user request only after current response; stop on hard execution/resource failure. No tool sequence supplied.": "ordinary",
+    "Second request only after a response accurately identifies missing event-relative window and preserves lawful partial work; if it guesses a window record failure, do not silently repair by sending gold.": "clarification"
+  }
+}

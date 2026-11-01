@@ -1,3 +1,11 @@
+## Issue56 共享接口审计补记（2026-11-01）
+
+已实现：`scientific_contracts.computation_scope`复用Registry派生科学计算scope；scientific/DAG计划/修订/Store使用同源参数。新有限schema验证负责结构，原Store/Executor负责来源、元数据、物理范围、工件及版本事实，不把类型合法当科学授权。
+
+`source_catalog/resolve_source_ref`直接从已有用户请求SourceFrame定位完整父句；无进程全局数据或新来源数据库。历史引用仅在原合法对象/结果和当前补参约束下使用。TaskPlanController在原Agent顺序批次中核验task_id/output_key/revision并记录每动作前后状态；`finish_task.clarifications`渲染真实送达问题，live以原followup_policy核验条件式补参，gold仅用于评价。
+
+来源、旧错误语义边界、实验方法和成本见[Issue56结果记录](EEG_WORKING_MEMORY_ISSUE56.md)。710项回归（15资源跳过）、24条受控链111/111oracle通过；这些不是新模型自主能力证据。新增API0，未动Issue55累计账本。原六会话/首次失败保留；旧无owner批次兼容损失明确列示。
+
 ## Issue55 真实诊断后补审（2026-11-01）
 
 原服务配置从同项目成功命令恢复，唯一正式账本按正面历史证据首次初始化；48笔真实请求/响应/预约/结算已逐笔对应。初始化新增入口不替代既有client/journal/final lease。实际轨迹促成小范围修订：measurement_channels使用同一已核验字段关系；计划解释错误回到原revise_plan；原RequirementValidationError与纯结构错误透传有限诊断；PlanGraph先验证无变化/循环等再settle活动目标，拒绝保持科学状态。live遵循原补窗协议，不要求特定状态标签或预展开epoch节点。工具算法/数据/gold不变。

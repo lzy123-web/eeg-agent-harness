@@ -94,15 +94,20 @@ def _rule(value):
 
 def _interpretation(value):
     if value == {}:return {}
-    _object(value, {'source_span','time_reference','measurement_channels','range_span','channel_reference'},
-            {'source_span','time_reference'}, 'interpretation')
-    _text(value['source_span'],'interpretation.source_span',4000)
+    _object(value, {'source_span','source_ref','time_reference','measurement_channels','range_span','range_ref','channel_reference'},
+            {'time_reference'}, 'interpretation')
+    if ('source_span' in value)==('source_ref' in value):raise ValueError('Use exactly one source_ref (preferred) or legacy source_span')
+    for key in ('source_span','source_ref','range_ref'):
+        if key in value:_text(value[key],key,4000)
+    if 'range_span' in value and 'range_ref' in value:raise ValueError('Use one window locator')
     if value['time_reference'] not in {'record_absolute','event_relative'}:
         raise ValueError('Unknown time reference')
     if 'measurement_channels' in value:_strings(value['measurement_channels'],'measurement_channels')
     if 'range_span' in value:_text(value['range_span'],'range_span',4000)
     if 'channel_reference' in value:
-        _object(value['channel_reference'],{'source_span','target_span'},{'source_span','target_span'},'channel_reference')
+        ref=value['channel_reference']
+        if not isinstance(ref,dict) or set(ref) not in ({'source_span','target_span'},{'source_ref','target_ref'}):
+            raise ValueError('Field reference needs source_ref/target_ref or legacy source_span/target_span')
         for span in value['channel_reference'].values():_text(span,'reference span',4000)
     return _copy(value)
 
@@ -460,3 +465,32 @@ TASK_SPEC_SCHEMA = {"type": "object", "properties": {
     "optional_operations": {"type": "array", "items": _STRING}},
     "required": ["task_id", "goal", "required_outputs"], "additionalProperties": False}
 PLAN_NODES_SCHEMA = {"type": "array", "minItems": 1, "maxItems": 32, "items": TASK_SPEC_SCHEMA}
+
+
+def task_spec_schema(registry):
+    """Shared derived scope vocabulary, never a second tool parameter table."""
+    from .scientific_contracts import scope_groups
+    spec=_copy(TASK_SPEC_SCHEMA)
+    spec['properties']['task_id']['maxLength']=100
+    spec['properties']['goal']['maxLength']=2000
+    spec['properties']['dependencies']['items']['maxLength']=100
+    spec['properties']['optional_operations']['items'].update(maxLength=100)
+    item=spec['properties']['required_outputs']['items']
+    for key in ('key','capability','record'):item['properties'][key]['maxLength']=100
+    interpretation=item['properties']['interpretation']
+    interpretation['description']='Semantic proposal, not facts. Prefer source_ref from the visible catalog; legacy source_span is exclusive. Historical object plus current range_ref may express a lawful supplement.'
+    interpretation['properties'].update(source_ref=_STRING,range_ref=_STRING)
+    interpretation['required']=['time_reference']
+    interpretation['oneOf']=[{'required':['source_ref'],'properties':{'source_span':{'type':'null'}}},
+                             {'required':['source_span'],'properties':{'source_ref':{'type':'null'}}}]
+    interpretation['not']={'required':['range_ref','range_span']}
+    ref=interpretation['properties']['channel_reference']
+    ref['properties'].update(source_ref=_STRING,target_ref=_STRING)
+    ref['required']=[]
+    ref['oneOf']=[{'properties':{key:_STRING for key in keys},'required':keys,'additionalProperties':False}
+                  for keys in (['source_ref','target_ref'],['source_span','target_span'])]
+    groups=scope_groups(registry)+[{'names':['compare_results'],'schema':{'type':'object','properties':{},'additionalProperties':False}}]
+    item['properties']['capability']['enum']=[n for g in groups for n in g['names']]
+    item['allOf']=[{'if':{'properties':{'capability':{'enum':g['names']}}},
+                   'then':{'properties':{'scope':g['schema']}}} for g in groups]
+    return spec
