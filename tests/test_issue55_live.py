@@ -1,11 +1,12 @@
 """Offline end-to-end Issue55 live-driver gates; no real credentials or ledger."""
 import json
+import hashlib
 from pathlib import Path
 from decimal import Decimal
 import tempfile
 import unittest
 from unittest.mock import patch
-from eeg_harness.research.working_memory_issue55_live import GRANT, MoneyBudgetClient, run_session, money_totals
+from eeg_harness.research.working_memory_issue55_live import GRANT, MoneyBudgetClient, run_session, money_totals, initialize_ledger
 from eeg_harness.research.task_memory_issue39_budget import _append,_rows,StageBudgetExhausted
 from eeg_harness.research.integrated_method.v2_validation import JournaledBudgetClient
 from eeg_harness.llm import LLMServiceError
@@ -59,6 +60,49 @@ def case_and_actions():
     return case,actions
 
 class LiveRunnerTest(unittest.TestCase):
+    def test_first_initialization_is_explicit_linked_and_never_resets(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);case,actions=case_and_actions();raw=RawFake(actions)
+            _,a=setup(root,raw)
+            evidence=root/'TEST-audit';evidence.write_text('TEST ONLY reviewed command history')
+            proof={'grant':GRANT,'test_only':True,'conclusion':'no_prior_issue55_calls',
+                'prior_usage':{'completions':0,'api_tokens':0,'usd':0},'unsettled':[],
+                'prior_stage_closed':False,'prior_confirmation_started':False,'coverage':'TEST all prior commands',
+                'evidence':[{'path':str(evidence),'sha256':hashlib.sha256(evidence.read_bytes()).hexdigest()}]}
+            review=root/'review.json';review.write_text(json.dumps(proof),encoding='utf8')
+            ledger=root/'first.jsonl'
+            initialize_ledger(raw,ledger,a,review,test_only=True)
+            self.assertEqual(raw.request_count,0)
+            self.assertEqual(len(_rows(ledger)),1)
+            before=ledger.read_bytes()
+            with self.assertRaises(FileExistsError):initialize_ledger(raw,ledger,a,review,test_only=True)
+            self.assertEqual(ledger.read_bytes(),before)
+            run_session(raw,ledger,a,case,root/'run',test_only=True)
+            self.assertEqual(raw.request_count,6)
+            _append(ledger,{'event':'stage_closed'})
+            with self.assertRaises(FileExistsError):initialize_ledger(raw,ledger,a,review,test_only=True)
+            with self.assertRaises(StageBudgetExhausted):initialize_ledger(raw,root/'other',a,review,test_only=False)
+
+    def test_unknown_history_or_changed_evidence_cannot_open_allowance(self):
+        for defect in ('unknown','consumed','unsettled','closed','confirmation','changed','missing'):
+            with tempfile.TemporaryDirectory() as td:
+                root=Path(td);raw=RawFake([]);_,a=setup(root,raw)
+                evidence=root/'audit';evidence.write_text('TEST ONLY')
+                proof={'grant':GRANT,'test_only':True,'conclusion':'no_prior_issue55_calls',
+                    'prior_usage':{'completions':0,'api_tokens':0,'usd':0},'unsettled':[],
+                    'prior_stage_closed':False,'prior_confirmation_started':False,'coverage':'TEST',
+                    'evidence':[{'path':str(evidence),'sha256':hashlib.sha256(evidence.read_bytes()).hexdigest()}]}
+                if defect=='unknown':proof['conclusion']='unknown'
+                if defect=='consumed':proof['prior_usage']['completions']=1
+                if defect=='unsettled':proof['unsettled']=['old-request']
+                if defect=='closed':proof['prior_stage_closed']=True
+                if defect=='confirmation':proof['prior_confirmation_started']=True
+                if defect=='changed':evidence.write_text('changed')
+                if defect=='missing':proof['evidence']=[]
+                review=root/'review.json';review.write_text(json.dumps(proof),encoding='utf8')
+                with self.assertRaises(StageBudgetExhausted):initialize_ledger(raw,root/'new',a,review,test_only=True)
+                self.assertFalse((root/'new').exists());self.assertEqual(raw.request_count,0)
+
     def test_real_agent_deadline_snapshots_native_journals_and_settlement(self):
         case,actions=case_and_actions()
         with tempfile.TemporaryDirectory() as td:

@@ -1,7 +1,7 @@
 """Issue55 live session driver and money guard over the original client/leases.
 
-CLI never creates or resets a real allowance. Existing cumulative transactions
-and verified endpoint/rate attestation are required before constructing a client.
+CLI never resets an allowance. Explicit first initialization requires reviewed
+zero-history evidence; runs require cumulative transactions and rate attestation.
 Tests use explicit test-only attestations and temporary ledgers, no credentials.
 """
 import argparse
@@ -9,6 +9,7 @@ from copy import deepcopy
 from decimal import Decimal
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -25,6 +26,47 @@ from .task_memory import PROJECT_ROOT
 
 GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546527306'
 LIMITS={'development':(48,2000000),'confirmation':(96,4000000)}
+FORMAL_LEDGER=PROJECT_ROOT/'artifacts/point1_task_memory/issue55/budget.jsonl'
+
+
+def initialize_ledger(raw,ledger,attestation,reconciliation,*,test_only=False):
+    """Explicit first opening, not recovery, with independently reviewed evidence.
+
+    This checks the audit contract and immutable file links, not the truth of
+    all historical activity. An unknown history must never be marked zero.
+    Real runs have one canonical ledger; existing/closed files are untouched.
+    """
+    validate_attestation(attestation,raw,test_only)
+    ledger, reconciliation=Path(ledger),Path(reconciliation)
+    if not test_only and ledger.resolve()!=FORMAL_LEDGER.resolve():
+        raise StageBudgetExhausted('First opening must use the unique Issue55 formal ledger')
+    proof=json.loads(reconciliation.read_text(encoding='utf8'))
+    if (proof.get('grant')!=GRANT or proof.get('test_only') is not test_only or
+            proof.get('conclusion')!='no_prior_issue55_calls' or
+            proof.get('prior_usage')!={'completions':0,'api_tokens':0,'usd':0} or
+            proof.get('unsettled')!=[] or proof.get('prior_stage_closed') is not False or
+            proof.get('prior_confirmation_started') is not False or not proof.get('coverage')):
+        raise StageBudgetExhausted('Reviewed complete zero-history evidence required; unknown is not zero')
+    evidence=proof.get('evidence',[])
+    if not evidence:raise StageBudgetExhausted('Original audit evidence is required')
+    for row in evidence:
+        path=Path(row['path'])
+        if not path.is_absolute():path=PROJECT_ROOT/path
+        if hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:
+            raise StageBudgetExhausted('Historical audit evidence changed')
+    rate=max(Decimal(str(attestation[k])) for k in ('input_usd_per_million','output_usd_per_million'))
+    header={'event':'opened','stage':'issue55','test_only':test_only,'grant':GRANT,
+        'reconciled':True,'rate_ceiling':str(rate),'initialization':'first_after_history_review',
+        'reconciliation_sha256':hashlib.sha256(reconciliation.read_bytes()).hexdigest(),
+        'reconciliation_evidence':evidence,'timestamp_utc':time.time(),
+        'max_requests':144,'max_tokens':6000000,'max_usd':'3','phase_limits':LIMITS}
+    ledger.parent.mkdir(parents=True,exist_ok=True)
+    with _ledger_lock(Path(str(ledger)+'.session')):
+        with ledger.open('x',encoding='utf8') as stream:
+            stream.write(json.dumps(header,ensure_ascii=False,allow_nan=False)+'\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+    return header
 
 
 def actual_settings(raw):
@@ -306,15 +348,25 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--real',action='store_true',required=True)
+    mode=p.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--real',action='store_true')
+    mode.add_argument('--initialize-ledger',action='store_true')
     p.add_argument('--ledger',type=Path,required=True)
     p.add_argument('--attestation',type=Path,required=True)
-    p.add_argument('--phase',choices=LIMITS,required=True)
-    p.add_argument('--case',required=True)
-    p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--reconciliation',type=Path)
+    p.add_argument('--phase',choices=LIMITS)
+    p.add_argument('--case')
+    p.add_argument('--output',type=Path)
     args=p.parse_args(argv)
     a=json.loads(args.attestation.read_text(encoding='utf8'))
     if a.get('test_only') is not False:p.error('Test attestation cannot authorize a real request')
+    if args.initialize_ledger:
+        if args.reconciliation is None:p.error('Reviewed history reconciliation required')
+        raw=OpenAICompatibleClient.from_env()
+        raw.max_tokens,raw.max_retries=2200,0
+        initialize_ledger(raw,args.ledger,a,args.reconciliation)
+        return
+    if not all((args.phase,args.case,args.output)):p.error('--real requires phase, case and output')
     if not args.ledger.exists():p.error('Existing reconciled cumulative ledger required')
     cases=protocol()['cases'] if args.phase=='confirmation' else development_protocol()['cases']
     case=next((c for c in cases if c['id']==args.case),None)
