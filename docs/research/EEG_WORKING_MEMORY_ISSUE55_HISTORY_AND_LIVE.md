@@ -47,3 +47,6 @@ Issue55授权评论6546527306的GitHub原始时间为2026-10-31 17:08:03 UTC（�
 同提交原T07首次运行3次/17,465tokens，在plan_tasks连续报INVALID_CONTROL_ARGUMENT后no_progress、零科学计算，第二轮未发出。离线读取真实提案复现出原RequirementValidationError：事件交付scope含不支持的channels/处理字段；底层已有allowed_scope_fields和具体错误，但Plan入口将它们丢失。再做一项直接衔接修正：只捕获原类型化校验错误，附task_id/output_key并原样给出实际允许scope字段，计划保持原子拒绝、零事实提交，不放宽工具schema，不自动补DAG/工件。与上一项都属于实际失败暴露的恢复信息丢失，不增新Planner或解析器。新增四臂反例检查诊断及零提交。
 
 截至这三个开发会话，累计22次/148,866tokens，保守占用US$0.0488448；开发剩26次/1,851,134tokens，确认96次/4M未使用。全阶段美元余量按保守占用计US$2.9511552，非服务账单余额。所有首败与账本快照保留，确认仍未开始。
+
+
+9d9bb26下T07复查6次/37,124tokens仍no_progress、零科学计算，第二轮未发出：模型利用新诊断删除不支持scope字段，但随后将input_refs放在TaskSpec顶层，三次重复结构错误。另有一次非法JSON提案，原响应与拒绝均保留。累计28次/185,990tokens/US$0.0630105。补齐同一恢复链最后的纯提案解析诊断：仅在plan/revise的schema与TaskSpec解析边界返回INVALID_PLAN_STRUCTURE及有限长错误；不暴露执行异常、不自动搬字段、不修改计划、不放宽schema。四臂完整链验证错误计划无状态写入→正确提案真实计算→错误修订保持原版本。T07不再付费追跑；剩余开发用于原缺参/修订任务的独立诊断，不将本轮未证实的修订称为T07自主成功。

@@ -78,6 +78,34 @@ class TaskPlanAgentTest(unittest.TestCase):
                 self.assertTrue(np.isclose(float(entry.result["SYNTH-C1"]["alpha"]), expected, rtol=.005, atol=1e-13))
                 self.assertEqual(a.working_memory.graph.nodes["window"].status, "TASK_COMPLETED")
 
+    def test_structural_diagnostics_repair_proposals_without_rewriting_or_mutation(self):
+        for arm in ARMS:
+            with self.subTest(arm=arm):
+                valid = node("window", [delivery("power")])
+                invalid = {**valid, "input_refs": []}
+                def check_rejection(messages):
+                    rejected = json.loads(messages[-1]["content"])["data"]
+                    self.assertEqual(rejected["code"], "INVALID_PLAN_STRUCTURE")
+                    self.assertIn("input_refs", rejected["message"])
+                    self.assertFalse(a.working_memory.graph.nodes)
+                    self.assertFalse(a.working_memory.store.entries)
+                    return "plan_tasks", {"nodes": [valid]}
+                def check_revision(messages):
+                    rejected = json.loads(messages[-1]["content"])["data"]
+                    self.assertEqual(rejected["code"], "INVALID_PLAN_STRUCTURE")
+                    self.assertIn("InputRef", rejected["message"])
+                    n = a.working_memory.graph.nodes["window"]
+                    self.assertEqual(n.revision, 1)
+                    self.assertFalse(n.revision_history)
+                    self.assertEqual(len(a.working_memory.store.entries), 1)
+                    return finish()
+                bad_delivery = delivery("power", refs=[{"task_id": "window"}])
+                a = self.agent([("plan_tasks", {"nodes": [invalid]}), check_rejection,
+                    ("psd", {}), ("revise_plan", {"task_id": "window", "updates": {
+                        "required_outputs": [bad_delivery]}, "reason": "Invalid test proposal"}),
+                    check_revision], arm)
+                self.assert_completed(a.run("记录A SYNTH-C1在0到2秒的alpha功率。"))
+
     def test_two_same_capability_windows_do_not_complete_after_one_result(self):
         for arm in ARMS:
             with self.subTest(arm=arm):

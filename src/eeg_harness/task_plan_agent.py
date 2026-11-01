@@ -455,11 +455,18 @@ class TaskPlanController(ScientificMemoryController):
         name,args = request.name,clone(dict(request.arguments))
         spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name),None)
         if spec:
-            _validate_schema(args,spec["parameters"])
+            try:_validate_schema(args,spec["parameters"])
+            except (ValueError, TypeError) as exc:
+                if name not in {"plan_tasks", "revise_plan"}:raise
+                return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
         if self.final_only and name != "finish_task":
             return self.store._error("FINAL_DELIVERY_ONLY","Only the reserved final answer is available")
         if name == "plan_tasks":
-            specs = [TaskSpec.from_dict(n) for n in args["nodes"]]
+            try:specs = [TaskSpec.from_dict(n) for n in args["nodes"]]
+            except (ValueError, TypeError, KeyError) as exc:
+                # Only pure proposal parsing errors are exposed, never arbitrary
+                # execution exceptions, file paths or service response bodies.
+                return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
             try:self._validate_nodes(specs)
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
@@ -472,7 +479,9 @@ class TaskPlanController(ScientificMemoryController):
             proposed = old.to_dict()
             allowed = old.to_dict(runtime=False)
             allowed.update(args["updates"])
-            revised_spec = TaskSpec.from_dict(allowed)
+            try:revised_spec = TaskSpec.from_dict(allowed)
+            except (ValueError, TypeError, KeyError) as exc:
+                return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
             try:self._validate_nodes([revised_spec])
             except RequirementValidationError as exc:
                 return {**self.store._error('INVALID_PLAN_REQUIREMENT','Repair the listed delivery scope using the existing tool contract'),
