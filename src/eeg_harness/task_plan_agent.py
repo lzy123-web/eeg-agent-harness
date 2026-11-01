@@ -198,7 +198,7 @@ class TaskPlanController(ScientificMemoryController):
         ready = [n for n in ready if all(
             self._entry_for(self._ref_output(r)) is not None and self.store._binding_valid(self._entry_for(self._ref_output(r)))
             if (self._ref_output(r) or {}).get("result_id") else self._valid_comparison(self._ref_output(r))
-            for r in n.input_refs())]
+            for r in n.input_refs() if r.task_id!=n.task_id)]
         if ready:
             self._activate(ready[0])
 
@@ -254,8 +254,14 @@ class TaskPlanController(ScientificMemoryController):
                     node.status = "STALE"
                     node.unresolved = ["An actual evidence binding is no longer applicable"]
 
-    def _effective_scope(self, delivery):
-        sources = [self._entry_for(self._ref_output(r)) for r in delivery.input_refs]
+    def _effective_scope(self, delivery, *, proposed=False):
+        sources=[]
+        for ref in delivery.input_refs:
+            try:sources.append(self._entry_for(self._ref_output(ref)))
+            except ValueError:
+                if not proposed:raise
+                # New keys in a proposed revision have no runtime output yet.
+                # PlanGraph validates their existence/cycles transactionally.
         same = [e for e in sources if e and e.record == delivery.record and self.store._binding_valid(e)
                 and self.store._family(e.capability) == self.store._family(delivery.capability)]
         inherited = same[0].parameters if len(same) == 1 else {}
@@ -517,7 +523,7 @@ class TaskPlanController(ScientificMemoryController):
         for i,d in enumerate(spec.required_outputs):
             if not d.interpretation or d.capability not in NUMERIC_TOOLS:continue
             previous=self._entry_for(old.outputs.get(d.key))
-            scope=self._effective_scope(d)
+            scope=self._effective_scope(d,proposed=True)
             pair=('tmin','tmax') if self.store._family(d.capability)=='event' else ('start','end')
             object_key='labels' if pair[0]=='tmin' else 'channels'
             if not scope.get(object_key) or not all(k in scope for k in pair):continue # missing conditions remain registerable
@@ -669,6 +675,8 @@ class TaskPlanController(ScientificMemoryController):
                     return self.store._error('ACTION_OWNER_SCOPE_CONFLICT','Revise the planned delivery before changing its scientific scope')
                 if node not in self.graph.ready_nodes() and node.task_id!=self.current and node.status!='TASK_COMPLETED':
                     return self.store._error('DEPENDENCY_NOT_READY','Owner has missing dependencies or is waiting; revise or resume it first')
+                if d and any(not self._input_ready(r) for r in d.input_refs):
+                    return self.store._error('DELIVERY_INPUT_NOT_READY','This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first')
                 activated=self._activate(node)
                 if activated.get('status')!='selected':return activated
             if not self.current:
@@ -691,6 +699,8 @@ class TaskPlanController(ScientificMemoryController):
                     if not selected:
                         return self.store._error("AMBIGUOUS_DELIVERY","Select the exact current output scope/record; no guessed ordering")
                 if selected:
+                    if any(not self._input_ready(r) for r in selected.input_refs):
+                        return self.store._error('DELIVERY_INPUT_NOT_READY','This delivery needs actual accepted producer outputs')
                     args.setdefault("record",selected.record)
                     if selected.interpretation:
                         if 'channel_reference' in args:
@@ -705,7 +715,10 @@ class TaskPlanController(ScientificMemoryController):
                     entries = [self._entry_for(self._ref_output(r)) for r in selected.input_refs]
                     entries = [e for e in entries if e]
                     if spec.consumes_artifact and len({e.evidence["binding"]["artifact_id"] for e in entries})==1:
-                        args.setdefault("artifact_id",entries[0].evidence["binding"]["artifact_id"])
+                        artifact=entries[0].evidence['binding']['artifact_id']
+                        if args.get('artifact_id',artifact)!=artifact:
+                            return self.store._error('ARTIFACT_DEPENDENCY_MISMATCH','Use the actual artifact of the declared producer output')
+                        args.setdefault("artifact_id",artifact)
                     same = [e for e in entries if e.record==selected.record and self.store._family(e.capability)==self.store._family(name)]
                     if len(same)==1:args.setdefault("inherit_result",same[0].task_id)
                     elif node.revision_history and not args.get("inherit_result"):
@@ -715,6 +728,8 @@ class TaskPlanController(ScientificMemoryController):
                             args["inherit_result"] = old_entry.task_id
             elif len(outputs)==1:
                 refs = outputs[0].input_refs
+                if any(not self._input_ready(r) for r in refs):
+                    return self.store._error('DELIVERY_INPUT_NOT_READY','Comparison operands must actually be delivered')
                 for side,ref in zip(("left","right"),refs):
                     ident = (self._ref_output(ref) or {}).get("result_id")
                     args.setdefault(f"{side}_result",ident)
@@ -743,6 +758,12 @@ class TaskPlanController(ScientificMemoryController):
                 result["node_completion"] = self._complete(node)
             return result
         return super()._dispatch(request)
+
+    def _input_ready(self, ref):
+        resolved=self.graph.resolve_ref(ref)
+        if resolved['output_status'] not in {'DELIVERY_SATISFIED','TASK_COMPLETED'}:return False
+        entry=self._entry_for(resolved['output'])
+        return self.store._binding_valid(entry) if entry else self._valid_comparison(resolved['output'])
 
     def snapshot(self):
         result = super().snapshot()

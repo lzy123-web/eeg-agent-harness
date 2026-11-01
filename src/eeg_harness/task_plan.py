@@ -245,13 +245,25 @@ class PlanGraph:
             if ident in node.dependencies or any(dep not in nodes for dep in node.dependencies):
                 raise ValueError(f"Task {ident} has a self or unknown dependency")
             for ref in node.input_refs():
-                if ref.task_id not in node.dependencies:
+                if ref.task_id != ident and ref.task_id not in node.dependencies:
                     raise ValueError(f"Input {ref.task_id}/{ref.key} must be an explicit dependency of {ident}")
                 version = PlanGraph._version(nodes[ref.task_id], ref.revision)
                 if version is None:
                     raise ValueError(f"Unknown upstream task revision {ref.task_id}@{ref.revision}")
                 if not any(d["key"] == ref.key for d in version["required_outputs"]):
                     raise ValueError(f"Unknown upstream delivery {ref.task_id}/{ref.key}")
+            # A task is a scientific goal, not necessarily one atomic tool.
+            # Local output references order its deliveries, not the whole task.
+            seen, stack = set(), set()
+            def visit_output(key):
+                if key in stack:raise ValueError('Delivery dependencies contain a cycle')
+                if key in seen:return
+                stack.add(key)
+                for ref in node.delivery(key).input_refs:
+                    if ref.task_id == ident and ref.revision in (None,node.revision):
+                        visit_output(ref.key)
+                stack.remove(key);seen.add(key)
+            for delivery in node.required_outputs:visit_output(delivery.key)
         visited, active = set(), set()
 
         def visit(ident):
@@ -351,6 +363,15 @@ class PlanGraph:
         self.history.append({"event": "result_bound", "task_id": task_id,
             "revision": node.revision, "key": key, "status": status, "evidence": _copy(evidence)})
 
+    @staticmethod
+    def affected_local_outputs(node, keys):
+        affected=set(keys)
+        while True:
+            added={d.key for d in node.required_outputs if any(
+                r.task_id==node.task_id and r.revision is None and r.key in affected for r in d.input_refs)}-affected
+            if not added:return affected
+            affected.update(added)
+
     def revise(self, task_id, updates, reason):
         """Revise a stable task; preserve old evidence and invalidate consumers.
 
@@ -377,6 +398,7 @@ class PlanGraph:
         changed = {k for k in old_items.keys() | new_items.keys() if old_items.get(k) != new_items.get(k)}
         if old.dependencies != revised.dependencies:
             changed |= set(new_items)
+        changed = self.affected_local_outputs(revised,changed)
         revised.revision = old.revision + 1
         revised.revision_history = _copy(old.revision_history) + [{"revision": old.revision,
             "reason": reason, "snapshot": old.to_dict()}]
@@ -401,6 +423,7 @@ class PlanGraph:
                     for r in d.input_refs)}
                 if not refs:
                     keys = {d.key for d in node.required_outputs}
+                keys = self.affected_local_outputs(node,keys)
                 newly = keys - affected.get(ident, set())
                 if newly:
                     affected.setdefault(ident, set()).update(newly)
@@ -451,7 +474,8 @@ DELIVERY_SCHEMA = {"type": "object", "properties": {
             "channel_reference":{"type":"object","description":"When channel names come from another clause, express that field relation here, using complete original source and target clauses. Target record/window remain independent.","properties":{"source_span":_STRING,"target_span":_STRING},
                 "required":["source_span","target_span"],"additionalProperties":False}},
         "required":["source_span","time_reference"],"additionalProperties":False},
-    "input_refs": {"type": "array", "items": INPUT_REF_SCHEMA},
+    "input_refs": {"type": "array", "items": INPUT_REF_SCHEMA,
+        "description":"Real output dependencies. Same-task keys form an acyclic delivery graph; execute producers before consumers. Cross-task refs also require task dependencies. Pinned revisions retain old evidence."},
     "required": {"type": "boolean"},
     "acceptance_rule": {"type": "array", "items": {"type": "object", "properties": {
         "path": _PATH, "op": {"type": "string", "enum": ["eq", "gte", "lte"]},
