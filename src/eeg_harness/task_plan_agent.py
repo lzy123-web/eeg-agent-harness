@@ -542,7 +542,8 @@ class TaskPlanController(ScientificMemoryController):
         resolved = self.graph.resolve_ref({"task_id":task_id,"key":key,**({"revision":revision} if revision else {})})
         output = resolved["output"]
         if not output:
-            return self.store._error("DEPENDENCY_UNDELIVERED","No actual output at that key/version")
+            return {**self.store._error("DEPENDENCY_UNDELIVERED","No actual output at that key/version; current execution and historical reading are distinct"),
+                    'requested_revision':resolved['revision'],'available_history':self._history_index(node,key)}
         if level == "summary":
             return {"status":"read","task_id":task_id,"key":key,"revision":resolved["revision"],"level":level,"goal":resolved["goal"],
                     "task_status":resolved["status"],"locator":self._locator(output),"numeric_evidence":False}
@@ -579,6 +580,20 @@ class TaskPlanController(ScientificMemoryController):
     @staticmethod
     def _locator(output):
         return {k:clone(v) for k,v in output.items() if k != "result"}
+
+    def _history_index(self, node, key=None):
+        """Exact snapshot locators only; no automatic historical selection."""
+        rows=[]
+        for revision in node.revision_history:
+            snapshot=revision['snapshot']
+            for name,output in snapshot['outputs'].items():
+                if key is not None and name!=key:continue
+                entry=self._entry_for(output)
+                rows.append({'task_id':node.task_id,'key':name,'revision':snapshot['revision'],
+                    'result_id':output.get('result_id',output.get('comparison_id')),
+                    'record':entry.record if entry else None,'scope':clone(entry.parameters) if entry else {},
+                    'valid_binding':self.store._binding_valid(entry) if entry else self._valid_comparison(output)})
+        return rows
 
     def _inputs(self, node):
         rows = []
@@ -643,6 +658,7 @@ class TaskPlanController(ScientificMemoryController):
         payload["current_plan_task"] = node.task_id if node else None
         payload["dependency_evidence"] = self._inputs(node) if node else []
         payload["task_summaries"] = [{"task_id":n.task_id,"goal":n.goal,"revision":n.revision,
+            "historical_outputs":self._history_index(n),
             "status":n.status,"outputs":{k:self._locator(v) for k,v in n.outputs.items()},
             "readable_keys":[k for k,v in n.outputs.items() if n.output_status.get(k)!='STALE' and
                              (self.store._binding_valid(self._entry_for(v)) if self._entry_for(v) else self._valid_comparison(v))],
