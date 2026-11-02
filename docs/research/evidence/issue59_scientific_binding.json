@@ -26443,7 +26443,18 @@
     "draft": true,
     "independent_review": null,
     "final_scientific_complete": false,
-    "latest_source_real_retested": false
+    "latest_source_real_retested": false,
+    "final_implementation_commit": "aa37ad464d81b96551a5efec43b7891ff556c73f",
+    "implementation_ci": {
+      "run_id": 41429801444,
+      "number": 404,
+      "status": "completed",
+      "conclusion": "success",
+      "job_id": 125225236623,
+      "tests_run": 772,
+      "skipped": 15,
+      "url": "https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41429801444"
+    }
   },
   "complexity_and_cost": {
     "schema_before_bytes": 29298,
