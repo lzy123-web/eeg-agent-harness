@@ -55,6 +55,7 @@ def resolve_scientific_binding(store,name,record,declared,*,references=(),previo
             return
         valid=entry.record==record and store._binding_valid(entry)
         out.witnesses.append({'role':role,'reference':clone(reference),'result_id':entry.task_id,
+                             'created_user_turn':entry.evidence.get('created_user_turn'),
                              'record':entry.record,'scope':clone(entry.parameters),'fact':valid,
                              'binding':clone(entry.evidence['binding'])})
         if not valid:

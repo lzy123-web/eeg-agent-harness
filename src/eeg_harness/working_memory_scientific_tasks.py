@@ -306,7 +306,8 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
         evidence = {"source":context.record.source,"source_stage":"event_epochs" if artifact_id else "loaded_record",
             "analysis_configuration":meta,"unit_or_kind":RESULT_UNITS.get(name,"Epoch artifact descriptor" if name == "create_epochs" else "event metadata"),
             "evidence_token":"wm-set:"+hashlib.sha256(encoded(proof)).hexdigest(),"binding":binding,
-            "subgoal_id":goal.subgoal_id,"delivery_key":target["key"] if target else None}
+            "subgoal_id":goal.subgoal_id,"delivery_key":target["key"] if target else None,
+            "created_user_turn":self.turn}
         entry = TaskEntry(task_id,len(self.entries)+1,record,name,clone(scope),goal.title,parent,"completed",
                           clone(result["data"]),evidence,(clone(observation),))
         self.entries.append(entry)

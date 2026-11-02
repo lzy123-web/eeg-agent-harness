@@ -460,6 +460,7 @@ class TaskPlanController(ScientificMemoryController):
                     **({'execution_scope_binding':clone(evidence['execution_scope_binding'])}
                        if self._execution_scope(d,evidence,node.task_id) else {}),
                     "result_id":entry.task_id,"record":entry.record,"actual_scope":clone(entry.parameters),
+                    **({'created_user_turn':entry.evidence['created_user_turn']} if 'created_user_turn' in entry.evidence else {}),
                     "originating_task":node.task_id,"actual_parameters":clone(entry.parameters),"source":entry.evidence["source"],
                     "processing_version":clone(entry.evidence["binding"]),"revision_of":entry.revision_of,
                     "input_artifact":entry.evidence["binding"]["artifact_id"] if d.capability!="create_epochs" else None,

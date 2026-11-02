@@ -100,6 +100,7 @@ class ManagedMemoryController(WorkingMemoryController):
         values = all_values if fields is None else [(f["path"], f["value"]) for f in fields]
         use = values if limit is None else values[:limit]
         return {**_entry_meta(entry), "artifact_id": entry.evidence["binding"]["artifact_id"],
+                **({'created_user_turn':entry.evidence['created_user_turn']} if 'created_user_turn' in entry.evidence else {}),
                 "fields": [self._field(entry, path, value) for path, value in use],
                 "omitted_fields": len(all_values)-len(use)}
 
