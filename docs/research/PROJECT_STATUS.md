@@ -1,3 +1,11 @@
+## Issue59 v5收口进行中：调用承接通过，科学行为冻结（2026-11-02）
+
+依据[最新收口任务6577306003](https://github.com/lzy123-web/eeg-agent-harness/issues/59#issuecomment-6577306003)及实际用户授权[回执6577641062](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6577641062)，仅净增21次开发调用：累计311→332、全账本407→428；固定284次快照后最多48次，旧余27已含，Token/费用不增、确认禁用。原账本前缀与284次/3,586,423tokens/US$1.1542944核对一致，无未结或安全停止。
+
+仅原授权链追加及费用起点继承、3个TEST回归发生代码变化；科学源/配置与aa37ad4逐文件一致（授权运行器模块除外，差异仅预算承接），科学行为SHA256 e31d470ba1782c8082958a6d5ea415f97f14ba3663e449802beadb561f4cad6b。775项=760通过+15既有跳过，compileall/pip check/diff check通过。此次冻结提交后原C组T05、T07各一次完整两轮，不改科学实现/提示/评分，不修后重抽。真实结果尚未产生，随后在原集中报告/唯一证据索引及Issue55/59/PR37统一发布，保持open/Draft。
+
+---
+
 ## Issue59 当前：工程交付完成，完整科学目标未通过（2026-11-02）
 
 原分支/Draft PR37上完成共享科学来源/工件解析、候选事务预检、有效历史保留、实际字段检查、产生轮次和历史版本索引；最后修复locator替换污染与完整实际工件轴的合法来源。最终接口仅离线通过，尚未真实自主复查。设计、全部首次失败、实际答案和预算统一在[Issue59报告](EEG_WORKING_MEMORY_ISSUE59.md)及[公开证据](evidence/issue59_scientific_binding.json)。

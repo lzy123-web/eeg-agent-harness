@@ -41,11 +41,17 @@ SOURCE_REVISION='issue59-live-20261102-144c-3mt-2p16'
 SOURCE_PREFIX='0553c0359c68a8bcc603fcc392ddd9f8791cc0658efc243e15b1fc14af450c07'
 SOURCE_CAPS={**LIVE_CAPS,'calls':407,'tokens':8877118,'development':[311,4877118],
              'stage_usd':'2.16','cumulative_usd':'2.7688482'}
+CLOSEOUT_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6577641062'
+CLOSEOUT_REVISION='issue59-v5-closeout-20261102-plus21c'
+CLOSEOUT_PREFIX='4215c2d8505e40f8d3bcb2a513b003f7637f46580cbf505d062a5dba9796e68d'
+CLOSEOUT_CAPS={**SOURCE_CAPS,'calls':428,'development':[332,4877118]}
 REVIEWED_PREFIXES={LIVE_REVISION:(LIVE_PREFIX,[125,1234297],'0.4054206'),
-                   SOURCE_REVISION:(SOURCE_PREFIX,[167,1877118],'0.6088482')}
+                   SOURCE_REVISION:(SOURCE_PREFIX,[167,1877118],'0.6088482'),
+                   CLOSEOUT_REVISION:(CLOSEOUT_PREFIX,[284,3586423],'1.1542944')}
 AUTHORIZATION_CHAIN=((REVISION_ID,ADDITIONAL_GRANT,ORIGINAL_CAPS,REVISED_CAPS,48),
                      (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125),
-                     (SOURCE_REVISION,SOURCE_GRANT,LIVE_CAPS,SOURCE_CAPS,167))
+                     (SOURCE_REVISION,SOURCE_GRANT,LIVE_CAPS,SOURCE_CAPS,167),
+                     (CLOSEOUT_REVISION,CLOSEOUT_GRANT,SOURCE_CAPS,CLOSEOUT_CAPS,284))
 
 
 def authorization_limits(ledger,rows):
@@ -307,7 +313,10 @@ class MoneyBudgetClient(Issue50Client):
             raise StageBudgetExhausted('Closed stage cannot reopen')
         self.caps=authorization_limits(self.ledger,rows)
         amendment=next((r for r in reversed(rows) if r.get('event')=='authorization_revised'),None)
-        self.stage_money_start=Decimal(amendment['prior_usd']) if amendment else Decimal('0')
+        # The closeout adds calls only; Issue59's original money baseline stays.
+        money_amendment=(next(r for r in rows if r.get('revision_id')==SOURCE_REVISION)
+                         if amendment and amendment['revision_id']==CLOSEOUT_REVISION else amendment)
+        self.stage_money_start=Decimal(money_amendment['prior_usd']) if money_amendment else Decimal('0')
         if amendment and (phase!='development' or self.runtime!=amendment['runtime'] or self.pricing!=amendment['pricing']):
             raise StageBudgetExhausted('Revised grant allows only development with the original service/settings/prices')
         starts=[r for r in rows if r.get('event')=='reserved']
