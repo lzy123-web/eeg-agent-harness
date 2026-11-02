@@ -195,7 +195,7 @@ class TaskPlanController(ScientificMemoryController):
             # contract; do not force a redundant computation to satisfy it.
             for d in numeric:
                 entry = self._entry_for(node.outputs.get(d.key))
-                if self._matches(d,entry):
+                if self._matches(d,entry,node.outputs.get(d.key),node.task_id):
                     goal.reused[f"preserved:{d.key}"] = entry.task_id
                     self.store._bind_requirement(goal,d.capability,d.record,entry.parameters,entry.task_id)
         goal.status = "active"
@@ -285,14 +285,36 @@ class TaskPlanController(ScientificMemoryController):
         inherited = same[0].parameters if len(same) == 1 else {}
         return {**clone(inherited),**clone(delivery.scope)}
 
-    def _matches(self, d, entry):
+    def _execution_scope(self, d, output, task_id):
+        """A scoped receipt for one selected, validated artifact action.
+
+        It is a runtime fact on the existing output, never a guessed plan field
+        or an archive-wide match for an underspecified delivery.
+        """
+        receipt=(output or {}).get('execution_scope_binding')
+        entry=self._entry_for(output)
+        if (not receipt or not entry or not self.store._binding_valid(entry)
+                or not task_id or receipt.get('task_id')!=task_id or output.get('originating_task')!=task_id
+                or receipt.get('contract_sha256')!=hashlib.sha256(encoded(d.to_dict())).hexdigest()
+                or receipt.get('result_id')!=entry.task_id
+                or receipt.get('binding')!=entry.evidence['binding']
+                or entry.record!=d.record or entry.capability!=d.capability):return {}
+        spec=self.store.contexts[d.record].executor.registry.get(d.capability)
+        return clone(entry.parameters) if spec.consumes_artifact else {}
+
+    def _matches(self, d, entry, output=None, task_id=None):
         if not entry or not self.store._binding_valid(entry):
+            return False
+        if (output or {}).get('execution_scope_binding') and (
+                output.get('result_id')!=entry.task_id or not self._execution_scope(d,output,task_id)):
             return False
         if entry.record != d.record or entry.capability != d.capability:
             return False
         if d.interpretation and d.interpretation['time_reference'] != entry.evidence['analysis_configuration']['time_reference']:
             return False
-        scope = self._effective_scope(d)
+        # Declared fields always win; only the exact action's valid receipt can
+        # complete omitted artifact-derived fields. Required checks stay intact.
+        scope = {**self._execution_scope(d,output,task_id),**self._effective_scope(d)}
         if any(canonical_scope(entry.parameters).get(k) != v for k,v in canonical_scope(scope).items()):
             return False
         required = self.store._required_fields(d.capability)
@@ -360,7 +382,7 @@ class TaskPlanController(ScientificMemoryController):
         # neither this receipt nor its owner changes the objective diagnostic.
         return self._record_acceptance(node,row,'program' if self.automatic_acceptance else 'model')
 
-    def _sync_outputs(self, node, result=None):
+    def _sync_outputs(self, node, result=None, owned_delivery=None):
         # Match only actual results used by this node, not a future answer key or
         # opportunistic archive scan. Normal history reuse enters execute_action.
         goal = self._goal(node)
@@ -373,10 +395,27 @@ class TaskPlanController(ScientificMemoryController):
                         [r.fields[0] for r in d.input_refs] == [r["field"] for r in result["operands"]]):
                         self._mark_delivery(node,d,{"comparison_id":result["comparison_id"],"result":clone(result),"revision":node.revision})
                 continue
-            found = [self.store.find_entry(i) for i in identifiers if self._matches(d,self.store.find_entry(i))]
+            evidence=node.outputs.get(d.key)
+            if owned_delivery is d and result and result.get('status') in {'observed','reused'}:
+                # Correlate the exact Store receipt, not the last numeric entry
+                # or whichever historical artifact happens to match the title.
+                actual=[self.store.find_entry(i) for i in identifiers]
+                actual=[e for e in actual if e and (e.task_id==result.get('task_id') if result['status']=='reused'
+                    else e.task_id==result.get('observation',{}).get('result_id') and e.tool_trace
+                    and e.tool_trace[-1]=={k:v for k,v in result.get('observation',{}).items() if k!='result_id'})]
+                if len(actual)==1 and self.store.contexts[d.record].executor.registry.get(d.capability).consumes_artifact:
+                    entry=actual[0]
+                    evidence={'result_id':entry.task_id,'originating_task':node.task_id,'execution_scope_binding':{
+                        'task_id':node.task_id,
+                        'contract_sha256':hashlib.sha256(encoded(d.to_dict())).hexdigest(),
+                        'result_id':entry.task_id,'binding':clone(entry.evidence['binding']),
+                        'basis':'validated_selected_artifact_execution'}}
+            found = [self.store.find_entry(i) for i in identifiers if self._matches(d,self.store.find_entry(i),evidence,node.task_id)]
             if found:
                 entry = found[-1]
                 self._mark_delivery(node,d,{
+                    **({'execution_scope_binding':clone(evidence['execution_scope_binding'])}
+                       if self._execution_scope(d,evidence,node.task_id) else {}),
                     "result_id":entry.task_id,"record":entry.record,"actual_scope":clone(entry.parameters),
                     "originating_task":node.task_id,"actual_parameters":clone(entry.parameters),"source":entry.evidence["source"],
                     "processing_version":clone(entry.evidence["binding"]),"revision_of":entry.revision_of,
@@ -394,7 +433,7 @@ class TaskPlanController(ScientificMemoryController):
         for d in node.required_outputs:
             output = node.outputs.get(d.key)
             entry = self._entry_for(output)
-            valid = self._matches(d,entry) if d.capability != "compare_results" else self._valid_comparison(output)
+            valid = self._matches(d,entry,output,node.task_id) if d.capability != "compare_results" else self._valid_comparison(output)
             predicates = []
             for rule in d.acceptance_rule:
                 try:
@@ -781,9 +820,12 @@ class TaskPlanController(ScientificMemoryController):
                 optional=name in node.optional_operations and 'output_key' not in owner
                 if name not in METADATA and not optional and (d is None or d.capability!=name):
                     return self.store._error('INVALID_ACTION_OWNER','output_key must name a delivery of this capability')
+                bound=self._execution_scope(d,node.outputs.get(d.key),node.task_id) if d else {}
                 if d and (args.get('record',d.record)!=d.record or any(
-                        args.get(k,v)!=v for k,v in self._effective_scope(d).items())):
+                        args.get(k,v)!=v for k,v in {**bound,**self._effective_scope(d)}.items())):
                     return self.store._error('ACTION_OWNER_SCOPE_CONFLICT','Revise the planned delivery before changing its scientific scope')
+                if bound and args.get('artifact_id',node.outputs[d.key]['input_artifact'])!=node.outputs[d.key]['input_artifact']:
+                    return self.store._error('ARTIFACT_DEPENDENCY_MISMATCH','Revise the delivery before changing its bound execution artifact')
                 if node not in self.graph.ready_nodes() and node.task_id!=self.current and node.status!='TASK_COMPLETED':
                     return self.store._error('DEPENDENCY_NOT_READY','Owner has missing dependencies or is waiting; revise or resume it first')
                 if d and any(not self._input_ready(r) for r in d.input_refs):
@@ -810,6 +852,12 @@ class TaskPlanController(ScientificMemoryController):
                     if not selected:
                         return self.store._error("AMBIGUOUS_DELIVERY","Select the exact current output scope/record; no guessed ordering")
                 if selected:
+                    bound=self._execution_scope(selected,node.outputs.get(selected.key),node.task_id)
+                    if bound:
+                        artifact=node.outputs[selected.key]['input_artifact']
+                        if args.get('artifact_id',artifact)!=artifact or any(args.get(k,v)!=v for k,v in bound.items()):
+                            return self.store._error('ARTIFACT_DEPENDENCY_MISMATCH','Revise the delivery before changing its bound execution artifact or scope')
+                        args.setdefault('artifact_id',artifact)
                     if any(not self._input_ready(r) for r in selected.input_refs):
                         return self.store._error('DELIVERY_INPUT_NOT_READY','This delivery needs actual accepted producer outputs')
                     args.setdefault("record",selected.record)
@@ -853,7 +901,7 @@ class TaskPlanController(ScientificMemoryController):
                     'field':'required_outputs[].interpretation',
                     'message':'Repair the source/field relation in the planned delivery, keeping its required scope. Numeric action arguments cannot override the plan; genuine ambiguity still needs clarification.'}
             node.attempts.append({"name":name,"arguments":clone(args),"status":result.get("status"),"code":result.get("code")})
-            self._sync_outputs(node,result)
+            self._sync_outputs(node,result,selected if name in NUMERIC_TOOLS else None)
             # An attempted handle is not evidence of successful consumption.
             # Keep failures in the same audit trail without counting them as use.
             succeeded = result.get("status") in {"observed", "reused", "compared"}
@@ -874,6 +922,7 @@ class TaskPlanController(ScientificMemoryController):
         resolved=self.graph.resolve_ref(ref)
         if resolved['output_status'] not in {'DELIVERY_SATISFIED','TASK_COMPLETED'}:return False
         d=DeliveryItem.from_dict(resolved['delivery'])
+        if resolved['output'].get('execution_scope_binding') and not self._execution_scope(d,resolved['output'],ref.task_id):return False
         if d.acceptance_rule and not self._acceptance_valid(d,resolved['output'],resolved['output_status']):return False
         entry=self._entry_for(resolved['output'])
         return self.store._binding_valid(entry) if entry else self._valid_comparison(resolved['output'])

@@ -94,6 +94,20 @@ python -m eeg_harness.research.working_memory_issue58 --preflight-output artifac
 
 临时TEST/Fake正反验证及原全量747项通过（732通过、15资源/真实API跳过）。首轮两个TEST夹具问题保留：复用等价输入/输出模拟价导致阶段费用不足，及把分轮动作列表交给单动作客户端；改用明确0.3/1.2模拟费率和原真实工具链夹具，未降低预算保护或改科学判定。本承接提交不代表真实调用已经发生；真实首次与复查轨迹、逐轮截止和预算将在运行后追加。
 
+### v1真实失败与唯一一批行为修正
+
+预算承接版本b9d4d3f的完整source为`98b7dd63c3f3c6be701f2853e1a9fddb2d14cebda27c3cc4f1c70e555e80778b`；排除账务runner的科学行为指纹`1a80bea3a922e1195d72c4eeb1291175370cf7772e6e894b25daa15ae1fcc7ad`，科学接口继承已接受工程。实际配置为原deepseek-flash、thinking disabled、timeout90、输出2200、重试0，无ping。
+
+T05原完整两轮：6次/74,244 API tokens，首轮两项数值及最终回答自审通过；后轮连续plan_tasks重建A_alpha_power，依次误放input_refs层级、漏引用、漏fields，no_progress，无新版A或差比。回执实际送达，增量工具也已可见；不把模型错误选择归结为API配置或自动猜比较字段。此任务本轮不重抽。
+
+T07原完整两轮：23次/365,553 API tokens，首轮RMS/theta结果与回答自审通过；后轮主动read_result旧RMS/theta，新增epoch_summary/epoch_quality并显式指定原artifact_id，真实质量结果正确、旧计算不重算。计划scope为空且无InputRef，执行时合法工件提供完整科学范围；Store接受并计算，但PlanController._matches仍要求计划scope含完整必需字段，node.outputs为空。后续正确result_id的complete_node也无法接受；模型尝试缺revision/错revision和finish_task均拒绝，最终达到轮数上限，实际送达的只有保存点。第21提案包含完整报告但未被finish_task接受，不能代替最终送达回答。不是T03旧回执丢失或Issue57已闭合的接受同步问题。
+
+最小修正选取“保留不可变计划意图，记录实际已归属执行回执”，不选放宽空scope匹配，也不自动替模型补InputRef或改写科学计划。在原node.outputs增加execution_scope_binding：确定选中的交付经原Store/Executor成功后，以真实回执result_id+完整tool_trace核对唯一结果，绑定task_id、交付契约哈希、result_id与科学binding。只对消费工件的动作补全实际工件已经确定的范围，声明字段优先，完整必需字段、时基、record、来源与工件核验保留。新状态不是平行仓库；原交付接受指纹包含它，普通同步保留、契约/结果/真实binding变化后失效；已绑定交付不能通过后续动作换工件。原明确owner和单义旧入口同享，未执行的类似交付不能从档案抢结果。
+
+原生T07提案不改+仅恢复原UUID的重放：修正前second round_limit/epoch_qc.outputs=0，修正后completed/outputs=2，实际数值操作均5次。旧最终提案仍含“接受步骤未能落地”的过时陈述，因此这只是接口因果证据，不是新自主回答或完整科学通过。首次实现的回执全等比较漏考虑观察附加result_id，未挂接的中间失败也保留；最终按真实ID及去除该派生ID后的完整原trace校验，没有按最后结果猜测。
+
+四类新构造测试覆盖六组/旧入口、同步、未执行交付、错owner/key/revision/record、换工件、契约/结果/真实记录失效；原24链111/111、12条增量两轮链、751项全量（736通过+15跳过）通过。构造初版重复了Store禁止的相同任务内要求，原拒绝正确；改为独立未执行任务检验归属，不放松Store重复要求保护。仅此有真实根因的T07进入授权内一次复查，独立完整自然会话、新行为冻结，不能与v1 T05拼接通过。
+
 ## 一次性专项预算预检：当时未授权、未消费（历史保留）
 
 正式唯一账本只读：125次、1,234,297输入+输出API tokens、保守US$0.4054206；未结0。开发现行上限144次/2M，余19次/765,703 tokens；总240次/6M/US$3，确认96次/4M保持不动且禁止使用。正式账本SHA256前后均`6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1`。原费用是按既有价率的保守计算，不是服务账单。
