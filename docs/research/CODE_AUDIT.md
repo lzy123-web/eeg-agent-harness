@@ -1,4 +1,12 @@
-## Issue58 增量接口审计补记（2026-11-02）
+## Issue58真实续接审计补记（2026-11-02）
+
+原live授权追加改为两条明确已批授权的有序不可变前缀链，原MoneyBudgetClient加入本轮/累计金额共同保护；不新增预算平台、客户端或确认许可。真实42次全部结算，旧125笔字节前缀不变。
+
+真实T07发现：显式合法artifact动作能让Store补全范围，PlanController._matches却仍仅用空计划scope，实际结果无法挂接。现由原_sync_outputs关联成功Store回执的result_id及完整原trace，在原输出记录execution_scope_binding，_matches/_execution_scope共同校验task、交付契约、实际结果/工件binding后使用真实范围；原声明字段优先，必需字段检查保留。接受指纹包含此回执，正常同步保持，实质变化失效。仅科学工件消费工具走此路径，无模型字段猜测或第二状态库，原数值工具/资源依赖不变。751项/15跳过、24链111/111通过。
+
+未解决：修订来源预检_validate_revision_sources仍仅采用本交付旧输出作历史见证，显式InputRef生产者没有对等入口；复查原提案与临时反事实证明该接缝存在。生产代码未合入该干预，新执行回执也尚无完整真实自主成功；三会话均失败，不能用局部数值通过覆盖最终回答错误。详见[集中结果和限制](EEG_WORKING_MEMORY_ISSUE58.md)。
+
+## Issue58此前增量接口审计补记（历史保留）
 
 已实现：`TaskSpec.control_prerequisites`兼容旧重复数据声明并保留独立控制条件；`PlanGraph.dependency_relations/dependency_state/_validate/revise`基于InputRef动态派生数据关系，区分当前与固定历史版本，不维护第二份边状态。原controller的`_revision_updates`只合并明确单交付字段，经原完整TaskSpec、来源、义务校验后调用同一graph.revise；身份不猜测，错误不部分提交。read_dependency/read_result/restore_task及原EEG数值工具不变，六组共享契约。
 
