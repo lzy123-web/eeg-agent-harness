@@ -31,24 +31,37 @@ ADDITIONAL_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issu
 REVISION_ID='issue55-development-6559557879'
 ORIGINAL_CAPS={'calls':144,'tokens':6000000,'usd':'3','development':[48,2000000],'confirmation':[96,4000000]}
 REVISED_CAPS={**ORIGINAL_CAPS,'calls':240,'development':[144,2000000]}
+LIVE_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6568419952'
+LIVE_REVISION='issue58-live-20261102-72c-1mt-1p20'
+LIVE_PREFIX='6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1'
+LIVE_CAPS={**REVISED_CAPS,'calls':293,'tokens':6234297,'development':[197,2234297],
+           'stage_usd':'1.20','cumulative_usd':'1.6054206'}
+AUTHORIZATION_CHAIN=((REVISION_ID,ADDITIONAL_GRANT,ORIGINAL_CAPS,REVISED_CAPS,48),
+                     (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125))
 
 
 def authorization_limits(ledger,rows):
-    """One explicit absolute amendment; absence leaves the original grant intact."""
+    """Only the two explicit reviewed grants, in order, over immutable prefixes."""
     revisions=[r for r in rows if r.get('event')=='authorization_revised']
     if not revisions:return deepcopy(ORIGINAL_CAPS)
-    if len(revisions)!=1:raise StageBudgetExhausted('Conflicting/repeated authorization records')
-    r=revisions[0];index=rows.index(r);prefix=rows[:index]
-    data=Path(ledger).read_bytes();size=r.get('prefix_bytes')
-    if (r.get('revision_id')!=REVISION_ID or r.get('grant')!=GRANT or r.get('additional_grant')!=ADDITIONAL_GRANT
-            or r.get('old_limits')!=ORIGINAL_CAPS or r.get('new_limits')!=REVISED_CAPS
+    if len(revisions)>len(AUTHORIZATION_CHAIN):raise StageBudgetExhausted('Conflicting/repeated authorization records')
+    data=Path(ledger).read_bytes()
+    for r,(ident,grant,old,new,count) in zip(revisions,AUTHORIZATION_CHAIN):
+        index=rows.index(r);prefix=rows[:index];size=r.get('prefix_bytes')
+        if (r.get('revision_id')!=ident or r.get('grant')!=GRANT or r.get('additional_grant')!=grant
+            or r.get('old_limits')!=old or r.get('new_limits')!=new
             or r.get('allowed_phases')!=['development'] or r.get('test_only')!=rows[0].get('test_only',False)
             or type(size) is not int or size<1 or hashlib.sha256(data[:size]).hexdigest()!=r.get('prefix_sha256')
             or [json.loads(x) for x in data[:size].decode('utf8').splitlines()]!=prefix
             or r.get('prior_usage')!=list(_usage(prefix))
             or r.get('prior_usd')!=str(money_totals(prefix,Decimal(rows[0]['rate_ceiling'])))):
-        raise StageBudgetExhausted('Authorization prefix, snapshot or absolute limits changed')
-    return deepcopy(REVISED_CAPS)
+            raise StageBudgetExhausted('Authorization prefix, snapshot or absolute limits changed')
+        if _usage(prefix)[0]!=count or _usage(prefix,lambda c:c.get('phase')=='development')[0]!=count:
+            raise StageBudgetExhausted('Authorization history count/phase changed')
+        if ident==LIVE_REVISION and not r['test_only'] and (r['prefix_sha256']!=LIVE_PREFIX
+                or r['prior_usage']!=[125,1234297] or Decimal(r['prior_usd'])!=Decimal('0.4054206')):
+            raise StageBudgetExhausted('Issue58 reviewed original snapshot changed')
+    return deepcopy(revisions[-1]['new_limits'])
 
 
 def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_only=False):
@@ -57,9 +70,11 @@ def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_onl
     validate_attestation(attestation,raw,test_only)
     if not test_only and ledger.resolve()!=FORMAL_LEDGER.resolve():
         raise StageBudgetExhausted('Use the unique original formal ledger')
-    if (authorization.get('grant')!=GRANT or authorization.get('additional_grant')!=ADDITIONAL_GRANT
-            or authorization.get('revision_id')!=REVISION_ID or authorization.get('test_only') is not test_only
-            or authorization.get('new_limits')!=REVISED_CAPS):
+    spec=next((s for s in AUTHORIZATION_CHAIN if s[0]==authorization.get('revision_id')),None)
+    if spec is None:raise StageBudgetExhausted('Unknown explicit authorization')
+    ident,grant,old,new,count=spec
+    if (authorization.get('grant')!=GRANT or authorization.get('additional_grant')!=grant
+            or authorization.get('test_only') is not test_only or authorization.get('new_limits')!=new):
         raise StageBudgetExhausted('Exact explicit additional authorization required')
     with _ledger_lock(Path(str(ledger)+'.session')):
         # Reuse transaction validation, original-price recovery and stop guards.
@@ -70,7 +85,7 @@ def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_onl
             if any(r.get('event') in {'safety_stop','stage_closed','confirmation_frozen'} or
                    r.get('event')=='session_started' and r.get('phase')=='confirmation' for r in rows):
                 raise StageBudgetExhausted('Existing stop/freeze cannot be overridden')
-            previous=next((r for r in rows if r.get('event')=='authorization_revised'),None)
+            previous=next((r for r in rows if r.get('event')=='authorization_revised' and r.get('revision_id')==ident),None)
             if previous:
                 if authorization.get('prefix_sha256')!=previous['prefix_sha256']:
                     raise StageBudgetExhausted('Conflicting revision application')
@@ -78,13 +93,17 @@ def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_onl
             data=ledger.read_bytes();digest=hashlib.sha256(data).hexdigest()
             if digest!=authorization.get('prefix_sha256'):
                 raise StageBudgetExhausted('Ledger changed since authorization snapshot')
+            if authorization_limits(ledger,rows)!=old:
+                raise StageBudgetExhausted('Prior approved amendment must precede this grant')
+            if ident==LIVE_REVISION and not test_only and digest!=LIVE_PREFIX:
+                raise StageBudgetExhausted('Require the reviewed 125-call Issue58 prefix')
             starts=[r for r in rows if r.get('event')=='reserved']
-            if (_usage(rows)[0]!=48 or _usage(rows,lambda c:c.get('phase')=='development')[0]!=48
+            if (_usage(rows)[0]!=count or _usage(rows,lambda c:c.get('phase')=='development')[0]!=count
                     or starts[-1].get('runtime')!=client.runtime or starts[-1].get('pricing')!=client.pricing):
-                raise StageBudgetExhausted('Expected original 48 development calls and unchanged service/settings/prices')
-            record={'event':'authorization_revised','revision_id':REVISION_ID,'grant':GRANT,
-                'additional_grant':ADDITIONAL_GRANT,'test_only':test_only,'old_limits':ORIGINAL_CAPS,
-                'new_limits':REVISED_CAPS,'allowed_phases':['development'],'prefix_bytes':len(data),
+                raise StageBudgetExhausted('Expected reviewed development calls and unchanged service/settings/prices')
+            record={'event':'authorization_revised','revision_id':ident,'grant':GRANT,
+                'additional_grant':grant,'test_only':test_only,'old_limits':old,
+                'new_limits':new,'allowed_phases':['development'],'prefix_bytes':len(data),
                 'prefix_sha256':digest,'prior_usage':list(_usage(rows)),
                 'prior_usd':str(money_totals(rows,client.rate)),
                 'runtime':actual_settings(raw),'pricing':client.pricing,'timestamp_utc':time.time()}
@@ -179,7 +198,7 @@ def followup_decision(case,turn,result,controller,scoring):
 def admit_session(ledger,case,phase,manifest,attestation,test_only):
     rows=_rows(ledger)
     caps=authorization_limits(ledger,rows)
-    if caps==REVISED_CAPS and phase!='development':
+    if caps!=ORIGINAL_CAPS and phase!='development':
         raise StageBudgetExhausted('Additional authorization forbids confirmation in this stage')
     starts=[r for r in rows if r.get('event')=='session_started']
     if any(r.get('event') in {'safety_stop','stage_closed'} for r in rows):
@@ -277,7 +296,8 @@ class MoneyBudgetClient(Issue50Client):
         if any(r.get('event')=='stage_closed' for r in rows):
             raise StageBudgetExhausted('Closed stage cannot reopen')
         self.caps=authorization_limits(self.ledger,rows)
-        amendment=next((r for r in rows if r.get('event')=='authorization_revised'),None)
+        amendment=next((r for r in reversed(rows) if r.get('event')=='authorization_revised'),None)
+        self.stage_money_start=Decimal(amendment['prior_usd']) if amendment else Decimal('0')
         if amendment and (phase!='development' or self.runtime!=amendment['runtime'] or self.pricing!=amendment['pricing']):
             raise StageBudgetExhausted('Revised grant allows only development with the original service/settings/prices')
         starts=[r for r in rows if r.get('event')=='reserved']
@@ -340,9 +360,12 @@ class MoneyBudgetClient(Issue50Client):
         total=_usage(rows)
         phase=_usage(rows,lambda c:c.get('phase')==self.context['phase'])
         cap=self.caps[self.context['phase']]
+        future_money=money_totals(rows,self.rate)+Decimal(tokens)*self.rate/1000000
+        if 'stage_usd' in self.caps and (future_money-self.stage_money_start>Decimal(self.caps['stage_usd'])
+                or future_money>Decimal(self.caps['cumulative_usd'])):return False
         return (total[0]+calls<=self.caps['calls'] and total[1]+tokens<=self.caps['tokens'] and
                 phase[0]+calls<=cap[0] and phase[1]+tokens<=cap[1] and
-                money_totals(rows,self.rate)+Decimal(tokens)*self.rate/1000000<=Decimal(self.caps['usd']))
+                future_money<=Decimal(self.caps['usd']))
 
     def complete(self,messages,tools,tool_choice='auto'):
         self.settle_pending()
