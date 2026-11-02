@@ -1,6 +1,6 @@
 {
   "issue": 59,
-  "stage": "engineering-before-live",
+  "stage": "live-development",
   "authorization": {
     "url": "https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6573259620",
     "id": "issue59-live-20261102-144c-3mt-2p16",
@@ -7440,5 +7440,3049 @@
     }
   ],
   "independent_review": null,
-  "live_sessions": []
+  "live_sessions": [
+    {
+      "session": "v1--T05-first",
+      "case": "T05",
+      "candidate": "8045c314344904d1dd7c66dcc720b3e185b71669",
+      "scientific_behavior_sha256": "f61a5b25775989c62c528c7f7a2141fcdda8e27d0f5380b787dc67cabce09642",
+      "runtime": {
+        "endpoint_sha256": "a34e2a4708ed1c61008a151688838dcf1c44d4e7f08054633e72ba7c0b16cfc1",
+        "model": "deepseek-flash",
+        "thinking": "disabled",
+        "timeout": 90.0,
+        "max_output_tokens": 2200,
+        "max_retries": 0
+      },
+      "schema_bytes": 29298,
+      "schema_sha256": "5ecdd5124e314d89cf98ed7235362bcea65f5da7ef0243b725c898f9baa3bc87",
+      "protocols": {
+        "point1_working_memory_issue52.json": "25210fc64450adf29749e23d8c5ef2edc954d41a72c26e82831c4c4b7c562ddf",
+        "point1_working_memory_issue55.json": "cbecb0ff333a8921381f1c806899524ca6aeb98a66e3bd4b954d008ec7531710",
+        "point1_working_memory_issue55_development_scoring.json": "acba5d5c60c568c1b502f38731e51d980c3f74493018e2bb617e5f5666044024",
+        "point1_working_memory_followup_policies.json": "b88f42355bc6b23b24240a2f682d3f0fe6a4bb2a4a57407dc18d191057a9d5c4"
+      },
+      "data": {
+        "A": {
+          "samples_sha256": "7e379fadf20464da3ded68c185cdd40584d04acbd21e3530404ce423d2f0556f",
+          "shape": [
+            2,
+            1024
+          ],
+          "sfreq": 128.0,
+          "channels": [
+            "SYNTH-C1",
+            "SYNTH-C2"
+          ],
+          "source": "synthetic://task-memory-A",
+          "events": [
+            {
+              "label": "stimulus",
+              "onset_seconds": 1.0,
+              "duration_seconds": 0.0,
+              "source_index": 0,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 2.0,
+              "duration_seconds": 0.0,
+              "source_index": 1,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 3.0,
+              "duration_seconds": 0.0,
+              "source_index": 2,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 4.0,
+              "duration_seconds": 0.0,
+              "source_index": 3,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 5.0,
+              "duration_seconds": 0.0,
+              "source_index": 4,
+              "metadata": {}
+            }
+          ],
+          "reference": "synthetic native reference",
+          "montage": "synthetic two-channel layout"
+        },
+        "B": {
+          "samples_sha256": "a5e02766ee6021c7bfaab7bb03af211f094e91e55f513b51fc0ce282195d2f31",
+          "shape": [
+            2,
+            1024
+          ],
+          "sfreq": 128.0,
+          "channels": [
+            "SYNTH-C1",
+            "SYNTH-C2"
+          ],
+          "source": "synthetic://task-memory-B",
+          "events": [
+            {
+              "label": "stimulus",
+              "onset_seconds": 1.5,
+              "duration_seconds": 0.0,
+              "source_index": 0,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 2.5,
+              "duration_seconds": 0.0,
+              "source_index": 1,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 4.5,
+              "duration_seconds": 0.0,
+              "source_index": 2,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 5.5,
+              "duration_seconds": 0.0,
+              "source_index": 3,
+              "metadata": {}
+            }
+          ],
+          "reference": "synthetic native reference",
+          "montage": "synthetic two-channel layout"
+        }
+      },
+      "calls": 17,
+      "usage": {
+        "prompt_tokens": 238917,
+        "completion_tokens": 4505,
+        "total_tokens": 243422,
+        "prompt_cache_hit_tokens": 196608,
+        "prompt_cache_miss_tokens": 42309
+      },
+      "conservative_usd": "0.0770811",
+      "actual_wire_bytes": 866058,
+      "actual_model_tool_proposals": [
+        {
+          "request_index": 1,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_qRE8DFmhIRULHj2iUeSW8583",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"task_id\": \"a_alpha_power\", \"goal\": \"计算记录A的SYNTH-C1在0-2秒窗口的alpha频带绝对功率（Welch绝对带功率）。\", \"required_outputs\": [{\"key\": \"alpha_power_A\", \"capability\": \"psd\", \"record\": \"A\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u1:75bd6099a695916e:0:29\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"]}}]}, {\"task_id\": \"b_rms\", \"goal\": \"计算记录B的SYNTH-C1在2-4秒窗口的RMS。\", \"required_outputs\": [{\"key\": \"rms_B\", \"capability\": \"amplitude\", \"record\": \"B\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 2, \"end\": 4}, \"interpretation\": {\"source_ref\": \"u1:75bd6099a695916e:30:53\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"]}}]}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 2,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_tpKgvrRthJdl4AOrZ1JC3149",
+              "type": "function",
+              "function": {
+                "name": "select_task",
+                "arguments": "{\"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 3,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_ORZTQ4GxxZR4F3NQHRmQ6169",
+              "type": "function",
+              "function": {
+                "name": "psd",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"output_key\": \"alpha_power_A\", \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_lthF54cbsLKUistVv1ZF3588",
+              "type": "function",
+              "function": {
+                "name": "amplitude",
+                "arguments": "{\"task_id\": \"b_rms\", \"output_key\": \"rms_B\", \"record\": \"B\", \"channels\": [\"SYNTH-C1\"], \"start\": 2, \"end\": 4}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 4,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_smJepRyalLueTGB1fxjJ6658",
+              "type": "function",
+              "function": {
+                "name": "complete_node",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"output_key\": \"alpha_power_A\", \"revision\": 1, \"result_id\": \"issue55-session-t1\"}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_sMWUPU060u9iod4BxUis6596",
+              "type": "function",
+              "function": {
+                "name": "complete_node",
+                "arguments": "{\"task_id\": \"b_rms\", \"output_key\": \"rms_B\", \"revision\": 1, \"result_id\": \"issue55-session-t2\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 5,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_FSDW5ZuQ6ZkcOVlXa5DP1408",
+              "type": "function",
+              "function": {
+                "name": "finish_task",
+                "arguments": "{\"status\": \"completed\", \"answer\": \"两项测量均已完成并各自保留为独立结果：\\n\\n1) 记录A，通道 SYNTH-C1，0–2 秒（记录绝对时间）的 alpha 绝对功率（Welch 绝对带功率，alpha 频带 8–13 Hz）：2.00e-10 V²（= 200 µV²）。来源：记录 A（synthetic://task-memory-A），结果 issue55-session-t1，task_id=a_alpha_power / output_key=alpha_power_A，revision 1。\\n\\n2) 记录B，通道 SYNTH-C1，2–4 秒（记录绝对时间）的 RMS 振幅：1.30e-05 V（≈ 13 µV）。同窗参照值：平均绝对振幅 1.12e-05 V（11.2 µV），最大值 2.27e-05 V（22.7 µV），最小值 −2.27e-05 V。来源：记录 B（synthetic://task-memory-B），结果 issue55-session-t2，task_id=b_rms / output_key=rms_B，revision 1。\\n\\n说明：两者为不同记录、不同时间窗、不同指标（频带功率 vs 时域幅度），未作跨记录比较或差值；如需比较请明确字段。无未完成事项。\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 6,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_v4pKFjL7ZZKzyxC0ma187247",
+              "type": "function",
+              "function": {
+                "name": "revise_plan",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"reason\": \"用户要求把记录A的alpha功率分析窗口从0-2秒修订为4-6秒，同时保留原0-2秒结果；新增交付key承载新窗口版本。\", \"changes\": {\"goal\": \"计算记录A的SYNTH-C1 alpha频带绝对功率（Welch绝对带功率），当前版本窗口修订为4-6秒，原0-2秒版本保留；并比较两窗口的差值与比值。\", \"input_refs\": [{\"task_id\": \"a_alpha_power\", \"key\": \"alpha_power_A\", \"level\": \"result\"}], \"required_outputs\": [{\"key\": \"alpha_power_A\", \"capability\": \"psd\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:75bd6099a695916e:0:29\"}}, {\"key\": \"alpha_power_A_4_6\", \"capability\": \"psd\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 4, \"end\": 6}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"range_ref\": \"u2:2d931c79acbe3473:0:16\"}}, {\"key\": \"alpha_diff_4_6_vs_0_2\", \"capability\": \"compare_results\", \"record\": \"A\", \"required\": true, \"scope\": {}, \"input_refs\": [{\"task_id\": \"a_alpha_power\", \"key\": \"alpha_power_A\", \"level\": \"result\"}, {\"task_id\": \"a_alpha_power\", \"key\": \"alpha_power_A_4_6\", \"level\": \"result\"}], \"interpretation\": {\"time_reference\": \"record_absolute\", \"range_ref\": \"u2:2d931c79acbe3473:17:39\"}}]}}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 7,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_IvqCMY7RujgFOlNsto8r1835",
+              "type": "function",
+              "function": {
+                "name": "revise_plan",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"reason\": \"用户要求把记录A的alpha功率分析窗口从0-2秒修订为4-6秒，同时保留原0-2秒结果；新增交付key承载新窗口版本与比较结果。\", \"updates\": {\"goal\": \"计算记录A的SYNTH-C1 alpha频带绝对功率（Welch绝对带功率）：保留原0-2秒版本，并新增修订窗口4-6秒版本，比较两窗口差值与比值。\", \"required_outputs\": [{\"key\": \"alpha_power_A\", \"capability\": \"psd\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:75bd6099a695916e:0:29\"}}, {\"key\": \"alpha_power_A_4_6\", \"capability\": \"psd\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 4, \"end\": 6}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"range_ref\": \"u2:2d931c79acbe3473:0:16\"}}, {\"key\": \"alpha_diff_4_6_vs_0_2\", \"capability\": \"compare_results\", \"record\": \"A\", \"required\": true, \"scope\": {}}]}}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 8,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_cWbme2CVmeN2fOFFEgRT0116",
+              "type": "function",
+              "function": {
+                "name": "revise_plan",
+                "arguments": "{\"reason\": \"用户要求把记录A的alpha功率分析窗口从0-2秒修订为4-6秒，同时保留原0-2秒结果；新增交付key承载新窗口版本与比较结果。\", \"task_id\": \"a_alpha_power\", \"updates\": {\"goal\": \"计算记录A的SYNTH-C1 alpha频带绝对功率（Welch绝对带功率）：保留原0-2秒版本，并新增修订窗口4-6秒版本，比较两窗口差值与比值。\", \"required_outputs\": [{\"capability\": \"psd\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"time_reference\": \"record_absolute\"}, \"key\": \"alpha_power_A\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 2, \"start\": 0}}, {\"capability\": \"psd\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"range_ref\": \"u2:2d931c79acbe3473:0:16\", \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"time_reference\": \"record_absolute\"}, \"key\": \"alpha_power_A_4_6\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 6, \"start\": 4}}, {\"capability\": \"compare_results\", \"input_refs\": [{\"fields\": [[\"alpha\", \"absolute_power\", \"SYNTH-C1\"]], \"key\": \"alpha_power_A\", \"level\": \"result\", \"task_id\": \"a_alpha_power\"}, {\"fields\": [[\"alpha\", \"absolute_power\", \"SYNTH-C1\"]], \"key\": \"alpha_power_A_4_6\", \"level\": \"result\", \"task_id\": \"a_alpha_power\"}], \"key\": \"alpha_diff_4_6_vs_0_2\", \"record\": \"A\", \"required\": true, \"scope\": {}}]}}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 9,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_N5ddoYsnHCMahajWX4y69372",
+              "type": "function",
+              "function": {
+                "name": "revise_plan",
+                "arguments": "{\"reason\": \"用户要求把记录A的alpha功率分析窗口从0-2秒修订为4-6秒，同时保留原0-2秒结果；新增交付key承载新窗口版本与两窗口比较。原0-2秒交付的窗口语义按其当前完整来源（u2第二轮的\\\"原0到2秒\\\"表述）标注，避免与新窗口冲突。\", \"task_id\": \"a_alpha_power\", \"updates\": {\"goal\": \"计算记录A的SYNTH-C1 alpha频带绝对功率（Welch绝对带功率）：保留原0-2秒版本，并新增修订窗口4-6秒版本，比较两窗口差值与比值。\", \"required_outputs\": [{\"capability\": \"psd\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"range_ref\": \"u2:2d931c79acbe3473:17:39\", \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"time_reference\": \"record_absolute\"}, \"key\": \"alpha_power_A\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 2, \"start\": 0}}, {\"capability\": \"psd\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"range_ref\": \"u2:2d931c79acbe3473:0:16\", \"source_ref\": \"u1:75bd6099a695916e:0:29\", \"time_reference\": \"record_absolute\"}, \"key\": \"alpha_power_A_4_6\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 6, \"start\": 4}}, {\"capability\": \"compare_results\", \"input_refs\": [{\"fields\": [[\"alpha\", \"absolute_power\", \"SYNTH-C1\"]], \"key\": \"alpha_power_A\", \"level\": \"result\", \"task_id\": \"a_alpha_power\"}, {\"fields\": [[\"alpha\", \"absolute_power\", \"SYNTH-C1\"]], \"key\": \"alpha_power_A_4_6\", \"level\": \"result\", \"task_id\": \"a_alpha_power\"}], \"key\": \"alpha_diff_4_6_vs_0_2\", \"record\": \"A\", \"required\": true, \"scope\": {}}]}}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 10,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_nXmIcO8yXw5CxupF8vB48753",
+              "type": "function",
+              "function": {
+                "name": "select_task",
+                "arguments": "{\"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 11,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_GDPOjiL3MZwk45X0neQ10117",
+              "type": "function",
+              "function": {
+                "name": "psd",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"output_key\": \"alpha_power_A\", \"revision\": 2, \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_6TJY9L0MDG1GTaIfCEdM1203",
+              "type": "function",
+              "function": {
+                "name": "psd",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"output_key\": \"alpha_power_A_4_6\", \"revision\": 2, \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 4, \"end\": 6}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 12,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_yV0ExPsaNWQvL27wwWz45351",
+              "type": "function",
+              "function": {
+                "name": "compare_results",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"output_key\": \"alpha_diff_4_6_vs_0_2\", \"revision\": 2, \"left_result\": \"issue55-session-t1\", \"left_path\": [\"SYNTH-C1\", \"alpha\"], \"right_result\": \"issue55-session-t3\", \"right_path\": [\"SYNTH-C1\", \"alpha\"]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 13,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_bvrO6iPCiqeQbmwkQ2tH2108",
+              "type": "function",
+              "function": {
+                "name": "read_dependency",
+                "arguments": "{\"task_id\": \"a_alpha_power\", \"key\": \"alpha_power_A\", \"level\": \"result\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 14,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_rMCcX9gRONr7xkuZl79l5422",
+              "type": "function",
+              "function": {
+                "name": "compare_results",
+                "arguments": "{\"left_path\": [\"SYNTH-C1\", \"alpha\"], \"left_result\": \"issue55-session-t1\", \"output_key\": \"alpha_diff_4_6_vs_0_2\", \"right_path\": [\"SYNTH-C1\", \"alpha\"], \"right_result\": \"issue55-session-t3\", \"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 15,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_TdDAX8qrfjZQzBx6vvO30232",
+              "type": "function",
+              "function": {
+                "name": "check_deliveries",
+                "arguments": "{\"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 16,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_EssjWGuGCXWD8CJRUErQ2311",
+              "type": "function",
+              "function": {
+                "name": "compare_results",
+                "arguments": "{\"left_path\": [\"SYNTH-C1\", \"absolute_power\"], \"left_result\": \"issue55-session-t1\", \"output_key\": \"alpha_diff_4_6_vs_0_2\", \"right_path\": [\"SYNTH-C1\", \"absolute_power\"], \"right_result\": \"issue55-session-t3\", \"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 17,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_FJOBXKMr6wla8otTjSDO2735",
+              "type": "function",
+              "function": {
+                "name": "compare_results",
+                "arguments": "{\"left_path\": [\"SYNTH-C1\", \"alpha\"], \"left_result\": \"issue55-session-t1\", \"output_key\": \"alpha_diff_4_6_vs_0_2\", \"right_path\": [\"SYNTH-C1\", \"alpha\"], \"right_result\": \"issue55-session-t3\", \"revision\": 2, \"task_id\": \"a_alpha_power\"}"
+              }
+            }
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "user_request": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率，以及记录B的SYNTH-C1在2到4秒的RMS，保留各自结果。",
+          "stop_reason": "completed",
+          "rounds": 5,
+          "score_at_deadline_unchanged": {
+            "requirements": [
+              {
+                "key": "old-alpha",
+                "result_id": "issue55-session-t1",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "alpha"
+                    ],
+                    "actual": "2.00e-10",
+                    "expected": 1.9999999920083944e-10,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "b-rms",
+                "result_id": "issue55-session-t2",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "rms"
+                    ],
+                    "actual": "1.30e-05",
+                    "expected": 1.2972493611561378e-05,
+                    "passed": true
+                  }
+                ]
+              }
+            ],
+            "all_required_results_correct": true,
+            "whole_request_correct": null,
+            "answer_review": "required: actual delivered answer, units, omissions, version, constraints and extra claims",
+            "autonomous_memory_use": null,
+            "review_checklist": [
+              "Stable task identity through explicit revision; previous result/version remains immutable",
+              "Only actually dependent downstream work invalidated; B unchanged",
+              "New A result links previous A and correct difference/ratio; no old result masquerading as revised range"
+            ]
+          },
+          "actual_delivered_answer": "两项测量均已完成并各自保留为独立结果：\n\n1) 记录A，通道 SYNTH-C1，0–2 秒（记录绝对时间）的 alpha 绝对功率（Welch 绝对带功率，alpha 频带 8–13 Hz）：2.00e-10 V²（= 200 µV²）。来源：记录 A（synthetic://task-memory-A），结果 issue55-session-t1，task_id=a_alpha_power / output_key=alpha_power_A，revision 1。\n\n2) 记录B，通道 SYNTH-C1，2–4 秒（记录绝对时间）的 RMS 振幅：1.30e-05 V（≈ 13 µV）。同窗参照值：平均绝对振幅 1.12e-05 V（11.2 µV），最大值 2.27e-05 V（22.7 µV），最小值 −2.27e-05 V。来源：记录 B（synthetic://task-memory-B），结果 issue55-session-t2，task_id=b_rms / output_key=rms_B，revision 1。\n\n说明：两者为不同记录、不同时间窗、不同指标（频带功率 vs 时域幅度），未作跨记录比较或差值；如需比较请明确字段。无未完成事项。",
+          "actions": [
+            {
+              "tool": "plan_tasks",
+              "success": true,
+              "status": "planned",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "select_task",
+              "success": true,
+              "status": "selected",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "psd",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "psd",
+                  "arguments": {
+                    "channels": [
+                      "SYNTH-C1"
+                    ],
+                    "start": 0,
+                    "end": 2
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a1",
+                  "tool_name": "psd",
+                  "success": true,
+                  "data": {
+                    "SYNTH-C1": {
+                      "delta": "1.88e-26",
+                      "theta": "1.51e-25",
+                      "alpha": "2.00e-10",
+                      "beta": "2.35e-25",
+                      "gamma": "5.39e-25"
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.946
+                },
+                "record": "A",
+                "scope": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 0,
+                  "end": 2
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "channels": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "channels",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                          "start": 0,
+                          "end": 29,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "start": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "start",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                          "start": 0,
+                          "end": 29,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "end": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "end",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                          "start": 0,
+                          "end": 29,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "result_id": "issue55-session-t1"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "amplitude",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "amplitude",
+                  "arguments": {
+                    "channels": [
+                      "SYNTH-C1"
+                    ],
+                    "start": 2,
+                    "end": 4
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a2",
+                  "tool_name": "amplitude",
+                  "success": true,
+                  "data": {
+                    "SYNTH-C1": {
+                      "mean_abs": "1.12e-05",
+                      "rms": "1.30e-05",
+                      "max_val": "2.27e-05",
+                      "min_val": "-2.27e-05"
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.304
+                },
+                "record": "B",
+                "scope": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 2,
+                  "end": 4
+                },
+                "source": "synthetic://task-memory-B",
+                "scientific_sources": {
+                  "channels": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:30:53",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "以及记录B的SYNTH-C1在2到4秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "channels",
+                    "binding": {
+                      "record": "B",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                          "start": 30,
+                          "end": 53,
+                          "allowed_records": [
+                            "B"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "start": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:30:53",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "以及记录B的SYNTH-C1在2到4秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "start",
+                    "binding": {
+                      "record": "B",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                          "start": 30,
+                          "end": 53,
+                          "allowed_records": [
+                            "B"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "end": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:75bd6099a695916e:30:53",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "以及记录B的SYNTH-C1在2到4秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "end",
+                    "binding": {
+                      "record": "B",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "75bd6099a695916e3b64fa393044103df7c7d37cb78011ad6b6dd17c2ff95f0d",
+                      "parents": [
+                        {
+                          "span": "以及记录B的SYNTH-C1在2到4秒的RMS",
+                          "start": 30,
+                          "end": 53,
+                          "allowed_records": [
+                            "B"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "result_id": "issue55-session-t2"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "complete_node",
+              "success": true,
+              "status": "delivery_accepted",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "complete_node",
+              "success": true,
+              "status": "delivery_accepted",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "finish_task",
+              "success": true,
+              "status": "completed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            }
+          ],
+          "plan_state": [
+            {
+              "task_id": "a_alpha_power",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "alpha_power_A": {
+                  "result_id": "issue55-session-t1",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "cc469733e76c5cf263ef5c7ab9bf30aa028affd40c0c88d115782b6c58cc194a",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            },
+            {
+              "task_id": "b_rms",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "rms_B": {
+                  "result_id": "issue55-session-t2",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "d443c01163ed765e961fc9c98614a2244ab9223af3ea75c71096e368a4598e3a",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "user_request": "把记录A的分析窗口修订为4到6秒，再与原0到2秒的alpha功率比较差值和比值。旧结果仍要保留；记录B的结果不变，不要重算。",
+          "stop_reason": "round_limit",
+          "rounds": 12,
+          "score_at_deadline_unchanged": {
+            "requirements": [
+              {
+                "key": "old-alpha",
+                "result_id": "issue55-session-t1",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "alpha"
+                    ],
+                    "actual": "2.00e-10",
+                    "expected": 1.9999999920083944e-10,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "b-rms",
+                "result_id": "issue55-session-t2",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "rms"
+                    ],
+                    "actual": "1.30e-05",
+                    "expected": 1.2972493611561378e-05,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "new-alpha",
+                "result_id": "issue55-session-t3",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "alpha"
+                    ],
+                    "actual": "3.92e-10",
+                    "expected": 3.9199996720862273e-10,
+                    "passed": true
+                  }
+                ]
+              }
+            ],
+            "all_required_results_correct": true,
+            "whole_request_correct": null,
+            "answer_review": "required: actual delivered answer, units, omissions, version, constraints and extra claims",
+            "autonomous_memory_use": null,
+            "review_checklist": [
+              "Stable task identity through explicit revision; previous result/version remains immutable",
+              "Only actually dependent downstream work invalidated; B unchanged",
+              "New A result links previous A and correct difference/ratio; no old result masquerading as revised range"
+            ]
+          },
+          "actual_delivered_answer": "达到 Agent 循环轮数上限。 已保留3项真实结果、1个未完成的已登记目的；这不包含尚未声明的原需求，也不证明本轮请求完整交付。当前仅为保存点，详见状态与错误。",
+          "actions": [
+            {
+              "tool": "revise_plan",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_STRUCTURE",
+              "message": "Choose exactly one advertised representation",
+              "field_path": [],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "revise_plan",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_STRUCTURE",
+              "message": "A comparison needs two actual input references with exactly one scalar field path each, and empty computation scope",
+              "field_path": [
+                "updates",
+                "required_outputs",
+                2,
+                "input_refs"
+              ],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "revise_plan",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_SOURCE",
+              "message": "Current user window conflicts with the old window; use its current range_ref",
+              "field_path": [
+                "updates",
+                "required_outputs",
+                0,
+                "interpretation"
+              ],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "revise_plan",
+              "success": true,
+              "status": "revised",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "select_task",
+              "success": true,
+              "status": "selected",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "psd",
+              "success": true,
+              "status": "reused",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "psd",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "psd",
+                  "arguments": {
+                    "channels": [
+                      "SYNTH-C1"
+                    ],
+                    "start": 4,
+                    "end": 6
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a3",
+                  "tool_name": "psd",
+                  "success": true,
+                  "data": {
+                    "SYNTH-C1": {
+                      "delta": "4.35e-26",
+                      "theta": "2.05e-25",
+                      "alpha": "3.92e-10",
+                      "beta": "5.58e-25",
+                      "gamma": "1.48e-24"
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.43
+                },
+                "record": "A",
+                "scope": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 4,
+                  "end": 6
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "channels": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率",
+                    "interpretation": {
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "range_ref": "u2:2d931c79acbe3473:0:16",
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "channels"
+                  },
+                  "start": {
+                    "kind": "user",
+                    "turn": 2,
+                    "span": "把记录A的分析窗口修订为4到6秒",
+                    "interpretation": {
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "range_ref": "u2:2d931c79acbe3473:0:16",
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "start",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "2d931c79acbe347346c6d1170f7164c131147dc27279dd01bf4468fb6e2006d7",
+                      "parents": [
+                        {
+                          "span": "把记录A的分析窗口修订为4到6秒",
+                          "start": 0,
+                          "end": 16,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "end": {
+                    "kind": "user",
+                    "turn": 2,
+                    "span": "把记录A的分析窗口修订为4到6秒",
+                    "interpretation": {
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "range_ref": "u2:2d931c79acbe3473:0:16",
+                      "source_ref": "u1:75bd6099a695916e:0:29",
+                      "time_reference": "record_absolute",
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的alpha绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "end",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "2d931c79acbe347346c6d1170f7164c131147dc27279dd01bf4468fb6e2006d7",
+                      "parents": [
+                        {
+                          "span": "把记录A的分析窗口修订为4到6秒",
+                          "start": 0,
+                          "end": 16,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "result_id": "issue55-session-t3"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "compare_results",
+              "success": false,
+              "status": "rejected",
+              "code": "COMPARISON_DEPENDENCY_MISMATCH",
+              "message": "Use the declared actual operands and fields",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "read_dependency",
+              "success": true,
+              "status": "read",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "compare_results",
+              "success": false,
+              "status": "rejected",
+              "code": "COMPARISON_DEPENDENCY_MISMATCH",
+              "message": "Use the declared actual operands and fields",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "check_deliveries",
+              "success": true,
+              "status": "checked",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "compare_results",
+              "success": false,
+              "status": "rejected",
+              "code": "COMPARISON_DEPENDENCY_MISMATCH",
+              "message": "Use the declared actual operands and fields",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "compare_results",
+              "success": false,
+              "status": "rejected",
+              "code": "FINAL_DELIVERY_ONLY",
+              "message": "Only the reserved final answer is available",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            }
+          ],
+          "plan_state": [
+            {
+              "task_id": "a_alpha_power",
+              "revision": 2,
+              "status": "RUNNING",
+              "outputs": {
+                "alpha_power_A": {
+                  "result_id": "issue55-session-t1",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 2,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 2,
+                    "fingerprint": "cf7b350fe0fd884cbf80f8ae91ea5fa079a7469fbe12d73dab1ea1944ccef844",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                },
+                "alpha_power_A_4_6": {
+                  "result_id": "issue55-session-t3",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 2,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 2,
+                    "fingerprint": "162886af2ebab4b1eec745fab88eb0bf7d68238636a5d718fe5d62ad1a02689f",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            },
+            {
+              "task_id": "b_rms",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "rms_B": {
+                  "result_id": "issue55-session-t2",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "d443c01163ed765e961fc9c98614a2244ab9223af3ea75c71096e368a4598e3a",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "original_artifacts": [
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/followup-1.json",
+          "sha256": "be593448f9c5033c1103795ccf6ecdc03b72d9bd605b8f48f2cdf35d5a689932",
+          "bytes": 58
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/ledger-at-end.jsonl",
+          "sha256": "929fedfd21aa3698074fc109ad9478dc0ff0773661eb247c4ec94c9b082c3ba1",
+          "bytes": 415479
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/manifest.json",
+          "sha256": "b945129cf957faf522d315d0948e04bdd79aa5f030c01f1be2b448c3a8e5cc7f",
+          "bytes": 26313
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/requests.jsonl",
+          "sha256": "d098d3d25e6736ce9a07a1e9281f7e5e91f6ab645aa60dff866033d4a72e5e5f",
+          "bytes": 875743
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/responses.jsonl",
+          "sha256": "6d76d07e2be05b7f6bcb76f5ba04cebbced59bbe5bd917b9743053d2ddddab5c",
+          "bytes": 20180
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/session-end.json",
+          "sha256": "63020ae4d909234b102c7efb5a0e51487c8c9d1eaca283d432e710c26dd797fc",
+          "bytes": 307
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/turn-1.json",
+          "sha256": "078c9c7d3a6b7eddfda6812fd543627b487e9d4df84261ba4cb8b252f453cc3b",
+          "bytes": 176854
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T05-first/turn-2.json",
+          "sha256": "f2a3d208aa8ccd7f75a8c7578806fc1e64f8b952e7c233e4050177b49f1e1682",
+          "bytes": 715359
+        }
+      ],
+      "independent_whole_request_review": null
+    },
+    {
+      "session": "v1--T07-first",
+      "case": "T07",
+      "candidate": "8045c314344904d1dd7c66dcc720b3e185b71669",
+      "scientific_behavior_sha256": "f61a5b25775989c62c528c7f7a2141fcdda8e27d0f5380b787dc67cabce09642",
+      "runtime": {
+        "endpoint_sha256": "a34e2a4708ed1c61008a151688838dcf1c44d4e7f08054633e72ba7c0b16cfc1",
+        "model": "deepseek-flash",
+        "thinking": "disabled",
+        "timeout": 90.0,
+        "max_output_tokens": 2200,
+        "max_retries": 0
+      },
+      "schema_bytes": 29298,
+      "schema_sha256": "5ecdd5124e314d89cf98ed7235362bcea65f5da7ef0243b725c898f9baa3bc87",
+      "protocols": {
+        "point1_working_memory_issue52.json": "25210fc64450adf29749e23d8c5ef2edc954d41a72c26e82831c4c4b7c562ddf",
+        "point1_working_memory_issue55.json": "cbecb0ff333a8921381f1c806899524ca6aeb98a66e3bd4b954d008ec7531710",
+        "point1_working_memory_issue55_development_scoring.json": "acba5d5c60c568c1b502f38731e51d980c3f74493018e2bb617e5f5666044024",
+        "point1_working_memory_followup_policies.json": "b88f42355bc6b23b24240a2f682d3f0fe6a4bb2a4a57407dc18d191057a9d5c4"
+      },
+      "data": {
+        "A": {
+          "samples_sha256": "7e379fadf20464da3ded68c185cdd40584d04acbd21e3530404ce423d2f0556f",
+          "shape": [
+            2,
+            1024
+          ],
+          "sfreq": 128.0,
+          "channels": [
+            "SYNTH-C1",
+            "SYNTH-C2"
+          ],
+          "source": "synthetic://task-memory-A",
+          "events": [
+            {
+              "label": "stimulus",
+              "onset_seconds": 1.0,
+              "duration_seconds": 0.0,
+              "source_index": 0,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 2.0,
+              "duration_seconds": 0.0,
+              "source_index": 1,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 3.0,
+              "duration_seconds": 0.0,
+              "source_index": 2,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 4.0,
+              "duration_seconds": 0.0,
+              "source_index": 3,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 5.0,
+              "duration_seconds": 0.0,
+              "source_index": 4,
+              "metadata": {}
+            }
+          ],
+          "reference": "synthetic native reference",
+          "montage": "synthetic two-channel layout"
+        },
+        "B": {
+          "samples_sha256": "a5e02766ee6021c7bfaab7bb03af211f094e91e55f513b51fc0ce282195d2f31",
+          "shape": [
+            2,
+            1024
+          ],
+          "sfreq": 128.0,
+          "channels": [
+            "SYNTH-C1",
+            "SYNTH-C2"
+          ],
+          "source": "synthetic://task-memory-B",
+          "events": [
+            {
+              "label": "stimulus",
+              "onset_seconds": 1.5,
+              "duration_seconds": 0.0,
+              "source_index": 0,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 2.5,
+              "duration_seconds": 0.0,
+              "source_index": 1,
+              "metadata": {}
+            },
+            {
+              "label": "stimulus",
+              "onset_seconds": 4.5,
+              "duration_seconds": 0.0,
+              "source_index": 2,
+              "metadata": {}
+            },
+            {
+              "label": "control",
+              "onset_seconds": 5.5,
+              "duration_seconds": 0.0,
+              "source_index": 3,
+              "metadata": {}
+            }
+          ],
+          "reference": "synthetic native reference",
+          "montage": "synthetic two-channel layout"
+        }
+      },
+      "calls": 15,
+      "usage": {
+        "prompt_tokens": 232924,
+        "completion_tokens": 5103,
+        "total_tokens": 238027,
+        "prompt_cache_hit_tokens": 163200,
+        "prompt_cache_miss_tokens": 69724
+      },
+      "conservative_usd": "0.0760008",
+      "actual_wire_bytes": 839201,
+      "actual_model_tool_proposals": [
+        {
+          "request_index": 1,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_IpVhBjjBz5uxDfV9D39g2880",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"task_id\": \"a_rms_c1_0_2\", \"goal\": \"计算记录A中SYNTH-C1在0到2秒（记录绝对时间）的RMS（amplitudes incl. RMS）。\", \"required_outputs\": [{\"key\": \"rms_c1_0_2\", \"capability\": \"amplitude\", \"record\": \"A\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u1:410ebe45d5618fa6:0:23\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"]}, \"required\": true}]}, {\"task_id\": \"a_theta_c2_stim\", \"goal\": \"从记录A的stimulus事件创建相对窗0到1.25秒的Epoch（不筛选、不做基线校正），并计算SYNTH-C2的theta频段绝对功率（Welch，事件条件均值）。\", \"required_outputs\": [{\"key\": \"epochs_stim_0_1_25\", \"capability\": \"create_epochs\", \"record\": \"A\", \"scope\": {\"labels\": [\"stimulus\"], \"tmin\": 0, \"tmax\": 1.25}, \"interpretation\": {\"source_ref\": \"u1:410ebe45d5618fa6:24:66\", \"time_reference\": \"event_relative\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true}, {\"key\": \"theta_c2_stim\", \"capability\": \"event_bandpower\", \"record\": \"A\", \"scope\": {}, \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\"}], \"interpretation\": {\"source_ref\": \"u1:410ebe45d5618fa6:24:66\", \"time_reference\": \"event_relative\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true}]}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 2,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_8wx2CccI93XmD1Jk1ayB4866",
+              "type": "function",
+              "function": {
+                "name": "select_task",
+                "arguments": "{\"task_id\": \"a_rms_c1_0_2\"}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_eki6BBEASOfnxhwSjtfp2498",
+              "type": "function",
+              "function": {
+                "name": "select_task",
+                "arguments": "{\"task_id\": \"a_theta_c2_stim\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 3,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_f5U55AmZwFJgX8Kw4UXn0079",
+              "type": "function",
+              "function": {
+                "name": "amplitude",
+                "arguments": "{\"task_id\": \"a_rms_c1_0_2\", \"output_key\": \"rms_c1_0_2\", \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_lboabWA0FO9k18N8QErR0742",
+              "type": "function",
+              "function": {
+                "name": "create_epochs",
+                "arguments": "{\"task_id\": \"a_theta_c2_stim\", \"output_key\": \"epochs_stim_0_1_25\", \"record\": \"A\", \"labels\": [\"stimulus\"], \"tmin\": 0, \"tmax\": 1.25}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 4,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_gbdlAhCb2wB7mBZEm2dO6262",
+              "type": "function",
+              "function": {
+                "name": "event_bandpower",
+                "arguments": "{\"task_id\": \"a_theta_c2_stim\", \"output_key\": \"theta_c2_stim\", \"record\": \"A\", \"artifact_id\": \"epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3\", \"expected_artifact_fingerprint\": \"sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 5,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_fyiPVAs6hx3aKG3gtO1w5448",
+              "type": "function",
+              "function": {
+                "name": "complete_node",
+                "arguments": "{\"task_id\": \"a_theta_c2_stim\", \"output_key\": \"theta_c2_stim\", \"revision\": 1, \"result_id\": \"issue55-session-t3\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 6,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_RapRwXXgyolCOfz9pkx93684",
+              "type": "function",
+              "function": {
+                "name": "finish_task",
+                "arguments": "{\"status\": \"completed\", \"answer\": \"记录A（synthetic://task-memory-A，128 Hz，native reference）两项结果：\\n\\n1) SYNTH-C1 在 0–2 s（记录绝对时间）的 RMS = 1.41e-05 V（≈14.1 µV），单位 V。同窗另有 mean_abs 1.27e-05 V、max 2.00e-05 V、min −2.00e-05 V（来源：task a_rms_c1_0_2 / rms_c1_0_2，rev 1，result issue55-session-t1）。\\n\\n2) SYNTH-C2 在 stimulus 事件后 0–1.25 s 试次窗（事件相对时间，tmin=0.0 s、tmax=1.25 s；未筛选、无基线校正；3 个有效试次，0 拒绝）的 theta（4–8 Hz）绝对功率 = 1.84e-10 V²（≈184.5 µV²）。方法为整个 Epoch 的 Welch PSD 后对 3 个试次做算术平均，标称为绝对事件窗频带功率，非基线归一化 ERD/ERS（来源：task a_theta_c2_stim，epochs_stim_0_1_25 → theta_c2_stim，rev 1，result issue55-session-t3；Epoch 工件 epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3，stimulus onsets 1.0/3.0/5.0 s）。\\n\\n说明：RMS 取的是记录绝对时间 0–2 s，与该记录首个 stimulus（1.0 s）部分重叠，两者时基不同，不可直接对应比较。无未完成事项。\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 7,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_WSbB3Qf7vzFYMBtFqmrp3030",
+              "type": "function",
+              "function": {
+                "name": "read_result",
+                "arguments": "{\"result_id\": \"issue55-session-t1\", \"fields\": [[\"rms\"], [\"mean_abs\"], [\"max\"], [\"min\"], [\"channels\"], [\"start\"], [\"end\"]]}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_8pHnAEZn5LIYF6zQC9Ft4032",
+              "type": "function",
+              "function": {
+                "name": "read_result",
+                "arguments": "{\"result_id\": \"issue55-session-t3\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 8,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_JreRmztk5PiC0rbDtqr38058",
+              "type": "function",
+              "function": {
+                "name": "read_result",
+                "arguments": "{\"fields\": [[\"rms\"], [\"mean_absolute_amplitude\"], [\"channels\"]], \"result_id\": \"issue55-session-t1\"}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_HYdaDO4SQrAZpVKqrBLc7789",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"task_id\": \"a_epoch_quality_stim\", \"goal\": \"对既有stimulus事件Epoch工件(epochs_stim_0_1_25, 相对窗0-1.25秒, 不筛选不做基线校正)追加质量测量：给出覆盖与经验性平直/高幅度标记、实际采用的判定标准、试次数与标记情况。不重算、不删除任何试次。\", \"required_outputs\": [{\"key\": \"quality_stim\", \"capability\": \"epoch_quality\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\", \"level\": \"result\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:13:28\", \"time_reference\": \"event_relative\", \"measurement_channels\": [\"SYNTH-C1\", \"SYNTH-C2\"]}}, {\"key\": \"summary_stim\", \"capability\": \"epoch_summary\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\", \"level\": \"result\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:29:47\", \"time_reference\": \"event_relative\", \"measurement_channels\": [\"SYNTH-C1\", \"SYNTH-C2\"]}}]}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 9,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_ebxgaQgrk35cDG2LVYzB0985",
+              "type": "function",
+              "function": {
+                "name": "read_result",
+                "arguments": "{\"result_id\": \"issue55-session-t1\"}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_CmFXrlVimGd1RwnfYH9i5925",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"goal\": \"对既有stimulus事件Epoch工件(epochs_stim_0_1_25, 相对窗0-1.25秒, 不筛选不做基线校正)追加质量测量：给出覆盖与经验性平直/高幅度标记、实际采用的判定标准、试次数与标记情况。不重算、不删除任何试次。\", \"required_outputs\": [{\"capability\": \"epoch_quality\", \"input_refs\": [{\"key\": \"epochs_stim_0_1_25\", \"level\": \"result\", \"task_id\": \"a_theta_c2_stim\"}], \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\", \"SYNTH-C2\"], \"source_ref\": \"u2:4c30f4662ae2f92b:13:28\", \"time_reference\": \"event_relative\"}, \"key\": \"quality_stim\", \"record\": \"A\", \"required\": true, \"scope\": {}}, {\"capability\": \"epoch_summary\", \"input_refs\": [{\"key\": \"epochs_stim_0_1_25\", \"level\": \"result\", \"task_id\": \"a_theta_c2_stim\"}], \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\", \"SYNTH-C2\"], \"source_ref\": \"u2:4c30f4662ae2f92b:29:47\", \"time_reference\": \"event_relative\"}, \"key\": \"summary_stim\", \"record\": \"A\", \"required\": true, \"scope\": {}}], \"task_id\": \"a_epoch_quality_stim\"}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 10,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_d3gDxSsIEok6eYuSxXRN0143",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"capability\": \"epoch_quality\", \"goal\": \"对既有stimulus事件Epoch工件(epochs_stim_0_1_25，相对窗0-1.25秒，不筛选不做基线校正)追加质量测量：覆盖与经验性平直/高幅度标记、实际采用标准、试次数与标记情况。不重算、不删除任何试次。\", \"input_refs\": [{\"key\": \"epochs_stim_0_1_25\", \"level\": \"result\", \"task_id\": \"a_theta_c2_stim\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:13:28\", \"time_reference\": \"event_relative\"}, \"key\": \"quality_stim\", \"record\": \"A\", \"scope\": {}}, {\"capability\": \"epoch_summary\", \"goal\": \"给出该Epoch工件的元数据与拒绝汇总：试次总数、被拒绝数、实际阈值与实际标记情况。\", \"input_refs\": [{\"key\": \"epochs_stim_0_1_25\", \"level\": \"result\", \"task_id\": \"a_theta_c2_stim\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:29:47\", \"time_reference\": \"event_relative\"}, \"key\": \"summary_stim\", \"record\": \"A\", \"scope\": {}}], \"task_id\": \"a_epoch_quality_stim\"}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 11,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_LxU1nbRRy4a9KgNnlPj71356",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"task_id\": \"a_epoch_quality_stim\", \"goal\": \"对既有stimulus事件Epoch工件(epochs_stim_0_1_25，相对窗0-1.25秒，不筛选不做基线校正)追加质量测量：覆盖情况与经验性平直/高幅度标记、实际采用标准、试次数与标记情况，并给出元数据与拒绝汇总。不重算、不删除任何试次。\", \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\", \"level\": \"result\"}], \"required_outputs\": [{\"key\": \"quality_stim\", \"capability\": \"epoch_quality\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:13:28\", \"time_reference\": \"event_relative\"}}, {\"key\": \"summary_stim\", \"capability\": \"epoch_summary\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:29:47\", \"time_reference\": \"event_relative\"}}]}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 12,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_d7DtD66jsdAXuw8EUMHC0488",
+              "type": "function",
+              "function": {
+                "name": "plan_tasks",
+                "arguments": "{\"nodes\": [{\"task_id\": \"a_epoch_quality_stim\", \"goal\": \"对既有stimulus事件Epoch工件(epochs_stim_0_1_25，相对窗0-1.25秒，不筛选不做基线校正)追加质量测量：覆盖情况与经验性平直/高幅度标记、实际采用标准、试次数与标记情况，并给出元数据与拒绝汇总。不重算、不删除任何试次。\", \"dependencies\": [], \"required_outputs\": [{\"key\": \"quality_stim\", \"capability\": \"epoch_quality\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\", \"level\": \"result\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:13:28\", \"time_reference\": \"event_relative\"}}, {\"key\": \"summary_stim\", \"capability\": \"epoch_summary\", \"record\": \"A\", \"scope\": {}, \"required\": true, \"input_refs\": [{\"task_id\": \"a_theta_c2_stim\", \"key\": \"epochs_stim_0_1_25\", \"level\": \"result\"}], \"interpretation\": {\"source_ref\": \"u2:4c30f4662ae2f92b:29:47\", \"time_reference\": \"event_relative\"}}]}]}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 13,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_ZGgEUCWwaXD67xONTZ4N7599",
+              "type": "function",
+              "function": {
+                "name": "select_task",
+                "arguments": "{\"task_id\": \"a_epoch_quality_stim\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 14,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_IrzO9QRjpV2gabeda2wg8698",
+              "type": "function",
+              "function": {
+                "name": "epoch_quality",
+                "arguments": "{\"task_id\": \"a_epoch_quality_stim\", \"output_key\": \"quality_stim\", \"record\": \"A\", \"artifact_id\": \"epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3\", \"expected_artifact_fingerprint\": \"sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e\"}"
+              }
+            },
+            {
+              "index": 1,
+              "id": "call_01_33yPurEYBshh4X4Qoc2x4788",
+              "type": "function",
+              "function": {
+                "name": "epoch_summary",
+                "arguments": "{\"task_id\": \"a_epoch_quality_stim\", \"output_key\": \"summary_stim\", \"record\": \"A\", \"artifact_id\": \"epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3\", \"expected_artifact_fingerprint\": \"sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e\"}"
+              }
+            }
+          ]
+        },
+        {
+          "request_index": 15,
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "call_00_R0dKt9F9RS9BG25Lgsiz6016",
+              "type": "function",
+              "function": {
+                "name": "finish_task",
+                "arguments": "{\"status\": \"completed\", \"answer\": \"全部沿用既有结果，未重算、未删除任何试次。\\n\\n一、之前的 RMS 及其范围（记录A，SYNTH-C1，记录绝对时间 0–2 s 窗，来源 issue55-session-t1 / a_rms_c1_0_2:rms_c1_0_2 rev1）\\n- RMS = 1.41e-5 V（14.1 µV）\\n- 同窗辅助值：平均绝对幅值 1.27e-5 V（12.7 µV）；最大值 +2.00e-5 V（+20 µV）；最小值 −2.00e-5 V（−20 µV）\\n- 注意：该窗为记录绝对时间窗；下述质量测量与theta功率使用刺激事件相对窗 0–1.25 s，二者时基不同，数值不可互相代入。\\n\\n二、同一批事件试次的质量测量（工件 epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3，指纹 sha256:e98fe994…8965e；stimulus 相对窗 [onset+0, onset+1.25) s，无基线校正、无筛选）\\n- 实际采用的经验性标准（threshold_status: empirical_not_clinically_calibrated，仅作筛查建议，不自动删除）：\\n  · 平直：偏移 < 1e-8 V 的样本占试次 ≥95%（flatline_delta_volts=1e-8, flatline_fraction=0.95）\\n  · 高幅度：|幅值| > 2e-4 V（200 µV）的样本占试次 ≥1%（high_amplitude_volts=2e-4, high_amplitude_fraction=0.01）\\n  · 工线噪声比参考阈值 0.2（line_noise_ratio=0.2）\\n- 试次数：请求/边界检查 3，创建 3，边界剔除 0；质量标记 0，质量可用 3；可用比例 1.0\\n- 条件计数：试次前 stimulus=3；质量可用后 stimulus=3\\n- 标记情况：flagged_epoch_indices = []（空），quality_flag_reasons = {}（空），即无任何试次被标记为平直或高幅度\\n- 试次明细：3 个 stimulus 试次，起点（记录绝对时间）1.0 s、3.0 s、5.0 s；数据形状 [3 试次, 2 通道(SYNTH-C1, SYNTH-C2), 160 采样]，sfreq 128 Hz，参考 \\\"synthetic native reference\\\"；拒绝列表为空（rejected_epoch_count=0）\\n\\n三、原 theta 功率（绝对功率，非基线归一化 ERD/ERS；来源 issue55-session-t3 / a_theta_c2_stim:theta_c2_stim rev1，基于同一 Epoch 工件、同 3 个 stimulus 试次）\\n- SYNTH-C2 theta（4–8 Hz）：1.845e-10 V²（约 184.5 µV²），3 个试次的算术平均，1 Hz 频率分辨率\\n- 同结果中的其他频段（供参考）：SYNTH-C2 delta 3.63e-26 V²、alpha 9.44e-26 V²、beta 2.65e-25 V²、gamma 6.74e-25 V²；SYNTH-C1 theta 1.87e-25 V²\\n\\n版本/范围说明：以上全部为第1版已完成交付（a_rms_c1_0_2、a_theta_c2_stim 的 epochs_stim_0_1_25 与 theta_c2_stim、a_epoch_quality_stim 的 quality_stim 与 summary_stim），本次仅新增质量测量与元数据/拒绝汇总，无任何旧结果被重算或替换。未完成事项：无。\"}"
+              }
+            }
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "user_request": "请给记录A的SYNTH-C1在0到2秒的RMS，并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率，不进行筛选或基线校正。",
+          "stop_reason": "completed",
+          "rounds": 6,
+          "score_at_deadline_unchanged": {
+            "requirements": [
+              {
+                "key": "rms",
+                "result_id": "issue55-session-t1",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "rms"
+                    ],
+                    "actual": "1.41e-05",
+                    "expected": 1.4142135677367759e-05,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "theta",
+                "result_id": "issue55-session-t3",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "conditions",
+                      "stimulus",
+                      "channels",
+                      "SYNTH-C2",
+                      "theta"
+                    ],
+                    "actual": 1.8449999109511803e-10,
+                    "expected": 1.8449999109511803e-10,
+                    "passed": true
+                  }
+                ]
+              }
+            ],
+            "all_required_results_correct": true,
+            "whole_request_correct": null,
+            "answer_review": "required: actual delivered answer, units, omissions, version, constraints and extra claims",
+            "autonomous_memory_use": null,
+            "review_checklist": [
+              "Exact historical RMS and theta retained/read and reused without numerical repetition",
+              "Quality executes on original artifact identity; same content/new artifact is not equivalent",
+              "Actual thresholds and measurement limits stated; flags do not mean deletion or clinically validated reliability"
+            ]
+          },
+          "actual_delivered_answer": "记录A（synthetic://task-memory-A，128 Hz，native reference）两项结果：\n\n1) SYNTH-C1 在 0–2 s（记录绝对时间）的 RMS = 1.41e-05 V（≈14.1 µV），单位 V。同窗另有 mean_abs 1.27e-05 V、max 2.00e-05 V、min −2.00e-05 V（来源：task a_rms_c1_0_2 / rms_c1_0_2，rev 1，result issue55-session-t1）。\n\n2) SYNTH-C2 在 stimulus 事件后 0–1.25 s 试次窗（事件相对时间，tmin=0.0 s、tmax=1.25 s；未筛选、无基线校正；3 个有效试次，0 拒绝）的 theta（4–8 Hz）绝对功率 = 1.84e-10 V²（≈184.5 µV²）。方法为整个 Epoch 的 Welch PSD 后对 3 个试次做算术平均，标称为绝对事件窗频带功率，非基线归一化 ERD/ERS（来源：task a_theta_c2_stim，epochs_stim_0_1_25 → theta_c2_stim，rev 1，result issue55-session-t3；Epoch 工件 epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3，stimulus onsets 1.0/3.0/5.0 s）。\n\n说明：RMS 取的是记录绝对时间 0–2 s，与该记录首个 stimulus（1.0 s）部分重叠，两者时基不同，不可直接对应比较。无未完成事项。",
+          "actions": [
+            {
+              "tool": "plan_tasks",
+              "success": true,
+              "status": "planned",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "select_task",
+              "success": true,
+              "status": "selected",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "select_task",
+              "success": true,
+              "status": "selected",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "amplitude",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "amplitude",
+                  "arguments": {
+                    "channels": [
+                      "SYNTH-C1"
+                    ],
+                    "start": 0,
+                    "end": 2
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a1",
+                  "tool_name": "amplitude",
+                  "success": true,
+                  "data": {
+                    "SYNTH-C1": {
+                      "mean_abs": "1.27e-05",
+                      "rms": "1.41e-05",
+                      "max_val": "2.00e-05",
+                      "min_val": "-2.00e-05"
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.495
+                },
+                "record": "A",
+                "scope": {
+                  "channels": [
+                    "SYNTH-C1"
+                  ],
+                  "start": 0,
+                  "end": 2
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "channels": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:0:23",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "channels",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                          "start": 0,
+                          "end": 23,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "start": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:0:23",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "start",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                          "start": 0,
+                          "end": 23,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  },
+                  "end": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:0:23",
+                      "time_reference": "record_absolute",
+                      "measurement_channels": [
+                        "SYNTH-C1"
+                      ],
+                      "source_span": "请给记录A的SYNTH-C1在0到2秒的RMS"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "end",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "record_absolute",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "请给记录A的SYNTH-C1在0到2秒的RMS",
+                          "start": 0,
+                          "end": 23,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "explicit_record"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "result_id": "issue55-session-t1"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "create_epochs",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "create_epochs",
+                  "arguments": {
+                    "labels": [
+                      "stimulus"
+                    ],
+                    "tmin": 0,
+                    "tmax": 1.25
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a2",
+                  "tool_name": "create_epochs",
+                  "success": true,
+                  "data": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e",
+                    "valid_epoch_count": 3,
+                    "rejected_epoch_count": 0,
+                    "shape": [
+                      3,
+                      2,
+                      160
+                    ],
+                    "channel_names": [
+                      "SYNTH-C1",
+                      "SYNTH-C2"
+                    ],
+                    "sfreq": 128.0,
+                    "tmin": 0.0,
+                    "tmax": 1.25,
+                    "baseline": null,
+                    "reference": "synthetic native reference",
+                    "event_labels": [
+                      "stimulus",
+                      "stimulus",
+                      "stimulus"
+                    ],
+                    "event_onsets_seconds": [
+                      1.0,
+                      3.0,
+                      5.0
+                    ],
+                    "rejected": [],
+                    "source": {
+                      "kind": "synthetic",
+                      "reference_sha256": "d565359744ac36a8988d79a8c8a7762c748a24a209b8cb4f8c3b169e454ea387"
+                    },
+                    "parameters": {
+                      "selected_labels": [
+                        "stimulus"
+                      ],
+                      "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                      "sampling_alignment": "round(seconds * sfreq)",
+                      "event_source": {
+                        "kind": "synthetic",
+                        "reference_sha256": "c8c7f07d853b9385ecc36b1410c180f2b1910153710d11eeb5d279d6e03908e2"
+                      }
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.871
+                },
+                "record": "A",
+                "scope": {
+                  "labels": [
+                    "stimulus"
+                  ],
+                  "tmin": 0,
+                  "tmax": 1.25
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "labels": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ],
+                      "source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "labels",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "event_relative",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                          "start": 24,
+                          "end": 66,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "preceding_record_in_request"
+                        }
+                      ]
+                    }
+                  },
+                  "tmin": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ],
+                      "source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "tmin",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "event_relative",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                          "start": 24,
+                          "end": 66,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "preceding_record_in_request"
+                        }
+                      ]
+                    }
+                  },
+                  "tmax": {
+                    "kind": "user",
+                    "turn": 1,
+                    "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ],
+                      "source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率"
+                    },
+                    "semantic_status": "model_interpretation_not_intent_proof",
+                    "verified_facts": [
+                      "source_parent",
+                      "record",
+                      "metadata",
+                      "literal_window",
+                      "tool_time_reference"
+                    ],
+                    "field": "tmax",
+                    "binding": {
+                      "record": "A",
+                      "time_reference": "event_relative",
+                      "request_fingerprint": "410ebe45d5618fa6fd4fd3d4553ecb99d05090de838d6cfa1cc228fc5f13269f",
+                      "parents": [
+                        {
+                          "span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                          "start": 24,
+                          "end": 66,
+                          "allowed_records": [
+                            "A"
+                          ],
+                          "record_basis": "preceding_record_in_request"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "result_id": "issue55-session-t2"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "event_bandpower",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "event_bandpower",
+                  "arguments": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "expected_artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a3",
+                  "tool_name": "event_bandpower",
+                  "success": true,
+                  "data": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e",
+                    "method": "whole-Epoch Welch PSD followed by arithmetic mean across Epochs",
+                    "interpretation": "absolute event-window bandpower; not baseline-normalized ERD/ERS",
+                    "frequency_resolution_hz": 1.0,
+                    "conditions": {
+                      "stimulus": {
+                        "epoch_count": 3,
+                        "channels": {
+                          "SYNTH-C1": {
+                            "delta": 3.52590958596168e-26,
+                            "theta": 1.869591131724944e-25,
+                            "alpha": 3.2799997787269497e-10,
+                            "beta": 4.50064582720993e-25,
+                            "gamma": 1.1663037799695777e-24
+                          },
+                          "SYNTH-C2": {
+                            "delta": 3.629643299192653e-26,
+                            "theta": 1.8449999109511803e-10,
+                            "alpha": 9.438448866698457e-26,
+                            "beta": 2.6491479841580087e-25,
+                            "gamma": 6.739257976614902e-25
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 6.593
+                },
+                "record": "A",
+                "scope": {
+                  "labels": [
+                    "stimulus"
+                  ],
+                  "tmin": 0.0,
+                  "tmax": 1.25
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "labels": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ]
+                    },
+                    "intent_source_turn": 1,
+                    "intent_source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmin": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ]
+                    },
+                    "intent_source_turn": 1,
+                    "intent_source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmax": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u1:410ebe45d5618fa6:24:66",
+                      "time_reference": "event_relative",
+                      "measurement_channels": [
+                        "SYNTH-C2"
+                      ]
+                    },
+                    "intent_source_turn": 1,
+                    "intent_source_span": "并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  }
+                },
+                "result_id": "issue55-session-t3"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "complete_node",
+              "success": true,
+              "status": "delivery_accepted",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "finish_task",
+              "success": true,
+              "status": "completed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            }
+          ],
+          "plan_state": [
+            {
+              "task_id": "a_rms_c1_0_2",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "rms_c1_0_2": {
+                  "result_id": "issue55-session-t1",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "bcf6621d0aacc1f4efdfa3531fe9f29a7fbb57b06a6c25a2a437e4a2e1d4cbba",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            },
+            {
+              "task_id": "a_theta_c2_stim",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "epochs_stim_0_1_25": {
+                  "result_id": "issue55-session-t2",
+                  "input_artifact": null,
+                  "output_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "a635a9443a451dd8daff89fe612e11d656526a75f147175fc5a45b632f61c787",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                },
+                "theta_c2_stim": {
+                  "result_id": "issue55-session-t3",
+                  "input_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "7293e65c2f6b24df99b4e634e6a54cd569d350429d5f7e7756b124514f60bc0a",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "user_request": "请回顾之前的RMS及范围；沿用同一批事件试次追加质量测量，给出实际采用的标准、试次数和标记情况，再列出原theta功率。已有结果不要重算，不要删除任何试次。",
+          "stop_reason": "completed",
+          "rounds": 9,
+          "score_at_deadline_unchanged": {
+            "requirements": [
+              {
+                "key": "rms",
+                "result_id": "issue55-session-t1",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "SYNTH-C1",
+                      "rms"
+                    ],
+                    "actual": "1.41e-05",
+                    "expected": 1.4142135677367759e-05,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "theta",
+                "result_id": "issue55-session-t3",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "conditions",
+                      "stimulus",
+                      "channels",
+                      "SYNTH-C2",
+                      "theta"
+                    ],
+                    "actual": 1.8449999109511803e-10,
+                    "expected": 1.8449999109511803e-10,
+                    "passed": true
+                  }
+                ]
+              },
+              {
+                "key": "quality",
+                "result_id": "issue55-session-t4",
+                "passed": true,
+                "numeric": [
+                  {
+                    "field": [
+                      "epoch_counts"
+                    ],
+                    "actual": {
+                      "requested_or_boundary_checked": 3,
+                      "created": 3,
+                      "boundary_rejected": 0,
+                      "quality_flagged": 0,
+                      "quality_usable": 3
+                    },
+                    "expected": {
+                      "requested_or_boundary_checked": 3,
+                      "created": 3,
+                      "boundary_rejected": 0,
+                      "quality_flagged": 0,
+                      "quality_usable": 3
+                    },
+                    "passed": true
+                  },
+                  {
+                    "field": [
+                      "condition_counts_before_quality"
+                    ],
+                    "actual": {
+                      "stimulus": 3
+                    },
+                    "expected": {
+                      "stimulus": 3
+                    },
+                    "passed": true
+                  },
+                  {
+                    "field": [
+                      "condition_counts_quality_usable"
+                    ],
+                    "actual": {
+                      "stimulus": 3
+                    },
+                    "expected": {
+                      "stimulus": 3
+                    },
+                    "passed": true
+                  },
+                  {
+                    "field": [
+                      "quality_flag_reasons"
+                    ],
+                    "actual": {},
+                    "expected": {},
+                    "passed": true
+                  },
+                  {
+                    "field": [
+                      "flagged_epoch_indices"
+                    ],
+                    "actual": [],
+                    "expected": [],
+                    "passed": true
+                  },
+                  {
+                    "field": [
+                      "usable_fraction_of_created"
+                    ],
+                    "actual": 1.0,
+                    "expected": 1.0,
+                    "passed": true
+                  }
+                ]
+              }
+            ],
+            "all_required_results_correct": true,
+            "whole_request_correct": null,
+            "answer_review": "required: actual delivered answer, units, omissions, version, constraints and extra claims",
+            "autonomous_memory_use": null,
+            "review_checklist": [
+              "Exact historical RMS and theta retained/read and reused without numerical repetition",
+              "Quality executes on original artifact identity; same content/new artifact is not equivalent",
+              "Actual thresholds and measurement limits stated; flags do not mean deletion or clinically validated reliability"
+            ]
+          },
+          "actual_delivered_answer": "全部沿用既有结果，未重算、未删除任何试次。\n\n一、之前的 RMS 及其范围（记录A，SYNTH-C1，记录绝对时间 0–2 s 窗，来源 issue55-session-t1 / a_rms_c1_0_2:rms_c1_0_2 rev1）\n- RMS = 1.41e-5 V（14.1 µV）\n- 同窗辅助值：平均绝对幅值 1.27e-5 V（12.7 µV）；最大值 +2.00e-5 V（+20 µV）；最小值 −2.00e-5 V（−20 µV）\n- 注意：该窗为记录绝对时间窗；下述质量测量与theta功率使用刺激事件相对窗 0–1.25 s，二者时基不同，数值不可互相代入。\n\n二、同一批事件试次的质量测量（工件 epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3，指纹 sha256:e98fe994…8965e；stimulus 相对窗 [onset+0, onset+1.25) s，无基线校正、无筛选）\n- 实际采用的经验性标准（threshold_status: empirical_not_clinically_calibrated，仅作筛查建议，不自动删除）：\n  · 平直：偏移 < 1e-8 V 的样本占试次 ≥95%（flatline_delta_volts=1e-8, flatline_fraction=0.95）\n  · 高幅度：|幅值| > 2e-4 V（200 µV）的样本占试次 ≥1%（high_amplitude_volts=2e-4, high_amplitude_fraction=0.01）\n  · 工线噪声比参考阈值 0.2（line_noise_ratio=0.2）\n- 试次数：请求/边界检查 3，创建 3，边界剔除 0；质量标记 0，质量可用 3；可用比例 1.0\n- 条件计数：试次前 stimulus=3；质量可用后 stimulus=3\n- 标记情况：flagged_epoch_indices = []（空），quality_flag_reasons = {}（空），即无任何试次被标记为平直或高幅度\n- 试次明细：3 个 stimulus 试次，起点（记录绝对时间）1.0 s、3.0 s、5.0 s；数据形状 [3 试次, 2 通道(SYNTH-C1, SYNTH-C2), 160 采样]，sfreq 128 Hz，参考 \"synthetic native reference\"；拒绝列表为空（rejected_epoch_count=0）\n\n三、原 theta 功率（绝对功率，非基线归一化 ERD/ERS；来源 issue55-session-t3 / a_theta_c2_stim:theta_c2_stim rev1，基于同一 Epoch 工件、同 3 个 stimulus 试次）\n- SYNTH-C2 theta（4–8 Hz）：1.845e-10 V²（约 184.5 µV²），3 个试次的算术平均，1 Hz 频率分辨率\n- 同结果中的其他频段（供参考）：SYNTH-C2 delta 3.63e-26 V²、alpha 9.44e-26 V²、beta 2.65e-25 V²、gamma 6.74e-25 V²；SYNTH-C1 theta 1.87e-25 V²\n\n版本/范围说明：以上全部为第1版已完成交付（a_rms_c1_0_2、a_theta_c2_stim 的 epochs_stim_0_1_25 与 theta_c2_stim、a_epoch_quality_stim 的 quality_stim 与 summary_stim），本次仅新增质量测量与元数据/拒绝汇总，无任何旧结果被重算或替换。未完成事项：无。",
+          "actions": [
+            {
+              "tool": "read_result",
+              "success": false,
+              "status": "rejected",
+              "code": "FIELD_COUNT_INVALID",
+              "message": "Read one to four scalar fields",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "read_result",
+              "success": true,
+              "status": "read",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "read_result",
+              "success": false,
+              "status": "rejected",
+              "code": "FIELD_NOT_FOUND",
+              "message": "Use a canonical path from this task result",
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "plan_tasks",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_SOURCE",
+              "message": "Measurement dimensions need literal names in their explicit intent source",
+              "field_path": [
+                "nodes",
+                0,
+                "required_outputs",
+                0,
+                "interpretation"
+              ],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "read_result",
+              "success": true,
+              "status": "read",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "plan_tasks",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_SOURCE",
+              "message": "Measurement dimensions need literal names in their explicit intent source",
+              "field_path": [
+                "nodes",
+                0,
+                "required_outputs",
+                0,
+                "interpretation"
+              ],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "plan_tasks",
+              "success": false,
+              "status": null,
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "plan_tasks",
+              "success": false,
+              "status": "rejected",
+              "code": "INVALID_PLAN_STRUCTURE",
+              "message": "Unsupported field; allowed: task_id, goal, dependencies, control_dependencies, required_outputs, optional_operations",
+              "field_path": [
+                "nodes",
+                0,
+                "input_refs"
+              ],
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "plan_tasks",
+              "success": true,
+              "status": "planned",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "select_task",
+              "success": true,
+              "status": "selected",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            },
+            {
+              "tool": "epoch_quality",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "epoch_quality",
+                  "arguments": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "expected_artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a4",
+                  "tool_name": "epoch_quality",
+                  "success": true,
+                  "data": {
+                    "evidence_id": "evidence-36422efdfadb97ed",
+                    "evidence_type": "epoch_quality",
+                    "profile_id": "edf_native",
+                    "source_stage": "EpochSet_after_declared_record_processing_and_optional_baseline",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e",
+                    "epoch_counts": {
+                      "requested_or_boundary_checked": 3,
+                      "created": 3,
+                      "boundary_rejected": 0,
+                      "quality_flagged": 0,
+                      "quality_usable": 3
+                    },
+                    "condition_counts_before_quality": {
+                      "stimulus": 3
+                    },
+                    "condition_counts_quality_usable": {
+                      "stimulus": 3
+                    },
+                    "quality_flag_reasons": {},
+                    "flagged_epoch_indices": [],
+                    "usable_fraction_of_created": 1.0,
+                    "thresholds": {
+                      "flatline_delta_volts": 1e-08,
+                      "flatline_fraction": 0.95,
+                      "high_amplitude_volts": 0.0002,
+                      "high_amplitude_fraction": 0.01,
+                      "line_noise_ratio": 0.2
+                    },
+                    "threshold_status": "empirical_not_clinically_calibrated",
+                    "validity": "screening_suggestion_only; no automatic deletion performed"
+                  },
+                  "error": null,
+                  "duration_ms": 2.566
+                },
+                "record": "A",
+                "scope": {
+                  "labels": [
+                    "stimulus"
+                  ],
+                  "tmin": 0.0,
+                  "tmax": 1.25
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "labels": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:13:28",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "沿用同一批事件试次追加质量测量",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmin": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:13:28",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "沿用同一批事件试次追加质量测量",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmax": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:13:28",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "沿用同一批事件试次追加质量测量",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  }
+                },
+                "result_id": "issue55-session-t4"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "epoch_summary",
+              "success": true,
+              "status": "observed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": {
+                "request": {
+                  "name": "epoch_summary",
+                  "arguments": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "expected_artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+                  }
+                },
+                "result": {
+                  "request_id": "issue55-session-a5",
+                  "tool_name": "epoch_summary",
+                  "success": true,
+                  "data": {
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e",
+                    "valid_epoch_count": 3,
+                    "rejected_epoch_count": 0,
+                    "shape": [
+                      3,
+                      2,
+                      160
+                    ],
+                    "channel_names": [
+                      "SYNTH-C1",
+                      "SYNTH-C2"
+                    ],
+                    "sfreq": 128.0,
+                    "tmin": 0.0,
+                    "tmax": 1.25,
+                    "baseline": null,
+                    "reference": "synthetic native reference",
+                    "event_labels": [
+                      "stimulus",
+                      "stimulus",
+                      "stimulus"
+                    ],
+                    "event_onsets_seconds": [
+                      1.0,
+                      3.0,
+                      5.0
+                    ],
+                    "rejected": [],
+                    "source": {
+                      "kind": "synthetic",
+                      "reference_sha256": "d565359744ac36a8988d79a8c8a7762c748a24a209b8cb4f8c3b169e454ea387"
+                    },
+                    "parameters": {
+                      "selected_labels": [
+                        "stimulus"
+                      ],
+                      "window_semantics": "[event_onset+tmin, event_onset+tmax)",
+                      "sampling_alignment": "round(seconds * sfreq)",
+                      "event_source": {
+                        "kind": "synthetic",
+                        "reference_sha256": "c8c7f07d853b9385ecc36b1410c180f2b1910153710d11eeb5d279d6e03908e2"
+                      }
+                    }
+                  },
+                  "error": null,
+                  "duration_ms": 0.665
+                },
+                "record": "A",
+                "scope": {
+                  "labels": [
+                    "stimulus"
+                  ],
+                  "tmin": 0.0,
+                  "tmax": 1.25
+                },
+                "source": "synthetic://task-memory-A",
+                "scientific_sources": {
+                  "labels": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:29:47",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "给出实际采用的标准、试次数和标记情况",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmin": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:29:47",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "给出实际采用的标准、试次数和标记情况",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  },
+                  "tmax": {
+                    "kind": "artifact",
+                    "artifact_id": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                    "record": "A",
+                    "interpretation": {
+                      "source_ref": "u2:4c30f4662ae2f92b:29:47",
+                      "time_reference": "event_relative"
+                    },
+                    "intent_source_turn": 2,
+                    "intent_source_span": "给出实际采用的标准、试次数和标记情况",
+                    "semantic_status": "model_interpretation_not_intent_proof"
+                  }
+                },
+                "result_id": "issue55-session-t5"
+              },
+              "comparison": null
+            },
+            {
+              "tool": "finish_task",
+              "success": true,
+              "status": "completed",
+              "code": null,
+              "message": null,
+              "field_path": null,
+              "actual_observation": null,
+              "comparison": null
+            }
+          ],
+          "plan_state": [
+            {
+              "task_id": "a_rms_c1_0_2",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "rms_c1_0_2": {
+                  "result_id": "issue55-session-t1",
+                  "input_artifact": null,
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "bcf6621d0aacc1f4efdfa3531fe9f29a7fbb57b06a6c25a2a437e4a2e1d4cbba",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            },
+            {
+              "task_id": "a_theta_c2_stim",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "epochs_stim_0_1_25": {
+                  "result_id": "issue55-session-t2",
+                  "input_artifact": null,
+                  "output_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "a635a9443a451dd8daff89fe612e11d656526a75f147175fc5a45b632f61c787",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                },
+                "theta_c2_stim": {
+                  "result_id": "issue55-session-t3",
+                  "input_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "7293e65c2f6b24df99b4e634e6a54cd569d350429d5f7e7756b124514f60bc0a",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            },
+            {
+              "task_id": "a_epoch_quality_stim",
+              "revision": 1,
+              "status": "TASK_COMPLETED",
+              "outputs": {
+                "quality_stim": {
+                  "result_id": "issue55-session-t4",
+                  "input_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "c6375c51353335154971f2c8e548d9c366308e468f5d098930df93b1f82f18fa",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                },
+                "summary_stim": {
+                  "result_id": "issue55-session-t5",
+                  "input_artifact": "epochs-a1571d86-0b19-4d85-aa43-2f8777e1ace3",
+                  "output_artifact": null,
+                  "revision": 1,
+                  "acceptance": {
+                    "owner": "program",
+                    "accepted_revision": 1,
+                    "fingerprint": "71388ea1910dd9a2a4ebf4376ff992713b2a991ab834c5e284df7ab51afa1130",
+                    "scientifically_accepted": true,
+                    "predicates": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "original_artifacts": [
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/followup-1.json",
+          "sha256": "be593448f9c5033c1103795ccf6ecdc03b72d9bd605b8f48f2cdf35d5a689932",
+          "bytes": 58
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/ledger-at-end.jsonl",
+          "sha256": "81c28051f1e2b6e69a749467e116228add953bd817a6a2d0396e943d59c04d33",
+          "bytes": 448970
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/manifest.json",
+          "sha256": "a7328ac3b5767ef6a8b5922775b9e9b2f16ae15a7157853744039cb4b03dfc59",
+          "bytes": 26313
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/requests.jsonl",
+          "sha256": "1926b99dc57ce71812af27aa8a656090727acf263ed3d31248a5076041d20a61",
+          "bytes": 847757
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/responses.jsonl",
+          "sha256": "1743442e3f60a23e50d1ed208917410a08abcebb8baf7e468fe92a46a40a3202",
+          "bytes": 22007
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/session-end.json",
+          "sha256": "ecc15ff6e46226c32717106771cb46c95cc120e050126e01c4c8ce8f80df2a47",
+          "bytes": 307
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/turn-1.json",
+          "sha256": "e60ec91c32e8bc30fa874d4cb81ad103d3d583b7d467a04758454092736ad07c",
+          "bytes": 297530
+        },
+        {
+          "path": "artifacts/point1_task_memory/issue59/live/v1--T07-first/turn-2.json",
+          "sha256": "fa8181d74d8af5cb82352e2f07e7daf6f6b69080a5eb91d72adfc5411130765c",
+          "bytes": 726669
+        }
+      ],
+      "independent_whole_request_review": null
+    }
+  ],
+  "executing_agent_reviews": [
+    {
+      "version": "v1",
+      "candidate": "8045c314344904d1dd7c66dcc720b3e185b71669",
+      "independent_review": null,
+      "T05": {
+        "turn_pass": [
+          true,
+          false
+        ],
+        "whole": false,
+        "cause": [
+          "model chose malformed incremental changes and missing comparison fields",
+          "unchanged actual old delivery revalidated against new current window",
+          "planned nonexistent scalar fields remained accepted; action used actual correct fields and mismatched declaration"
+        ],
+        "calls": 17,
+        "tokens": 243422
+      },
+      "T07": {
+        "turn_pass": [
+          true,
+          false
+        ],
+        "whole": false,
+        "core_numerical_and_same_artifact": true,
+        "cause": [
+          "model reported strict inequalities < and > instead of actual <= and >=",
+          "flatline population not accurately identified as adjacent differences",
+          "tool gives threshold numbers without full operative/aggregation contract"
+        ],
+        "calls": 15,
+        "tokens": 238027
+      },
+      "next_design": "Preserved valid unchanged evidence is historical retention, not reauthorization. Explicit InputRef fields checked against actual result only when available; future results remain pending. Epoch quality tool exposes its existing operative measurement contract; algorithm/scoring unchanged.",
+      "reserve": {
+        "stage_used_calls": 32,
+        "stage_used_tokens": 481449,
+        "stage_used_usd": "0.1530819",
+        "remaining_calls": 112,
+        "remaining_tokens": 2518551,
+        "remaining_usd": "2.0069181",
+        "final_pair_reserved_calls": 48,
+        "final_pair_estimated_tokens": 1100000,
+        "basis": "Actual first pair32/481449 plus previous T07 23/365553; reserve48 calls and1.1M tokens, existing per-wire final leases still mandatory",
+        "conservative_fee_upper_bound_for_estimate": "1.32",
+        "final_coverage_feasible": true
+      }
+    }
+  ],
+  "engineering_followup": {
+    "kind": "actual_v1_failure_driven_shared_repair",
+    "artifacts": [
+      {
+        "path": "artifacts/point1_task_memory/issue59/retained-before.txt",
+        "sha256": "0daaf27e196dfc045855ef416d18d392c05c80924a0d507f6c785b2848fc20c7",
+        "bytes": 2170
+      },
+      {
+        "path": "artifacts/point1_task_memory/issue59/retained-before.json",
+        "sha256": "0692c8739e560d7bf488c3990fc6e65cfa6095964e711c1eaf597eb7dcac3cfc",
+        "bytes": 184599
+      },
+      {
+        "path": "artifacts/point1_task_memory/issue59/retained-after.txt",
+        "sha256": "e1985c8f8fda232ea77a96fbd425b329175779d734d72dc68cc24d0d7524e526",
+        "bytes": 860
+      },
+      {
+        "path": "artifacts/point1_task_memory/issue59/retained-after-fixed.txt",
+        "sha256": "e845005b4e9f6f8f2ec46e733452dcfbab17860e54d3095fe6bf26bbce0645cf",
+        "bytes": 101
+      },
+      {
+        "path": "artifacts/point1_task_memory/issue59/v1-t05-native-after-v2.json",
+        "sha256": "dd0db453ecffea95e287faf7b4e3f52daf1e5ca52fa9c66d136bd9f394629107",
+        "bytes": 2648188
+      }
+    ],
+    "native_t05_replay_limits": "Bad representation/fields remain bad. Original response8 now identifies nonexistent actual scalar field; later proposal changing old interpretation invalidates old output so fields remain unproven pending until actual execution. Fixed proposals never presented as autonomous success."
+  }
 }

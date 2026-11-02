@@ -286,16 +286,40 @@ class TaskPlanController(ScientificMemoryController):
             references=references,previous=previous,execution=executed,artifact_id=artifact_id)
 
     def _effective_scope(self, delivery, *, proposed=False):
+        if delivery.capability not in NUMERIC_TOOLS:return clone(delivery.scope)
         return self._binding(delivery).scope
+
+    def _validate_reference_fields(self, delivery, graph, path):
+        for ri,ref in enumerate(delivery.input_refs):
+            result=graph.resolve_ref(ref)
+            entry=self._entry_for(result['output'])
+            if not entry or result['output_status']=='STALE':continue
+            for fi,field in enumerate(ref.fields):
+                try:
+                    read_scalar(entry.result,field)
+                    meaning=result_field_semantics(entry.capability,field,entry.result,
+                        parameters=entry.parameters,analysis_configuration=entry.evidence['analysis_configuration'])
+                    if delivery.capability=='compare_results' and meaning['value_type']=='string':
+                        raise ValueError('Comparison requires a numeric field')
+                except (ValueError,TypeError,KeyError) as exc:
+                    raise ContractError((*path,'input_refs',ri,'fields',fi),
+                        'Selected scalar field is absent or unsupported in the actual referenced result; use read_dependency on the declared key/version and explicitly repair fields') from exc
 
     def _validate_sources(self, specs, graph, *, previous=None, prefix=('nodes',)):
         for ni,node in enumerate(specs):
             for di,d in enumerate(node.required_outputs):
+                path=(*prefix,*((ni,) if prefix==('nodes',) else ()), 'required_outputs',di)
+                self._validate_reference_fields(d,graph,path)
                 if d.capability not in NUMERIC_TOOLS or d.capability in METADATA:continue
                 old=self._entry_for(previous.outputs.get(d.key)) if previous else None
                 binding=self._binding(d,graph=graph,previous=old)
                 try:
                     if not binding.ok:raise ValueError('; '.join(binding.conflicts))
+                    prior=previous.delivery(d.key) if previous else None
+                    retained=(prior and prior.to_dict()==d.to_dict()
+                        and node.outputs.get(d.key)==previous.outputs.get(d.key)
+                        and self._matches(prior,old,previous.outputs.get(d.key),previous.task_id))
+                    if retained:continue # Immutable retained fact, not a new action authorization.
                     if d.interpretation:
                         validate_scientific_sources(self.store,d.capability,d.record,binding,d.interpretation)
                 except ValueError as exc:
@@ -859,6 +883,12 @@ class TaskPlanController(ScientificMemoryController):
                        (not owner or d.key==owner.get('output_key'))]
             if not outputs and name not in node.optional_operations and name not in METADATA:
                 return self.store._error("ACTION_OUTSIDE_NODE","Use the current node's outputs or declared optional operations; replan for another scientific task")
+            if len(outputs)==1:
+                try:self._validate_reference_fields(outputs[0],self.graph,('required_outputs',outputs[0].key))
+                except ContractError as exc:
+                    return {**self.store._error('INVALID_PLAN_SOURCE',str(exc)),'field_path':exc.path,
+                            'recovery':{'tool':'revise_plan','task_id':node.task_id,'output_key':outputs[0].key,
+                                        'revision':node.revision,'field':'input_refs'}}
             if name in NUMERIC_TOOLS:
                 # Fill only unambiguous planned inputs; execute_action still
                 # grounds them against the complete real request/history.

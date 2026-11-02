@@ -41,6 +41,8 @@ def resolve_scientific_binding(store,name,record,declared,*,references=(),previo
     if record not in store.contexts:
         out.conflicts.append('Unknown record');return out
     spec=store.contexts[record].executor.registry.get(name)
+    if spec is None:
+        out.conflicts.append('No numerical scientific contract for this capability');return out
     candidates=[]
     def add(entry,role,reference=None,planned=None):
         if entry is None:
