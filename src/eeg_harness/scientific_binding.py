@@ -169,8 +169,10 @@ def validate_scientific_sources(store,name,record,binding,interpretation,request
     measured=set(interpretation.get('measurement_channels',[]))
     if not measured.issubset(context.record.channel_names):raise ValueError('Measurement dimensions are absent from target metadata')
     named_channels={c for c in context.record.channel_names if store._contains(frame.text,c)}
-    if measured and not measured.issubset(named_channels):
-        raise ValueError('Measurement dimensions need literal names in their explicit intent source')
+    artifact=context.artifacts[binding.artifact_id]
+    artifact_axes=bool(measured and not named_channels and measured==set(artifact.channel_names))
+    if measured and not measured.issubset(named_channels) and not artifact_axes:
+        raise ValueError('Measurement dimensions need literal intent names or the exact complete axes of the explicitly selected artifact')
     # Field-only channel relations never authorize an event range.
     if interpretation.get('channel_reference'):raise ValueError('Channel field relations cannot replace an event artifact source')
     selected=set(scope[key]);available={e.label for e in context.record.events.events} if key=='labels' else set(context.record.channel_names)
@@ -185,4 +187,5 @@ def validate_scientific_sources(store,name,record,binding,interpretation,request
             raise ValueError('Historical range parent does not identify the selected artifact object')
     return resolution,{k:{'kind':'artifact','artifact_id':binding.artifact_id,'record':record,
         'interpretation':clone(interpretation),'intent_source_turn':turn,'intent_source_span':frame.text,
+        'measurement_channel_basis':'exact_artifact_axes' if artifact_axes else 'literal_intent_or_unspecified',
         'semantic_status':'model_interpretation_not_intent_proof'} for k in scope}

@@ -15,7 +15,7 @@ SCOPE={'labels':['stimulus'],'tmin':0,'tmax':1.25}
 REF={'task_id':'source','key':'epochs'}
 
 
-def chain(arm='C',mode='direct',refs=None,second_text=None):
+def chain(arm='C',mode='direct',refs=None,second_text=None,measurements=None):
     refs=deepcopy(refs if refs is not None else [REF])
     saved={}
     def proposal(messages):
@@ -25,6 +25,7 @@ def chain(arm='C',mode='direct',refs=None,second_text=None):
         d=delivery('quality','epoch_quality',{},refs=refs)
         d['interpretation']={'source_ref':current['source_ref'],'time_reference':'event_relative',
                              'range_ref':old['source_ref']}
+        if measurements is not None:d['interpretation']['measurement_channels']=measurements
         saved['delivery']=d
         if mode=='direct':return 'plan_tasks',{'nodes':[node('target',[d])]}
         empty=delivery('quality','epoch_quality',{})

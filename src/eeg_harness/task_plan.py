@@ -494,7 +494,7 @@ DELIVERY_SCHEMA = {"type": "object", "properties": {
     "scope": {"type": "object", "description": "Scientific computation conditions; missing values remain missing, never inferred from the plan."},
     "interpretation": {"type":"object", "description":"Auditable semantic interpretation, not EEG facts. Use for mixed objects or field references; preserve the complete source clause. Measurement channels do not choose the time base.",
         "properties":{"source_span":_STRING,"time_reference":{"type":"string","enum":["record_absolute","event_relative"]},
-            "measurement_channels":{"type":"array","items":_STRING,"description":"Actual target channels; names must occur in the source clause or be justified by channel_reference."},"range_span":_STRING,
+            "measurement_channels":{"type":"array","items":_STRING,"description":"Target channels: literal source names or verified channel_reference. An explicit actual artifact may supply its exact complete channel axes, never an inferred subset or override of named intent."},"range_span":_STRING,
             "channel_reference":{"type":"object","description":"When channel names come from another clause, express that field relation here, using complete original source and target clauses. Target record/window remain independent.","properties":{"source_span":_STRING,"target_span":_STRING},
                 "required":["source_span","target_span"],"additionalProperties":False}},
         "required":["source_span","time_reference"],"additionalProperties":False},

@@ -9,11 +9,12 @@ from test_task_plan_agent import node,delivery,InspectableScriptedClient
 from test_working_memory import finish
 
 
-def exercise(arm='C'):
+def exercise(arm='C',span_initial=False):
     saved={}
     def initial(messages):
         frames=json.loads(messages[1]['content'])['scientific_source_frames']
         d=delivery('power');d['interpretation']={'source_ref':frames[0]['source_ref'],'time_reference':'record_absolute'}
+        if span_initial:d['interpretation']['range_span']='0到2秒'
         saved['old']=deepcopy(d)
         return 'plan_tasks',{'nodes':[node('a',[d])]}
     def revise(messages):

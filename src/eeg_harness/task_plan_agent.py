@@ -113,7 +113,7 @@ class TaskPlanController(ScientificMemoryController):
             control("plan_tasks", "Propose scientific subtask DAG from the user request. No runtime facts or result IDs may be invented.", {
                 "nodes": {"type": "array", "minItems": 1, "maxItems": 12,
                           "items": schema}}, ["nodes"]),
-            control("revise_plan", "Modify one existing delivery using output_key, expected revision and changes; scope/interpretation merge explicit fields, lists replace. Unchanged objects/sources/other deliveries are preserved. Or use legacy updates for a whole-task transaction, never both. All paths validate sources/obligations before commit.", {
+            control("revise_plan", "Modify one existing delivery using output_key, expected revision and changes; scope/interpretation merge explicit fields, lists replace. Choosing source_ref/source_span or range_ref/range_span replaces its old alternative; supplying both is invalid. Unchanged objects/sources/other deliveries are preserved. Or use legacy updates for a whole-task transaction, never both. All paths validate sources/obligations before commit.", {
                 "task_id": STRING, "updates": {"type": "object", "properties": {
                     k:clone(v) for k,v in schema['properties'].items() if k!='task_id'},
                     "additionalProperties":False}, "output_key":STRING,
@@ -715,6 +715,14 @@ class TaskPlanController(ScientificMemoryController):
         rows=[item.to_dict() for item in old.required_outputs]
         row=next(r for r in rows if r['key']==d.key)
         for key,value in changes.items():
+            if key=='interpretation':
+                # Each pair expresses one locator in two representations.
+                # An explicit replacement chooses the supplied representation;
+                # it must not retain an incompatible old alternative.
+                for pair in (('source_ref','source_span'),('range_ref','range_span')):
+                    supplied=set(pair)&set(value)
+                    if len(supplied)==1:
+                        for other in set(pair)-supplied:row.get(key,{}).pop(other,None)
             row[key]={**row.get(key,{}),**clone(value)} if key in {'scope','interpretation'} else clone(value)
         return {'required_outputs':rows}
 
