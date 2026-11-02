@@ -7,6 +7,7 @@ Only acceptance automation and dependency evidence presentation are varied.
 import hashlib
 import json
 import re
+from copy import deepcopy
 
 from .agent import EEGAgent
 from .executor import _validate_schema
@@ -20,6 +21,7 @@ from .working_memory_lifecycle import METADATA
 from .result_semantics import read_scalar, result_field_semantics
 from .task_plan import PlanGraph, TaskSpec, DeliveryItem
 from .scientific_contracts import ContractError, validate_contract, computation_scope
+from .scientific_binding import resolve_scientific_binding, validate_scientific_sources
 
 
 ARMS = ("A", "B", "C", "C-no-delivery", "C-no-selection", "A-equivalent")
@@ -272,18 +274,33 @@ class TaskPlanController(ScientificMemoryController):
                     node.status = "STALE"
                     node.unresolved = ["An actual evidence binding is no longer applicable"]
 
-    def _effective_scope(self, delivery, *, proposed=False):
-        sources=[]
+    def _binding(self, delivery, *, graph=None, previous=None, output=None, task_id=None, artifact_id=None):
+        graph=graph or self.graph
+        references=[]
         for ref in delivery.input_refs:
-            try:sources.append(self._entry_for(self._ref_output(ref)))
-            except ValueError:
-                if not proposed:raise
-                # New keys in a proposed revision have no runtime output yet.
-                # PlanGraph validates their existence/cycles transactionally.
-        same = [e for e in sources if e and e.record == delivery.record and self.store._binding_valid(e)
-                and self.store._family(e.capability) == self.store._family(delivery.capability)]
-        inherited = same[0].parameters if len(same) == 1 else {}
-        return {**clone(inherited),**clone(delivery.scope)}
+            resolved=graph.resolve_ref(ref)
+            references.append({'reference':ref.to_dict(),'delivery':resolved['delivery'],
+                'entry':self._entry_for(resolved['output']) if resolved['output_status']!='STALE' else None})
+        executed=self._entry_for(output) if self._execution_scope(delivery,output,task_id) else None
+        return resolve_scientific_binding(self.store,delivery.capability,delivery.record,delivery.scope,
+            references=references,previous=previous,execution=executed,artifact_id=artifact_id)
+
+    def _effective_scope(self, delivery, *, proposed=False):
+        return self._binding(delivery).scope
+
+    def _validate_sources(self, specs, graph, *, previous=None, prefix=('nodes',)):
+        for ni,node in enumerate(specs):
+            for di,d in enumerate(node.required_outputs):
+                if d.capability not in NUMERIC_TOOLS or d.capability in METADATA:continue
+                old=self._entry_for(previous.outputs.get(d.key)) if previous else None
+                binding=self._binding(d,graph=graph,previous=old)
+                try:
+                    if not binding.ok:raise ValueError('; '.join(binding.conflicts))
+                    if d.interpretation:
+                        validate_scientific_sources(self.store,d.capability,d.record,binding,d.interpretation)
+                except ValueError as exc:
+                    raise ContractError((*prefix,*((ni,) if prefix==('nodes',) else ()),
+                        'required_outputs',di,'interpretation'),str(exc)) from exc
 
     def _execution_scope(self, d, output, task_id):
         """A scoped receipt for one selected, validated artifact action.
@@ -314,7 +331,9 @@ class TaskPlanController(ScientificMemoryController):
             return False
         # Declared fields always win; only the exact action's valid receipt can
         # complete omitted artifact-derived fields. Required checks stay intact.
-        scope = {**self._execution_scope(d,output,task_id),**self._effective_scope(d)}
+        resolved=self._binding(d,output=output,task_id=task_id)
+        if not resolved.ok or resolved.pending:return False
+        scope = resolved.scope
         if any(canonical_scope(entry.parameters).get(k) != v for k,v in canonical_scope(scope).items()):
             return False
         required = self.store._required_fields(d.capability)
@@ -634,22 +653,9 @@ class TaskPlanController(ScientificMemoryController):
         from .scientific_request_binding import window_availability
         return window_availability(self.store,delivery.capability,self._effective_scope(delivery),delivery.record,fields)['status']
 
-    def _validate_revision_sources(self,old,spec):
+    def _validate_revision_sources(self,old,spec,graph=None):
         """Read-only source preflight before graph/version/active-state mutation."""
-        from .scientific_request_binding import resolve_action_source, interpreted_sources
-        for i,d in enumerate(spec.required_outputs):
-            if not d.interpretation or d.capability not in NUMERIC_TOOLS:continue
-            previous=self._entry_for(old.outputs.get(d.key))
-            scope=self._effective_scope(d,proposed=True)
-            pair=('tmin','tmax') if self.store._family(d.capability)=='event' else ('start','end')
-            object_key='labels' if pair[0]=='tmin' else 'channels'
-            if not scope.get(object_key) or not all(k in scope for k in pair):continue # missing conditions remain registerable
-            try:
-                resolution=resolve_action_source(self.store,d.capability,scope,d.record,inherited=previous)
-                if not resolution.ok:raise ValueError(resolution.message)
-                interpreted_sources(self.store,d.capability,scope,d.record,resolution,d.interpretation,previous)
-            except ValueError as exc:
-                raise ContractError(('updates','required_outputs',i,'interpretation'),str(exc)) from exc
+        self._validate_sources([spec],graph or self.graph,previous=old,prefix=('updates',))
 
     def _revision_updates(self, old, args):
         """Normalize a single explicit patch into the original atomic contract."""
@@ -696,7 +702,16 @@ class TaskPlanController(ScientificMemoryController):
                 # Only pure proposal parsing errors are exposed, never arbitrary
                 # execution exceptions, file paths or service response bodies.
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
-            try:self._validate_nodes(specs)
+            try:
+                prospective=deepcopy(self.graph)
+                prospective.submit(specs)
+            except ValueError as exc:
+                return {**self.store._error('INVALID_PLAN_GRAPH',str(exc)),'field_path':['nodes'],
+                        'recovery':{'tool':'revise_plan' if any(n.task_id in self.graph.nodes for n in specs) else 'plan_tasks',
+                                    'instruction':'Existing identities require explicit revision; new identities must form a valid graph'}}
+            try:
+                self._validate_nodes(specs)
+                self._validate_sources(specs,prospective)
             except ContractError as exc:
                 return {**self.store._error('INVALID_PLAN_STRUCTURE' if exc.path[-1]=='input_refs' else 'INVALID_PLAN_SOURCE',str(exc)),
                         'field_path':exc.path,'recovery':{'tool':'plan_tasks'}}
@@ -722,8 +737,13 @@ class TaskPlanController(ScientificMemoryController):
             except (ValueError, TypeError, KeyError) as exc:
                 return self.store._error("INVALID_PLAN_STRUCTURE", str(exc)[:600])
             try:
+                prospective=deepcopy(self.graph)
+                prospective.revise(args['task_id'],updates,args['reason'])
+            except (ValueError,TypeError) as exc:
+                return self.store._error('INVALID_PLAN_REVISION',str(exc))
+            try:
                 self._validate_nodes([revised_spec],prefix=('updates',))
-                self._validate_revision_sources(old,revised_spec)
+                self._validate_revision_sources(old,prospective.nodes[old.task_id],prospective)
             except ContractError as exc:
                 return {**self.store._error('INVALID_PLAN_STRUCTURE' if exc.path[-1]=='input_refs' else 'INVALID_PLAN_SOURCE',str(exc)),
                         'field_path':exc.path,'recovery':{'tool':'revise_plan'}}
@@ -871,20 +891,17 @@ class TaskPlanController(ScientificMemoryController):
                     spec = self.store.contexts[selected.record].executor.registry.get(name)
                     if not spec.consumes_artifact:
                         for k,v in self._effective_scope(selected).items():args.setdefault(k,clone(v))
-                    entries = [self._entry_for(self._ref_output(r)) for r in selected.input_refs]
-                    entries = [e for e in entries if e]
-                    if spec.consumes_artifact and len({e.evidence["binding"]["artifact_id"] for e in entries})==1:
-                        artifact=entries[0].evidence['binding']['artifact_id']
-                        if args.get('artifact_id',artifact)!=artifact:
-                            return self.store._error('ARTIFACT_DEPENDENCY_MISMATCH','Use the actual artifact of the declared producer output')
-                        args.setdefault("artifact_id",artifact)
-                    same = [e for e in entries if e.record==selected.record and self.store._family(e.capability)==self.store._family(name)]
-                    if len(same)==1:args.setdefault("inherit_result",same[0].task_id)
-                    elif node.revision_history and not args.get("inherit_result"):
-                        previous = node.revision_history[-1]["snapshot"]["outputs"].get(selected.key)
-                        old_entry = self._entry_for(previous)
-                        if old_entry and old_entry.record==selected.record and old_entry.capability==name:
-                            args["inherit_result"] = old_entry.task_id
+                    previous = (node.revision_history[-1]['snapshot']['outputs'].get(selected.key)
+                                if node.revision_history else None)
+                    binding=self._binding(selected,previous=self._entry_for(previous),
+                        output=node.outputs.get(selected.key),task_id=node.task_id,artifact_id=args.get('artifact_id'))
+                    if not binding.ok:
+                        return self.store._error('ARTIFACT_DEPENDENCY_MISMATCH','; '.join(binding.conflicts))
+                    if binding.artifact_id:args.setdefault('artifact_id',binding.artifact_id)
+                    if binding.entry:
+                        if args.get('inherit_result',binding.entry.task_id)!=binding.entry.task_id:
+                            return self.store._error('SOURCE_DEPENDENCY_MISMATCH','Use the explicitly resolved scientific source')
+                        args.setdefault('inherit_result',binding.entry.task_id)
             elif len(outputs)==1:
                 refs = outputs[0].input_refs
                 if any(not self._input_ready(r) for r in refs):

@@ -374,8 +374,15 @@ class ScientificTaskStore(ActionWorkingMemoryStore):
                 return self._pending(name,args,"ARTIFACT_NOT_FOUND","Use an actual valid artifact in this record")
             if inherited and inherited.evidence["binding"]["artifact_id"] != args.get("artifact_id"):
                 return self._pending(name,args,"ARTIFACT_IDENTITY_MISMATCH","Use the exact inherited artifact")
+            from .scientific_binding import resolve_scientific_binding, validate_scientific_sources
             scope = self._scientific_scope(name,args,context)
-            sources = {k:{"kind":"artifact","artifact_id":artifact.artifact_id,"record":record} for k in scope}
+            binding = resolve_scientific_binding(self,name,record,scope,previous=inherited,artifact_id=artifact.artifact_id)
+            try:
+                _,sources = validate_scientific_sources(self,name,record,binding,interpretation,request_span)
+            except ValueError as exc:
+                return self._pending(name,args,'INVALID_SCIENTIFIC_INTERPRETATION',str(exc),confirmed_arguments={})
+            if not sources:
+                sources = {k:{"kind":"artifact","artifact_id":artifact.artifact_id,"record":record} for k in scope}
         else:
             scope = clone(args)
             invalid = ReliableWorkingMemoryStore._scientific_contract_check(self,name,scope,record)

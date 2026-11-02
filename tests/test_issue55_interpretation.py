@@ -47,24 +47,28 @@ class InterpretationTest(unittest.TestCase):
             a,_=run_interpreted(source+'；'+target+'。','amplitude',scope,bad,arm,record='B')
             self.assertFalse(a.working_memory.store.entries);self.assertFalse(a.working_memory.store.admitted_scopes)
 
-    def test_interpretation_error_recovers_by_plan_revision_not_action_override(self):
+    def test_interpretation_error_recovers_by_explicit_plan_not_action_override(self):
         source='记录A SYNTH-C1在0到2秒RMS';target='记录B沿用前述通道在2到4秒RMS'
         output=delivery('out','amplitude',{'channels':['SYNTH-C1'],'start':2,'end':4},record='B')
         output['interpretation']={'source_span':target,'time_reference':'record_absolute','measurement_channels':['SYNTH-C1']}
         fixed=deepcopy(output);ref={'source_span':source,'target_span':target}
         fixed['interpretation']['channel_reference']=ref
         for arm in ARMS:
-            actions=[('plan_tasks',{'nodes':[node('x',[output])]}),('amplitude',{}),
+            # Issue59 checks explicit source facts at registration as well as
+            # execution. The original bad proposal is retained, then corrected
+            # explicitly; no rejected identity is silently created.
+            actions=[('plan_tasks',{'nodes':[node('x',[output])]}),
+                ('plan_tasks',{'nodes':[node('x',[fixed])]}),
                 ('amplitude',{'channel_reference':ref}),
-                ('revise_plan',{'task_id':'x','updates':{'required_outputs':[fixed]},'reason':'repair field relation'}),
                 ('amplitude',{}),finish()]
             a=TaskPlanEEGAgent(InspectableScriptedClient(actions),synthetic_records(),arm=arm)
             r=a.run(source+'；'+target+'。')
             self.assertEqual(r.stop_reason,'completed');self.assertEqual(len(a.working_memory.store.entries),1)
             results=[x['data'] for x in r.tool_results]
-            self.assertTrue(any(x.get('recovery',{}).get('tool')=='revise_plan' for x in results))
+            self.assertEqual(results[0]['code'],'INVALID_PLAN_SOURCE')
+            self.assertEqual(results[0]['recovery']['tool'],'plan_tasks')
             self.assertTrue(any(x.get('code')=='INTERPRETATION_CONFLICT' for x in results))
-            self.assertEqual(a.working_memory.graph.nodes['x'].revision,2)
+            self.assertEqual(a.working_memory.graph.nodes['x'].revision,1)
             numeric=[t for t in a.working_memory.tool_definitions() if t['function']['name']=='amplitude'][0]
             self.assertNotIn('channel_reference',numeric['function']['parameters']['properties'])
 

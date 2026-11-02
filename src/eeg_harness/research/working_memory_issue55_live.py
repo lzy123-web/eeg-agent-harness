@@ -36,12 +36,20 @@ LIVE_REVISION='issue58-live-20261102-72c-1mt-1p20'
 LIVE_PREFIX='6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1'
 LIVE_CAPS={**REVISED_CAPS,'calls':293,'tokens':6234297,'development':[197,2234297],
            'stage_usd':'1.20','cumulative_usd':'1.6054206'}
+SOURCE_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6573259620'
+SOURCE_REVISION='issue59-live-20261102-144c-3mt-2p16'
+SOURCE_PREFIX='0553c0359c68a8bcc603fcc392ddd9f8791cc0658efc243e15b1fc14af450c07'
+SOURCE_CAPS={**LIVE_CAPS,'calls':407,'tokens':8877118,'development':[311,4877118],
+             'stage_usd':'2.16','cumulative_usd':'2.7688482'}
+REVIEWED_PREFIXES={LIVE_REVISION:(LIVE_PREFIX,[125,1234297],'0.4054206'),
+                   SOURCE_REVISION:(SOURCE_PREFIX,[167,1877118],'0.6088482')}
 AUTHORIZATION_CHAIN=((REVISION_ID,ADDITIONAL_GRANT,ORIGINAL_CAPS,REVISED_CAPS,48),
-                     (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125))
+                     (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125),
+                     (SOURCE_REVISION,SOURCE_GRANT,LIVE_CAPS,SOURCE_CAPS,167))
 
 
 def authorization_limits(ledger,rows):
-    """Only the two explicit reviewed grants, in order, over immutable prefixes."""
+    """Only explicit reviewed grants, in order, over immutable prefixes."""
     revisions=[r for r in rows if r.get('event')=='authorization_revised']
     if not revisions:return deepcopy(ORIGINAL_CAPS)
     if len(revisions)>len(AUTHORIZATION_CHAIN):raise StageBudgetExhausted('Conflicting/repeated authorization records')
@@ -58,9 +66,10 @@ def authorization_limits(ledger,rows):
             raise StageBudgetExhausted('Authorization prefix, snapshot or absolute limits changed')
         if _usage(prefix)[0]!=count or _usage(prefix,lambda c:c.get('phase')=='development')[0]!=count:
             raise StageBudgetExhausted('Authorization history count/phase changed')
-        if ident==LIVE_REVISION and not r['test_only'] and (r['prefix_sha256']!=LIVE_PREFIX
-                or r['prior_usage']!=[125,1234297] or Decimal(r['prior_usd'])!=Decimal('0.4054206')):
-            raise StageBudgetExhausted('Issue58 reviewed original snapshot changed')
+        anchor=REVIEWED_PREFIXES.get(ident)
+        if anchor and not r['test_only'] and (r['prefix_sha256']!=anchor[0]
+                or r['prior_usage']!=anchor[1] or Decimal(r['prior_usd'])!=Decimal(anchor[2])):
+            raise StageBudgetExhausted('Reviewed original authorization snapshot changed')
     return deepcopy(revisions[-1]['new_limits'])
 
 
@@ -95,8 +104,9 @@ def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_onl
                 raise StageBudgetExhausted('Ledger changed since authorization snapshot')
             if authorization_limits(ledger,rows)!=old:
                 raise StageBudgetExhausted('Prior approved amendment must precede this grant')
-            if ident==LIVE_REVISION and not test_only and digest!=LIVE_PREFIX:
-                raise StageBudgetExhausted('Require the reviewed 125-call Issue58 prefix')
+            anchor=REVIEWED_PREFIXES.get(ident)
+            if anchor and not test_only and digest!=anchor[0]:
+                raise StageBudgetExhausted('Require the reviewed original grant prefix')
             starts=[r for r in rows if r.get('event')=='reserved']
             if (_usage(rows)[0]!=count or _usage(rows,lambda c:c.get('phase')=='development')[0]!=count
                     or starts[-1].get('runtime')!=client.runtime or starts[-1].get('pricing')!=client.pricing):

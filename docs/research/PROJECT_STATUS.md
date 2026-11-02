@@ -1,3 +1,11 @@
+## Issue59 当前：工程整改通过，进入已授权真实开发（2026-11-02）
+
+承接cf76cfa和原分支/Draft PR37。来源/工件只读解析、候选事务图预检及生命周期分离已实现；原生响应12误拒消除，错误提案仍拒。原24链111/111、12增量链、760项全量（745通过/15跳过）、compileall/pip check/diff check通过。详见[集中报告](EEG_WORKING_MEMORY_ISSUE59.md)和[证据索引](evidence/issue59_scientific_binding.json)。旧Issue58限一次复查属于历史，本阶段以Issue59与真实用户授权为准。
+
+授权回执6573259620：固定起点167次/1,877,118tokens/US$0.6088482；阶段144次/3M/US$2.16，开发累计311次/4,877,118tokens，原总US$3不提高，确认禁用。TEST追加链/费用异常/final lease通过，尚未发生本阶段真实调用；将沿唯一账本追加并冻结T05→T07。工程提交为本条所在提交，真实结果/最终提交及CI随后补记。完整自主目标、泛化与相对强基线收益尚未证明，Issue55/59保持open、PR37 Draft。
+
+---
+
 ## Issue58 当前：真实开发有界阶段交付，完整会话未通过（2026-11-02）
 
 已依正式72次/1M tokens/US$1.20授权完成原T05、T07各完整两轮，一批真实归因修正及T07唯一完整复查。实现与证据统一见[Issue58集中报告](EEG_WORKING_MEMORY_ISSUE58.md)及[同一公开索引live_continuation](evidence/issue58_incremental_contract.json)。原始失败、逐轮截止及最终送达回答保留，未改原题/评分，未同版本重抽或拼接版本。
