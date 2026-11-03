@@ -842,7 +842,9 @@ class TaskPlanController(ScientificMemoryController):
         name,args=request.name,clone(dict(request.arguments))
         compact=(name=='plan_tasks' and 'deliveries' in args or
                  name=='revise_plan' and not ({'updates','changes'} & set(args)))
-        if not compact:return self._dispatch_canonical(request)
+        if not compact:
+            result=self._dispatch_canonical(request)
+            return self._planning_feedback(name,args,result) if name in {'plan_tasks','revise_plan'} else result
         spec=next(c['function'] for c in self.control_definitions() if c['function']['name']==name)
         try:
             validate_contract(args,spec['parameters'])

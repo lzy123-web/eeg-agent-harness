@@ -1,7 +1,8 @@
 """Real failed prefix + explicitly controlled recovery; never autonomous claims."""
 from copy import deepcopy
-from dataclasses import asdict
+from dataclasses import asdict,replace
 import json
+from itertools import product
 import unittest
 from eeg_harness.research.working_memory_issue61 import (PREFIXES,PrefixRepairClient,run_repair,repair_actions)
 from eeg_harness.research.working_memory_issue52 import records_for
@@ -11,10 +12,10 @@ from eeg_harness.scientific_contracts import validate_contract,ContractError
 from eeg_harness.working_memory import encoded
 
 
-def checkpoint(case='T07'):
+def checkpoint(case='T07',first_turn_only=False):
     source=json.loads(PREFIXES.read_text(encoding='utf8'))[case]
     c=PrefixRepairClient([],[]);a=TaskPlanEEGAgent(c,records_for(),session_id='issue55-session');c.agent=a;offset=0
-    for turn,count in enumerate(source['prefix_turn_counts']):
+    for turn,count in enumerate(source['prefix_turn_counts'][:1] if first_turn_only else source['prefix_turn_counts']):
         c.responses=deepcopy(source['responses'][offset:offset+count]);offset+=count
         (a.run if turn==0 else a.continue_run)(source['requests'][turn])
     return a
@@ -107,5 +108,88 @@ class RepairTest(unittest.TestCase):
         r=w._dispatch(ToolRequest('plan_tasks',{'deliveries':[new]}))
         self.assertEqual(r['recovery']['tool'],'finish_task')
         self.assertNotIn('operation_contract',r['recovery'])
+        malformed=w._dispatch(ToolRequest('plan_tasks',{'tasks':[]}))
+        self.assertEqual(malformed['recovery']['tool'],'finish_task')
+        self.assertNotIn('operation_contract',malformed['recovery'])
+
+    def test_actual_v2_selected_patch_reuses_only_unchanged_result_window(self):
+        w=checkpoint('M01-v2').working_memory
+        self.assertFalse(w.action_transitions[-2]['success']) # explicit wrong range locator remains rejected
+        self.assertTrue(w.action_transitions[-1]['success']) # unaltered real call16
+        n=next(iter(w.graph.nodes.values()));self.assertEqual(n.revision,2)
+        old=deepcopy(asdict(w.store.entries[0]))
+        result=w.execute(ToolRequest('amplitude',{'task_id':n.task_id,'output_key':n.required_outputs[0].key,
+            'record':'A','channels':['SYNTH-C2'],'start':0,'end':2}))
+        self.assertTrue(result.success,result.error_message)
+        self.assertEqual(asdict(w.store.entries[0]),old)
+        new=w.store.entries[-1];self.assertEqual(new.revision_of,old['task_id'])
+        for k in ('start','end'):
+            source=new.tool_trace[-1]['scientific_sources'][k]
+            self.assertEqual(source['kind'],'result');self.assertEqual(source['result_id'],old['task_id'])
+        # A later explicit original locator must remain composable through the
+        # actual result->result->user field provenance chain.
+        from eeg_harness.scientific_request_binding import source_catalog
+        w.begin_turn('记录A的SYNTH-C1，窗口保持原样。');frames=source_catalog(w.store)
+        proposal={'task_id':n.task_id,'output_key':n.required_outputs[0].key,'revision':2,'reason':'TEST third turn',
+            'scope':{'channels':['SYNTH-C1']},'interpretation':{'measurement_channels':['SYNTH-C1'],
+                'source_ref':next(f['source_ref'] for f in frames if f['turn']==w.store.turn and 'SYNTH-C1' in f['span']),
+                'range_ref':frames[0]['source_ref']}}
+        bad=deepcopy(proposal);bad['interpretation']['range_ref']=next(f['source_ref'] for f in frames if f['turn']==2 and '时间范围' in f['span'])
+        before=deepcopy(w.graph.to_dict());r=w._dispatch(ToolRequest('revise_plan',bad))
+        self.assertEqual(r['status'],'rejected');self.assertEqual(w.graph.to_dict(),before)
+        r=w._dispatch(ToolRequest('revise_plan',proposal));self.assertEqual(r['status'],'revised',r)
+        self.assertEqual(asdict(w.store.entries[0]),old)
+
+    def test_retained_window_conflicts_stale_missing_and_wrong_explicit_locators(self):
+        from eeg_harness.scientific_request_binding import source_catalog
+        # Independent constructions after the real first-turn result. No
+        # phrase/name rules in production; all conflicts use actual frames.
+        scenarios=[
+            ('记录A的SYNTH-C2改用2到4秒。','window'),
+            ('记录A的SYNTH-C2；窗口2到4秒。','adjacent'),
+            ('记录A的SYNTH-C2；结束改为4秒。','endpoint'),
+            ('记录B的SYNTH-C2。','record'),
+            ('记录A的SYNTH-C2。','stale'),
+            ('记录A的SYNTH-C2。','changed_pair'),
+            ('记录A的SYNTH-C2。','new_key_no_witness'),
+            ('记录A的SYNTH-C2。','wrong_locator')]
+        for origin,(request,defect) in product(('M01','M01-v2'),scenarios):
+            with self.subTest(origin=origin,defect=defect):
+                a=checkpoint(origin,first_turn_only=True);w=a.working_memory;w.begin_turn(request)
+                n=next(iter(w.graph.nodes.values()));key=n.required_outputs[0].key
+                locator=source_catalog(w.store)[-1]['source_ref']
+                # Select the current object-bearing complete parent, not its
+                # adjacent range. The verifier must still see that range.
+                locator=next(f['source_ref'] for f in source_catalog(w.store) if f['turn']==w.store.turn and 'SYNTH-C2' in f['span'])
+                interp={'source_ref':locator,'measurement_channels':['SYNTH-C2']}
+                args={'task_id':n.task_id,'output_key':key,'revision':1,'reason':'TEST',
+                    'scope':{'channels':['SYNTH-C2']},'interpretation':interp}
+                if defect=='changed_pair':args['scope']['end']=4
+                if defect=='wrong_locator':interp['range_ref']='missing'
+                if defect=='stale':
+                    ctx=w.store.contexts['A'];ctx.record=replace(ctx.record,source='synthetic://stale-binding')
+                if defect=='new_key_no_witness':
+                    args={'task_id':n.task_id,'revision':1,'reason':'TEST','add_deliveries':[{
+                        'key':'new','capability':'amplitude','record':'A','scope':{'channels':['SYNTH-C2'],'start':0,'end':2},
+                        'interpretation':{**interp,'time_reference':'record_absolute'}}]}
+                before=deepcopy(w.graph.to_dict());result=w._dispatch(ToolRequest('revise_plan',args))
+                self.assertEqual(result['status'],'rejected',result);self.assertEqual(w.graph.to_dict(),before)
+
+    def test_explicit_cross_task_result_reference_retains_window_without_identity_rewrite(self):
+        from eeg_harness.scientific_request_binding import source_catalog
+        w=checkpoint('M01',first_turn_only=True).working_memory
+        old=next(iter(w.graph.nodes.values()));old_result=deepcopy(asdict(w.store.entries[0]))
+        w.begin_turn('记录A的SYNTH-C1追加频带功率，沿用已有测量时间范围。')
+        loc=next(f['source_ref'] for f in source_catalog(w.store) if f['turn']==w.store.turn and 'SYNTH-C1' in f['span'])
+        row={'task_id':'independent_spectrum','key':'power','capability':'psd','record':'A',
+            'scope':{'channels':['SYNTH-C1'],'start':0,'end':2},
+            'interpretation':{'source_ref':loc,'time_reference':'record_absolute','measurement_channels':['SYNTH-C1']}}
+        missing=w._dispatch(ToolRequest('plan_tasks',{'deliveries':[row]}))
+        self.assertEqual(missing['status'],'rejected')
+        row['input_refs']=[{'task_id':old.task_id,'key':old.required_outputs[0].key,'level':'result','fields':[]}]
+        r=w._dispatch(ToolRequest('plan_tasks',{'deliveries':[row]}));self.assertEqual(r['status'],'planned',r)
+        r=w.execute(ToolRequest('psd',{'task_id':'independent_spectrum','output_key':'power','record':'A','channels':['SYNTH-C1'],'start':0,'end':2}))
+        self.assertTrue(r.success,r.error_message);self.assertEqual(w.graph.nodes[old.task_id].revision,1)
+        self.assertEqual(asdict(w.store.entries[0]),old_result)
 
 if __name__=='__main__':unittest.main()

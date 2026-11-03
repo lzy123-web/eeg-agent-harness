@@ -1,3 +1,9 @@
+## Issue61第二批字段来源收敛（已实现，2026-11-04）
+
+interpreted_sources仅在显式绑定有效实际结果且时间两字段不变、没有显式范围locator时，以kind=result记录继承时间；_check_retained_window复用现有完整科学对象/相邻来源关系拒绝当前冲突和数值归属不明；_window_origin_matches沿真实result_id/field/binding边核验显式历史窗口，检测环/错绑定/字段，不扫相似结果。TaskPlanController统一所有规划拒绝路径的实际操作效果与final-only可执行建议。未改Executor科学计算、原题或评分。只读门与首次反例见[报告](EEG_WORKING_MEMORY_ISSUE61.md)。
+
+---
+
 ## Issue61源码增量（2026-11-04，已实现）
 
 公开add_deliveries→TaskPlanController._normalize_write→原_revision_updates/PlanGraph.revise；完整候选图和来源核验在live graph提交前完成。输入新key/消费者引用均由模型给定；不变结果、旧版本、独立控制前提沿原机制保存。scientific_contracts按显式enum诊断oneOf，不放宽条件。ToolRegistry工件类型提供发现事实，未引入科学依赖推导器。来源错误不再建议规划不可写的inherit_result。

@@ -220,5 +220,258 @@
       3
     ],
     "kind": "unaltered original model prefix; controlled continuation is separate"
+  },
+  "M01-v2": {
+    "kind": "unaltered original v2 model prefix through actual selected-key patch rejection",
+    "requests": [
+      "计算记录A的SYNTH-C1在0到2秒的RMS，保留结果。",
+      "把同一个RMS测量的通道改为SYNTH-C2，时间范围保持原样；保留旧通道结果，用新通道结果减去旧通道结果并计算新旧比值。"
+    ],
+    "responses": [
+      {
+        "role": "assistant",
+        "content": "我将规划该任务并执行。",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_jOhE50xsXVN3hheCxsNw2691",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"capability\": \"amplitude\", \"record\": \"A\", \"goal\": \"Compute RMS amplitude (plus mean absolute, max, min) for record A channel SYNTH-C1 in the 0–2 s window; retain the result.\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"channel_reference\": {\"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"target_ref\": \"u1:4c731a1f9c420842:0:23\"}}, \"required\": true}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_904VsuQtbmi7r3yD4QKE9907",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS amplitude (plus mean absolute, max, min) for record A channel SYNTH-C1 in the 0–2 s window; retain the result.\", \"interpretation\": {\"channel_reference\": {\"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"target_ref\": \"u1:4c731a1f9c420842:0:23\"}, \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_0_2s\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_A_C1_0_2\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_eBxzdKXplmfSAa0dES6B7380",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS amplitude (with mean absolute, max, min) for record A channel SYNTH-C1 in the 0–2 s window; retain the result.\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_0_2s\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_A_C1_0_2\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_b44ku6vCBDbwd3XSvt722397",
+            "type": "function",
+            "function": {
+              "name": "select_task",
+              "arguments": "{\"task_id\": \"rms_A_C1_0_2\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_y4F55HVjJG9QvbKe4vLt4772",
+            "type": "function",
+            "function": {
+              "name": "amplitude",
+              "arguments": "{\"task_id\": \"rms_A_C1_0_2\", \"output_key\": \"rms_0_2s\", \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_KxWUpxlGaUiVzs0YZ0831334",
+            "type": "function",
+            "function": {
+              "name": "finish_task",
+              "arguments": "{\"status\": \"completed\", \"answer\": \"记录A的 SYNTH-C1 通道，在 0–2 秒（记录绝对时间，0 ≤ t < 2 s）窗口的信号：\\n\\n- RMS = 1.41e-05 V（约 14.1 µV）\\n- 平均绝对幅值 = 1.27e-05 V（约 12.7 µV）\\n- 最大值 = 2.00e-05 V；最小值 = −2.00e-05 V\\n\\n来源：synthetic://task-memory-A，采样率 128 Hz，原参考。结果已保留（task rms_A_C1_0_2 / output rms_0_2s，revision 1，result_id issue55-session-t1）。\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "我先为这个请求制定计划，然后再执行。",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_SGOWjircx8y9CVlS4STk1302",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_A_C2_0_2\", \"key\": \"rms_0_2s\", \"capability\": \"amplitude\", \"record\": \"A\", \"goal\": \"Compute RMS amplitude (with mean absolute, max, min) for record A channel SYNTH-C2 in the 0–2 s window; retain alongside the existing SYNTH-C1 result.\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true}, {\"task_id\": \"diff_C2_minus_C1_rms_0_2s\", \"key\": \"rms_diff_and_ratio\", \"capability\": \"compare_results\", \"record\": \"A\", \"goal\": \"New-channel-minus-old-channel difference and new/old ratio of RMS in record A, 0–2 s (right = SYNTH-C2, left = SYNTH-C1).\", \"scope\": {}, \"input_refs\": [{\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"fields\": [[\"rms\"]], \"level\": \"result\", \"revision\": 1}, {\"task_id\": \"rms_A_C2_0_2\", \"key\": \"rms_0_2s\", \"fields\": [[\"rms\"]], \"level\": \"result\"}], \"left\": {\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"revision\": 1, \"field\": [\"rms\"]}, \"right\": {\"task_id\": \"rms_A_C2_0_2\", \"key\": \"rms_0_2s\", \"field\": [\"rms\"]}, \"required\": true}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_ciAKrzXaQd8nILtjgOy46785",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS amplitude (with mean absolute, max, min) for record A channel SYNTH-C2 in the 0–2 s window; retain alongside the existing SYNTH-C1 result.\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_0_2s\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C2\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_A_C2_0_2\"}, {\"capability\": \"compare_results\", \"goal\": \"New-channel-minus-old-channel difference and new/old ratio of RMS in record A, 0–2 s (right = SYNTH-C2, left = SYNTH-C1).\", \"input_refs\": [{\"fields\": [[\"rms\"]], \"key\": \"rms_0_2s\", \"level\": \"result\", \"revision\": 1, \"task_id\": \"rms_A_C1_0_2\"}, {\"fields\": [[\"rms\"]], \"key\": \"rms_0_2s\", \"level\": \"result\", \"task_id\": \"rms_A_C2_0_2\"}], \"key\": \"rms_diff_and_ratio\", \"left\": {\"field\": [\"rms\"], \"key\": \"rms_0_2s\", \"revision\": 1, \"task_id\": \"rms_A_C1_0_2\"}, \"required\": true, \"right\": {\"field\": [\"rms\"], \"key\": \"rms_0_2s\", \"task_id\": \"rms_A_C2_0_2\"}, \"scope\": {}, \"task_id\": \"diff_C2_minus_C1_rms_0_2s\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_ONwubKplVTqRYzlHnNNq6430",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS amplitude (with mean absolute, max, min) for record A channel SYNTH-C2 in the 0–2 s window; retain alongside the existing SYNTH-C1 result.\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_0_2s\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C2\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_A_C2_0_2\"}, {\"capability\": \"compare_results\", \"goal\": \"New-channel-minus-old-channel difference and new/old ratio of RMS in record A, 0–2 s (right = SYNTH-C2, left = SYNTH-C1).\", \"key\": \"rms_diff_and_ratio\", \"left\": {\"field\": [\"rms\"], \"key\": \"rms_0_2s\", \"revision\": 1, \"task_id\": \"rms_A_C1_0_2\"}, \"required\": true, \"right\": {\"field\": [\"rms\"], \"key\": \"rms_0_2s\", \"task_id\": \"rms_A_C2_0_2\"}, \"task_id\": \"diff_C2_minus_C1_rms_0_2s\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_sy9PZxGFmQKh8XKwJ1350860",
+            "type": "function",
+            "function": {
+              "name": "read_dependency",
+              "arguments": "{\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"level\": \"contract\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_ycnZuQY0BNYj72IRaiPE3975",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_A_C2_0_2\", \"key\": \"rms_0_2s\", \"capability\": \"amplitude\", \"record\": \"A\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true}, {\"task_id\": \"rms_diff_C2_minus_C1\", \"key\": \"rms_diff\", \"capability\": \"compare_results\", \"record\": \"A\", \"required\": true, \"left\": {\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"revision\": 1, \"field\": [\"SYNTH-C1\", \"rms\"]}, \"right\": {\"task_id\": \"rms_A_C2_0_2\", \"key\": \"rms_0_2s\", \"field\": [\"SYNTH-C2\", \"rms\"]}, \"interpretation\": {\"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C2\"]}}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_2WqybBCozyJayQaglPUP4056",
+            "type": "function",
+            "function": {
+              "name": "read_dependency",
+              "arguments": "{\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"level\": \"contract\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_OT1DyiWd9efoTULaNyAT5205",
+            "type": "function",
+            "function": {
+              "name": "read_result",
+              "arguments": "{\"result_id\": \"issue55-session-t1\", \"fields\": [[\"SYNTH-C1\", \"rms\"]]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_awFPzqyfpvSYTdvbs37h9253",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_A_C1_0_2\", \"key\": \"rms_0_2s\", \"capability\": \"amplitude\", \"record\": \"A\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true, \"goal\": \"RMS amplitude for record A channel SYNTH-C2 in the 0–2 s window (same measurement, channel changed; earlier SYNTH-C1 result retained).\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_iwXZX5TFkny2lbKxdkw99807",
+            "type": "function",
+            "function": {
+              "name": "revise_plan",
+              "arguments": "{\"task_id\": \"rms_A_C1_0_2\", \"output_key\": \"rms_0_2s\", \"revision\": 1, \"reason\": \"Change channel of the same RMS measurement from SYNTH-C1 to SYNTH-C2, keeping 0–2 s window; previous SYNTH-C1 result stays in revision history.\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C2\"]}}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_clZzzVT9fXm9eo43fygX0662",
+            "type": "function",
+            "function": {
+              "name": "revise_plan",
+              "arguments": "{\"reason\": \"Change channel of the same RMS measurement from SYNTH-C1 to SYNTH-C2, keeping the original 0–2 s window; previous SYNTH-C1 result stays in revision history.\", \"revision\": 1, \"task_id\": \"rms_A_C1_0_2\", \"output_key\": \"rms_0_2s\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"end\": 2, \"start\": 0}, \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"time_reference\": \"record_absolute\"}}"
+            }
+          }
+        ]
+      }
+    ],
+    "prefix_turn_counts": [
+      6,
+      10
+    ]
   }
 }

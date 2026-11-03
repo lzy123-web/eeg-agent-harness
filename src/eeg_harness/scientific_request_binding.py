@@ -10,7 +10,7 @@ import re
 
 from .working_memory import clone
 from .working_memory_actions import ActionWorkingMemoryStore
-from .working_memory_lifecycle import EVENT_TOOLS, METADATA, RANGE
+from .working_memory_lifecycle import EVENT_TOOLS, METADATA, RANGE, NUMBER
 
 
 @dataclass(frozen=True)
@@ -395,6 +395,52 @@ def resolve_channel_reference(store, scope, record, resolution, reference, *, in
     return {k:{**base,'field':k} for k in (('channels',) if interpreted else ('channels','start','end'))}
 
 
+def _window_origin_matches(store,entry,name,record,scope,pair,turn,span):
+    """Follow only actual field-provenance edges, never scan other results."""
+    def reaches(current,key,seen):
+        if (current is None or current.task_id in seen or current.record!=record
+                or not store._binding_valid(current) or store._family(current.capability)!=store._family(name)
+                or any(k not in current.parameters or current.parameters[k]!=scope.get(k) for k in pair)):
+            return False
+        for observation in current.tool_trace:
+            source=observation.get('scientific_sources',{}).get(key,{})
+            if source.get('kind')=='user' and source.get('turn')==turn and source.get('span')==span:return True
+            if source.get('kind')!='result' or source.get('field')!=key:continue
+            prior=store.find_entry(source.get('result_id'))
+            if prior is not None and ('binding' not in source or source['binding']==prior.evidence['binding']):
+                if reaches(prior,key,seen|{current.task_id}):return True
+        return False
+    return all(reaches(entry,key,set()) for key in pair)
+
+
+def _check_retained_window(store,name,scope,record,resolution):
+    """Current complete object parents can veto reuse of an old result pair."""
+    family=store._family(name);key='labels' if family=='event' else 'channels'
+    selected=set(scope.get(key,[]));pair=('tmin','tmax') if family=='event' else ('start','end')
+    channels=set(store.contexts[record].record.channel_names)
+    events=store.contexts[record].record.events
+    labels={e.label for e in events.events} if events else set()
+    current_windows=set()
+    for f in resolution.frames:
+        if f.records!=(record,) or f.object_family not in (None,family):continue
+        if f.object_names and not selected.issubset(f.object_names):continue
+        if not f.object_names and any(store._contains(f.text,x) for x in (channels|labels)-selected):continue
+        owned=owned_intervals(store,f,family,selected)
+        # Adjacent supplements already carry their complete object's identity
+        # from the shared source-frame relation; do not discard that relation.
+        if not owned and (f.object_parent is None or f.object_family==family and selected.issubset(f.object_names)):
+            owned={(float(a),float(b)) for a,b in RANGE.findall(f.text)}
+        current_windows.update(owned)
+        if RANGE.search(f.text):continue
+        text=f.text
+        for literal in channels|labels:
+            text=re.sub(r'(?<![A-Za-z0-9_-])'+re.escape(literal)+r'(?![A-Za-z0-9_-])','',text)
+        if re.search(rf'(?<![A-Za-z0-9_.-])({NUMBER})(?![\d.])',text):
+            raise ValueError('Current numerical supplement needs explicit field/range evidence before retaining the old window')
+    if current_windows and current_windows!={tuple(float(scope[k]) for k in pair)}:
+        raise ValueError('Current user window conflicts with the selected result window')
+
+
 def interpreted_sources(store,name,scope,record,resolution,interpretation,inherited=None):
     """Check facts of a proposed meaning, without pretending to parse intent.
 
@@ -433,6 +479,17 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
     pair=('tmin','tmax') if object_key=='labels' else ('start','end')
     window_frame,window_turn=frame,source_turn
     retained_window=False
+    # A locator explicitly supplied by the model must still be checked. When
+    # it supplies no range locator, unchanged time fields may instead come
+    # from the already selected, actually executed scientific object. This is
+    # field provenance reuse, not a search for a similar historical window.
+    result_window=bool(source_turn==store.turn and not ({'range_ref','range_span'} & set(value))
+        and not RANGE.search(frame.text) and inherited and store._binding_valid(inherited)
+        and inherited.record==record and store._family(inherited.capability)==store._family(name)
+        and inherited.evidence.get('analysis_configuration',{}).get('time_reference')==resolution.time_reference
+        and all(k in scope and k in inherited.parameters and scope[k]==inherited.parameters[k] for k in pair))
+    if result_window:
+        _check_retained_window(store,name,scope,record,resolution)
     if 'range_ref' in value:
         window_turn,window_frame=resolve_source_ref(store,value['range_ref'])
         if window_turn==store.turn:
@@ -447,15 +504,9 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
             and store._binding_valid(inherited) and inherited.record==record
             and store._family(inherited.capability)==store._family(name)
             and all(scope.get(k)==inherited.parameters.get(k) for k in pair)
-            and any(all(o.get('scientific_sources',{}).get(k,{}).get('turn')==window_turn
-                        and o.get('scientific_sources',{}).get(k,{}).get('span')==window_frame.text
-                        for k in pair) for o in inherited.tool_trace))
+            and _window_origin_matches(store,inherited,name,record,scope,pair,window_turn,window_frame.text))
         if retained_window:
-            current_windows={v for f in resolution.frames for v in
-                (owned_intervals(store,f,store._family(name),selected) or
-                 ({(float(a),float(b)) for a,b in RANGE.findall(f.text)} if f.object_parent is None else set()))}
-            if current_windows and current_windows!={tuple(float(scope[k]) for k in pair)}:
-                raise ValueError('Current user window conflicts with the selected result window')
+            _check_retained_window(store,name,scope,record,resolution)
         if source_turn==store.turn and window_frame!=frame and not retained_window:
             raise ValueError('Current source parents cannot be spliced into a window')
     if source_turn<store.turn:
@@ -502,7 +553,7 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
     span=value.get('range_span',window_frame.text)
     if span not in window_frame.text or window_frame.text.count(span)!=1:
         raise ValueError('Window locator must uniquely occur inside the complete source parent')
-    if not all(k in scope for k in pair) or {(float(a),float(b)) for a,b in RANGE.findall(span)} != {tuple(float(scope[k]) for k in pair)}:
+    if not result_window and (not all(k in scope for k in pair) or {(float(a),float(b)) for a,b in RANGE.findall(span)} != {tuple(float(scope[k]) for k in pair)}):
         raise ValueError('Interpretation cannot invent or combine missing window endpoints')
     # Do not silently change a previously admitted meaning for the same source
     # interval. A task revision needs independently compatible evidence.
@@ -515,11 +566,16 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
                 raise ValueError('Conflicting time references for the same interpreted source window')
     base={'kind':'user','turn':source_turn,'span':frame.text,'interpretation':clone(value),
           'semantic_status':'model_interpretation_not_intent_proof',
-          'verified_facts':['source_parent','record','metadata','literal_window','tool_time_reference']}
+          'verified_facts':['source_parent','record','metadata','tool_time_reference']+
+                           (['unchanged_actual_result_window'] if result_window else ['literal_window'])}
     sources.update({k:{**clone(base),'field':k,**({'field_reference':clone(reference)} if k=='channels' and reference else {})}
                     for k in (object_key,*pair)})
     for k in pair:
-        sources[k].update(turn=window_turn,span=window_frame.text)
+        if result_window:
+            sources[k]={'kind':'result','result_id':inherited.task_id,'field':k,
+                'binding':clone(inherited.evidence['binding']),
+                'basis':'unchanged_window_of_explicitly_bound_result'}
+        else:sources[k].update(turn=window_turn,span=window_frame.text)
     return sources
 
 

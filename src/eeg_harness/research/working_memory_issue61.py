@@ -36,6 +36,15 @@ class PrefixRepairClient:
 
 
 def repair_actions(case,variant='A'):
+    if case=='M01-v2':
+        task,key='rms_A_C1_0_2','rms_0_2s'
+        return [('amplitude',{'task_id':task,'output_key':key,'revision':2,'record':'A','channels':['SYNTH-C2'],'start':0,'end':2}),
+            accept(task,key),('revise_plan',{'task_id':task,'revision':2,'reason':'CONTROLLED old/new comparison',
+                'add_deliveries':[{'key':'delta','capability':'compare_results',
+                    'left':{'task_id':task,'key':key,'revision':1,'field':['SYNTH-C1','rms']},
+                    'right':{'task_id':task,'key':key,'field':['SYNTH-C2','rms']}}]}),
+            ('compare_results',{'task_id':task,'output_key':'delta'}),accept(task,'delta'),
+            ('finish_task',{'status':'completed','answer':'CONTROLLED actual v2 selected-key proposal now preserves and reuses the old window; new/old RMS compared.'})]
     if case=='T07':
         consumer='theta_c2_stimulus';key='theta_abs_power_c2';epoch='epochs_c2_stimulus'
         producer=consumer if variant=='A' else 'explicit_epoch_producer'
@@ -119,7 +128,7 @@ def run_repair(case,variant='A',arm='C'):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);args=p.parse_args()
-    rows=[run_repair(c,v,a) for c,v in [('T07','A'),('T07','B'),('M01','A')] for a in ARMS]
+    rows=[run_repair(c,v,a) for c,v in [('T07','A'),('T07','B'),('M01','A'),('M01-v2','A')] for a in ARMS]
     write_new(args.output,{'runs':rows})
 
 if __name__=='__main__':main()
