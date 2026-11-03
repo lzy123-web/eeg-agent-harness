@@ -80,7 +80,13 @@ class ConvergenceTest(unittest.TestCase):
         p=controls['revise_plan']['parameters']['properties']
         self.assertNotIn('updates',p);self.assertNotIn('changes',p)
         self.assertNotIn('required_outputs',encoded(controls['plan_tasks']).decode())
-        self.assertLess(len(encoded(self.w.tool_definitions())),29696)
+        # Issue61 publishes atomic additions. Measure the previous write core
+        # separately; the new schema's cost is reported in the Issue61 evidence.
+        tools=deepcopy(self.w.tool_definitions())
+        rev=next(t['function']['parameters'] for t in tools if t['function']['name']=='revise_plan')
+        rev['properties'].pop('add_deliveries',None)
+        self.assertLess(len(encoded(tools)),31000)
+        self.assertLess(len(encoded(self.w.tool_definitions())),36000)
         bad={'deliveries':[],'nodes':[node('a',[delivery('x')])]}
         before=self.w.graph.to_dict()
         self.assertEqual(self.w._dispatch(ToolRequest('plan_tasks',bad))['code'],'INVALID_PLAN_STRUCTURE')

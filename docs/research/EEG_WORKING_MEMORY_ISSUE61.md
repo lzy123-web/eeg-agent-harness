@@ -1,0 +1,48 @@
+# Issue61：计划增量补全与操作恢复契约
+
+## 当前结论与证据层级
+
+工程初始候选已实现并通过离线/只读设计门，真实开发尚未开始。承接30d5a12；旧Issue60科学行为、2/4结果、原始失败及null评分不改写。[原始前缀](evidence/issue61_original_prefixes.json)、[阶段证据](evidence/issue61_plan_repair.json)保留原模型提案与受控续接的区别。新能力六组共享，不是C独有收益。
+
+## 根因、方案与取舍
+
+T07原样前四次响应重放得到RMS已完成、theta已登记、Epoch缺失；原错误归属拒绝保留。底层PlanGraph.revise本来支持完整候选图，默认操作只支持编辑已有key，无法直接表达同任务追加。M01旧RMS已交付，次轮仍新建且混用比较表示；随后来源错误建议继承结果，却没有规划可写的inherit_result。模型没有选择原身份修订仍是独立责任，没有发现合法修订被误拒。
+
+比较A（同任务追加并修订消费者）与B（新建独立生产者再修订消费者），两者用相同改善后的反馈与工具定义。实际T07恢复计划写入分别1/2次、请求序列505/579 UTF-8字节；旧RMS均不重算，实际Epoch/theta均计算。B中间状态安全：消费者仍未获得工件，不能凭计划计算；A在同一完整候选事务中提交，减少一个中间状态且不用为同目标前置交付另造任务身份。因此选择A，B继续保留为原有合法组合。两次工具写可由一个模型响应批量提出，不能由写次数推断API节省。
+
+代价：默认schema由旧约27KB增至约35KB。追加行复用同源交付schema，仍增加每次传输成本；不是接口字节全面缩小。选择依据是原子补全可表达性和身份负担，不是已证成本收益。没有新Planner、Executor、状态库、继承系统或修复Agent。
+
+## 具体职责
+
+revise_plan明确task_id/revision/reason；add_deliveries仅新key，可同时output_key与变化字段修订消费者。程序机械规范化成原updates.required_outputs，复用完整候选图、来源/实际字段、义务、循环与版本核验后原子提交；不猜生产者、事件、通道、范围或修订目标。新key不能覆盖旧key，不变交付和历史结果保留，变化依赖沿原机制失效。
+
+规划来源反馈指向interpretation/input_refs与显式修订，不再建议执行专属inherit_result。oneOf在显式capability区分后返回具体字段错误。工件需求来自ToolRegistry consumes_artifact/produces_artifact和真实声明绑定，不提供科学参数或标准DAG。总扁平行上限384是32节点×12交付，分组上限仍由动态契约核验；静态结构通过不等于科学获准。
+
+恢复耗尽经完整Agent保留STAGE_BUDGET_EXHAUSTED及具体消息。新阶段沿原资金链追加第六许可，候选/批次与旧事故分开；原503处置和未知38042tokens/$0.0456504保留，新T05不按case ID挂旧请求。2/8恢复计数跨阶段承接，确认禁止。候选最多初始加两次修正，同科学行为不重抽，最终冻结后不修改科学行为。
+
+## 离线验证与限制
+
+本轮全量809项=794通过+15既有跳过，compileall/pip check/diff check通过；原八题×三组24链111/111，12兼容/12默认增量链各78/78。18条真实前缀后受控恢复覆盖六组：T07 A/B、M01显式修订及同任务追加非事件比较，旧结果不变；冲突key、过期版本、缺/错来源、时基、循环、虚构工件拒绝并保持状态。
+
+受控驱动明确使用24决策/72工具以检查机制：实际T07 A 12决策/14工具，B 13/15；M01首轮5/5、次轮10/10。B脚本超真实单轮12次，不能写为原限制内成功。真实执行仍12请求/36工具/900秒/256KB、输出2200、底层重试0。手工提案不是模型自主恢复。
+
+首次夹具错误与一次误选旧未迁移脚本的回归失败保留在本地索引，不混为历史模型行为。未参与实现的只读设计审查通过，但不替代主审。
+
+## 已批准真实协议与预算
+
+用户直接许可point1-plan-repair-20261104-240c-4000kt-2usd，[实际回执](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6611213721)。固定409次/5328790 guard tokens/$1.7417127起；最多240次/4M/$2（含旧余额），开发绝对649/9328790，全账本745/13328790，阶段后累计$3.7417127、外层$4先到为止，确认池禁止。正式账本尚未追加或付费。
+
+冻结初始候选先诊断原T07/M01；有新真实根因才允许最多两批修正；动态保护未覆盖四题24次/450k tokens/$0.1875每题的计划空间。最终同版按T05/T07/M01/M02补足，已经同版尝试的开发会话直接计入。负面结果保留，不拼版本、不无依据抽样。
+
+## 无凭据离线复现
+
+```powershell
+$env:PYTHONPATH='src;tests'
+python -m unittest test_issue61_repair test_issue61_authorization -v
+python -m eeg_harness.research.working_memory_issue61 --output artifacts/issue61-controlled-new.json
+python -m unittest discover -s tests -q
+python -m compileall -q src tests
+python -m pip check
+```
+
+真实参数入口为working_memory_issue61_live --register/--run，显式candidate-id、attestation、case、output；复用既有环境配置及唯一账本，不在仓库提供密钥、不需要ping。后续真实结果、结算、提交与CI在本报告追加。当前不能声称自主补全、稳定四题完成、成本下降、真实EEG或强基线收益。

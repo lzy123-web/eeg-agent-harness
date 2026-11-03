@@ -1,3 +1,11 @@
+## Issue61源码增量（2026-11-04，已实现）
+
+公开add_deliveries→TaskPlanController._normalize_write→原_revision_updates/PlanGraph.revise；完整候选图和来源核验在live graph提交前完成。输入新key/消费者引用均由模型给定；不变结果、旧版本、独立控制前提沿原机制保存。scientific_contracts按显式enum诊断oneOf，不放宽条件。ToolRegistry工件类型提供发现事实，未引入科学依赖推导器。来源错误不再建议规划不可写的inherit_result。
+
+working_memory_issue61_live只在原账本追加候选、最终冻结和覆盖预算事实；MoneyBudgetClient仍负责资金、预约、结算与原503恢复。StageBudgetExhausted实现LLMServiceError结构化契约。详见[Issue61报告](EEG_WORKING_MEMORY_ISSUE61.md)，已通过离线/只读门，真实自主证据待追加。
+
+---
+
 ## Issue60 HTTP503恢复事实（2026-11-03）
 
 已实现：working_memory_issue50原单次入口增加独立尝试元数据/提交钩子；JournaledBudgetClient保留request ID与HTTP status；MoneyBudgetClient在原锁、预约、final lease和结算上执行限定恢复；working_memory_issue60_recovery仅为原账本事件校验函数，不是新预算/科学状态系统。原科学模块/提示/schema/数据/评分逐文件冻结。许可/历史证据append-only，处置必须关联已保守结算503和独立retry reserved；孤儿处置不解锁、预约状态未知不重发；只对具体事件生效。真实首T05完全同输入恢复，后续工具状态进程内保留；非空状态跨进程无法可靠还原时仍失败关闭。

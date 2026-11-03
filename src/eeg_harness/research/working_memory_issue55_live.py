@@ -52,14 +52,21 @@ INTERFACE_REVISION='issue60-20261103-192c-3500kt-1p70'
 INTERFACE_PREFIX='14ee78772bf3bc3568b70354d05c721e2ef8b8701d38dba548b3d3667e2b122f'
 INTERFACE_CAPS={**CLOSEOUT_CAPS,'calls':593,'tokens':11379334,'development':[497,7379334],
                 'stage_usd':'1.70','cumulative_usd':'2.9496989'}
+REPAIR_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6611213721'
+REPAIR_REVISION='point1-plan-repair-20261104-240c-4000kt-2usd'
+REPAIR_PREFIX='934d00fcdb0aff386ad72e2f7cc3b7071392b3c038a942bf3118c8a1af58bfe6'
+REPAIR_CAPS={**INTERFACE_CAPS,'calls':745,'tokens':13328790,'development':[649,9328790],
+             'stage_usd':'2.00','cumulative_usd':'3.7417127','usd':'4'}
 REVIEWED_PREFIXES={INTERFACE_REVISION:(INTERFACE_PREFIX,[305,3879334],'1.2496989'),LIVE_REVISION:(LIVE_PREFIX,[125,1234297],'0.4054206'),
                    SOURCE_REVISION:(SOURCE_PREFIX,[167,1877118],'0.6088482'),
-                   CLOSEOUT_REVISION:(CLOSEOUT_PREFIX,[284,3586423],'1.1542944')}
+                   CLOSEOUT_REVISION:(CLOSEOUT_PREFIX,[284,3586423],'1.1542944'),
+                   REPAIR_REVISION:(REPAIR_PREFIX,[409,5328790],'1.7417127')}
 AUTHORIZATION_CHAIN=((REVISION_ID,ADDITIONAL_GRANT,ORIGINAL_CAPS,REVISED_CAPS,48),
                      (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125),
                      (SOURCE_REVISION,SOURCE_GRANT,LIVE_CAPS,SOURCE_CAPS,167),
                      (CLOSEOUT_REVISION,CLOSEOUT_GRANT,SOURCE_CAPS,CLOSEOUT_CAPS,284),
-                     (INTERFACE_REVISION,INTERFACE_GRANT,CLOSEOUT_CAPS,INTERFACE_CAPS,305))
+                     (INTERFACE_REVISION,INTERFACE_GRANT,CLOSEOUT_CAPS,INTERFACE_CAPS,305),
+                     (REPAIR_REVISION,REPAIR_GRANT,INTERFACE_CAPS,REPAIR_CAPS,409))
 
 
 def authorization_limits(ledger,rows):
@@ -105,9 +112,13 @@ def apply_authorization_revision(raw,ledger,attestation,authorization,*,test_onl
             attestation,'development',request_journal=ledger.parent/'unused-revision-requests',test_only=test_only)
         with _ledger_lock(ledger):
             rows=_rows(ledger);authorization_limits(ledger,rows)
-            if any(r.get('event') in {'safety_stop','stage_closed','confirmation_frozen'} or
-                   r.get('event')=='session_started' and r.get('phase')=='confirmation' for r in rows):
+            stops=(recovery.active_stops(rows,recovery.SCOPE) if ident==REPAIR_REVISION else
+                   [r for r in rows if r.get('event') in {'safety_stop','stage_closed','confirmation_frozen'}])
+            if stops or any(r.get('event')=='session_started' and r.get('phase')=='confirmation' for r in rows):
                 raise StageBudgetExhausted('Existing stop/freeze cannot be overridden')
+            if any(r.get('event')=='reserved' and not any(e.get('request_id')==r['request_id'] and
+                    e.get('event') in {'received','failed'} for e in rows) for r in rows):
+                raise StageBudgetExhausted('Unresolved send cannot admit funding')
             previous=next((r for r in rows if r.get('event')=='authorization_revised' and r.get('revision_id')==ident),None)
             if previous:
                 if authorization.get('prefix_sha256')!=previous['prefix_sha256']:
@@ -294,7 +305,11 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only,*,recovery_co
     pending=recovery_context.get('resume_request') if recovery_context else None
     if recovery.active_stops(rows,scope,pending):
         raise StageBudgetExhausted('Stage stopped; audit existing evidence')
-    if recovery_context:
+    candidate_id=recovery_context.get('candidate_id') if recovery_context else None
+    if caps==REPAIR_CAPS:
+        from .working_memory_issue61_live import admit_candidate_session
+        admit_candidate_session(ledger,rows,case,manifest,attestation,candidate_id,test_only)
+    if recovery_context and not candidate_id:
         p=recovery.policy(rows)
         if (phase!='development' or not p or case['id'] not in p['cases'] or
                 manifest['runtime']!=p['runtime'] or manifest['data']!=p['data']):
@@ -329,7 +344,7 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only,*,recovery_co
         if (gate.get('status')!='passed' or gate.get('source_sha256')!=manifest['source']['sha256']
                 or not gate.get('evidence_sha256')):
             raise StageBudgetExhausted('Mechanism regression gate must pass for this exact source before payment')
-        expected=protocol()['cases'] if phase=='confirmation' else (development_cases() if caps==INTERFACE_CAPS else development_protocol()['cases'])
+        expected=protocol()['cases'] if phase=='confirmation' else (development_cases() if caps in (INTERFACE_CAPS,REPAIR_CAPS) else development_protocol()['cases'])
         if case not in expected:
             raise StageBudgetExhausted('Use original protocol requests, not a substituted case')
     if not test_only and caps==INTERFACE_CAPS and any(r.get('case')==case['id'] and r.get('source_sha256')==manifest['source']['sha256'] for r in starts):
@@ -352,7 +367,7 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only,*,recovery_co
         if previous is None:_append(ledger,{'event':'confirmation_frozen','freeze':freeze})
     _append(ledger,{'event':'session_started','phase':phase,'case':case['id'],
         **({'recovery_scope':recovery.SCOPE,'execution_id':recovery_context['execution_id'],
-            'resumes_request':pending} if recovery_context else {}),
+            'resumes_request':pending,'candidate_id':candidate_id} if recovery_context else {}),
         'source_sha256':manifest['source']['sha256'],'test_only':test_only,'timestamp_utc':time.time()})
 
 
@@ -619,7 +634,7 @@ class MoneyBudgetClient(Issue50Client):
         return response
 
 
-def run_session(raw,ledger,attestation,case,output,*,phase='development',test_only=False,recovery_scope=None):
+def run_session(raw,ledger,attestation,case,output,*,phase='development',test_only=False,recovery_scope=None,candidate_id=None):
     """No gold is sent to the Agent; scores are written at each turn deadline."""
     output=Path(output)
     validate_attestation(attestation,raw,test_only)
@@ -634,14 +649,16 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
         records=records_for() if phase=='confirmation' else development_records()
         agent=TaskPlanEEGAgent(client,records,arm='C',session_id='issue55-session',**protocol()['agent_settings'])
         recovery_context=None
-        if recovery_scope is not None:
+        if recovery_scope is not None or candidate_id is not None:
+            if candidate_id is not None:recovery_scope=recovery.SCOPE
             if recovery_scope!=recovery.SCOPE:raise StageBudgetExhausted('Unknown recovery scope')
             rows=_rows(Path(ledger));p=recovery.policy(rows)
             if not p:raise StageBudgetExhausted('Register reviewed recovery permission first')
-            imported=next((r for r in rows if r.get('event')=='http503_historical_evidence'
+            imported=None if candidate_id else next((r for r in rows if r.get('event')=='http503_historical_evidence'
                            and r['original_manifest']['case']==case['id']),None)
             recovery_context={'execution_id':imported['recovery']['execution_id'] if imported else str(uuid.uuid4()),
                               'resume_request':imported['request_id'] if imported else None}
+            if candidate_id:recovery_context['candidate_id']=candidate_id
             def recovery_state():
                 wm=agent.working_memory
                 if not wm.graph.nodes and not wm.store.entries and not wm.graph.history and not wm.action_transitions:

@@ -11,10 +11,12 @@ import os
 from pathlib import Path
 import time
 import uuid
+from ..llm import LLMServiceError
 
 
-class StageBudgetExhausted(RuntimeError):
-    pass
+class StageBudgetExhausted(LLMServiceError):
+    def __init__(self, message):
+        super().__init__('STAGE_BUDGET_EXHAUSTED', message, retryable=False)
 
 
 @contextmanager

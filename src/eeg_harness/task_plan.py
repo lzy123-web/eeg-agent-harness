@@ -586,7 +586,8 @@ def model_write_schemas(registry):
         'required':['task_id','key','capability','left','right'],'additionalProperties':False}
     compare['properties'].update(capability={'type':'string','enum':['compare_results']},left=scalar,right=_copy(scalar))
     # Records/scopes come from explicitly selected operands, not new guesses.
-    create={'type':'object','properties':{'deliveries':{'type':'array','minItems':1,'maxItems':32,
+    create={'type':'object','properties':{'deliveries':{'type':'array','minItems':1,'maxItems':PLAN_NODES_SCHEMA['maxItems'] * TASK_SPEC_SCHEMA['properties']['required_outputs']['maxItems'],
+        'description':'At most 32 distinct task identities in the whole graph and 12 deliveries per task after grouping; array size alone does not establish grouped validity.',
         'items':{'oneOf':[numeric,compare]}}},'required':['deliveries'],'additionalProperties':False}
     patch_props={k:_copy(delivery['properties'][k]) for k in ('scope','input_refs','acceptance_rule')}
     patch_props['interpretation']=interpretation_schema(context=True,locators_only=True)
@@ -594,7 +595,20 @@ def model_write_schemas(registry):
         'output_key':_copy(delivery['properties']['key']),'revision':{'type':'integer','minimum':1},
         'reason':{'type':'string','minLength':1,'maxLength':2000},**patch_props,
         'left':scalar,'right':_copy(scalar)},
-        'required':['task_id','output_key','revision','reason'],'additionalProperties':False,
+        'required':['task_id','revision','reason'],'additionalProperties':False,
         'not':{'required':['input_refs','left']}}
-    revise['allOf']=[{'not':{'required':['input_refs','right']}}]
+    additions=[]
+    for original in (numeric,compare):
+        row=_copy(original)
+        for key in ('task_id','goal','control_dependencies','optional_operations'):
+            row['properties'].pop(key,None)
+        row['required'].remove('task_id')
+        additions.append(row)
+    revise['properties']['add_deliveries']={'type':'array','minItems':1,
+        'maxItems':TASK_SPEC_SCHEMA['properties']['required_outputs']['maxItems'],
+        'items':{'oneOf':additions}}
+    revise['allOf']=[{'not':{'required':['input_refs','right']}},
+        {'if':{'not':{'required':['add_deliveries']}},'then':{'required':['output_key']}}]
+    for key in (*patch_props,'left','right'):
+        revise['allOf'].append({'if':{'required':[key]},'then':{'required':['output_key']}})
     return create,revise

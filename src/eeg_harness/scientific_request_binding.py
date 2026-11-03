@@ -250,7 +250,7 @@ def resolve_action_source(store, name, scope, record, request_span=None, *, inhe
     if not resolved:
         if any(f.records for f in frames) or len(fallback) == 1 and fallback[0] != record:
             return error("RECORD_SCOPE_CONFLICT", "The complete source clause belongs to another record")
-        return error("AMBIGUOUS_RECORD_SOURCE", "Clarify the record or inherit an actual unambiguous result")
+        return error("AMBIGUOUS_RECORD_SOURCE", "Selected record is not established by the complete source or an actual unambiguous bound result")
     return SourceResolution(text="；".join(f.text for f in resolved), frames=tuple(resolved),
                             allowed_records=tuple(sorted({r for f in resolved for r in f.records})),
                             time_reference=time_reference, request_fingerprint=fingerprint)

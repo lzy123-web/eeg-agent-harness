@@ -238,3 +238,8 @@ M01实际新旧RMS为1.06e-05与1.41e-05 V，按工具已报告标量比较，�
 关键定位：T05 `responses.jsonl`第7/13/15行分别关联合法修订、比较登记和final-only停止，`requests.jsonl`第13行实际收到旧alpha字段/值；M01第8次请求已收到真实RMS字段、第14次收到旧值，仍没有`revise_plan`。T07原工件/旧结果逐对象一致，M02原A接受指纹和版本不变。复核确认未观察到新增接口放行错记录/窗口/工件/版本数值，但保留M01身份意图漏检，不据有限反例宣称全面安全。
 
 只读核对最后正式账本留存快照为361笔预约/收到/费用结算相符、未结0，费用及hash与上述结算一致。复核结论独立存于公开索引`readonly_review`，原`whole_request_correct=null`不改。
+
+
+## 2026-11-04 主审后继
+
+[主审结论6610924052](https://github.com/lzy123-web/eeg-agent-harness/issues/60#issuecomment-6610924052)接受有限恢复主路径，科学2/4、T07补全与M01反馈缺口保留。新Issue61已获用户完整许可；见[后继报告](EEG_WORKING_MEMORY_ISSUE61.md)。本报告旧冻结、失败、评分与费用不改写。

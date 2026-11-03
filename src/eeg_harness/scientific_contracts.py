@@ -52,11 +52,19 @@ def validate_contract(value,schema,path=()):
         except ContractError:pass
         else:validate_contract(value,schema.get('then',{}),path)
     if 'oneOf' in schema:
-        matches=0
+        matches=0;errors=[];selected=[]
         for sub in schema['oneOf']:
             try:validate_contract(value,sub,path);matches+=1
-            except ContractError:pass
-        if matches!=1:fail('Choose exactly one advertised representation')
+            except ContractError as exc:
+                errors.append(exc)
+                # An explicit enum discriminant can identify the intended
+                # representation without inferring any scientific meaning.
+                if isinstance(value,dict) and any(k in value and value[k] in p.get('enum',[])
+                        for k,p in sub.get('properties',{}).items()):selected.append(exc)
+        if matches!=1:
+            if matches==0 and len(selected)==1:raise selected[0]
+            fail('Choose exactly one advertised representation'+
+                 (': '+'; '.join(str(e.path)+': '+str(e) for e in errors) if matches==0 else ''))
     if isinstance(value,dict):
         props=schema.get('properties',{})
         for name in schema.get('required',[]):

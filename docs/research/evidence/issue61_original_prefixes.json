@@ -1,0 +1,224 @@
+{
+  "T07": {
+    "requests": [
+      "请给记录A的SYNTH-C1在0到2秒的RMS，并计算stimulus事件后0到1.25秒试次上SYNTH-C2的theta绝对功率，不进行筛选或基线校正。"
+    ],
+    "responses": [
+      {
+        "role": "assistant",
+        "content": "我会先规划两个独立测量任务，然后执行它们。",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_tuJdffvwp9PctldvkVy58674",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_c1_0_2\", \"key\": \"rms_synthc1_0_2s\", \"capability\": \"amplitude\", \"record\": \"A\", \"goal\": \"记录A中SYNTH-C1在记录绝对时间0到2秒的平均绝对幅值/RMS/最大最小值。\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"required\": true, \"interpretation\": {\"source_ref\": \"u1:410ebe45d5618fa6:0:23\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"]}}, {\"task_id\": \"theta_c2_stimulus\", \"key\": \"theta_abs_power_c2\", \"capability\": \"event_bandpower\", \"record\": \"A\", \"goal\": \"记录A中SYNTH-C2在stimulus事件后0到1.25秒试次上的theta频带(4-8 Hz)绝对功率（Welch），不做试次筛选、不做基线校正。\", \"scope\": {\"labels\": [\"stimulus\"], \"tmin\": 0, \"tmax\": 1.25}, \"required\": true, \"interpretation\": {\"source_ref\": \"u1:410ebe45d5618fa6:24:66\", \"range_ref\": \"u1:410ebe45d5618fa6:67:77\", \"time_reference\": \"event_relative\", \"measurement_channels\": [\"SYNTH-C2\"]}}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_ijaFCKBaDxmzzIfOZrg93837",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"记录A中SYNTH-C1在记录绝对时间0到2秒的平均绝对幅值/RMS/最大最小值。\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:410ebe45d5618fa6:0:23\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_synthc1_0_2s\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C1\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_c1_0_2\"}, {\"capability\": \"event_bandpower\", \"goal\": \"记录A中SYNTH-C2在stimulus事件后0到1.25秒试次上的theta频带(4-8 Hz)绝对功率（Welch），不做试次筛选、不做基线校正。\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"source_ref\": \"u1:410ebe45d5618fa6:24:66\", \"time_reference\": \"event_relative\"}, \"key\": \"theta_abs_power_c2\", \"record\": \"A\", \"required\": true, \"scope\": {\"labels\": [\"stimulus\"], \"tmax\": 1.25, \"tmin\": 0}, \"task_id\": \"theta_c2_stimulus\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_vw9YAILdeZS9xcZfAlHb2288",
+            "type": "function",
+            "function": {
+              "name": "select_task",
+              "arguments": "{\"task_id\": \"rms_c1_0_2\"}"
+            }
+          },
+          {
+            "index": 1,
+            "id": "call_01_vAI2jPPMiovkZHTx1p543840",
+            "type": "function",
+            "function": {
+              "name": "select_task",
+              "arguments": "{\"task_id\": \"theta_c2_stimulus\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_Uo5uwk62nHatdl1ZDxrY8418",
+            "type": "function",
+            "function": {
+              "name": "amplitude",
+              "arguments": "{\"task_id\": \"rms_c1_0_2\", \"output_key\": \"rms_synthc1_0_2s\", \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+            }
+          },
+          {
+            "index": 1,
+            "id": "call_01_So7lQx1J61qH5Y8SJEPf2376",
+            "type": "function",
+            "function": {
+              "name": "create_epochs",
+              "arguments": "{\"task_id\": \"theta_c2_stimulus\", \"output_key\": \"epochs_c2_stimulus\", \"record\": \"A\", \"labels\": [\"stimulus\"], \"tmin\": 0, \"tmax\": 1.25}"
+            }
+          }
+        ]
+      }
+    ],
+    "prefix_turn_counts": [
+      4
+    ],
+    "kind": "unaltered original model prefix; controlled continuation is separate"
+  },
+  "M01": {
+    "requests": [
+      "计算记录A的SYNTH-C1在0到2秒的RMS，保留结果。",
+      "把同一个RMS测量的通道改为SYNTH-C2，时间范围保持原样；保留旧通道结果，用新通道结果减去旧通道结果并计算新旧比值。"
+    ],
+    "responses": [
+      {
+        "role": "assistant",
+        "content": "I'll plan a single measurement task and then execute it.",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_6yKik4vyPQRSSQ2HSoZR4207",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_c1_0_2\", \"key\": \"rms_c1_0_2\", \"capability\": \"amplitude\", \"record\": \"A\", \"goal\": \"Compute RMS (and mean absolute amplitude, max, min) of record A channel SYNTH-C1 over 0–2 s and retain the result.\", \"scope\": {\"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C1\"], \"source_ref\": \"u1:4c731a1f9c420842:0:23\", \"range_ref\": \"u1:4c731a1f9c420842:0:23\"}, \"required\": true}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_Z2pRPjLvxVL6fFgTj8Mr9468",
+            "type": "function",
+            "function": {
+              "name": "select_task",
+              "arguments": "{\"task_id\": \"rms_c1_0_2\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_zYPyVdDS0mdWpyfg5auX5815",
+            "type": "function",
+            "function": {
+              "name": "amplitude",
+              "arguments": "{\"task_id\": \"rms_c1_0_2\", \"output_key\": \"rms_c1_0_2\", \"revision\": 1, \"record\": \"A\", \"channels\": [\"SYNTH-C1\"], \"start\": 0, \"end\": 2}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_vMwQ9HJocD17zDUfZvna0430",
+            "type": "function",
+            "function": {
+              "name": "complete_node",
+              "arguments": "{\"task_id\": \"rms_c1_0_2\", \"output_key\": \"rms_c1_0_2\", \"revision\": 1, \"result_id\": \"issue55-session-t1\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_peLUY3sMzjF4xd6Y6suJ4124",
+            "type": "function",
+            "function": {
+              "name": "finish_task",
+              "arguments": "{\"status\": \"completed\", \"answer\": \"记录A，通道 SYNTH-C1，0–2 s（记录绝对时间，采样率128 Hz）的RMS = 1.41e-05 V ≈ 14.1 µV。同窗其他幅度统计：平均绝对幅度 12.7 µV，最大值 20 µV，最小值 −20 µV。\\n\\n结果已保留：task rms_c1_0_2，output_key rms_c1_0_2，revision 1，result_id issue55-session-t1（来源 synthetic://task-memory-A）。\\n\\n注：RMS 来自幅度统计中的 rms 字段；如需其他指标（如 psd/频带功率）或换窗口，可继续提出。\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "我会先创建新的 SYNTH-C2 测量，并创建将会读取两个测量值的比较节点。",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_jYw2onjmh6BP8ikcWtdx6993",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"task_id\": \"rms_c2_0_2\", \"key\": \"rms_c2_0_2\", \"capability\": \"amplitude\", \"record\": \"A\", \"goal\": \"Compute RMS (and mean absolute amplitude, max, min) of record A channel SYNTH-C2 over 0–2 s, retaining the same time range as the original SYNTH-C1 measurement.\", \"scope\": {\"channels\": [\"SYNTH-C2\"], \"start\": 0, \"end\": 2}, \"interpretation\": {\"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"time_reference\": \"record_absolute\", \"measurement_channels\": [\"SYNTH-C2\"]}, \"required\": true}, {\"task_id\": \"rms_c2_minus_c1\", \"key\": \"rms_c2_minus_c1\", \"capability\": \"compare_results\", \"record\": \"A\", \"goal\": \"Descriptive comparison of the 0–2 s RMS measurement on SYNTH-C2 versus SYNTH-C1 in record A: right-minus-left difference and right/left ratio.\", \"scope\": {}, \"left\": {\"task_id\": \"rms_c1_0_2\", \"key\": \"rms_c1_0_2\", \"field\": [\"rms\"]}, \"right\": {\"task_id\": \"rms_c2_0_2\", \"key\": \"rms_c2_0_2\", \"field\": [\"rms\"]}, \"input_refs\": [{\"task_id\": \"rms_c1_0_2\", \"key\": \"rms_c1_0_2\", \"fields\": [[\"rms\"]], \"level\": \"result\"}, {\"task_id\": \"rms_c2_0_2\", \"key\": \"rms_c2_0_2\", \"fields\": [[\"rms\"]], \"level\": \"result\"}], \"required\": true}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "我不小心把紧凑行和完整比较对象混在了同一行里。现在重试，并对每个交付条目统一使用一种表示方式。",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_jk5CSohVx86TsetS4ST11687",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS (and mean absolute amplitude, max, min) of record A channel SYNTH-C2 over 0–2 s, retaining the same time range as the original SYNTH-C1 measurement.\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_c2_0_2\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C2\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_c2_0_2\"}, {\"capability\": \"compare_results\", \"goal\": \"Descriptive comparison of the 0–2 s RMS on SYNTH-C2 versus SYNTH-C1 in record A: right-minus-left difference and right/left ratio.\", \"key\": \"rms_c2_minus_c1\", \"left\": {\"field\": [\"rms\"], \"key\": \"rms_c1_0_2\", \"task_id\": \"rms_c1_0_2\"}, \"record\": \"A\", \"required\": true, \"right\": {\"field\": [\"rms\"], \"key\": \"rms_c2_0_2\", \"task_id\": \"rms_c2_0_2\"}, \"task_id\": \"rms_c2_minus_c1\"}]}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_kfvz8kiMZtN4dJxVHy2G3310",
+            "type": "function",
+            "function": {
+              "name": "plan_tasks",
+              "arguments": "{\"deliveries\": [{\"capability\": \"amplitude\", \"goal\": \"Compute RMS (and mean absolute amplitude, max, min) of record A channel SYNTH-C2 over 0–2 s, retaining the same time range as the original SYNTH-C1 measurement.\", \"interpretation\": {\"measurement_channels\": [\"SYNTH-C2\"], \"range_ref\": \"u2:dcf2cbee808386fe:23:31\", \"source_ref\": \"u2:dcf2cbee808386fe:0:22\", \"time_reference\": \"record_absolute\"}, \"key\": \"rms_c2_0_2\", \"record\": \"A\", \"required\": true, \"scope\": {\"channels\": [\"SYNTH-C2\"], \"end\": 2, \"start\": 0}, \"task_id\": \"rms_c2_0_2\"}, {\"capability\": \"compare_results\", \"goal\": \"Descriptive comparison of the 0–2 s RMS on SYNTH-C2 versus SYNTH-C1 in record A: right-minus-left difference and right/left ratio.\", \"key\": \"rms_c2_minus_c1\", \"left\": {\"field\": [\"rms\"], \"key\": \"rms_c1_0_2\", \"task_id\": \"rms_c1_0_2\"}, \"required\": true, \"right\": {\"field\": [\"rms\"], \"key\": \"rms_c2_0_2\", \"task_id\": \"rms_c2_0_2\"}, \"task_id\": \"rms_c2_minus_c1\"}]}"
+            }
+          }
+        ]
+      }
+    ],
+    "prefix_turn_counts": [
+      5,
+      3
+    ],
+    "kind": "unaltered original model prefix; controlled continuation is separate"
+  }
+}

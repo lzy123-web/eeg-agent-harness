@@ -102,7 +102,7 @@ class TaskPlanController(ScientificMemoryController):
         self.clarifications = []
 
     def _compatibility_controls(self):
-        from .task_plan import task_spec_schema
+        from .task_plan import task_spec_schema, PLAN_NODES_SCHEMA
         schema=task_spec_schema(next(iter(self.store.contexts.values())).executor.registry)
         delivery_properties=schema['properties']['required_outputs']['items']['properties']
         patch_properties={k:clone(delivery_properties[k]) for k in ('scope','interpretation','input_refs','acceptance_rule')}
@@ -113,7 +113,7 @@ class TaskPlanController(ScientificMemoryController):
         next(c["function"] for c in controls if c["function"]["name"] == "compare_results")["parameters"]["required"] = []
         controls += [
             control("plan_tasks", "Propose scientific subtask DAG from the user request. No runtime facts or result IDs may be invented.", {
-                "nodes": {"type": "array", "minItems": 1, "maxItems": 12,
+                "nodes": {"type": "array", "minItems": 1, "maxItems": PLAN_NODES_SCHEMA['maxItems'],
                           "items": schema}}, ["nodes"]),
             control("revise_plan", "Modify one existing delivery using output_key, expected revision and changes; scope/interpretation merge explicit fields, lists replace. Choosing source_ref/source_span or range_ref/range_span replaces its old alternative; supplying both is invalid. Unchanged objects/sources/other deliveries are preserved. Or use legacy updates for a whole-task transaction, never both. All paths validate sources/obligations before commit.", {
                 "task_id": STRING, "updates": {"type": "object", "properties": {
@@ -152,7 +152,7 @@ class TaskPlanController(ScientificMemoryController):
             if f['name']=='plan_tasks':
                 f.update(parameters=create,description='Create NEW tasks from flat delivery rows; same task_id groups multiple keys. Explicit compare_results left/right scalar selections produce right-minus-left and right/left; record and empty scope are derived from the selected operands. Do not redeclare an existing identity.')
             elif f['name']=='revise_plan':
-                f.update(parameters=revise,description='Revise an EXISTING selected delivery at its expected revision. Write only changed scope/interpretation fields or replacement lists directly; no changes/updates wrapper. Preserve identity, unchanged sources and other outputs. left/right explicitly replace comparison operands. Source, version and transaction checks still apply.')
+                f.update(parameters=revise,description='Revise an EXISTING task at its expected revision. Select output_key to patch one existing delivery; add_deliveries explicitly appends new keys to that task. Both may be one atomic transaction (for example new producer plus changed consumer input_refs). Write only changed scope/interpretation or replacement lists, no changes/updates wrapper. Preserve identity and unchanged evidence. left/right select comparison operands. Alternatively plan_tasks can create a separate producer, then revise_plan changes the existing consumer. Source, version and transaction checks still apply.')
         return controls
 
     @staticmethod
@@ -162,7 +162,8 @@ class TaskPlanController(ScientificMemoryController):
     def _normalize_write(self,name,args):
         """Mechanical projection into the existing transactional write path."""
         if name=='revise_plan':
-            changes={k:clone(v) for k,v in args.items() if k not in {'task_id','output_key','revision','reason'}}
+            additions=args.get('add_deliveries',[])
+            changes={k:clone(v) for k,v in args.items() if k not in {'task_id','output_key','revision','reason','add_deliveries'}}
             if 'left' in changes or 'right' in changes:
                 old=self.graph.nodes.get(args['task_id'])
                 d=old.delivery(args['output_key']) if old else None
@@ -171,15 +172,28 @@ class TaskPlanController(ScientificMemoryController):
                 for i,side in enumerate(('left','right')):
                     if side in changes:refs[i]=self._scalar_reference(changes.pop(side))
                 changes['input_refs']=refs
-            return {k:clone(args[k]) for k in ('task_id','output_key','revision','reason')}|{'changes':changes}
+            normalized={k:clone(args[k]) for k in ('task_id','output_key','revision','reason') if k in args}|{'changes':changes}
+            if not additions:return normalized
+            old=self.graph.nodes.get(args['task_id'])
+            if old is None:raise ContractError(('task_id',),'Select an existing task for an append transaction')
+            if args['revision']!=old.revision:raise ContractError(('revision',),'Select the existing task current revision')
+            if 'output_key' in args and old.delivery(args['output_key']) is None:
+                raise ContractError(('output_key',),'Unknown existing delivery key; append uses add_deliveries keys')
+            keys=[d.key for d in old.required_outputs]+[d['key'] for d in additions]
+            if len(keys)!=len(set(keys)):raise ContractError(('add_deliveries',),'New keys must be distinct from existing and other new keys; patch existing keys with output_key')
+            rows=(self._revision_updates(old,normalized)['required_outputs'] if changes else
+                  [d.to_dict() for d in old.required_outputs])
+            proposed=self._normalize_write('plan_tasks',{'deliveries':[dict(d,task_id=old.task_id) for d in additions]})
+            rows.extend(proposed['nodes'][0]['required_outputs'])
+            return {k:clone(args[k]) for k in ('task_id','revision','reason')}|{'updates':{'required_outputs':rows}}
         rows=args['deliveries'];nodes={}
         def operand_record(ref,seen=()):
             ident=(ref['task_id'],ref['key'])
             if ident in seen:raise ContractError(('deliveries',),'Comparison operand cycle')
-            if ref['task_id'] in self.graph.nodes:
+            matches=[r for r in rows if (r['task_id'],r['key'])==ident]
+            if ref['task_id'] in self.graph.nodes and (not matches or 'revision' in ref):
                 try:return self.graph.resolve_ref(self._scalar_reference(ref))['delivery']['record']
                 except ValueError as exc:raise ContractError(('deliveries',),str(exc)) from exc
-            matches=[r for r in rows if (r['task_id'],r['key'])==ident]
             if len(matches)!=1 or ref.get('revision',1)!=1:raise ContractError(('deliveries',),'Operand must select one existing or explicitly proposed delivery/version')
             d=matches[0]
             return d['record'] if d['capability']!='compare_results' else operand_record(d['left'],(*seen,ident))
@@ -724,6 +738,23 @@ class TaskPlanController(ScientificMemoryController):
             'revision_targets':[{'task_id':n.task_id,'output_key':d.key,'revision':n.revision} for d in n.required_outputs]}
                            for n in self.graph.nodes.values()]
         payload['dependency_relations']={n.task_id:self.graph.dependency_relations(n) for n in self.graph.nodes.values() if n.input_refs() or n.control_prerequisites()}
+        registry=next(iter(self.store.contexts.values())).executor.registry
+        payload['artifact_input_contracts']=[]
+        for n in self.graph.nodes.values():
+            for d in n.required_outputs:
+                spec=registry.get(d.capability)
+                if not spec or not spec.consumes_artifact:continue
+                bindings=[]
+                for ref in d.input_refs:
+                    resolved=self.graph.resolve_ref(ref)
+                    producer=registry.get(resolved['delivery']['capability'])
+                    if producer and producer.produces_artifact==spec.consumes_artifact:
+                        bindings.append({'reference':ref.to_dict(),'has_result':bool(resolved.get('output'))})
+                payload['artifact_input_contracts'].append({'task_id':n.task_id,'key':d.key,
+                    'requires_artifact_type':spec.consumes_artifact,'declared_producers':bindings,
+                    'registered_producer_capabilities':[p.name for p in registry.list_specs() if p.produces_artifact==spec.consumes_artifact],
+                    'status':'producer_selected' if bindings else 'producer_not_selected',
+                    'note':'Registry facts only; selecting a producer does not establish result existence, source, scope, or acceptance.'})
         # Original request parents expose actual source boundaries, not a gold
         # plan. A field reference cannot crop away record/object ownership.
         from .scientific_request_binding import source_catalog
@@ -820,10 +851,22 @@ class TaskPlanController(ScientificMemoryController):
             return {**self.store._error('INVALID_PLAN_STRUCTURE',str(exc)),
                     'field_path':getattr(exc,'path',[]),'recovery':{'tool':name}}
         result=self._dispatch_canonical(ToolRequest(name,normalized,request.request_id))
+        if result.get('status')=='rejected':
+            result.setdefault('recovery',{}).update({
+                'planning_operations':{'create':'plan_tasks.deliveries',
+                    'revise':'revise_plan task_id/output_key/revision with changed fields',
+                    'append':'revise_plan task_id/revision/add_deliveries, optionally patch output_key in the same transaction'},
+                'source_fields':['interpretation','input_refs'],
+                'instruction':'Explicitly select the scientific target and actual source/result references. Existing identity changes use revise_plan; independent new tasks use plan_tasks. These are representations, not scientific authorization.'})
         if 'field_path' in result:
             path=result['field_path'];result['normalized_field_path']=clone(path)
             if name=='revise_plan':
-                if path[:2]==['updates','required_outputs']:path=path[3:]
+                if path[:2]==['updates','required_outputs']:
+                    index=path[2]
+                    added=args.get('add_deliveries',[])
+                    rows=normalized.get('updates',{}).get('required_outputs',[])
+                    start=len(rows)-len(added)
+                    path=(['add_deliveries',index-start,*path[3:]] if added and index>=start else path[3:])
                 elif path[:1]==['changes']:path=path[1:]
             elif path[:1]==['nodes'] and len(path)>3 and path[2]=='required_outputs':
                 task=normalized['nodes'][path[1]];key=task['required_outputs'][path[3]]['key']
