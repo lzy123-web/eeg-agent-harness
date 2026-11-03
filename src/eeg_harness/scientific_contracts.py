@@ -67,6 +67,7 @@ def validate_contract(value,schema,path=()):
             if name in props:validate_contract(item,props[name],(*path,name))
     if isinstance(value,list):
         if not schema.get('minItems',0)<=len(value)<=schema.get('maxItems',float('inf')):fail('Array size outside contract')
+        if schema.get('uniqueItems') and len({encoded(v) for v in value})!=len(value):fail('Duplicate array items')
         for i,item in enumerate(value):validate_contract(item,schema.get('items',{}),(*path,i))
     if isinstance(value,str):
         if not schema.get('minLength',0)<=len(value)<=schema.get('maxLength',float('inf')):fail('String length outside contract')

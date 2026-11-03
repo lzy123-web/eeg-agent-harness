@@ -32,7 +32,9 @@ OWNER_PROPERTIES={
 SYSTEM = """你是多任务EEG分析Agent。先依据用户原请求提出最小科学任务DAG(plan_tasks)，不是固定工具脚本。
 同一目的可有多个不同窗口或记录的结果key。task_id由你提出后保持稳定；改标题不创建新身份。补参/条件修订用revise_plan，原结果与旧版本保留。
 input_refs是数据依赖唯一声明，程序派生关系，无需重复dependencies；control_dependencies表示另需整个上游任务完成的控制前提。引用明确key、字段、版本和summary/result/process层级。计划不是科学授权；数值参数仍必须来自真实用户或合法历史。
-新增科学测量用plan_tasks；修改现有交付用revise_plan(task_id,output_key,revision,changes,reason)，只给实际变化，保留未改字段。scope/interpretation按字段合并，引用/条件列表整体替换；改scope须明确给range_ref或source_ref等合法来源，程序不代选。旧updates整任务入口仍可用，但不可与changes混用。
+新增科学测量用plan_tasks(deliveries)：每行给task_id/key和实际科学选择，同一task_id的多个交付合成同一节点。修改现有测量必须选原task_id/output_key/revision，用revise_plan直接写scope/interpretation等变化，未改事实由程序保留；无需重写整任务或changes/updates容器。scope/interpretation按字段合并，引用/条件列表整体替换；改scope须给合法来源或范围引用，程序不代选。
+比较在plan_tasks的交付行选capability=compare_results，明确left/right各自task_id/key/revision和单个field；结果为right-minus-left及right/left。程序从所选操作数补齐记录/空计算scope，不让比较重述EEG条件。省略revision表示当前版本，固定历史必须明确revision。
+新建节点、结果inherit_result谱系、原任务身份修订是不同操作：inherit_result只继承真实科学条件，不会修订DAG任务。用户改变已选测量时保留其task_id；独立新分析仍新建，不按名称相似推断。
 回顾已有结果直接read_dependency/read_result/restore_task或使用已可见证据，不新建重复计算义务；追加测量只登记真正新增交付并引用实际工件。比较仍须明确两侧标量fields，不猜字段/方向。
 科学动作使用task_id与output_key明确归属，可省略已明确scope；revision可防过期。同批动作依次执行，各自绑定owner，不依赖前面select的可变current。单步旧入口可省owner，但多输出必须明确。无需反复抄工件/结果ID。
 需要上游工件时使用input_refs提供的真实句柄；compare_results对真实结果做描述性差值比值，不心算。跨记录/版本不能混用；事件窗是相对时间，连续窗是记录绝对时间。未授权的处理不能执行。
@@ -40,7 +42,7 @@ input_refs是数据依赖唯一声明，程序派生关系，无需重复depende
 check_deliveries可读所有方案相同的交付诊断。明确质量/计数条件须依据实际结果判断；辅助尝试失败不等于科学交付失败。缺参可wait_node并推进独立节点，最后真实澄清或partial。
 complete_node(task_id,output_key,revision,result_id)只接受对应真实交付，可先接受生产者再执行同任务消费者；不完成或归档整个任务。身份来自当前真实结果，不猜测。省略output_key才表示完成整个任务，须所有必需交付齐全。接受不等于诊断条件成立。
 不要删除用户要求或降低科学条件以完成任务。任务完成不证明原自然请求无遗漏。finish_task必须给原用户所需实际数值、单位、来源/范围、新旧版本及未完成事项；不作诊断或无依据的因果解释。
-混合对象或字段省略时，在交付项interpretation使用scientific_source_frames的source_ref、time_reference、measurement_channels；channel_reference用source_ref/target_ref仅引用通道名称。补参或改窗用revise_plan保留旧source_ref并指向当前range_ref，或改用当前完整来源。引用只是定位，不证明语义；事件测量通道不改变时基，不猜缺窗。旧source_span仅兼容，不与ref并填，不在动作侧另改解释。
+混合对象或字段省略时，在交付项interpretation使用scientific_source_frames的source_ref、time_reference、measurement_channels；channel_reference用source_ref/target_ref仅引用通道名称。补参或改窗用revise_plan保留旧source_ref并指向当前range_ref，或改用当前完整来源。引用只是定位，不证明语义；事件测量通道不改变时基，不猜缺窗，不在动作侧另改解释。
 若需要用户补参，finish_task.clarifications列出task_id/key/fields，程序核验实际缺失并把明确问题送达。仅wait_node或写无关问题不算询问。报告频带/指标放goal，scope只放广告中的计算条件。
 """
 
@@ -99,7 +101,7 @@ class TaskPlanController(ScientificMemoryController):
         self.turn_nodes = set()
         self.clarifications = []
 
-    def control_definitions(self):
+    def _compatibility_controls(self):
         from .task_plan import task_spec_schema
         schema=task_spec_schema(next(iter(self.store.contexts.values())).executor.registry)
         delivery_properties=schema['properties']['required_outputs']['items']['properties']
@@ -140,6 +142,60 @@ class TaskPlanController(ScientificMemoryController):
             'required':['task_id','key','fields'],'additionalProperties':False},
             'description':'Ask for actual missing fields of a registered delivery. Validated questions are appended to the delivered answer; internal waiting alone is not a question.'}
         return controls
+
+    def control_definitions(self):
+        from .task_plan import model_write_schemas
+        controls=self._compatibility_controls()
+        create,revise=model_write_schemas(next(iter(self.store.contexts.values())).executor.registry)
+        for row in controls:
+            f=row['function']
+            if f['name']=='plan_tasks':
+                f.update(parameters=create,description='Create NEW tasks from flat delivery rows; same task_id groups multiple keys. Explicit compare_results left/right scalar selections produce right-minus-left and right/left; record and empty scope are derived from the selected operands. Do not redeclare an existing identity.')
+            elif f['name']=='revise_plan':
+                f.update(parameters=revise,description='Revise an EXISTING selected delivery at its expected revision. Write only changed scope/interpretation fields or replacement lists directly; no changes/updates wrapper. Preserve identity, unchanged sources and other outputs. left/right explicitly replace comparison operands. Source, version and transaction checks still apply.')
+        return controls
+
+    @staticmethod
+    def _scalar_reference(value):
+        return {k:clone(v) for k,v in value.items() if k!='field'}|{'fields':[clone(value['field'])],'level':'result'}
+
+    def _normalize_write(self,name,args):
+        """Mechanical projection into the existing transactional write path."""
+        if name=='revise_plan':
+            changes={k:clone(v) for k,v in args.items() if k not in {'task_id','output_key','revision','reason'}}
+            if 'left' in changes or 'right' in changes:
+                old=self.graph.nodes.get(args['task_id'])
+                d=old.delivery(args['output_key']) if old else None
+                if not d or d.capability!='compare_results':raise ContractError(('left',),'Operand changes require an existing comparison delivery')
+                refs=[r.to_dict() for r in d.input_refs]
+                for i,side in enumerate(('left','right')):
+                    if side in changes:refs[i]=self._scalar_reference(changes.pop(side))
+                changes['input_refs']=refs
+            return {k:clone(args[k]) for k in ('task_id','output_key','revision','reason')}|{'changes':changes}
+        rows=args['deliveries'];nodes={}
+        def operand_record(ref,seen=()):
+            ident=(ref['task_id'],ref['key'])
+            if ident in seen:raise ContractError(('deliveries',),'Comparison operand cycle')
+            if ref['task_id'] in self.graph.nodes:
+                try:return self.graph.resolve_ref(self._scalar_reference(ref))['delivery']['record']
+                except ValueError as exc:raise ContractError(('deliveries',),str(exc)) from exc
+            matches=[r for r in rows if (r['task_id'],r['key'])==ident]
+            if len(matches)!=1 or ref.get('revision',1)!=1:raise ContractError(('deliveries',),'Operand must select one existing or explicitly proposed delivery/version')
+            d=matches[0]
+            return d['record'] if d['capability']!='compare_results' else operand_record(d['left'],(*seen,ident))
+        for row in rows:
+            ident=row['task_id'];goal=row.get('goal',ident)
+            node=nodes.setdefault(ident,{'task_id':ident,'goal':goal,'required_outputs':[],
+                'control_dependencies':[],'optional_operations':[]})
+            if 'goal' in row and node['goal'] not in (ident,goal):raise ContractError(('goal',),'One task identity needs one goal')
+            if 'goal' in row:node['goal']=goal
+            for key in ('control_dependencies','optional_operations'):
+                node[key]=list(dict.fromkeys([*node[key],*row.get(key,[])]))
+            d={k:clone(v) for k,v in row.items() if k not in {'task_id','goal','control_dependencies','optional_operations','left','right'}}
+            if row['capability']=='compare_results':
+                d.update(record=operand_record(row['left']),scope={},input_refs=[self._scalar_reference(row[k]) for k in ('left','right')])
+            node['required_outputs'].append(d)
+        return {'nodes':list(nodes.values())}
 
     def tool_definitions(self):
         tools=super().tool_definitions()
@@ -560,6 +616,9 @@ class TaskPlanController(ScientificMemoryController):
             return {'status':'contract','task_id':task_id,'key':key,'revision':resolved['revision'],
                 'actual_delivery':bool(output),'valid_binding':valid,'numeric_evidence':False,
                 'declared_contract':resolved['delivery'],'fields':fields,
+                'availability':'delivered' if valid else 'stale' if output else 'undelivered',
+                'available_history':self._history_index(node,key),
+                'selection_rule':'revision omitted means current, never falls back to history; select an explicit available historical revision to read its contract or values',
                 'field_basis':'actual_verified_result' if valid else 'unavailable_not_inferred_from_plan'}
         if not output:
             return {**self.store._error("DEPENDENCY_UNDELIVERED","No actual output at that key/version; current execution and historical reading are distinct"),
@@ -749,6 +808,36 @@ class TaskPlanController(ScientificMemoryController):
         return {'required_outputs':rows}
 
     def _dispatch(self, request):
+        name,args=request.name,clone(dict(request.arguments))
+        compact=(name=='plan_tasks' and 'deliveries' in args or
+                 name=='revise_plan' and not ({'updates','changes'} & set(args)))
+        if not compact:return self._dispatch_canonical(request)
+        spec=next(c['function'] for c in self.control_definitions() if c['function']['name']==name)
+        try:
+            validate_contract(args,spec['parameters'])
+            normalized=self._normalize_write(name,args)
+        except (ValueError,TypeError,KeyError) as exc:
+            return {**self.store._error('INVALID_PLAN_STRUCTURE',str(exc)),
+                    'field_path':getattr(exc,'path',[]),'recovery':{'tool':name}}
+        result=self._dispatch_canonical(ToolRequest(name,normalized,request.request_id))
+        if 'field_path' in result:
+            path=result['field_path'];result['normalized_field_path']=clone(path)
+            if name=='revise_plan':
+                if path[:2]==['updates','required_outputs']:path=path[3:]
+                elif path[:1]==['changes']:path=path[1:]
+            elif path[:1]==['nodes'] and len(path)>3 and path[2]=='required_outputs':
+                task=normalized['nodes'][path[1]];key=task['required_outputs'][path[3]]['key']
+                index=next(i for i,d in enumerate(args['deliveries']) if (d['task_id'],d['key'])==(task['task_id'],key))
+                path=['deliveries',index,*path[4:]]
+                if 'input_refs' in path and args['deliveries'][index]['capability']=='compare_results':
+                    i=path.index('input_refs')
+                    if len(path)>i+1:path=path[:i]+[('left','right')[path[i+1]]]+path[i+2:]
+                    if 'fields' in path:
+                        i=path.index('fields');path=path[:i]+['field']+path[i+2:]
+            result['field_path']=path
+        return result
+
+    def _dispatch_canonical(self, request):
         name,args = request.name,clone(dict(request.arguments))
         owner={k:args.pop(k) for k in ('task_id','output_key','revision') if k in args} if name in NUMERIC_TOOLS | {'compare_results'} else {}
         if owner:
@@ -760,7 +849,7 @@ class TaskPlanController(ScientificMemoryController):
                 return {**self.store._error('INVALID_PLAN_OPERATION','Existing identities require explicit revise_plan; no proposal was applied'),
                     'recovery':{'tool':'revise_plan','targets':[{'task_id':i,'revision':self.graph.nodes[i].revision,
                         'output_keys':[d.key for d in self.graph.nodes[i].required_outputs]} for i in existing]}}
-        spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name),None)
+        spec = next((c["function"] for c in self._compatibility_controls() if c["function"]["name"] == name),None)
         if spec:
             if name in {'plan_tasks','revise_plan','finish_task'}:
                 try:validate_contract(args,spec['parameters'])

@@ -92,23 +92,9 @@ def _rule(value):
     return _copy(result)
 
 
-def _interpretation(value):
-    if value == {}:return {}
-    _object(value, {'source_span','source_ref','time_reference','measurement_channels','range_span','range_ref','channel_reference'},
-            {'time_reference'}, 'interpretation')
-    if ('source_span' in value)==('source_ref' in value):raise ValueError('Use exactly one source_ref (preferred) or legacy source_span')
-    for key in ('source_span','source_ref','range_ref'):
-        if key in value:_text(value[key],key,4000)
-    if 'range_span' in value and 'range_ref' in value:raise ValueError('Use one window locator')
-    if value['time_reference'] not in {'record_absolute','event_relative'}:
-        raise ValueError('Unknown time reference')
-    if 'measurement_channels' in value:_strings(value['measurement_channels'],'measurement_channels')
-    if 'range_span' in value:_text(value['range_span'],'range_span',4000)
-    if 'channel_reference' in value:
-        ref=value['channel_reference']
-        if not isinstance(ref,dict) or set(ref) not in ({'source_span','target_span'},{'source_ref','target_ref'}):
-            raise ValueError('Field reference needs source_ref/target_ref or legacy source_span/target_span')
-        for span in value['channel_reference'].values():_text(span,'reference span',4000)
+def _interpretation(value, *, context=False):
+    from .scientific_contracts import validate_contract
+    validate_contract(value,interpretation_schema(context=context))
     return _copy(value)
 
 
@@ -127,6 +113,9 @@ class DeliveryItem:
     def from_dict(cls, value):
         _object(value, {"key", "capability", "record", "scope", "input_refs", "required", "acceptance_rule", "interpretation"},
                 {"key", "capability", "record", "scope"}, "DeliveryItem")
+        if value['capability']=='compare_results':
+            from .scientific_contracts import validate_contract
+            validate_contract(value,{'properties':comparison_properties(),'required':['input_refs']})
         if not isinstance(value["scope"], dict) or type(value.get("required", True)) is not bool:
             raise ValueError("DeliveryItem scope must be an object and required must be boolean")
         refs, rules = value.get("input_refs", []), value.get("acceptance_rule", [])
@@ -140,7 +129,7 @@ class DeliveryItem:
                    _text(value["capability"], "DeliveryItem.capability", 100),
                    _text(value["record"], "DeliveryItem.record", 100), _copy(value["scope"]),
                    parsed_refs, value.get("required", True), [_rule(r) for r in rules],
-                   _interpretation(value.get('interpretation', {})))
+                   _interpretation(value['interpretation'],context=value['capability']=='compare_results') if 'interpretation' in value else {})
 
     def to_dict(self):
         return _copy({"key": self.key, "capability": self.capability, "record": self.record,
@@ -481,9 +470,9 @@ class PlanGraph:
 
 
 _STRING = {"type": "string", "minLength": 1}
-_PATH = {"type": "array", "minItems": 1, "items": {"type": ["string", "integer"]}}
+_PATH = {"type": "array", "minItems": 1, "items": {"type": ["string", "integer"],"minLength":1,"minimum":0}}
 INPUT_REF_SCHEMA = {"type": "object", "properties": {
-    "task_id": _STRING, "key": _STRING,
+    "task_id": {**_STRING,'maxLength':100}, "key": {**_STRING,'maxLength':100},
     "fields": {"type": "array", "maxItems": 4, "items": _PATH},
     "level": {"type": "string", "enum": sorted(READ_LEVELS)},
     "revision": {"type": "integer", "minimum": 1,
@@ -518,6 +507,40 @@ TASK_SPEC_SCHEMA = {"type": "object", "properties": {
 PLAN_NODES_SCHEMA = {"type": "array", "minItems": 1, "maxItems": 32, "items": TASK_SPEC_SCHEMA}
 
 
+def interpretation_schema(*, context=False, locators_only=False):
+    """One representation contract for advertised structures and parsing.
+
+    Arithmetic operands own their scopes; optional context is not a new EEG
+    interpretation. This distinction never bypasses actual source checks.
+    """
+    text={'type':'string','minLength':1,'maxLength':4000}
+    props={k:_copy(text) for k in ('source_ref','source_span','range_ref','range_span')}
+    props.update(time_reference={'type':'string','enum':['record_absolute','event_relative']},
+        measurement_channels={'type':'array','items':{'type':'string','minLength':1,'maxLength':100},'uniqueItems':True},
+        channel_reference={'type':'object','oneOf':[
+            {'properties':{k:_copy(text) for k in pair},'required':list(pair),'additionalProperties':False}
+            for pair in (('source_ref','target_ref'),('source_span','target_span'))]})
+    result={'type':'object','properties':props,'additionalProperties':False,
+        'allOf':[{'not':{'required':['source_ref','source_span']}},{'not':{'required':['range_ref','range_span']}}]}
+    if not context:
+        result['required']=['time_reference']
+        result['oneOf']=[{'required':['source_ref']},{'required':['source_span']}]
+    if locators_only:
+        for k in ('source_span','range_span'):props.pop(k)
+        props['channel_reference']={'type':'object',**props['channel_reference']['oneOf'][0]}
+        if not context:result['oneOf']=[{'required':['source_ref']}]
+    return result
+
+
+def comparison_properties():
+    scalar=_copy(INPUT_REF_SCHEMA)
+    scalar['required']=['task_id','key','fields']
+    scalar['properties']['fields'].update(minItems=1,maxItems=1)
+    return {'interpretation':interpretation_schema(context=True),
+            'scope':{'type':'object','properties':{},'additionalProperties':False},
+            'input_refs':{'type':'array','minItems':2,'maxItems':2,'items':scalar}}
+
+
 def task_spec_schema(registry):
     """Shared derived scope vocabulary, never a second tool parameter table."""
     from .scientific_contracts import scope_groups
@@ -525,34 +548,53 @@ def task_spec_schema(registry):
     spec['properties']['task_id']['maxLength']=100
     spec['properties']['goal']['maxLength']=2000
     spec['properties']['dependencies']['items']['maxLength']=100
+    spec['properties']['control_dependencies']['items']['maxLength']=100
     spec['properties']['optional_operations']['items'].update(maxLength=100)
     item=spec['properties']['required_outputs']['items']
     for key in ('key','capability','record'):item['properties'][key]['maxLength']=100
-    interpretation=item['properties']['interpretation']
-    interpretation['description']='Semantic proposal, not facts. Prefer source_ref from the visible catalog; legacy source_span is exclusive. Historical object plus current range_ref may express a lawful supplement.'
-    interpretation['properties'].update(source_ref=_STRING,range_ref=_STRING)
-    interpretation['required']=['time_reference']
-    interpretation['oneOf']=[{'required':['source_ref'],'properties':{'source_span':{'type':'null'}}},
-                             {'required':['source_span'],'properties':{'source_ref':{'type':'null'}}}]
-    interpretation['not']={'required':['range_ref','range_span']}
-    ref=interpretation['properties']['channel_reference']
-    ref['properties'].update(source_ref=_STRING,target_ref=_STRING)
-    ref['required']=[]
-    ref['oneOf']=[{'properties':{key:_STRING for key in keys},'required':keys,'additionalProperties':False}
-                  for keys in (['source_ref','target_ref'],['source_span','target_span'])]
+    interpretation=interpretation_schema()
     groups=scope_groups(registry)+[{'names':['compare_results'],'schema':{'type':'object','properties':{},'additionalProperties':False}}]
     item['properties']['capability']['enum']=[n for g in groups for n in g['names']]
     item['allOf']=[{'if':{'properties':{'capability':{'enum':g['names']}}},
                    'then':{'properties':{'scope':g['schema']}}} for g in groups]
-    comparison_interpretation=_copy(interpretation)
-    comparison_interpretation['required']=[]
-    comparison_interpretation.pop('oneOf',None)
-    comparison_interpretation['description']='Optional context only; operands establish the actual scientific scopes. No new EEG time-window interpretation is required for arithmetic.'
     item['properties']['interpretation']={'type':'object','properties':_copy(interpretation['properties']),'additionalProperties':False}
     item['allOf'].append({'if':{'not':{'properties':{'capability':{'enum':['compare_results']}}}},'then':{'properties':{'interpretation':interpretation}}})
-    scalar_ref=_copy(INPUT_REF_SCHEMA)
-    scalar_ref['required']=['task_id','key','fields']
-    scalar_ref['properties']['fields'].update(minItems=1,maxItems=1)
     item['allOf'].append({'if':{'properties':{'capability':{'enum':['compare_results']}}},
-        'then':{'required':['input_refs'],'properties':{'interpretation':comparison_interpretation,'input_refs':{'type':'array','minItems':2,'maxItems':2,'items':scalar_ref}}}})
+        'then':{'required':['input_refs'],'properties':comparison_properties()}})
     return spec
+
+
+def model_write_schemas(registry):
+    """Compact choices normalized into TaskSpec, not a second plan format store."""
+    full=task_spec_schema(registry)
+    delivery=full['properties']['required_outputs']['items']
+    numeric=_copy(delivery)
+    numeric['properties']['capability']['enum'].remove('compare_results')
+    numeric['properties'].update(task_id=full['properties']['task_id'],goal=full['properties']['goal'],
+        control_dependencies=full['properties']['control_dependencies'],
+        optional_operations=full['properties']['optional_operations'])
+    numeric['required']+=['task_id']
+    # Keep one source locator representation on the default operation surface.
+    numeric['properties']['interpretation']=interpretation_schema(locators_only=True)
+    numeric['allOf']=[s for s in numeric['allOf'] if 'scope' in s.get('then',{}).get('properties',{})]
+    scalar={'type':'object','properties':{
+        'task_id':_copy(full['properties']['task_id']),'key':_copy(delivery['properties']['key']),
+        'revision':_copy(INPUT_REF_SCHEMA['properties']['revision']),'field':_copy(_PATH)},
+        'required':['task_id','key','field'],'additionalProperties':False}
+    compare={'type':'object','properties':{k:_copy(numeric['properties'][k]) for k in
+        ('task_id','key','goal','required','acceptance_rule','control_dependencies','optional_operations')},
+        'required':['task_id','key','capability','left','right'],'additionalProperties':False}
+    compare['properties'].update(capability={'type':'string','enum':['compare_results']},left=scalar,right=_copy(scalar))
+    # Records/scopes come from explicitly selected operands, not new guesses.
+    create={'type':'object','properties':{'deliveries':{'type':'array','minItems':1,'maxItems':32,
+        'items':{'oneOf':[numeric,compare]}}},'required':['deliveries'],'additionalProperties':False}
+    patch_props={k:_copy(delivery['properties'][k]) for k in ('scope','input_refs','acceptance_rule')}
+    patch_props['interpretation']=interpretation_schema(context=True,locators_only=True)
+    revise={'type':'object','properties':{'task_id':_copy(full['properties']['task_id']),
+        'output_key':_copy(delivery['properties']['key']),'revision':{'type':'integer','minimum':1},
+        'reason':{'type':'string','minLength':1,'maxLength':2000},**patch_props,
+        'left':scalar,'right':_copy(scalar)},
+        'required':['task_id','output_key','revision','reason'],'additionalProperties':False,
+        'not':{'required':['input_refs','left']}}
+    revise['allOf']=[{'not':{'required':['input_refs','right']}}]
+    return create,revise
