@@ -848,16 +848,9 @@ class TaskPlanController(ScientificMemoryController):
             validate_contract(args,spec['parameters'])
             normalized=self._normalize_write(name,args)
         except (ValueError,TypeError,KeyError) as exc:
-            return {**self.store._error('INVALID_PLAN_STRUCTURE',str(exc)),
-                    'field_path':getattr(exc,'path',[]),'recovery':{'tool':name}}
+            return self._planning_feedback(name,args,{**self.store._error('INVALID_PLAN_STRUCTURE',str(exc)),
+                    'field_path':getattr(exc,'path',[])})
         result=self._dispatch_canonical(ToolRequest(name,normalized,request.request_id))
-        if result.get('status')=='rejected':
-            result.setdefault('recovery',{}).update({
-                'planning_operations':{'create':'plan_tasks.deliveries',
-                    'revise':'revise_plan task_id/output_key/revision with changed fields',
-                    'append':'revise_plan task_id/revision/add_deliveries, optionally patch output_key in the same transaction'},
-                'source_fields':['interpretation','input_refs'],
-                'instruction':'Explicitly select the scientific target and actual source/result references. Existing identity changes use revise_plan; independent new tasks use plan_tasks. These are representations, not scientific authorization.'})
         if 'field_path' in result:
             path=result['field_path'];result['normalized_field_path']=clone(path)
             if name=='revise_plan':
@@ -878,6 +871,45 @@ class TaskPlanController(ScientificMemoryController):
                     if 'fields' in path:
                         i=path.index('fields');path=path[:i]+['field']+path[i+2:]
             result['field_path']=path
+        return self._planning_feedback(name,args,result)
+
+    def _planning_feedback(self,name,args,result):
+        """Explain the attempted transaction, never infer the desired one.
+
+        Structure and scientific errors use the same operation boundary. A
+        task container is not implicit evidence for a newly proposed key.
+        """
+        if result.get('status')!='rejected':return result
+        if getattr(self,'final_only',False) or result.get('code')=='FINAL_DELIVERY_ONLY':
+            result['recovery']={'tool':'finish_task','instruction':'Only the reserved final delivery remains; report actual results and unresolved work.'}
+            return result
+        effects=[]
+        rows=args.get('deliveries',[]) if name=='plan_tasks' else args.get('add_deliveries',[])
+        if isinstance(rows,list):
+            for row in rows:
+                if not isinstance(row,dict):continue
+                ident=row.get('task_id') if name=='plan_tasks' else args.get('task_id')
+                node=self.graph.nodes.get(ident) if isinstance(ident,str) else None
+                effects.append({'operation':'new_task_delivery' if name=='plan_tasks' else 'append_new_delivery',
+                    'task_id':ident,'key':row.get('key'),'task_already_exists':node is not None,
+                    'key_already_exists':bool(node and isinstance(row.get('key'),str) and node.delivery(row['key'])),
+                    'implicit_previous_result':False,
+                    'explicit_input_refs':clone(row.get('input_refs',[]))})
+        if name=='revise_plan' and 'output_key' in args:
+            node=self.graph.nodes.get(args.get('task_id')) if isinstance(args.get('task_id'),str) else None
+            key=args.get('output_key')
+            output=node.outputs.get(key) if node and isinstance(key,str) else None
+            entry=self._entry_for(output)
+            effects.append({'operation':'patch_existing_delivery','task_id':args.get('task_id'),'key':key,
+                'current_revision':node.revision if node else None,
+                'implicit_previous_result':bool(entry and self.store._binding_valid(entry))})
+        result['recovery']={**result.get('recovery',{}),'tool':result.get('recovery',{}).get('tool',name),
+            'proposed_effects':effects,'source_fields':['interpretation','input_refs'],
+            'operation_contract':{
+                'new_task':'plan_tasks.deliveries: independent new identities only',
+                'patch_existing':'revise_plan: task_id + output_key + revision + reason, then changed fields. Reuses that selected delivery previous binding; old result remains in revision history.',
+                'append_new':'revise_plan: task_id + revision + reason + add_deliveries. New keys do not inherit sibling results merely by sharing a task. Supply explicit input_refs when using existing evidence; may also patch one output_key atomically.'},
+            'instruction':'Select the intended operation and evidence explicitly; no target or scientific condition is inferred. read_dependency discovers actual result contracts, including undelivered/stale status.'}
         return result
 
     def _dispatch_canonical(self, request):

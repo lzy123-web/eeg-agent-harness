@@ -46,3 +46,18 @@ python -m pip check
 ```
 
 真实参数入口为working_memory_issue61_live --register/--run，显式candidate-id、attestation、case、output；复用既有环境配置及唯一账本，不在仓库提供密钥、不需要ping。后续真实结果、结算、提交与CI在本报告追加。当前不能声称自主补全、稳定四题完成、成本下降、真实EEG或强基线收益。
+
+
+## v1真实诊断与第1批有依据修正
+
+初始实现be9c8bc，科学cf417c65、完整source47a7b5c9。正式第六授权已登记，prior_usage仍409/5328790/$1.7417127。原T07 completed/completed：RMS=1.41e-5V、theta=1.8449999109511803e-10V²，质量沿原Epoch ID，3试次/0标记，不删除、不重算。19次/364124tokens/$0.1155111。原M01 completed/round_limit：旧RMS存在，次轮没有新RMS、谱系或身份修订；15次/198840tokens/$0.0641934。全部原始原评分和送达回答保存，原null整请求评分另列自审，不回填。此时累计443次/5891754guard tokens/$1.9214172，原未知占用不变。
+
+T07模型直接在初始正确计划中包含Epoch，新追加机制未自主触发，不能把成功全归于add_deliveries。M01模型仍误选新增key、没有选择原output_key；同时确有反馈契约问题：结构预检只返回工具名，绕过统一操作恢复；新key与原交付修订的previous binding差别未呈现；最终only阶段反而附plan/revise建议。只读审查同意这是有界契约修正依据，不免除模型选择责任。
+
+第1批科学修正只统一这些恢复路径：反馈报告实际提案是新任务、新key还是已有key补丁，显式选中目标的真实revision及是否存在有效previous result；不从用户文字推断意图，不代选task/key/source/科学字段。final-only任何结构/语义拒绝仅指向finish_task。并在原候选记录中明确affected_cases，使新候选优先复查M01，避免为了调度先重复无关T07。旧v1成功不能填入新版最终矩阵。
+
+首次v2离线测试发现未begin_turn时final_only属性尚未建立，修正为只读默认False，失败日志保留。第二次开发前仍需全量与只读门，并保护新候选四条完整覆盖空间；不因剩余一次修正机会而凑修改。
+
+全量另发现Windows并发创建锁偶发PermissionError；立即转结构化预算停止，不删除外国锁、不自动重试。只读补查5项通过，科学行为未因此改变。正式第1批候选science eea173c1，完整source f165e86a；最终全量、回归与冻结记录以本轮gate及Git回执核对。
+
+第1批最终离线门：812项=797通过+15跳过；原24链111/111、12兼容及12默认链各78/78。只读审查和锁反例通过。下一步原M01在新行为eea173c1中仅一次诊断；其他三题待最终冻结同版覆盖。

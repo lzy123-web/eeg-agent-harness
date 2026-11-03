@@ -32,6 +32,10 @@ def _ledger_lock(path):
             if time.monotonic() >= deadline:
                 raise StageBudgetExhausted("Issue39 ledger is locked; inspect before retry")
             time.sleep(0.1)
+        except PermissionError as exc:
+            # Windows may report sharing/delete-pending contention as EACCES.
+            # Do not infer that it is safe to remove or bypass the lock.
+            raise StageBudgetExhausted("Budget ledger lock is inaccessible; preserve state and inspect permissions") from exc
     try:
         yield
     finally:

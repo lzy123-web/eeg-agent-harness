@@ -5,7 +5,7 @@ import hashlib,json,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 from eeg_harness.research.working_memory_issue55_live import *
-from eeg_harness.research.working_memory_issue61_live import register_candidate,behavior
+from eeg_harness.research.working_memory_issue61_live import register_candidate,behavior,admit_candidate_session
 from eeg_harness.research.task_memory_issue39_budget import _append,_rows,StageBudgetExhausted
 from eeg_harness.research.working_memory_issue51 import _usage
 from eeg_harness.task_plan_agent import TaskPlanEEGAgent
@@ -85,6 +85,21 @@ class GrantTest(unittest.TestCase):
             self.assertEqual(sum(r['event']=='http503_recovery_permission' for r in _rows(p)),1)
             self.assertEqual(sum(r['event']=='authorization_revised' for r in _rows(p)),6)
 
+    def test_revised_candidate_diagnoses_explicit_affected_case_first(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);raw,p,a,proof=seed(root);apply_authorization_revision(raw,p,a,proof,test_only=True)
+            register_candidate(raw,p,a,'TEST-first',rationale={'design':'TEST'},test_only=True)
+            source=candidate_manifest();source['files']['src/eeg_harness/task_plan_agent.py']='TEST changed science'
+            source['sha256']=recovery.digest(source['files']);a['mechanism_gate']['source_sha256']=source['sha256']
+            with patch('eeg_harness.research.working_memory_issue61_live.candidate_manifest',return_value=source):
+                r=register_candidate(raw,p,a,'TEST-second',rationale={'new_real_root_cause_evidence':'TEST evidence','affected_cases':['M01']},test_only=True)
+            self.assertEqual(r['development_order'],['M01'])
+            manifest={k:r[k] for k in ('source','runtime','data')}
+            case=next(c for c in development_cases() if c['id']=='M01')
+            admit_candidate_session(p,_rows(p),case,manifest,a,'TEST-second',True)
+            case=next(c for c in development_cases() if c['id']=='T07')
+            with self.assertRaises(StageBudgetExhausted):admit_candidate_session(p,_rows(p),case,manifest,a,'TEST-second',True)
+
     @patch('eeg_harness.research.working_memory_issue55_live.time.sleep')
     def test_retry_exhaustion_preserves_structured_stop_through_agent(self,_sleep):
         with tempfile.TemporaryDirectory() as td:
@@ -96,5 +111,15 @@ class GrantTest(unittest.TestCase):
             self.assertIn('retry allowance exhausted',result['llm']['error']['message'])
             self.assertEqual(raw.request_count,3)
             self.assertTrue(recovery.active_stops(_rows(p),recovery.SCOPE))
+
+    def test_lock_permission_error_fails_closed_and_never_removes_foreign_lock(self):
+        from eeg_harness.research.task_memory_issue39_budget import _ledger_lock
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'TEST-ledger';lock=Path(str(path)+'.lock');lock.write_text('foreign owner')
+            with patch('eeg_harness.research.task_memory_issue39_budget.os.open',side_effect=PermissionError('TEST')):
+                with self.assertRaises(StageBudgetExhausted) as cm:
+                    with _ledger_lock(path):self.fail('must not acquire or send')
+            self.assertEqual(cm.exception.code,'STAGE_BUDGET_EXHAUSTED')
+            self.assertEqual(lock.read_text(),'foreign owner');self.assertFalse(path.exists())
 
 if __name__=='__main__':unittest.main()

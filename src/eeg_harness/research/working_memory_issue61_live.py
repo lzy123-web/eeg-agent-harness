@@ -51,11 +51,14 @@ def register_candidate(raw,ledger,attestation,candidate_id,*,rationale,final=Fal
                     raise StageBudgetExhausted('At most initial plus two substantive revisions, no hash-only resampling')
                 if not rationale or candidates and not rationale.get('new_real_root_cause_evidence'):
                     raise StageBudgetExhausted('Real new root cause required for a revised candidate')
+                order=rationale.get('affected_cases',[]) if candidates else ['T07','M01']
+                if not order or len(order)!=len(set(order)) or any(c not in recovery.CASES for c in order):
+                    raise StageBudgetExhausted('Revised candidate needs explicit affected original cases')
                 reserve_coverage(rows,[],test_only)
                 old={'event':'candidate_registered','scope_id':SCOPE,'funding_revision':REPAIR_REVISION,
                     'candidate_id':candidate_id,'behavior':fingerprint,'source':source,
                     'runtime':actual_settings(raw),'data':data_manifest(development_records()),
-                    'cases':development_cases(),'rationale':rationale,'gate':gate,
+                    'cases':development_cases(),'development_order':order,'rationale':rationale,'gate':gate,
                     'readonly_review_sha256':attestation['readonly_review_sha256']}
                 _append(ledger,old)
             if final and not frozen:
@@ -88,7 +91,7 @@ def admit_candidate_session(ledger,rows,case,manifest,attestation,candidate_id,t
         raise StageBudgetExhausted('Incomplete previous session; do not restart or silently skip')
     covered=[r['case'] for r in prior]
     final=any(r.get('event')=='candidate_final_frozen' and r.get('candidate_id')==candidate_id for r in rows)
-    expected=[c for c in recovery.CASES if c not in covered] if final else [c for c in ['T07','M01'] if c not in covered]
+    expected=[case_id for case_id in (recovery.CASES if final else c['development_order']) if case_id not in covered]
     if not expected or case['id']!=expected[0]:raise StageBudgetExhausted('Development/final candidate order mismatch')
     pending,reserve=reserve_coverage(rows,covered,test_only)
     _append(ledger,{'event':'candidate_coverage_reserve','scope_id':SCOPE,'candidate_id':candidate_id,

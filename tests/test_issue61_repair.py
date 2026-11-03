@@ -88,4 +88,24 @@ class RepairTest(unittest.TestCase):
         create=next(c['function']['parameters'] for c in w.control_definitions() if c['function']['name']=='plan_tasks')
         self.assertEqual(create['properties']['deliveries']['maxItems'],32*12)
 
+    def test_feedback_actual_effect_not_semantic_guess_and_final_exclusive(self):
+        w=checkpoint('M01').working_memory
+        existing='rms_c1_0_2';key=existing
+        new={'task_id':'independent','key':'new','capability':'amplitude','record':'A',
+             'scope':{'channels':['SYNTH-C2'],'start':0,'end':2},'unsupported':True}
+        r=w._dispatch(ToolRequest('plan_tasks',{'deliveries':[new]}))
+        self.assertEqual(r['recovery']['proposed_effects'][0]['operation'],'new_task_delivery')
+        self.assertFalse(r['recovery']['proposed_effects'][0]['implicit_previous_result'])
+        r=w._dispatch(ToolRequest('revise_plan',{'task_id':existing,'revision':1,'reason':'TEST',
+            'add_deliveries':[{k:v for k,v in new.items() if k!='task_id'}]}))
+        self.assertEqual(r['recovery']['proposed_effects'][0]['operation'],'append_new_delivery')
+        self.assertFalse(r['recovery']['proposed_effects'][0]['implicit_previous_result'])
+        r=w._dispatch(ToolRequest('revise_plan',{'task_id':existing,'output_key':key,'revision':1,'reason':'TEST','scope':{'start':4}}))
+        self.assertEqual(r['status'],'rejected')
+        self.assertTrue(r['recovery']['proposed_effects'][0]['implicit_previous_result'])
+        w.final_only=True
+        r=w._dispatch(ToolRequest('plan_tasks',{'deliveries':[new]}))
+        self.assertEqual(r['recovery']['tool'],'finish_task')
+        self.assertNotIn('operation_contract',r['recovery'])
+
 if __name__=='__main__':unittest.main()
