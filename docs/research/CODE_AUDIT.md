@@ -1,3 +1,11 @@
+## Issue60 HTTP503恢复事实（2026-11-03）
+
+已实现：working_memory_issue50原单次入口增加独立尝试元数据/提交钩子；JournaledBudgetClient保留request ID与HTTP status；MoneyBudgetClient在原锁、预约、final lease和结算上执行限定恢复；working_memory_issue60_recovery仅为原账本事件校验函数，不是新预算/科学状态系统。原科学模块/提示/schema/数据/评分逐文件冻结。许可/历史证据append-only，处置必须关联已保守结算503和独立retry reserved；孤儿处置不解锁、预约状态未知不重发；只对具体事件生效。真实首T05完全同输入恢复，后续工具状态进程内保留；非空状态跨进程无法可靠还原时仍失败关闭。
+
+已关闭主审侧只读反例：money_settled后、safety_stop前崩溃原首版可绕过502保护；现补缺stop，不重复收费。802项及原受控链通过；真实T05/M02完整、T07/M01失败，真实后无科学修改。M01来源反馈要求继承但默认计划不接受inherit_result，T07缺前置交付后的默认追加表达仍有负担，不能把它们描述为已完全简化或纯模型错误。完整请求、旧失败、费用和边界见[Issue60报告](EEG_WORKING_MEMORY_ISSUE60.md)。
+
+---
+
 ## Issue60主审整改续作审计（2026-11-03）
 
 工程efcd6de：interpretation_schema/comparison_properties共用公开表示和解析；原TaskPlanController增加默认扁平交付/直接修订/显式左右单字段的机械规范化，仍提交原TaskSpec/PlanGraph/Store事务，旧兼容不默认展示。记录/空scope仅由显式比较操作数取得；不猜对象/字段/方向。contract返回当前/历史/过期可选状态，不回退旧值。只读审查发现的字段引用类型丢失及比较非空条件丢失已修复，788项/15跳过和既有科学反例通过。
