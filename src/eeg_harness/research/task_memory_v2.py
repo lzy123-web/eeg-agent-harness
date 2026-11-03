@@ -238,8 +238,10 @@ def independent_oracle(record, step, field):
         channel = field[0]
         samples = record.slice(params["start"], params["end"], [channel])[0]
         if capability == "amplitude":
+            if field[1] == "mean_abs":
+                return float(np.mean(np.abs(samples.astype(float))))
             if field[1] != "rms":
-                raise ValueError("Only independently specified RMS is supported")
+                raise ValueError("Only independently specified RMS or mean_abs is supported")
             return float(np.sqrt(np.mean(np.square(samples.astype(float)))))
         band = field[1]
         frequencies, density = welch(samples, fs=record.sfreq,

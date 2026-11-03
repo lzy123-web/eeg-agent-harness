@@ -48,7 +48,7 @@ def incremental_steps(case_id, *, legacy_revision=False):
                 args={'task_id':'alpha','output_key':'alpha','revision':current['revision'],
                       'changes':changes,'reason':'用户明确改窗；保留原对象、旧值及B'}
                 if legacy_revision:
-                    rows=clone(current['required_outputs'])
+                    rows=clone(current['declared_outputs'])
                     for key,value in changes.items():rows[0][key].update(value)
                     args={'task_id':'alpha','updates':{'required_outputs':rows},'reason':args['reason']}
             return name,args

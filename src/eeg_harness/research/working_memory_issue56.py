@@ -42,7 +42,7 @@ def interface_steps(case_id):
             if name in {'plan_tasks','revise_plan'}:migrate(args)
             if name in NUMERIC_TOOLS | {'compare_results'}:
                 n=next(n for n in view['plan'] if n['task_id']==view['current_plan_task'])
-                candidates=[d for d in n['required_outputs'] if d['capability']==name
+                candidates=[d for d in n['declared_outputs'] if d['capability']==name
                     and args.get('record',d['record'])==d['record']
                     and all(args.get(k,v)==v for k,v in d['scope'].items())]
                 args['task_id']=n['task_id']
@@ -50,7 +50,7 @@ def interface_steps(case_id):
                 elif name not in n.get('optional_operations',[]):raise ValueError('Fixture delivery is not uniquely migratable')
             if name=='finish_task' and args.get('status')=='clarification_required':
                 args['clarifications']=[{'task_id':n['task_id'],'key':d['key'],'fields':['tmin','tmax']}
-                    for n in view['plan'] if n['status']=='WAITING_INPUT' for d in n['required_outputs']
+                    for n in view['plan'] if n['status']=='WAITING_INPUT' for d in n['declared_outputs']
                     if d['capability']=='create_epochs' and not all(k in d['scope'] for k in ('tmin','tmax'))]
             return name,args
         return action

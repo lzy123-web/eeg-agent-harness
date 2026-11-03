@@ -23,8 +23,8 @@ class LocalDependenciesTest(unittest.TestCase):
         def check(messages):
             error=json.loads(messages[-1]['content'])['data']
             self.assertEqual(error['code'],'INVALID_PLAN_STRUCTURE')
-            self.assertEqual(error['field_path'],['nodes',0,'required_outputs',0,'input_refs'])
-            self.assertIn('one scalar field path',error['message'])
+            self.assertEqual(error['field_path'],['nodes',0,'required_outputs',0,'input_refs',0,'fields'])
+            self.assertEqual(error['message'],'Array size outside contract') # same invalid proposal now rejected by advertised schema
             self.assertEqual(list(a.working_memory.graph.nodes),['source'])
             self.assertEqual(len(a.working_memory.store.entries),1)
             return finish('partial',unresolved=['TEST comparison was rejected'])

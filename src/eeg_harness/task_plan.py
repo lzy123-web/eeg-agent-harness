@@ -544,4 +544,15 @@ def task_spec_schema(registry):
     item['properties']['capability']['enum']=[n for g in groups for n in g['names']]
     item['allOf']=[{'if':{'properties':{'capability':{'enum':g['names']}}},
                    'then':{'properties':{'scope':g['schema']}}} for g in groups]
+    comparison_interpretation=_copy(interpretation)
+    comparison_interpretation['required']=[]
+    comparison_interpretation.pop('oneOf',None)
+    comparison_interpretation['description']='Optional context only; operands establish the actual scientific scopes. No new EEG time-window interpretation is required for arithmetic.'
+    item['properties']['interpretation']={'type':'object','properties':_copy(interpretation['properties']),'additionalProperties':False}
+    item['allOf'].append({'if':{'not':{'properties':{'capability':{'enum':['compare_results']}}}},'then':{'properties':{'interpretation':interpretation}}})
+    scalar_ref=_copy(INPUT_REF_SCHEMA)
+    scalar_ref['required']=['task_id','key','fields']
+    scalar_ref['properties']['fields'].update(minItems=1,maxItems=1)
+    item['allOf'].append({'if':{'properties':{'capability':{'enum':['compare_results']}}},
+        'then':{'required':['input_refs'],'properties':{'interpretation':comparison_interpretation,'input_refs':{'type':'array','minItems':2,'maxItems':2,'items':scalar_ref}}}})
     return spec

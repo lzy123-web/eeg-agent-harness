@@ -432,6 +432,7 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
     sources={}
     pair=('tmin','tmax') if object_key=='labels' else ('start','end')
     window_frame,window_turn=frame,source_turn
+    retained_window=False
     if 'range_ref' in value:
         window_turn,window_frame=resolve_source_ref(store,value['range_ref'])
         if window_turn==store.turn:
@@ -439,7 +440,23 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
             if len(matched)!=1:raise ValueError('Window reference is not a resolved source for this action')
             window_frame=matched[0]
         if window_frame.records!=(record,):raise ValueError('Window reference belongs to another record')
-        if source_turn==store.turn and window_frame!=frame:
+        # A changed object field does not invalidate unchanged time fields of
+        # the explicitly selected actual result. Require its original receipt,
+        # not merely equal numbers in some historical user sentence.
+        retained_window=bool(window_turn<store.turn and inherited
+            and store._binding_valid(inherited) and inherited.record==record
+            and store._family(inherited.capability)==store._family(name)
+            and all(scope.get(k)==inherited.parameters.get(k) for k in pair)
+            and any(all(o.get('scientific_sources',{}).get(k,{}).get('turn')==window_turn
+                        and o.get('scientific_sources',{}).get(k,{}).get('span')==window_frame.text
+                        for k in pair) for o in inherited.tool_trace))
+        if retained_window:
+            current_windows={v for f in resolution.frames for v in
+                (owned_intervals(store,f,store._family(name),selected) or
+                 ({(float(a),float(b)) for a,b in RANGE.findall(f.text)} if f.object_parent is None else set()))}
+            if current_windows and current_windows!={tuple(float(scope[k]) for k in pair)}:
+                raise ValueError('Current user window conflicts with the selected result window')
+        if source_turn==store.turn and window_frame!=frame and not retained_window:
             raise ValueError('Current source parents cannot be spliced into a window')
     if source_turn<store.turn:
         historical,ambiguous=_historical_scientific_object(store,name,scope)
@@ -459,7 +476,7 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
         elif window_frame not in resolution.frames or any(
                 store._contains(window_frame.text,x) for x in available-selected):
             raise ValueError('Current supplement conflicts with the historical object')
-    elif window_turn!=store.turn:raise ValueError('Cannot borrow an old window for a current object')
+    elif window_turn!=store.turn and not retained_window:raise ValueError('Cannot borrow an old window for a current object')
     reference=value.get('channel_reference')
     if reference:
         if 'source_ref' in reference:

@@ -45,13 +45,19 @@ CLOSEOUT_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuec
 CLOSEOUT_REVISION='issue59-v5-closeout-20261102-plus21c'
 CLOSEOUT_PREFIX='4215c2d8505e40f8d3bcb2a513b003f7637f46580cbf505d062a5dba9796e68d'
 CLOSEOUT_CAPS={**SOURCE_CAPS,'calls':428,'development':[332,4877118]}
-REVIEWED_PREFIXES={LIVE_REVISION:(LIVE_PREFIX,[125,1234297],'0.4054206'),
+INTERFACE_GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6597995022'
+INTERFACE_REVISION='issue60-20261103-192c-3500kt-1p70'
+INTERFACE_PREFIX='14ee78772bf3bc3568b70354d05c721e2ef8b8701d38dba548b3d3667e2b122f'
+INTERFACE_CAPS={**CLOSEOUT_CAPS,'calls':593,'tokens':11379334,'development':[497,7379334],
+                'stage_usd':'1.70','cumulative_usd':'2.9496989'}
+REVIEWED_PREFIXES={INTERFACE_REVISION:(INTERFACE_PREFIX,[305,3879334],'1.2496989'),LIVE_REVISION:(LIVE_PREFIX,[125,1234297],'0.4054206'),
                    SOURCE_REVISION:(SOURCE_PREFIX,[167,1877118],'0.6088482'),
                    CLOSEOUT_REVISION:(CLOSEOUT_PREFIX,[284,3586423],'1.1542944')}
 AUTHORIZATION_CHAIN=((REVISION_ID,ADDITIONAL_GRANT,ORIGINAL_CAPS,REVISED_CAPS,48),
                      (LIVE_REVISION,LIVE_GRANT,REVISED_CAPS,LIVE_CAPS,125),
                      (SOURCE_REVISION,SOURCE_GRANT,LIVE_CAPS,SOURCE_CAPS,167),
-                     (CLOSEOUT_REVISION,CLOSEOUT_GRANT,SOURCE_CAPS,CLOSEOUT_CAPS,284))
+                     (CLOSEOUT_REVISION,CLOSEOUT_GRANT,SOURCE_CAPS,CLOSEOUT_CAPS,284),
+                     (INTERFACE_REVISION,INTERFACE_GRANT,CLOSEOUT_CAPS,INTERFACE_CAPS,305))
 
 
 def authorization_limits(ledger,rows):
@@ -180,6 +186,12 @@ def candidate_manifest():
     return {'files':hashes,'sha256':hashlib.sha256(encoded(hashes)).hexdigest()}
 
 
+def development_cases():
+    """Original cases plus preregistered synthetic development transfers."""
+    extra=PROJECT_ROOT/'config/point1_working_memory_issue60.json'
+    return development_protocol()['cases']+(json.loads(extra.read_text(encoding='utf8'))['cases'] if extra.exists() else [])
+
+
 def scored_case(case,phase):
     case=deepcopy(case)
     if phase=='development' and any(case==c for c in development_protocol()['cases']):
@@ -224,9 +236,11 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only):
         if (gate.get('status')!='passed' or gate.get('source_sha256')!=manifest['source']['sha256']
                 or not gate.get('evidence_sha256')):
             raise StageBudgetExhausted('Mechanism regression gate must pass for this exact source before payment')
-        expected=protocol()['cases'] if phase=='confirmation' else development_protocol()['cases']
+        expected=protocol()['cases'] if phase=='confirmation' else (development_cases() if caps==INTERFACE_CAPS else development_protocol()['cases'])
         if case not in expected:
             raise StageBudgetExhausted('Use original protocol requests, not a substituted case')
+    if not test_only and caps==INTERFACE_CAPS and any(r.get('case')==case['id'] and r.get('source_sha256')==manifest['source']['sha256'] for r in starts):
+        raise StageBudgetExhausted('Same task and frozen source already attempted; no resampling')
     confirmations=[r for r in starts if r['phase']=='confirmation']
     if phase=='development' and confirmations:
         raise StageBudgetExhausted('No development after confirmation freeze')
@@ -499,7 +513,7 @@ def main(argv=None):
         return
     if not all((args.phase,args.case,args.output)):p.error('--real requires phase, case and output')
     if not args.ledger.exists():p.error('Existing reconciled cumulative ledger required')
-    cases=protocol()['cases'] if args.phase=='confirmation' else development_protocol()['cases']
+    cases=protocol()['cases'] if args.phase=='confirmation' else development_cases()
     case=next((c for c in cases if c['id']==args.case),None)
     if not case:p.error('Unknown case for phase')
     raw=OpenAICompatibleClient.from_env()

@@ -1,0 +1,132 @@
+{
+  "version": "issue60-v1",
+  "kind": "seen-development-transfer-not-confirmation",
+  "original_cases": [
+    "T05",
+    "T07"
+  ],
+  "cases": [
+    {
+      "id": "M01",
+      "requests": [
+        "计算记录A的SYNTH-C1在0到2秒的RMS，保留结果。",
+        "把同一个RMS测量的通道改为SYNTH-C2，时间范围保持原样；保留旧通道结果，用新通道结果减去旧通道结果并计算新旧比值。"
+      ],
+      "followup_policy": null,
+      "evaluation_only": {
+        "obligations": [
+          {
+            "key": "old-rms",
+            "turn": 1,
+            "capability": "amplitude",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "rms"
+              ]
+            ]
+          },
+          {
+            "key": "new-rms",
+            "turn": 2,
+            "capability": "amplitude",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C2"
+              ],
+              "start": 0,
+              "end": 2
+            },
+            "fields": [
+              [
+                "SYNTH-C2",
+                "rms"
+              ]
+            ]
+          }
+        ],
+        "checks": [
+          "Same task identity explicitly revised, historical original remains; independent direct RMS oracle for each channel; compare new minus old and new divided by old from actual RMS scalar fields",
+          "No recomputation of old RMS; actual delivered answer includes units and both scopes; no diagnosis"
+        ]
+      }
+    },
+    {
+      "id": "M02",
+      "requests": [
+        "给出记录A的SYNTH-C1在0到2秒的RMS并保留。",
+        "保留并回顾记录A的原RMS和范围，不要重算或修改它；另外独立计算记录B的SYNTH-C2在2到4秒的平均绝对幅度。"
+      ],
+      "followup_policy": null,
+      "evaluation_only": {
+        "obligations": [
+          {
+            "key": "old-a",
+            "turn": 1,
+            "capability": "amplitude",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0,
+              "end": 2
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "rms"
+              ]
+            ]
+          },
+          {
+            "key": "independent-b",
+            "turn": 2,
+            "capability": "amplitude",
+            "record": "B",
+            "scope": {
+              "channels": [
+                "SYNTH-C2"
+              ],
+              "start": 2,
+              "end": 4
+            },
+            "fields": [
+              [
+                "SYNTH-C2",
+                "mean_abs"
+              ]
+            ]
+          }
+        ],
+        "checks": [
+          "A original identity/version/result immutable; B is new independent analysis, no fake dependency/control relation required",
+          "Direct numpy mean(abs(signal)) oracle for B, A RMS reused without numerical repeat; final answer accurately distinguishes records/channels/windows"
+        ]
+      }
+    }
+  ],
+  "data": "unchanged working_memory_issue52.records_for development synthetic records",
+  "final_order": [
+    "T05",
+    "T07",
+    "M01",
+    "M02"
+  ],
+  "freeze_rule": "Before first paid call; do not change original tasks or these transfer requests/evaluation after seeing results",
+  "final_reserve": {
+    "calls": 96,
+    "estimated_tokens": 1800000,
+    "estimated_usd": ".75",
+    "basis": "Historical roughly14k input tokens per call, output2200 bound; original per-request reservation remains authoritative"
+  }
+}

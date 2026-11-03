@@ -126,8 +126,8 @@ class TaskPlanController(ScientificMemoryController):
                 "result_id": STRING}, ["task_id"]),
             control("wait_node", "Suspend this node for genuine missing science or inability; other ready nodes remain available.", {"task_id": STRING, "reason": STRING}, ["task_id", "reason"]),
             control("check_deliveries", "Read real output matching and scientific predicate evaluation; equally available to every arm.", {"task_id": STRING}, ["task_id"]),
-            control("read_dependency", "Read a real planned output at summary/result/process level. All modes have identical raw evidence and process read rights.", {
-                "task_id": STRING, "key": STRING, "revision":{"type":"integer","minimum":1}, "level": {"type":"string","enum":["summary","result","process"]},
+            control("read_dependency", "Read a selected key/version. contract discovers actual scalar paths/types/units without values or evidence promotion, even before a consumer is planned; undelivered keys expose only their declared plan. summary/result/process read actual evidence. All modes have identical raw evidence and process read rights.", {
+                "task_id": STRING, "key": STRING, "revision":{"type":"integer","minimum":1}, "level": {"type":"string","enum":["contract","summary","result","process"]},
                 "fields": {"type":"array","maxItems":4,"items":{"type":"array","items":{"type":["string","integer"]}}}}, ["task_id","key","level"]),
         ]
         revision=next(c['function']['parameters'] for c in controls if c['function']['name']=='revise_plan')
@@ -541,6 +541,26 @@ class TaskPlanController(ScientificMemoryController):
         node = self.graph.nodes[task_id]
         resolved = self.graph.resolve_ref({"task_id":task_id,"key":key,**({"revision":revision} if revision else {})})
         output = resolved["output"]
+        if level == 'contract':
+            entry=self._entry_for(output) if output else None
+            valid=bool(entry and self.store._binding_valid(entry) and resolved['output_status']!='STALE')
+            fields=[]
+            if valid:
+                def visit(value,path):
+                    if isinstance(value,dict):
+                        for k,v in value.items():visit(v,path+[k])
+                    elif isinstance(value,list):
+                        for k,v in enumerate(value):visit(v,path+[k])
+                    else:
+                        try:meaning=result_field_semantics(entry.capability,path,entry.result,
+                            parameters=entry.parameters,analysis_configuration=entry.evidence.get('analysis_configuration',{}))
+                        except ValueError:return
+                        fields.append({'path':path,**meaning})
+                visit(entry.result,[])
+            return {'status':'contract','task_id':task_id,'key':key,'revision':resolved['revision'],
+                'actual_delivery':bool(output),'valid_binding':valid,'numeric_evidence':False,
+                'declared_contract':resolved['delivery'],'fields':fields,
+                'field_basis':'actual_verified_result' if valid else 'unavailable_not_inferred_from_plan'}
         if not output:
             return {**self.store._error("DEPENDENCY_UNDELIVERED","No actual output at that key/version; current execution and historical reading are distinct"),
                     'requested_revision':resolved['revision'],'available_history':self._history_index(node,key)}
@@ -640,7 +660,9 @@ class TaskPlanController(ScientificMemoryController):
         messages = super()._view()
         payload = json.loads(messages[1]["content"])
         payload.pop("task_summaries",None)
-        payload["plan"] = [{**n.to_dict(runtime=False),"status":n.status,"revision":n.revision}
+        payload["plan"] = [{'task_id':n.task_id,'goal':n.goal,'status':n.status,'revision':n.revision,
+            'declared_outputs':[d.to_dict() for d in n.required_outputs],
+            'revision_targets':[{'task_id':n.task_id,'output_key':d.key,'revision':n.revision} for d in n.required_outputs]}
                            for n in self.graph.nodes.values()]
         payload['dependency_relations']={n.task_id:self.graph.dependency_relations(n) for n in self.graph.nodes.values() if n.input_refs() or n.control_prerequisites()}
         # Original request parents expose actual source boundaries, not a gold
@@ -732,6 +754,12 @@ class TaskPlanController(ScientificMemoryController):
         if owner:
             try:validate_contract(owner,{'type':'object','properties':OWNER_PROPERTIES,'required':['task_id'],'additionalProperties':False})
             except ContractError as exc:return {**self.store._error('INVALID_ACTION_OWNER',str(exc)),'field_path':exc.path}
+        if name=='plan_tasks' and isinstance(args.get('nodes'),list):
+            existing=[n.get('task_id') for n in args['nodes'] if isinstance(n,dict) and n.get('task_id') in self.graph.nodes]
+            if existing:
+                return {**self.store._error('INVALID_PLAN_OPERATION','Existing identities require explicit revise_plan; no proposal was applied'),
+                    'recovery':{'tool':'revise_plan','targets':[{'task_id':i,'revision':self.graph.nodes[i].revision,
+                        'output_keys':[d.key for d in self.graph.nodes[i].required_outputs]} for i in existing]}}
         spec = next((c["function"] for c in self.control_definitions() if c["function"]["name"] == name),None)
         if spec:
             if name in {'plan_tasks','revise_plan','finish_task'}:
