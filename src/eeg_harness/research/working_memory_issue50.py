@@ -170,14 +170,20 @@ class Issue50Client:
         ident = str(uuid.uuid4())
         with _ledger_lock(self.ledger):
             rows = _rows(self.ledger)
+            attempt = (self.attempt_metadata(rows, ident, body)
+                       if hasattr(self, 'attempt_metadata') else {})
             if not self._fits(rows, 1, reserve):
                 _append(self.ledger, {"event": "reservation_rejected", "context": dict(self.context),
                     "requested_reserve": reserve, "timestamp_utc": time.time()})
                 raise LLMServiceError("STAGE_BUDGET_EXHAUSTED", "Issue50 actual-wire reservation exceeds the independent stage budget")
+            if hasattr(self, 'commit_attempt'):
+                self.commit_attempt(rows, ident, attempt)
             _append(self.ledger, {"event": "reserved", "request_id": ident, "context": dict(self.context),
                 "input_bytes": payload_bytes, "output_cap": raw.max_tokens, "reserved_tokens": reserve,
                 **(self.reservation_metadata(reserve) if hasattr(self, 'reservation_metadata') else {}),
+                **attempt,
                 "final_only": self.final_only, "timestamp_utc": time.time()})
+            self.last_request_id = ident
         start = time.perf_counter()
         try:
             if self.request_journal:
@@ -188,11 +194,13 @@ class Issue50Client:
                         "max_retries": raw.max_retries, "timeout_seconds": raw.timeout,
                         "thinking": getattr(raw, "thinking", "disabled")},
                     "components": input_components(messages, tools), "timestamp_utc": time.time()})
+            self.client.active_request_id = ident
             response = self.client.complete(messages, tools, tool_choice)
         except Exception as exc:
             with _ledger_lock(self.ledger):
                 _append(self.ledger, {"event": "failed", "request_id": ident,
                     "error_type": type(exc).__name__, "duration_seconds": time.perf_counter() - start,
+                    "error": exc.to_dict() if isinstance(exc, LLMServiceError) else None,
                     "timestamp_utc": time.time()})
             raise
         usage = dict(raw.last_usage)

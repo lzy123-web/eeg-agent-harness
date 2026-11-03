@@ -81,14 +81,17 @@ class JournaledBudgetClient:
         except Exception as exc:
             _append_jsonl(self.journal, {
                 "request_index": before + 1,
+                "request_id": getattr(self, 'active_request_id', None),
                 "status": "failed",
                 "error_type": type(exc).__name__,
                 "error_code": getattr(exc, "code", "CLIENT_ERROR"),
+                "http_status": getattr(exc, "status", None),
                 "timestamp_utc": time.time(),
             })
             raise
         _append_jsonl(self.journal, {
             "request_index": self.request_count,
+            "request_id": getattr(self, 'active_request_id', None),
             "status": "received",
             "response_model_requested": self.model,
             "response_model_reported": self.client.last_response_model,

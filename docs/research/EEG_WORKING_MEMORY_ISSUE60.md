@@ -1,3 +1,19 @@
+## Issue60受控HTTP503恢复：工程冻结与真实收口入口（2026-11-03）
+
+本轮承接[完整任务6603767624](https://github.com/lzy123-web/eeg-agent-harness/issues/60#issuecomment-6603767624)及[恢复许可6603781591](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6603781591)，实际收悉[6605978071](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6605978071)。恢复范围issue60-http503-recovery-20261103不是第六次资金授权。起点5d1dd16，现场干净；原科学行为efcd6de/ea0da05a、原四题/两轮/评分/提示/schema/数据/服务全部保留。
+
+已实现：在原Issue50单次预约与MoneyBudgetClient中补充独立HTTP503尝试生命周期。相比底层盲重试（无法逐次预约/计数）或删除旧stop（扩大权限），采用原账本追加许可、原事故证据和逐次处置；仅匹配保守结算的明确503，处置与独立reserved同锁，处置孤儿不解锁、未知发送不重发。每逻辑2次/全范围8次持久上限，15/45秒退避；旧失败计入原单轮12次，900秒活动预算和final lease继续保护。各次均独立request ID/请求/响应或失败/结算，底层重试0。历史T05仅凭首调用空图/零工具证据重建并逐字核对wire；后续进程内保持Agent/Store/Executor状态，不重跑工具。非空跨进程科学状态不能可靠恢复时失败关闭，不以整会话重放替代。
+
+只读审查实际发现首版结算后、stop前崩溃会让502后的新请求通过，已修复：重启补缺stop，不重复计费；首次反证与复查保留。基线声明hash/文件表及许可原账本前缀校验补齐。未参与实现/实时执行的只读审查独立34项通过，有限机制门通过，非主审/自主科学验收。全量802项=787通过+15既有跳过，compileall/pip check/diff check通过；原24链111/111，12兼容和12默认链各78/78，0控制错误，本轮实际重跑，均为受控证据。首次TEST两批夹具iterator/快照键/默认8次计数错误保留，不改生产科学行为。
+
+冻结当前完整source b4382cd48fef9999bf3acc96c9ab55647af7d28dc5cccc7f0213b3200ba10159；只改4个恢复/运行记账模块，其余science/config逐文件与原freeze-v2一致。原账本f038f40e54feb5fadde859dd6aa937b462f03e1c9ac27d1670400e7a93d8ebf5此时未动；362次、硬限4776891tokens/US$1.5655149，原503未知38042tokens/US$0.0456504继续占用。准备在相同科学行为下正式登记处置并按T05→T07→M01→M02收口；真实结果后续追加，不把离线门称四题通过。
+
+公开入口复用 `python -m eeg_harness.research.working_memory_issue55_live`：现有私有环境注入原配置；先 `--register-http503-recovery --ledger <原账本> --attestation <当前门记录> --recovery-baseline <原freeze-v2.json> --original-output <原T05失败目录>`；随后 `--real --phase development --case <原题ID> --output <新关联目录> --ledger <原账本> --attestation <当前门记录> --recovery-scope issue60-http503-recovery-20261103`。无凭据模板；不打印或提交私有环境/完整账本。离线复现 `PYTHONPATH=src;tests python -m unittest test_issue60_recovery test_issue60_authorization test_issue55_live -v`，全量 `python -m unittest discover -s tests -q`。
+
+新增复杂度仅为原账本事件校验与恢复策略，不新增Planner/Executor、预算平台或科学状态库。它改善故障可恢复性，不是EEG方法创新；静态更小接口的自主收益仍须原四题实际证据，旧v1成功不拼入。
+
+---
+
 ## 主审整改续作：工程与设计门完成，真实验收受保护阻塞（2026-11-03）
 
 [主审6599556931](https://github.com/lzy123-web/eeg-agent-harness/issues/60#issuecomment-6599556931)确认上一批真实执行/证据完成，但接口工程目标未整体验收。下方旧报告与四条评分按原版本保留，旧“工程完成”不作为本续作的设计通过依据。现场59c6d8e远端/本地一致、无既有修改/实验进程/锁；本续作[范围实际确认6599767172](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6599767172)不是新增资金授权，原五次授权链、费用起点和唯一账本不动。

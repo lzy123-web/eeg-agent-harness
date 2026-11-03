@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import subprocess
 import time
+import uuid
 
 from ..llm import OpenAICompatibleClient, LLMServiceError
 from ..task_plan_agent import TaskPlanEEGAgent
@@ -23,6 +24,7 @@ from .integrated_method.v2_validation import JournaledBudgetClient
 from .working_memory_issue55 import protocol, records_for, score_obligations, data_manifest, SPEC
 from .working_memory_issue52 import write_new, encoded, protocol as development_protocol, records_for as development_records, audit_entries
 from .task_memory import PROJECT_ROOT
+from . import working_memory_issue60_recovery as recovery
 
 GRANT='https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546527306'
 LIMITS={'development':(48,2000000),'confirmation':(96,4000000)}
@@ -186,6 +188,65 @@ def candidate_manifest():
     return {'files':hashes,'sha256':hashlib.sha256(encoded(hashes)).hexdigest()}
 
 
+def register_http503_recovery(raw,ledger,attestation,*,baseline,original_output=None,test_only=False):
+    """Register scope (not funding) only after the exact-source offline gate.
+
+    Original evidence is verified before any append. Repeated receipts reuse
+    the permission and never reset attempts or overwrite stops/settlements.
+    """
+    ledger=Path(ledger)
+    validate_attestation(attestation,raw,test_only)
+    if not test_only and ledger.resolve()!=FORMAL_LEDGER.resolve():
+        raise StageBudgetExhausted('Recovery must use the original unique ledger')
+    source=candidate_manifest()
+    if hashlib.sha256(encoded(baseline['source']['files'])).hexdigest()!=baseline['source']['sha256']:
+        raise StageBudgetExhausted('Baseline manifest file digest does not match its declared source')
+    if not test_only and baseline['source']['sha256']!=recovery.BASELINE_SOURCE:
+        raise StageBudgetExhausted('Use the reviewed original scientific freeze, not a new candidate')
+    protected={k:v for k,v in source['files'].items() if k not in recovery.RECOVERY_FILES}
+    if protected!={k:v for k,v in baseline['source']['files'].items() if k not in recovery.RECOVERY_FILES}:
+        raise StageBudgetExhausted('Only the explicitly bounded recovery modules may change')
+    gate=attestation.get('mechanism_gate',{})
+    if not test_only and (gate.get('status')!='passed' or gate.get('source_sha256')!=source['sha256']
+            or not gate.get('evidence_sha256') or not attestation.get('recovery_readonly_review_sha256')):
+        raise StageBudgetExhausted('Exact-source offline and readonly recovery gates required')
+    with _ledger_lock(Path(str(ledger)+'.session')):
+        client=MoneyBudgetClient(JournaledBudgetClient(raw,ledger.parent/'unused-recovery-journal'),ledger,
+            attestation,'development',request_journal=ledger.parent/'unused-recovery-requests',test_only=test_only)
+        with _ledger_lock(ledger):
+            rows=_rows(ledger);old=recovery.policy(rows)
+            if old:
+                if old['runtime']!=client.runtime or old['protected_source']!=protected or old['pricing']!=client.pricing:
+                    raise StageBudgetExhausted('Conflicting recovery registration')
+                return old
+            if not test_only and (client.caps!=INTERFACE_CAPS or original_output is None):
+                raise StageBudgetExhausted('Original Issue60 funding/evidence required')
+            orphan=next((r for r in rows if r.get('event')=='http503_historical_evidence'),None)
+            evidence=(recovery.historical_initial_evidence(original_output,rows,
+                      orphan['recovery']['execution_id'] if orphan else str(uuid.uuid4()),baseline['source'])
+                      if original_output is not None else None)
+            if orphan and orphan!=evidence:raise StageBudgetExhausted('Historical recovery evidence conflict')
+            if evidence and not test_only and evidence['request_id']!=recovery.KNOWN_REQUEST:
+                raise StageBudgetExhausted('Only reviewed historical incident may be imported')
+            proposed=rows+([evidence] if evidence and not orphan else [])
+            if evidence:recovery.incident(proposed,evidence['request_id'])
+            blocked=recovery.active_stops(rows,recovery.SCOPE)
+            if any(r.get('event')!='safety_stop' or not evidence or r.get('request_id')!=evidence['request_id'] for r in blocked):
+                raise StageBudgetExhausted('Other active stop/freeze not covered by recovery')
+            data=ledger.read_bytes()
+            p={'event':'http503_recovery_permission','scope_id':recovery.SCOPE,
+                'permission':recovery.PERMISSION,'receipt':recovery.RECEIPT,'test_only':test_only,
+                'funding_revision':INTERFACE_REVISION,'max_retries_per_request':2,'max_total_retries':8,
+                'delays_seconds':[15,45],'cases':recovery.CASES,'protected_source':protected,
+                'baseline_source':baseline['source'],'runtime':client.runtime,'pricing':client.pricing,
+                'data':data_manifest(development_records()),'prefix_bytes':len(data),
+                'prefix_sha256':hashlib.sha256(data).hexdigest(),'timestamp_utc':time.time()}
+            # Import first: a crash here cannot unlock anything without scope.
+            if evidence and not orphan:_append(ledger,evidence)
+            _append(ledger,p)
+            return p
+
+
 def development_cases():
     """Original cases plus preregistered synthetic development transfers."""
     extra=PROJECT_ROOT/'config/point1_working_memory_issue60.json'
@@ -223,14 +284,46 @@ def followup_decision(case,turn,result,controller,scoring):
     return {'allowed':False,'reason':'matching_delivered_clarification_absent_or_requires_review'}
 
 
-def admit_session(ledger,case,phase,manifest,attestation,test_only):
+def admit_session(ledger,case,phase,manifest,attestation,test_only,*,recovery_context=None):
     rows=_rows(ledger)
     caps=authorization_limits(ledger,rows)
     if caps!=ORIGINAL_CAPS and phase!='development':
         raise StageBudgetExhausted('Additional authorization forbids confirmation in this stage')
     starts=[r for r in rows if r.get('event')=='session_started']
-    if any(r.get('event') in {'safety_stop','stage_closed'} for r in rows):
+    scope=recovery_context and recovery.SCOPE
+    pending=recovery_context.get('resume_request') if recovery_context else None
+    if recovery.active_stops(rows,scope,pending):
         raise StageBudgetExhausted('Stage stopped; audit existing evidence')
+    if recovery_context:
+        p=recovery.policy(rows)
+        if (phase!='development' or not p or case['id'] not in p['cases'] or
+                manifest['runtime']!=p['runtime'] or manifest['data']!=p['data']):
+            raise StageBudgetExhausted('Recovery outside frozen original four conversations')
+        protected={k:v for k,v in manifest['source']['files'].items() if k not in recovery.RECOVERY_FILES}
+        if protected!=p['protected_source']:
+            raise StageBudgetExhausted('Scientific implementation/prompt/data/protocol drift')
+        prior=[r for r in rows if r.get('event')=='session_started' and r.get('recovery_scope')==recovery.SCOPE]
+        if len(prior)>=len(p['cases']) or p['cases'][len(prior)]!=case['id']:
+            raise StageBudgetExhausted('Recovery conversations are ordered and one-shot')
+        if prior and not any(r.get('event')=='recovery_session_finished' and
+                r.get('execution_id')==prior[-1]['execution_id'] for r in rows):
+            raise StageBudgetExhausted('Previous recovery session incomplete; do not restart or skip it')
+        if pending:
+            imported=next(r for r in rows if r.get('event')=='http503_historical_evidence' and r['request_id']==pending)
+            if imported['original_manifest']['case']!=case['id'] or prior:
+                raise StageBudgetExhausted('Only the linked empty first conversation can resume')
+        if not test_only:
+            remaining=len(p['cases'])-len(prior)
+            used_calls,used_tokens=_usage(rows)
+            reserve={'calls':24*remaining-(1 if pending else 0),'tokens':450000*remaining,
+                     'usd':str(Decimal('.1875')*remaining)}
+            if (caps['development'][0]-used_calls<reserve['calls'] or
+                    caps['development'][1]-used_tokens<reserve['tokens'] or
+                    Decimal(caps['cumulative_usd'])-money_totals(rows,Decimal(rows[0]['rate_ceiling']))<Decimal(reserve['usd'])):
+                raise StageBudgetExhausted('Remaining final coverage reserve does not fit original allowance')
+            _append(ledger,{'event':'recovery_coverage_reserve','scope_id':recovery.SCOPE,
+                'case':case['id'],'uncovered':p['cases'][len(prior):],'reserve':reserve,
+                'kind':'planning reserve only, not additional funding'})
     if not test_only:
         gate=attestation.get('mechanism_gate',{})
         if (gate.get('status')!='passed' or gate.get('source_sha256')!=manifest['source']['sha256']
@@ -258,6 +351,8 @@ def admit_session(ledger,case,phase,manifest,attestation,test_only):
             raise StageBudgetExhausted('Review finite development results before confirmation')
         if previous is None:_append(ledger,{'event':'confirmation_frozen','freeze':freeze})
     _append(ledger,{'event':'session_started','phase':phase,'case':case['id'],
+        **({'recovery_scope':recovery.SCOPE,'execution_id':recovery_context['execution_id'],
+            'resumes_request':pending} if recovery_context else {}),
         'source_sha256':manifest['source']['sha256'],'test_only':test_only,'timestamp_utc':time.time()})
 
 
@@ -318,6 +413,9 @@ class MoneyBudgetClient(Issue50Client):
         rows=_rows(self.ledger)
         if not rows or rows[0].get('stage')!='issue55' or rows[0].get('test_only',False)!=test_only:
             raise StageBudgetExhausted('Require existing reconciled Issue55 ledger, never create a new allowance')
+        p=recovery.policy(rows)
+        if p and hashlib.sha256(self.ledger.read_bytes()[:p['prefix_bytes']]).hexdigest()!=p['prefix_sha256']:
+            raise StageBudgetExhausted('Recovery original prefix changed')
         reconciliation=next((r for r in reversed(rows) if r.get('event')=='issue55_reconciled'),rows[0])
         if reconciliation.get('grant')!=GRANT or reconciliation.get('reconciled') is not True:
             raise StageBudgetExhausted('Cumulative calls/tokens/fees must be reconciled to the existing grant')
@@ -353,7 +451,64 @@ class MoneyBudgetClient(Issue50Client):
                         not 0<=row['total_tokens']<=reservations[row['request_id']]['reserved_tokens']):
                     raise StageBudgetExhausted('Invalid historical token usage')
         self.scientific_guard=None
+        self.recovery_context=None
+        self._retry_of=None
+        self._turn_started=None
+        self._active_before=0
+        self.recovery_state=None
         self.settle_pending()
+
+    def enable_recovery(self, context, state):
+        p=recovery.policy(_rows(self.ledger))
+        if not p or p['runtime']!=self.runtime or p['pricing']!=self.pricing:
+            raise StageBudgetExhausted('Missing matching recovery permission/runtime/pricing')
+        self.recovery_context=deepcopy(context)
+        self._retry_of=context.get('resume_request')
+        self.recovery_state=state
+        if self._retry_of:
+            imported=next(r for r in _rows(self.ledger) if r.get('event')=='http503_historical_evidence'
+                          and r['request_id']==self._retry_of)
+            self._active_before=imported['active_seconds']
+
+    def set_context(self, **values):
+        changed='turn' in values and values['turn']!=self.context.get('turn')
+        if changed:
+            self._turn_started=time.monotonic()
+            if values['turn']!=1:self._active_before=0
+        super().set_context(**values)
+
+    def _turn_attempts(self,rows):
+        if not self.recovery_context:return 0
+        return sum(r.get('event')=='reserved' and r.get('context',{}).get('turn')==self.context.get('turn')
+            and recovery.recovery_info(rows,r).get('execution_id')==self.recovery_context['execution_id']
+            for r in rows if r.get('event')=='reserved' and (r.get('recovery') or any(
+                e.get('event')=='http503_historical_evidence' and e['request_id']==r['request_id'] for e in rows)))
+
+    def _time_remaining(self):
+        return 900-self._active_before-(time.monotonic()-self._turn_started if self._turn_started is not None else 0)
+
+    def attempt_metadata(self,rows,ident,body):
+        if not self.recovery_context:return {}
+        current={'scope_id':recovery.SCOPE,'execution_id':self.recovery_context['execution_id'],
+            'wire_sha256':recovery.digest(body),'state_sha256':self.recovery_state(),
+            'logical_id':ident,'ordinal':0}
+        if self._retry_of:
+            current=recovery.retry_metadata(rows,ident,self._retry_of,current)
+            old=recovery.reservation(rows,self._retry_of)
+            if old['runtime']!=self.runtime or old['pricing']!=self.pricing or old['context']!=self.context:
+                raise StageBudgetExhausted('Recovery original settings or turn changed')
+            delay=[15,45][current['ordinal']-1]
+            if getattr(self,'_waited_for',None)!=(self._retry_of,delay):
+                raise StageBudgetExhausted('Retry requires its authorized backoff')
+        return {'recovery':current}
+
+    def commit_attempt(self,rows,ident,metadata):
+        info=metadata.get('recovery',{})
+        if info.get('retry_of'):
+            _append(self.ledger,{'event':'http503_disposition','scope_id':recovery.SCOPE,
+                'request_id':info['retry_of'],'retry_request_id':ident,'logical_id':info['logical_id'],
+                'ordinal':info['ordinal'],'retains_unknown_usage':True,'billing_verified':False,
+                'timestamp_utc':time.time()})
 
     def reservation_metadata(self,tokens):
         return {'pricing':deepcopy(self.pricing),'reserved_usd':str(Decimal(tokens)*self.rate/1000000),
@@ -387,9 +542,19 @@ class MoneyBudgetClient(Issue50Client):
                 if not valid:
                     _append(self.ledger,{'event':'safety_stop','request_id':start['request_id'],
                         'reason':'unverified_response_or_interruption','reconciliation_required':True})
+            # A crash can occur after settlement fsync but before stop fsync.
+            # Repair the missing protection, never charge/refund it again.
+            rows=_rows(self.ledger)
+            stopped={r.get('request_id') for r in rows if r.get('event')=='safety_stop'}
+            for end in rows:
+                if (end.get('event')=='money_settled' and end.get('reconciliation_required') is True
+                        and end['request_id'] not in stopped):
+                    _append(self.ledger,{'event':'safety_stop','request_id':end['request_id'],
+                        'reason':'unverified_response_or_interruption','reconciliation_required':True})
 
     def _fits(self,rows,calls,tokens):
-        if any(r.get('event') in {'stage_closed','safety_stop'} for r in rows):return False
+        if recovery.active_stops(rows,recovery.SCOPE if self.recovery_context else None,self._retry_of):return False
+        if self.recovery_context and (self._turn_attempts(rows)+calls>12 or self._time_remaining()<self.client.client.timeout):return False
         total=_usage(rows)
         phase=_usage(rows,lambda c:c.get('phase')==self.context['phase'])
         cap=self.caps[self.context['phase']]
@@ -401,6 +566,43 @@ class MoneyBudgetClient(Issue50Client):
                 future_money<=Decimal(self.caps['usd']))
 
     def complete(self,messages,tools,tool_choice='auto'):
+        if self.recovery_context:
+            with _ledger_lock(Path(str(self.ledger)+'.attempt')):
+                return self._recovering_complete(messages,tools,tool_choice)
+        return self._complete_once(messages,tools,tool_choice)
+
+    def _recovering_complete(self,messages,tools,tool_choice):
+        original=deepcopy((messages,tools,tool_choice))
+        while True:
+            if self._retry_of:
+                rows=_rows(self.ledger)
+                current={'scope_id':recovery.SCOPE,'execution_id':self.recovery_context['execution_id'],
+                    'wire_sha256':recovery.digest(self.wire(*original)),'state_sha256':self.recovery_state()}
+                meta=recovery.retry_metadata(rows,'pending',self._retry_of,current)
+                delay=[15,45][meta['ordinal']-1]
+                if self._time_remaining()<delay+self.client.client.timeout:
+                    raise LLMServiceError('STAGE_BUDGET_EXHAUSTED','No active time for authorized retry')
+                # Keep the immutable final lease while retrying a decision.
+                reserve=self.reservation(*original)
+                if not self._fits(rows,1+(0 if self.final_only else 1),reserve+(0 if self.final_only else (self._lease or {}).get('reserved_tokens',0))):
+                    raise LLMServiceError('STAGE_BUDGET_EXHAUSTED','Retry plus original final lease does not fit')
+                _append(self.request_journal,{'event':'http503_backoff','request_id':self._retry_of,
+                    'seconds':delay,'ordinal':meta['ordinal'],'timestamp_utc':time.time()})
+                time.sleep(delay)
+                self._waited_for=(self._retry_of,delay)
+            before=getattr(self,'last_request_id',None)
+            try:
+                response=self._complete_once(*original)
+            except LLMServiceError as exc:
+                ident=getattr(self,'last_request_id',None)
+                if exc.status!=503 or exc.code!='SERVICE_UNAVAILABLE' or not ident or ident==before:
+                    raise
+                self._retry_of=ident
+                continue
+            self._retry_of=None
+            return response
+
+    def _complete_once(self,messages,tools,tool_choice='auto'):
         self.settle_pending()
         if actual_settings(self.client.client)!=self.runtime:
             raise LLMServiceError('CONFIGURATION_CHANGED','Actual client settings differ from the reserved/frozen settings')
@@ -412,12 +614,12 @@ class MoneyBudgetClient(Issue50Client):
             # Also accounts failed calls; interruption before this point leaves
             # a conservative reserved transaction in the persistent ledger.
             self.settle_pending()
-        if any(r.get('event')=='safety_stop' for r in _rows(self.ledger)):
+        if recovery.active_stops(_rows(self.ledger),recovery.SCOPE if self.recovery_context else None):
             raise LLMServiceError('STAGE_BUDGET_EXHAUSTED','Unexpected response model or invalid usage; stop and audit')
         return response
 
 
-def run_session(raw,ledger,attestation,case,output,*,phase='development',test_only=False):
+def run_session(raw,ledger,attestation,case,output,*,phase='development',test_only=False,recovery_scope=None):
     """No gold is sent to the Agent; scores are written at each turn deadline."""
     output=Path(output)
     validate_attestation(attestation,raw,test_only)
@@ -431,11 +633,28 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
         client.settle_pending()
         records=records_for() if phase=='confirmation' else development_records()
         agent=TaskPlanEEGAgent(client,records,arm='C',session_id='issue55-session',**protocol()['agent_settings'])
+        recovery_context=None
+        if recovery_scope is not None:
+            if recovery_scope!=recovery.SCOPE:raise StageBudgetExhausted('Unknown recovery scope')
+            rows=_rows(Path(ledger));p=recovery.policy(rows)
+            if not p:raise StageBudgetExhausted('Register reviewed recovery permission first')
+            imported=next((r for r in rows if r.get('event')=='http503_historical_evidence'
+                           and r['original_manifest']['case']==case['id']),None)
+            recovery_context={'execution_id':imported['recovery']['execution_id'] if imported else str(uuid.uuid4()),
+                              'resume_request':imported['request_id'] if imported else None}
+            def recovery_state():
+                wm=agent.working_memory
+                if not wm.graph.nodes and not wm.store.entries and not wm.graph.history and not wm.action_transitions:
+                    return 'empty_initial_state'
+                return recovery.digest(wm.snapshot())
+            client.enable_recovery(recovery_context,recovery_state)
         manifest={'phase':phase,'case':case['id'],'test_only':test_only,
             'candidate':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
             'protocol_sha256':hashlib.sha256(SPEC.read_bytes()).hexdigest(),
             'data':data_manifest(records),'attestation':attestation,'source':candidate_manifest(),'runtime':actual_settings(raw)}
-        admit_session(Path(ledger),case,phase,manifest,attestation,test_only)
+        with _ledger_lock(Path(ledger)):
+            admit_session(Path(ledger),case,phase,manifest,attestation,test_only,recovery_context=recovery_context)
+        if recovery_context:manifest['recovery']={**recovery_context,'scope_id':recovery.SCOPE}
         output.mkdir(parents=True)
         write_new(output/'manifest.json',manifest)
         case=scored_case(case,phase)
@@ -483,6 +702,10 @@ def run_session(raw,ledger,attestation,case,output,*,phase='development',test_on
             write_new(output/'session-end.json',{'completed_turns':len(results),'usage':dict(raw.total_usage),
                 'cost_upper_bound_usd':str(money_totals(_rows(Path(ledger)),client.rate)),
                 'phase_usage':_usage(_rows(Path(ledger)),lambda c:c.get('phase')==phase)})
+            if recovery_context:
+                with _ledger_lock(Path(ledger)):
+                    _append(Path(ledger),{'event':'recovery_session_finished',**recovery_context,
+                        'case':case['id'],'turns':len(results),'stops':[r['stop_reason'] for r in results]})
         return results
 
 
@@ -492,18 +715,27 @@ def main(argv=None):
     mode.add_argument('--real',action='store_true')
     mode.add_argument('--initialize-ledger',action='store_true')
     mode.add_argument('--apply-authorization',type=Path)
+    mode.add_argument('--register-http503-recovery',action='store_true')
     p.add_argument('--ledger',type=Path,required=True)
     p.add_argument('--attestation',type=Path,required=True)
     p.add_argument('--reconciliation',type=Path)
     p.add_argument('--phase',choices=LIMITS)
     p.add_argument('--case')
     p.add_argument('--output',type=Path)
+    p.add_argument('--recovery-scope',choices=[recovery.SCOPE])
+    p.add_argument('--recovery-baseline',type=Path)
+    p.add_argument('--original-output',type=Path)
     args=p.parse_args(argv)
     a=json.loads(args.attestation.read_text(encoding='utf8'))
     if a.get('test_only') is not False:p.error('Test attestation cannot authorize a real request')
     if args.apply_authorization:
         raw=OpenAICompatibleClient.from_env()
         apply_authorization_revision(raw,args.ledger,a,json.loads(args.apply_authorization.read_text(encoding='utf8')))
+        return
+    if args.register_http503_recovery:
+        if not args.recovery_baseline or not args.original_output:p.error('Recovery requires frozen baseline and original failed output')
+        register_http503_recovery(OpenAICompatibleClient.from_env(),args.ledger,a,
+            baseline=json.loads(args.recovery_baseline.read_text(encoding='utf8')),original_output=args.original_output)
         return
     if args.initialize_ledger:
         if args.reconciliation is None:p.error('Reviewed history reconciliation required')
@@ -518,6 +750,6 @@ def main(argv=None):
     if not case:p.error('Unknown case for phase')
     raw=OpenAICompatibleClient.from_env()
     raw.max_tokens,raw.max_retries=2200,0
-    run_session(raw,args.ledger,a,case,args.output,phase=args.phase)
+    run_session(raw,args.ledger,a,case,args.output,phase=args.phase,recovery_scope=args.recovery_scope)
 
 if __name__=='__main__':main()
