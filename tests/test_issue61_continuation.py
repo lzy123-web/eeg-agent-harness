@@ -32,6 +32,33 @@ def setup(case='M01',arm='C',max_rounds=12,max_tools=36):
     return a,client,requests,rs
 
 class ContinuationTest(unittest.TestCase):
+    def test_real_continuation_source_diagnostics_change_but_still_reject(self):
+        fixture=json.loads((EVIDENCE.parent/'issue61_continuation_prefixes.json').read_text(encoding='utf8'))
+        a,c,requests,rs=setup();c.responses=fixture['responses'][:4]
+        self.assertEqual(a.run(fixture['requests'][0]).stop_reason,'completed')
+        c.responses=fixture['responses'][4:]
+        c.actions=[('finish_task',{'status':'partial','answer':'TEST unresolved source and comparison remain.',
+            'unresolved':['source and comparison unresolved']})]
+        r=a.continue_run(fixture['requests'][1]);self.assertEqual(r.stop_reason,'partial')
+        self.assertEqual(len(a.working_memory.store.entries),1)
+        errors=[t['error'] for t in r.tool_results[:4]]
+        self.assertEqual(errors[-2]['code'],errors[-1]['code'])
+        self.assertNotEqual(errors[-2]['message'],errors[-1]['message'])
+        self.assertEqual([p['errors'] for p in a.working_memory.progress_events[:4]],[1,2,2,2])
+        self.assertEqual(a.working_memory.repair_credits,2)
+
+    def test_new_diagnostic_messages_are_finite_and_argument_changes_do_not_refresh(self):
+        a,c,requests,rs=setup();w=a.working_memory;w.begin_turn(requests[0]);w._action_state_before=w._progress_state()
+        for i in range(6):
+            w._observe_control_progress(ToolRequest('revise_plan',{'renamed':i}),
+                {'status':'rejected','code':'INVALID_PLAN_SOURCE','field_path':['interpretation'],'message':f'TEST predicate {i}'})
+        self.assertEqual(w.repair_credits,3);self.assertEqual(w.errors,3);self.assertEqual(w.check_stop(),'no_progress')
+        w.begin_turn(requests[0]);w._action_state_before=w._progress_state()
+        for i in range(3):
+            w._observe_control_progress(ToolRequest('revise_plan',{'renamed':i}),
+                {'status':'rejected','code':'INVALID_PLAN_SOURCE','field_path':['interpretation'],'message':'TEST same predicate'})
+        self.assertEqual(w.repair_credits,0);self.assertEqual(w.check_stop(),'no_progress')
+
     def test_original_three_errors_aggregate_and_bounded_correction(self):
         a,c,requests,rs=setup();c.responses=rs[:4];self.assertEqual(a.run(requests[0]).stop_reason,'completed')
         w=a.working_memory;w.begin_turn(requests[1]);before=clone(w.graph.to_dict())

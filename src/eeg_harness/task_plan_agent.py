@@ -168,7 +168,7 @@ class TaskPlanController(ScientificMemoryController):
         prev=self.previous_issues
         correction=bool(not successful and issues and not diag.get('truncated') and prev and
             prev[0]==target and issues<prev[1] and self.repair_credits<self.no_progress_limit)
-        rejection_fact=(request.name,result.get('code'))
+        rejection_fact=encoded([request.name,result.get('code'),result.get('field_path'),result.get('message')])
         # A newly exposed execution prerequisite is diagnostic information,
         # not state advancement. It shares the same finite credit ceiling;
         # changing arguments or cycling error classes never resets errors.
