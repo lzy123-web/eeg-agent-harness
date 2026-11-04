@@ -1,5 +1,38 @@
 # Issue61：计划增量补全与操作恢复契约
 
+## 主审整改续作：工程设计与许可承接（2026-11-04）
+
+本节承接[主审任务6622814391](https://github.com/lzy123-web/eeg-agent-harness/issues/61#issuecomment-6622814391)，以下原v1/v2/v3与有界停止结论按当时版本保留。新scope为point1-operation-delivery-closeout-20261104，实际范围回执[6623629958](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6623629958)，不是第七资金许可。原资金409次/5328790guard tokens/$1.7417127起点、649/9328790开发硬限及$3.7417127阶段后费用保持；515/6980660/$2.2635285仅为续作审计锚点。原未知38042/$0.0456504与503累计1/8保留，确认禁止。新scope最多两候选、初始只M01，只有新真实机制根因才有一次修正；同题同科学行为跨scope不重抽，最坏120请求包含恢复。
+
+**原问题确定性复现。** M01三个原提案分别触发record/input_refs/interpretation错误，旧反馈仍建议不可写字段，旧宽泛码计数第三次停止；原T07最后wire只有finish_task却仍为执行system/phase。旧响应完整保存，不删除或手工改成正确提案。修后原M01结构问题集合4→3→1，错误计数保持1且有明确有限诊断额度；原错误仍拒绝，图/结果不变。T07原错误动作序列仍不能交付，新最终wire已一致；不能称接口修复自动使旧模型序列成功。
+
+**最小方案与职责。** 比较了继续逐字段报错并调大停滞次数、聚合结构诊断配有限信息进展、以及将已登记齐备直接设为final_only。选择同源聚合与两个交付阶段：前者避免用更大次数掩盖反馈矛盾，后者保持遗漏补登记的合法路径；原单轮12请求/36工具及时间/token/费用上限不变。未新建Planner、Executor、状态库或修复Agent。
+
+- scientific_contracts按显式capability解析公开分支，有界收集确定结构问题（最多24项/4096访问，截断显式标记且不计缩小进展）；不猜科学字段、不删除错误参数。恢复建议从实际公开属性生成，比较使用left/right；追加比较与兼容非法提案的错误路径回到当前公开结构，内部原诊断单列compatibility_diagnostic供审计。合法旧canonical路径继续兼容。
+- 原Controller内区分实际图/绑定推进、当前可见的新信息、有限结构修错及无增量观察。相同操作/显式目标的完整错误集合严格缩小才算结构修错；首次出现的非结构拒绝信息共享每轮最多3个诊断额度，只保持错误计数，不清零。相同错误换参数第三次停，二码循环第四次停，连续新码最多第六次停。它们不是科学进展，所有请求仍占原硬限。
+- 读取信息原子保留所属对象、版本、完整field path/value/semantics；过程保留路径关联，当前视图已不可用的证据允许重新恢复。重复读取不作为计算/状态进展，也不禁读；已登记交付齐备或连续无增量观察在决策边界进入可恢复delivery_review。模型仍可显式补漏、修订和必要读取，程序不认定原自然请求完整。
+- 仅资源/动作边界触发hard_final_delivery，复用已有可见证据和final lease。system、phase、delivery_phase、tools与tool_choice一致，仅finish_task；最终视图超上下文字节上限时发送前停止。批次内软审查不打断后续合法动作；硬停止继续保留全部原生调用/结果配对而不执行后续动作。
+
+**反证、独立门与复杂度。** 独立只读审查实际发现并关闭三处首版缺口：证据词袋丢失通道—值关联、比较追加报错残留内部路径、兼容非法提案仍反馈nodes。全量另发现原Issue57安全脚本的三类拒绝被过早停止，已用上述有总界诊断信息处理，未放行错误接受或改科学断言。旧测试对canonical诊断位置的断言迁移至保留审计字段，原原子性/来源/版本断言和原实验评分不改。首次夹具导入错误、重复比较操作数及各次全量失败均保留。
+
+独立设计审查22项通过并另验容量边界，source b475b611cb639a911ec7e64a4bb23de08ac172d40346a97def1ae1d7af8d7340、behavior 915f6477cd94d0212955d6aacff7cab2b0f41f5dad3a881383c4e760dd4271a9。执行者原24链111/111、12兼容及12默认链各78/78、六组旧保存点24链通过；本次原v3保存点后12条受控链均结束于明确partial，M01次轮7次、T07次轮12次，全部在真实调用次数上限内，但脚本指定后续动作不是自主成功。另有T07质量保存点后受控finish_task completed、软审查补漏、批次和硬边界测试；固定测试回答不作自然请求正确评分。临时TEST账本完整两轮/最终租约/结算/冻结/防重抽通过，正式研究调用尚未开始。
+
+新增机制为共享底座，六组读权及自动接受差异保留；证据原子仅用于控制审查，不授权数值/范围，可能保守地把不同包装视为新信息，仍受总硬限约束。工具schema未扩张；聚合错误、进展日志和审查元信息会增加部分消息，最终视图可缩小，但尚未证明实际成本改善。最终全量、实际调用、失败和发布回执在本节后续追加。
+
+无凭据复现：
+
+```powershell
+$env:PYTHONPATH='src;tests'
+python -m unittest test_issue61_continuation test_issue61_continuation_scope -v
+python -m eeg_harness.research.working_memory_issue61_continuation --case all --output artifacts/issue61-original-new.json
+python -m eeg_harness.research.working_memory_issue61_continuation --controlled --arm all --output artifacts/issue61-controlled-new.json
+python -m unittest discover -s tests -q
+```
+
+原响应耗尽的离线重放边界明确记为OFFLINE_REPLAY_BOUNDARY，不是新增真实模型失败；新原始模型序列不会在工具端改写。真实入口仍working_memory_issue61_live，新增--register-continuation及显式--scope，不改变原资金链。正式前完成当前源码全量与CI，保护最终覆盖空间，再依许可开展M01一次开发；不在工程后重新申请相同权限。
+
+初始续作候选最终工程门：831项=816通过+15既有跳过；16项本次专项包含临时账本端到端与实际发送路径，compileall/pip check/diff check通过，工具schema仍35365字节。上述source/behavior与独立门一致。公开证据`review_continuation`包含修前/修后、原响应重放、六组受控续接、实际wire及schema集合、回归和独立复核；完整原始日志hash保留，公开投影去除重复内嵌exchanges/decisions而不改变请求或提案。工程门通过不等于自主会话通过。
+
 ## 当前结论与证据层级
 
 **本阶段有界交付完成，科学完整请求未全部通过。** 最终同版T05、M02完成核心请求；T07实际计算完成但最终报告未送达；M01次轮未完成合法修订。四条两轮均已实际发送（8/8），初始方案后两批修正已经用完，停止调用和科学修改。执行者自审与未参与实现/实时执行的只读复核一致，非独立主审。接口机制已实现并有受控证据；新增补全与不变窗口继承未获本批自主触发成功证明，不能归为C独有收益。

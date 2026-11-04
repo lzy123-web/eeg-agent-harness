@@ -86,14 +86,15 @@ class TaskPlanAgentTest(unittest.TestCase):
                 def check_rejection(messages):
                     rejected = json.loads(messages[-1]["content"])["data"]
                     self.assertEqual(rejected["code"], "INVALID_PLAN_STRUCTURE")
-                    self.assertEqual(rejected['field_path'],['nodes',0,'input_refs'])
+                    self.assertEqual(rejected['field_path'],['deliveries'])
+                    self.assertEqual(rejected['compatibility_diagnostic']['field_path'],['nodes',0,'input_refs'])
                     self.assertFalse(a.working_memory.graph.nodes)
                     self.assertFalse(a.working_memory.store.entries)
                     return "plan_tasks", {"nodes": [valid]}
                 def check_revision(messages):
                     rejected = json.loads(messages[-1]["content"])["data"]
                     self.assertEqual(rejected["code"], "INVALID_PLAN_STRUCTURE")
-                    self.assertEqual(rejected['field_path'],['updates','required_outputs',0,'input_refs',0,'key'])
+                    self.assertEqual(rejected['compatibility_diagnostic']['field_path'],['updates','required_outputs',0,'input_refs',0,'key'])
                     n = a.working_memory.graph.nodes["window"]
                     self.assertEqual(n.revision, 1)
                     self.assertFalse(n.revision_history)

@@ -574,6 +574,9 @@ class MoneyBudgetClient(Issue50Client):
         phase=_usage(rows,lambda c:c.get('phase')==self.context['phase'])
         cap=self.caps[self.context['phase']]
         future_money=money_totals(rows,self.rate)+Decimal(tokens)*self.rate/1000000
+        if self.recovery_context and self.recovery_context.get('candidate_id'):
+            from .working_memory_issue61_live import continuation_request_fits
+            if not continuation_request_fits(rows,self.recovery_context['candidate_id'],calls,tokens,future_money):return False
         if 'stage_usd' in self.caps and (future_money-self.stage_money_start>Decimal(self.caps['stage_usd'])
                 or future_money>Decimal(self.caps['cumulative_usd'])):return False
         return (total[0]+calls<=self.caps['calls'] and total[1]+tokens<=self.caps['tokens'] and

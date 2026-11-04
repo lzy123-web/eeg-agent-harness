@@ -44,8 +44,9 @@ class InterfacesTest(unittest.TestCase):
                     ('psd',{'task_id':'p','output_key':'out'}),finish()],arm)
                 result=a.run('记录A SYNTH-C1在0到2秒的alpha功率。')
                 self.assertEqual(result.stop_reason,'completed',c.errors)
-                self.assertEqual(result.tool_results[0]['data']['field_path'],['nodes',0,'required_outputs',0,'scope','band'])
-                self.assertEqual(result.tool_results[2]['data']['field_path'],['updates','required_outputs',0,'scope','start'])
+                self.assertEqual(result.tool_results[0]['data']['field_path'],['deliveries'])
+                self.assertEqual(result.tool_results[0]['data']['compatibility_diagnostic']['field_path'],['nodes',0,'required_outputs',0,'scope','band'])
+                self.assertEqual(result.tool_results[2]['data']['compatibility_diagnostic']['field_path'],['updates','required_outputs',0,'scope','start'])
                 self.assertEqual(a.working_memory.graph.nodes['p'].revision,1)
                 registry=a.working_memory.store.contexts['A'].executor.registry
                 schema=task_spec_schema(registry)

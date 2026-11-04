@@ -611,16 +611,19 @@ class WorkingMemoryController:
                                       "unresolved": clone(goal.unresolved)}
         # Rejected multi-call batches are one failed decision. Distinct corrected
         # input errors are not evidence of repeating the same non-progress loop.
-        signature = (request.name, result.get("code", "TOOL_BLOCKED"))
-        self.errors = (0 if successful else self.errors + 1 if signature == self.last_error else 1)
-        self.last_error = None if successful else signature
+        if hasattr(self, '_observe_control_progress'):
+            self._observe_control_progress(request, result)
+        else:
+            signature = (request.name, result.get("code", "TOOL_BLOCKED"))
+            self.errors = (0 if successful else self.errors + 1 if signature == self.last_error else 1)
+            self.last_error = None if successful else signature
         # Identical close arguments on different subgoals are real progress.
         # Do not include generated result IDs: repeated computation/read on the
         # same target must still be bounded even when it emits a fresh ID.
         key = encoded({"tool": request.name, "args": dict(request.arguments),
                        "subgoal": owner_before, "record": self.store.active_record})
         self.repeats[key] = self.repeats.get(key, 0) + 1
-        if self.repeats[key] > self.no_progress_limit:
+        if self.repeats[key] > self.no_progress_limit and not hasattr(self, '_observe_control_progress'):
             self.stop_reason = "repeated_action"
         if successful and request.name == "read_evidence" and result.get("evidence"):
             self.turn_evidence.append(result["evidence"])

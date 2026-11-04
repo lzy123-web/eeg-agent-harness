@@ -1,3 +1,13 @@
+## Issue61主审整改续作：工程门收敛，准备已授权M01开发（2026-11-04）
+
+基点d69cd40，原第六资金余额内新范围point1-operation-delivery-closeout-20261104，[实际范围回执6623629958](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6623629958)，不增额/重置，旧v3及失败保持。公开分支聚合诊断、有限诊断与实际证据进展、可恢复交付审查和硬收尾wire已在原Controller实现；独立设计反例已修复并通过，详见[报告续作节](EEG_WORKING_MEMORY_ISSUE61.md)。原24链111/111、兼容/默认各78/78、旧保存点24链及本次六组12条受控续接通过；临时TEST两轮资金/租约/最终冻结与防重抽通过。原评分不改，受控不冒充自主。
+
+source b475b611、behavior915f6477；全量门与最终源码核对完成后，初始仅M01一次，最多一次新真实根因修正，再补足最终同版四题。原唯一账本当前锚点515次/6980660guard tokens/US$2.2635285，新正式调用尚未开始；剩134/2348130/阶段US$1.4781842，确认禁止，旧未知占用保留一次。实现提交以本次Git历史为准，后续实际结果与CI追加。Issue open、PR Draft。
+
+最终离线全量831项=816通过+15跳过，16项本次专项和独立只读22项/容量反例通过；compileall/pip check/diff check通过。源码与独立门hash一致，准备冻结初始续作候选。公开证据已追加review_continuation，历史区域保持；原schema35365字节未扩张，尚无新真实自主结果或成本收益证据。
+
+---
+
 ## Issue61有界阶段完成：最终同版核心请求2/4，等待主审（2026-11-04）
 
 共享原子add_deliveries、操作恢复反馈及实际结果窗口来源链已实现；原DAG/Store/Executor核验、六组方法差异保留。初始实现be9c8bc、第1批e8243ed、第2/最终科学提交567a12eb7ef4889cbabb141944be5fc18cf62ac7均已正常推送；科学行为dcf0f02b、source8380a282冻结后无科学变化。[科学CI #428](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41699749295)成功；最终证据发布提交及CI见Git与Issue统一回执。

@@ -78,7 +78,9 @@ class RepairTest(unittest.TestCase):
         old=json.loads(PREFIXES.read_text(encoding='utf8'))['M01']['responses'][7]['tool_calls'][0]
         result=m._dispatch(ToolRequest('plan_tasks',json.loads(old['function']['arguments'])))
         self.assertEqual(result['status'],'rejected');self.assertNotIn('inherit an actual',result['message'])
-        self.assertEqual(result['recovery']['source_fields'],['interpretation','input_refs'])
+        # This retained legacy proposal has no advertised flat row. Do not
+        # recommend canonical fields as though they were its public branch.
+        self.assertEqual(result['recovery']['source_fields'],[])
 
     def test_append_ceiling_and_mixed_patch_structure(self):
         w=checkpoint().working_memory;name,args=repair_actions('T07')[0]

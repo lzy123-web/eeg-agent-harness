@@ -1,3 +1,11 @@
+## Issue61主审续作：操作/进展/交付控制同源（已实现，真实待验证）
+
+scientific_contracts.contract_diagnostics从原有限schema词汇收集结构问题，selected_contract仅显式enum选支；TaskPlanController恢复字段/报错路径对应当前公开表示，canonical诊断另留。原WorkingMemoryController新增可选进展hook，TaskPlanController使用自身已有图、当前wire与有限诊断额度；没有独立状态平台。字段/值/单位/所属结果关联原子用于审查信号，不替代科学Binding核验。软delivery_review在决策视图中选择且保留所有工具，hard_final_delivery复用真实可见final视图并检查上下文限额；预算/最后轮/工具边界实际wire一致。
+
+working_memory_issue61_live只在原账本追加scope_permission和至多两个新候选，原scope冻结/候选上限不改；跨scope行为去重、初始M01/修订候选仅final、120实际请求上限及逐请求剩余覆盖规划由原MoneyBudgetClient准入调用。资金链仍六次，confirm及未处置保护继续阻断。无凭据公开原失败回放入口working_memory_issue61_continuation；手工后续动作明确受控。首次独立反例、修正取舍及限制见[报告](EEG_WORKING_MEMORY_ISSUE61.md)，不能由离线门推断自主收益。
+
+---
+
 ## Issue61最终冻结与证据边界（已实现/部分自主可用，2026-11-04）
 
 最终科学提交567a12e/source8380a282/behavior dcf0f02b，冻结后仅文档证据变化。815项=800通过+15跳过；原111/78/78受控检查及六组24条保存点续接通过。独立只读逐文件冻结核对和8项机制测试通过。实际v3 T05/M02核心完整，T07质量计算完成但最终交付失败，M01无合法次轮修订；最终未自主触发add_deliveries或新增窗口继承，故实现与自主收益分列。合法操作误拒的修复由v2原call16未修改提案离线对照支持，不能冒称原会话自主通过。未见本次覆盖内科学边界退化，保守数值冲突仍有潜在过拒。

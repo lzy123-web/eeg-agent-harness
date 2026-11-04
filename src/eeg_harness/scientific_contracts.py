@@ -27,6 +27,67 @@ class ContractError(ValueError):
         super().__init__(message)
 
 
+def selected_contract(schema, value):
+    """Resolve only an explicit enum discriminator, never scientific intent."""
+    if 'oneOf' not in schema:
+        return schema
+    selected = [s for s in schema['oneOf'] if isinstance(value, dict) and any(
+        k in value and value[k] in p.get('enum', []) for k, p in s.get('properties', {}).items())]
+    return selected[0] if len(selected) == 1 else None
+
+
+def contract_diagnostics(value, schema, *, limit=24, visit_limit=4096):
+    """Bounded aggregate of determinable public representation errors.
+
+    Truncation is explicit and disqualifies diagnostic-count progress. The
+    original validator remains authoritative; this function never normalizes.
+    """
+    issues=[]; seen=set(); visits=0; truncated=False
+    def add(path, rule, message):
+        nonlocal truncated
+        identity=(tuple(path), rule, message)
+        if identity in seen:return
+        seen.add(identity)
+        if len(issues)>=limit:truncated=True;return
+        issues.append({'path':list(path),'rule':rule,'message':message})
+    def walk(v,s,path=()):
+        nonlocal visits,truncated
+        visits+=1
+        if visits>visit_limit:truncated=True;return
+        if 'oneOf' in s:
+            chosen=selected_contract(s,v)
+            if chosen is None:
+                try:validate_contract(v,{'oneOf':s['oneOf']},path)
+                except ContractError as e:add(e.path,'oneOf',str(e))
+            else:walk(v,chosen,path)
+        for sub in s.get('allOf',[]):walk(v,sub,path)
+        if 'if' in s:
+            try:validate_contract(v,s['if'],path)
+            except ContractError:pass
+            else:walk(v,s.get('then',{}),path)
+        for key in ('type','enum','not','minItems','maxItems','uniqueItems','minLength','maxLength',
+                    'minimum','maximum','exclusiveMinimum','exclusiveMaximum'):
+            if key not in s:continue
+            try:validate_contract(v,{key:s[key]},path)
+            except ContractError as e:
+                add(e.path,key,str(e))
+                if key=='type':return
+        if isinstance(v,dict):
+            props=s.get('properties',{})
+            for key in s.get('required',[]):
+                if key not in v:add((*path,key),'required','Required field missing')
+            for key,item in v.items():
+                if key not in props and s.get('additionalProperties') is False:
+                    add((*path,key),'additionalProperties','Unsupported field; allowed: '+', '.join(props))
+                elif key in props:walk(item,props[key],(*path,key))
+        if isinstance(v,list) and 'items' in s:
+            for i,item in enumerate(v):
+                if visits>=visit_limit:truncated=True;break
+                walk(item,s['items'],(*path,i))
+    walk(value,schema)
+    return {'issues':issues,'truncated':truncated,'limit':limit}
+
+
 def validate_contract(value,schema,path=()):
     """Validate the finite JSON-schema vocabulary advertised by DAG controls.
 

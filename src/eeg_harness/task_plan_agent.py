@@ -20,7 +20,8 @@ from .working_memory_scientific_tasks import ScientificTaskStore, canonical_scop
 from .working_memory_lifecycle import METADATA
 from .result_semantics import read_scalar, result_field_semantics
 from .task_plan import PlanGraph, TaskSpec, DeliveryItem
-from .scientific_contracts import ContractError, validate_contract, computation_scope
+from .scientific_contracts import (ContractError, validate_contract, computation_scope,
+                                   contract_diagnostics, selected_contract)
 from .scientific_binding import resolve_scientific_binding, validate_scientific_sources
 
 
@@ -100,6 +101,93 @@ class TaskPlanController(ScientificMemoryController):
         self.current = None
         self.turn_nodes = set()
         self.clarifications = []
+        self.repair_credits = 0
+        self.previous_issues = None
+        self.rejection_facts = set()
+        self.progress_events = []
+        self.redundant_observations = 0
+        self.delivery_review = None
+
+    def _progress_state(self):
+        return encoded({k:{'revision':n.revision,'declared':[d.to_dict() for d in n.required_outputs],
+            'outputs':n.outputs,'output_status':n.output_status,'status':n.status}
+            for k,n in self.graph.nodes.items()})
+
+    @staticmethod
+    def _observation_atoms(value):
+        """Keep object/field/value/semantics associations as indivisible facts.
+
+        This is a conservative review signal, never evidence authorization.
+        Evidence carried inside different native envelopes remains readable.
+        """
+        atoms=set()
+        volatile={'request_id','tool_call_id','duration_ms','progress','timestamp_utc','call_id',
+                  'status','message','instruction','meaning','via'}
+        def walk(v,path=(),owner=None):
+            if isinstance(v,dict):
+                ident=v.get('result_id') or v.get('task_id') or v.get('artifact_id')
+                if isinstance(ident,str):
+                    owner={k:clone(v[k]) for k in ('record','revision','key','parameters','scope','artifact_id') if k in v}
+                    owner['identity']=ident;path=()
+                if isinstance(v.get('path'),list):
+                    # Scalar value and its full path/unit/type cannot be
+                    # recombined from facts about another channel or version.
+                    atom={k:clone(x) for k,x in v.items() if k not in volatile}
+                    atoms.add(encoded([owner,atom]));return
+                for k,x in v.items():
+                    if k not in volatile:walk(x,(*path,k),owner)
+            elif isinstance(v,list):
+                for i,x in enumerate(v):walk(x,(*path,i),owner)
+            else:
+                atoms.add(encoded([owner,list(path),v]))
+        walk(value)
+        return atoms
+
+    def _visible_atoms(self):
+        atoms=set()
+        for message in self.last_view or []:
+            if message.get('role') not in {'user','tool'}:continue
+            try:atoms |= self._observation_atoms(json.loads(message.get('content','')))
+            except (ValueError,TypeError):pass
+        return atoms
+
+    def _observe_control_progress(self,request,result):
+        successful=result.get('status') not in {'rejected','blocked'}
+        state_changed=self._progress_state()!=self._action_state_before
+        read=request.name in {'read_result','read_dependency','restore_task','check_deliveries'}
+        atoms=self._observation_atoms(result) if successful and read else set()
+        new_information=bool(atoms-self._visible_atoms()) if atoms else False
+        diag=result.get('structure_diagnostics',{})
+        issues=frozenset(encoded([i['path'],i['rule']]) for i in diag.get('issues',[]))
+        # Identity changes cannot claim correction; a global per-turn credit
+        # ceiling also prevents cycling through unrelated proposals.
+        target=encoded({'tool':request.name,'target':request.arguments.get('task_id'),
+            'key':request.arguments.get('output_key'),
+            'rows':[(r.get('task_id'),r.get('key'),r.get('capability')) for r in
+                request.arguments.get('deliveries',request.arguments.get('add_deliveries',[])) if isinstance(r,dict)]})
+        prev=self.previous_issues
+        correction=bool(not successful and issues and not diag.get('truncated') and prev and
+            prev[0]==target and issues<prev[1] and self.repair_credits<self.no_progress_limit)
+        rejection_fact=(request.name,result.get('code'))
+        # A newly exposed execution prerequisite is diagnostic information,
+        # not state advancement. It shares the same finite credit ceiling;
+        # changing arguments or cycling error classes never resets errors.
+        new_rejection=bool(not successful and not diag and self.errors and
+            rejection_fact not in self.rejection_facts and self.repair_credits<self.no_progress_limit)
+        if not successful:
+            self.errors += 0 if correction or new_rejection else 1
+            if correction or new_rejection:self.repair_credits+=1
+            self.rejection_facts.add(rejection_fact)
+            self.previous_issues=(target,issues) if issues and not diag.get('truncated') else None
+            kind='bounded_structure_correction' if correction else 'bounded_new_rejection_information' if new_rejection else 'rejected_without_progress'
+        elif state_changed or new_information:
+            self.errors=0;self.previous_issues=None;self.redundant_observations=0
+            kind='state_change' if state_changed else 'new_visible_information'
+        else:
+            kind='redundant_observation' if read else 'unchanged_action'
+            self.redundant_observations+=1
+        self.progress_events.append({'tool':request.name,'kind':kind,'errors':self.errors,
+            'repair_credits':self.repair_credits,'structure_diagnostics':clone(diag)})
 
     def _compatibility_controls(self):
         from .task_plan import task_spec_schema, PLAN_NODES_SCHEMA
@@ -183,21 +271,23 @@ class TaskPlanController(ScientificMemoryController):
             if len(keys)!=len(set(keys)):raise ContractError(('add_deliveries',),'New keys must be distinct from existing and other new keys; patch existing keys with output_key')
             rows=(self._revision_updates(old,normalized)['required_outputs'] if changes else
                   [d.to_dict() for d in old.required_outputs])
-            proposed=self._normalize_write('plan_tasks',{'deliveries':[dict(d,task_id=old.task_id) for d in additions]})
+            try:proposed=self._normalize_write('plan_tasks',{'deliveries':[dict(d,task_id=old.task_id) for d in additions]})
+            except ContractError as exc:
+                raise ContractError(('add_deliveries',*exc.path[1:]) if exc.path[:1]==['deliveries'] else exc.path,str(exc)) from exc
             rows.extend(proposed['nodes'][0]['required_outputs'])
             return {k:clone(args[k]) for k in ('task_id','revision','reason')}|{'updates':{'required_outputs':rows}}
         rows=args['deliveries'];nodes={}
-        def operand_record(ref,seen=()):
+        def operand_record(ref,seen=(),path=('deliveries',)):
             ident=(ref['task_id'],ref['key'])
-            if ident in seen:raise ContractError(('deliveries',),'Comparison operand cycle')
+            if ident in seen:raise ContractError(path,'Comparison operand cycle')
             matches=[r for r in rows if (r['task_id'],r['key'])==ident]
             if ref['task_id'] in self.graph.nodes and (not matches or 'revision' in ref):
                 try:return self.graph.resolve_ref(self._scalar_reference(ref))['delivery']['record']
-                except ValueError as exc:raise ContractError(('deliveries',),str(exc)) from exc
-            if len(matches)!=1 or ref.get('revision',1)!=1:raise ContractError(('deliveries',),'Operand must select one existing or explicitly proposed delivery/version')
+                except ValueError as exc:raise ContractError(path,str(exc)) from exc
+            if len(matches)!=1 or ref.get('revision',1)!=1:raise ContractError(path,'Operand must select one existing or explicitly proposed delivery/version')
             d=matches[0]
-            return d['record'] if d['capability']!='compare_results' else operand_record(d['left'],(*seen,ident))
-        for row in rows:
+            return d['record'] if d['capability']!='compare_results' else operand_record(d['left'],(*seen,ident),path)
+        for index,row in enumerate(rows):
             ident=row['task_id'];goal=row.get('goal',ident)
             node=nodes.setdefault(ident,{'task_id':ident,'goal':goal,'required_outputs':[],
                 'control_dependencies':[],'optional_operations':[]})
@@ -207,7 +297,7 @@ class TaskPlanController(ScientificMemoryController):
                 node[key]=list(dict.fromkeys([*node[key],*row.get(key,[])]))
             d={k:clone(v) for k,v in row.items() if k not in {'task_id','goal','control_dependencies','optional_operations','left','right'}}
             if row['capability']=='compare_results':
-                d.update(record=operand_record(row['left']),scope={},input_refs=[self._scalar_reference(row[k]) for k in ('left','right')])
+                d.update(record=operand_record(row['left'],path=('deliveries',index,'left')),scope={},input_refs=[self._scalar_reference(row[k]) for k in ('left','right')])
             node['required_outputs'].append(d)
         return {'nodes':list(nodes.values())}
 
@@ -222,6 +312,7 @@ class TaskPlanController(ScientificMemoryController):
 
     def execute(self,request,*,batch_size=1):
         self.batch_size=batch_size
+        self._action_state_before=self._progress_state()
         def state():return {'current':self.current,'active':self.store.active.subgoal_id if self.store.active else None,
             'nodes':{k:{'revision':n.revision,'status':n.status,'outputs':{key:value.get('result_id') for key,value in n.outputs.items()}}
                      for k,n in self.graph.nodes.items()},'results':[e.task_id for e in self.store.entries],
@@ -767,6 +858,20 @@ class TaskPlanController(ScientificMemoryController):
              "role_status":"not_interpreted_by_literal_locator"}
             for f in source_catalog(self.store)]
         payload["phase"] = "local_execution" if node else "plan_or_final_delivery"
+        relevant=[n for n in self.graph.nodes.values() if n.task_id in self.turn_nodes]
+        ready=bool(relevant) and all(self.delivery_check(n)['all_outputs_present'] for n in relevant)
+        review=('declared_outputs_present' if ready else
+                'observations_without_increment' if self.redundant_observations>=2 else None)
+        if review!=self.delivery_review:
+            self.plan_events.append({'event':'delivery_phase','turn':self.store.turn,
+                'mode':'delivery_review' if review else 'execution','reason':review})
+        self.delivery_review=review
+        if review:
+            payload['phase']='delivery_review'
+            payload['delivery_phase']={'mode':'delivery_review','reason':review,'can_resume_execution':True,
+                'instruction':'Review the original request against actual visible evidence. Declared outputs do not prove intent completeness. Explicitly add/revise omitted work or read genuinely needed evidence, otherwise deliver with finish_task; partial/clarification remain available. All scientific checks and resource limits still apply.'}
+        payload['control_progress']={'latest':clone(self.progress_events[-1:]),
+            'bounded_diagnostic_credits_used':self.repair_credits}
         payload["current_plan_task"] = node.task_id if node else None
         payload["dependency_evidence"] = self._inputs(node) if node else []
         payload["task_summaries"] = [{"task_id":n.task_id,"goal":n.goal,"revision":n.revision,
@@ -782,7 +887,19 @@ class TaskPlanController(ScientificMemoryController):
         return messages
 
     def build_messages(self, **kwargs):
-        messages = super().build_messages(**kwargs)
+        if getattr(self,'final_only',False) and not self.delivery_checkpoint:
+            messages,_=self.build_final_messages(self.finalization_reason)
+            if len(json.dumps(messages,ensure_ascii=False).encode('utf8'))>self.max_context_bytes:
+                if kwargs.get('record_decision',True):self.stop_reason='context_capacity'
+                return []
+            if kwargs.get('record_decision',True):
+                self._remember_presented(messages)
+                self.last_view=clone(messages)
+                self.visible_evidence_ids=self._visible_results(messages)
+                self.decisions.append({'turn':self.store.turn,'messages':clone(messages),
+                    'context_bytes':len(encoded(messages)),'phase':'hard_final_delivery'})
+        else:
+            messages = super().build_messages(**kwargs)
         if messages and kwargs.get("record_decision",True):
             payload = json.loads(messages[1]["content"])
             self.evidence_log.append({"event":"presented","decision":len(self.decisions),
@@ -794,8 +911,12 @@ class TaskPlanController(ScientificMemoryController):
 
     def build_final_messages(self, reason="resource_reserve"):
         messages,tools = super().build_final_messages(reason)
-        messages[0]["content"] = SYSTEM
+        messages[0]['content']='你是EEG分析交付助手。当前资源仅允许finish_task，不能继续工具计算或读取。依据本视图实际可用证据回答原请求；无法完整交付时明确partial及未完成事项，资源限制不是科学缺参。保留对象、单位、范围、版本与真实限制，不编造或推断未读数值。'
         payload = json.loads(messages[1]["content"])
+        payload['phase']='hard_final_delivery'
+        payload['delivery_phase']={'mode':'hard_final_delivery','reason':reason,'can_resume_execution':False,
+            'allowed_operations':['finish_task'],'declared_completion_is_request_completion':False}
+        payload.pop('task_status',None)  # No unrequested archive facts in final view.
         payload["plan_status"] = [{"task_id":n.task_id,"revision":n.revision,"status":n.status,
                                    "unresolved":clone(n.unresolved)} for n in self.graph.nodes.values()]
         messages[1]["content"] = encoded(payload).decode("utf8")
@@ -840,13 +961,29 @@ class TaskPlanController(ScientificMemoryController):
 
     def _dispatch(self, request):
         name,args=request.name,clone(dict(request.arguments))
+        if getattr(self,'final_only',False) and name!='finish_task':
+            result=self.store._error('FINAL_DELIVERY_ONLY','Only the reserved final answer is available')
+            result['recovery']={'tool':'finish_task','instruction':'Report actual visible results and unresolved work; execution cannot resume at this resource boundary.'}
+            return result
         compact=(name=='plan_tasks' and 'deliveries' in args or
                  name=='revise_plan' and not ({'updates','changes'} & set(args)))
         if not compact:
             result=self._dispatch_canonical(request)
+            if name in {'plan_tasks','revise_plan'} and result.get('status')=='rejected':
+                public=next(c['function']['parameters'] for c in self.control_definitions() if c['function']['name']==name)
+                diagnostics=contract_diagnostics(args,public)
+                if diagnostics['issues']:
+                    result['compatibility_diagnostic']={k:clone(result[k]) for k in ('code','message','field_path') if k in result}
+                    first=diagnostics['issues'][0]
+                    result.update(message=first['message'],field_path=first['path'],structure_diagnostics=diagnostics)
             return self._planning_feedback(name,args,result) if name in {'plan_tasks','revise_plan'} else result
         spec=next(c['function'] for c in self.control_definitions() if c['function']['name']==name)
         try:
+            diagnostics=contract_diagnostics(args,spec['parameters'])
+            if diagnostics['issues']:
+                first=diagnostics['issues'][0]
+                return self._planning_feedback(name,args,{**self.store._error('INVALID_PLAN_STRUCTURE',first['message']),
+                    'field_path':first['path'],'structure_diagnostics':diagnostics})
             validate_contract(args,spec['parameters'])
             normalized=self._normalize_write(name,args)
         except (ValueError,TypeError,KeyError) as exc:
@@ -862,7 +999,18 @@ class TaskPlanController(ScientificMemoryController):
                     rows=normalized.get('updates',{}).get('required_outputs',[])
                     start=len(rows)-len(added)
                     path=(['add_deliveries',index-start,*path[3:]] if added and index>=start else path[3:])
+                    if (path[:1]==['add_deliveries'] and args['add_deliveries'][path[1]].get('capability')=='compare_results'
+                            and path[2:3]==['input_refs'] and len(path)>3):
+                        path=path[:2]+[('left','right')[path[3]]]+path[4:]
+                        if 'fields' in path:
+                            i=path.index('fields');path=path[:i]+['field']+path[i+2:]
                 elif path[:1]==['changes']:path=path[1:]
+                old=self.graph.nodes.get(args.get('task_id'))
+                selected=old.delivery(args.get('output_key')) if old else None
+                if selected and selected.capability=='compare_results' and path[:1]==['input_refs'] and len(path)>1:
+                    path=[('left','right')[path[1]],*path[2:]]
+                    if 'fields' in path:
+                        i=path.index('fields');path=path[:i]+['field']+path[i+2:]
             elif path[:1]==['nodes'] and len(path)>3 and path[2]=='required_outputs':
                 task=normalized['nodes'][path[1]];key=task['required_outputs'][path[3]]['key']
                 index=next(i for i,d in enumerate(args['deliveries']) if (d['task_id'],d['key'])==(task['task_id'],key))
@@ -905,12 +1053,30 @@ class TaskPlanController(ScientificMemoryController):
             effects.append({'operation':'patch_existing_delivery','task_id':args.get('task_id'),'key':key,
                 'current_revision':node.revision if node else None,
                 'implicit_previous_result':bool(entry and self.store._binding_valid(entry))})
+        public=next(c['function']['parameters'] for c in self.control_definitions() if c['function']['name']==name)
+        surfaces=[]
+        collection='deliveries' if name=='plan_tasks' else 'add_deliveries'
+        for i,row in enumerate((args.get(collection,[]) if isinstance(args.get(collection,[]),list) else [])[:24]):
+            schema=selected_contract(public['properties'][collection]['items'],row)
+            surfaces.append({'path':[collection,i],
+                'allowed_fields':list(schema.get('properties',{})) if schema else [],
+                'source_fields':[k for k in ('interpretation','input_refs','left','right') if schema and k in schema.get('properties',{})],
+                'branch':'explicit_discriminator' if schema else 'select_advertised_capability'})
+        if name=='revise_plan':
+            node=self.graph.nodes.get(args.get('task_id')) if isinstance(args.get('task_id'),str) else None
+            d=node.delivery(args['output_key']) if node and isinstance(args.get('output_key'),str) else None
+            fields=['left','right'] if d and d.capability=='compare_results' else ['interpretation','input_refs'] if d else []
+            surfaces.append({'path':[],'allowed_fields':list(public['properties']),
+                'source_fields':[k for k in fields if k in public['properties']], 'branch':'explicit_existing_target' if d else 'target_not_selected'})
+        shared=set(surfaces[0]['source_fields']) if surfaces else set()
+        for surface in surfaces[1:]:shared &= set(surface['source_fields'])
         result['recovery']={**result.get('recovery',{}),'tool':result.get('recovery',{}).get('tool',name),
-            'proposed_effects':effects,'source_fields':['interpretation','input_refs'],
+            'proposed_effects':effects,'source_fields':[k for k in ('interpretation','input_refs','left','right') if k in shared],
+            'public_contracts':surfaces,
             'operation_contract':{
                 'new_task':'plan_tasks.deliveries: independent new identities only',
                 'patch_existing':'revise_plan: task_id + output_key + revision + reason, then changed fields. Reuses that selected delivery previous binding; old result remains in revision history.',
-                'append_new':'revise_plan: task_id + revision + reason + add_deliveries. New keys do not inherit sibling results merely by sharing a task. Supply explicit input_refs when using existing evidence; may also patch one output_key atomically.'},
+                'append_new':'revise_plan: task_id + revision + reason + add_deliveries. New keys do not inherit sibling results merely by sharing a task. Choose evidence fields from the explicitly selected public branch; may also patch one output_key atomically.'},
             'instruction':'Select the intended operation and evidence explicitly; no target or scientific condition is inferred. read_dependency discovers actual result contracts, including undelivered/stale status.'}
         return result
 
@@ -1199,6 +1365,7 @@ class TaskPlanController(ScientificMemoryController):
             plan=[n.to_dict() for n in self.graph.nodes.values()],plan_events=clone(self.plan_events),
             graph_history=clone(self.graph.history),evidence_access=clone(self.evidence_log),
             action_transitions=clone(self.action_transitions),clarifications=clone(self.clarifications))
+        result['control_progress']=clone(getattr(self,'progress_events',[]))
         return result
 
 

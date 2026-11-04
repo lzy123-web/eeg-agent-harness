@@ -30,8 +30,10 @@ class InterpretationTest(unittest.TestCase):
             r=a.run('记录A stimulus事件相对0到1秒的SYNTH-C2功率。')
             error=r.tool_results[0]['data']
             self.assertEqual(error['code'],'INVALID_PLAN_STRUCTURE')
-            self.assertEqual(error['field_path'],['nodes',0,'required_outputs',0,'scope','channels'])
-            self.assertIn('labels',error['message']);self.assertIn('tmax',error['message']);self.assertIn('tmin',error['message'])
+            self.assertEqual(error['field_path'],['deliveries'])
+            legacy=error['compatibility_diagnostic']
+            self.assertEqual(legacy['field_path'],['nodes',0,'required_outputs',0,'scope','channels'])
+            self.assertIn('labels',legacy['message']);self.assertIn('tmax',legacy['message']);self.assertIn('tmin',legacy['message'])
             self.assertFalse(a.working_memory.graph.nodes)
             self.assertFalse(a.working_memory.store.entries)
 

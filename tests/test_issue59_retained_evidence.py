@@ -49,7 +49,7 @@ class RetainedEvidenceTest(unittest.TestCase):
             {'task_id':'a','key':key,'fields':[['invented','path']],'level':'result'} for key in ('old','new')])
         before=deepcopy(w.graph.to_dict())
         result=w._dispatch(ToolRequest('plan_tasks',{'nodes':[node('compare',[compare])]}))
-        self.assertEqual(result['code'],'INVALID_PLAN_SOURCE');self.assertIn('scalar field',result['message'])
+        self.assertEqual(result['code'],'INVALID_PLAN_SOURCE');self.assertIn('scalar field',result['compatibility_diagnostic']['message'])
         self.assertEqual(w.graph.to_dict(),before)
         for r in compare['input_refs']:r['fields']=[['SYNTH-C1','alpha']]
         result=w._dispatch(ToolRequest('plan_tasks',{'nodes':[node('compare',[compare])]}))
