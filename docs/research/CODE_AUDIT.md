@@ -1,3 +1,11 @@
+## Issue62最终源码与真实触发核对（已实现；自主部分通过）
+
+8a3920a/source2a97b154/behavior2bb189a1冻结后未改；独立只读核对187项源文件。真实T05的change_source在拒绝混用后实际归一并修订task revision1→2，原结果/不变任务保留；T07 task_goals多交付实际使用，原Epoch复用无原数值重算。M01没有选择修订，新建来源拒绝仍合法，不能宣称操作选择问题解决。M02独立任务保持，A/B各重复读取两次仍有成本。
+
+全部送达回答另核：T07首轮新计算误述为重算/复用，因此核心3/4、严格完整2/4；原自动分数未改。共享时基父对象漏洞在A/B同样修复，六组旧保存点/安全/原24链及846项全量通过，公开源码和证据在[集中报告](EEG_WORKING_MEMORY_ISSUE62.md)。目前边界：窄delta保守歧义拒绝、完整interpretation兼容维护成本、比较显式字段负担；没有第二Planner/Store/Executor或语义自动猜测。
+
+---
+
 ## Issue62源码职责（已实现，真实待验证）
 
 model_write_schemas分离task_goals与交付科学定义，保留旧输入；TaskPlanController._change_interpretation按显式变动scope路由change_source到旧解释，没有自然语言意图选择或新增状态。原_revision_updates/完整TaskSpec/PlanGraph.revise及Store/Executor负责原子性、版本、实际证据；比较字段方向不变。interpreted_sources统一核验历史对象与当前range parent的family/对象归属，关闭独立发现的A/B共同误放行。既有issue61_live增加scope policy，原资金与恢复保护不改。公开working_memory_issue62只做原失败重放和明确受控A/B，不构成模型成功。详见[报告](EEG_WORKING_MEMORY_ISSUE62.md)。
