@@ -1,3 +1,11 @@
+## Issue61续作最终事实：共享控制已实现，恢复设计部分可用（2026-11-04）
+
+最终dfb4114/source c6051258/behavior593f77b7。实际诊断键为tool/code/field_path/message；与严格结构问题集合缩小共享每轮3信用，不清零错误、不看提案参数。唯一修订来自真实v1第7/8次记录→窗口来源错误变化，原提案仍拒绝。最终T05/M01未修订，T07跨行goal冲突未计算，M02旧结果复用及独立新计算成功。最终只7/8用户轮实际发送，1/4完整通过。无科学变更后重抽或跨版拼接。
+
+恢复字段主要从公开schema生成，但跨行goal错误仍用内部root path，另有数值动作channel_reference拒绝仍建议required_outputs[].interpretation.channel_reference，已由独立只读实际触发确认，不能将“全路径一致”当作事实。T05原system明确保留原source_ref改range_ref，实际模型没采用；字段级来源表达仍有负担。三项职责的工程门通过不意味着自主能力或所有设计缺陷消失。[集中报告](EEG_WORKING_MEMORY_ISSUE61.md)保留前后证据、预算、自审及独立复核。833全量(15跳过)、18专项与14独立设计检查通过；六组方法差异不变，未新建状态/预算平台。
+
+---
+
 ## Issue61主审续作：操作/进展/交付控制同源（已实现，真实待验证）
 
 scientific_contracts.contract_diagnostics从原有限schema词汇收集结构问题，selected_contract仅显式enum选支；TaskPlanController恢复字段/报错路径对应当前公开表示，canonical诊断另留。原WorkingMemoryController新增可选进展hook，TaskPlanController使用自身已有图、当前wire与有限诊断额度；没有独立状态平台。字段/值/单位/所属结果关联原子用于审查信号，不替代科学Binding核验。软delivery_review在决策视图中选择且保留所有工具，hard_final_delivery复用真实可见final视图并检查上下文限额；预算/最后轮/工具边界实际wire一致。
