@@ -524,6 +524,14 @@ def interpreted_sources(store,name,scope,record,resolution,interpretation,inheri
                  ({(float(a),float(b)) for a,b in RANGE.findall(f.text)} if f.object_parent is None else set()))}
             if current_windows and current_windows!={tuple(float(scope[k]) for k in pair)}:
                 raise ValueError('Current user window conflicts with the old window; use its current range_ref')
+        elif window_frame.object_family is not None and (
+                window_frame.object_family!=store._family(name) or
+                set(window_frame.object_names)!=selected):
+            # A historical object's identity cannot relabel a newly selected
+            # window's parent. Forward clause ownership is factual evidence,
+            # including an adjacent object-only clause. Mixed current objects
+            # need their own complete interpretation, not an inherited role.
+            raise ValueError('Current range parent belongs to a different scientific object or time family')
         elif window_frame not in resolution.frames or any(
                 store._contains(window_frame.text,x) for x in available-selected):
             raise ValueError('Current supplement conflicts with the historical object')

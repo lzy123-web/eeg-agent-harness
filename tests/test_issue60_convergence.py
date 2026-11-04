@@ -76,7 +76,7 @@ class ConvergenceTest(unittest.TestCase):
 
     def test_default_write_contract_removed_whole_task_and_wrapper_repetition(self):
         controls={c['function']['name']:c['function'] for c in self.w.control_definitions()}
-        self.assertEqual(set(controls['plan_tasks']['parameters']['properties']),{'deliveries'})
+        self.assertEqual(set(controls['plan_tasks']['parameters']['properties']),{'deliveries','task_goals'})
         p=controls['revise_plan']['parameters']['properties']
         self.assertNotIn('updates',p);self.assertNotIn('changes',p)
         self.assertNotIn('required_outputs',encoded(controls['plan_tasks']).decode())
@@ -86,7 +86,7 @@ class ConvergenceTest(unittest.TestCase):
         rev=next(t['function']['parameters'] for t in tools if t['function']['name']=='revise_plan')
         rev['properties'].pop('add_deliveries',None)
         self.assertLess(len(encoded(tools)),31000)
-        self.assertLess(len(encoded(self.w.tool_definitions())),36000)
+        self.assertLess(len(encoded(self.w.tool_definitions())),38000)  # Issue62 task-level metadata + explicit delta source
         bad={'deliveries':[],'nodes':[node('a',[delivery('x')])]}
         before=self.w.graph.to_dict()
         self.assertEqual(self.w._dispatch(ToolRequest('plan_tasks',bad))['code'],'INVALID_PLAN_STRUCTURE')
@@ -114,6 +114,8 @@ class ConvergenceTest(unittest.TestCase):
                node('c',[delivery('delta','compare_results',{},refs=refs,rules=[rule])])]
         name,proposal=compact_action('plan_tasks',{'nodes':nodes})
         schema=next(c['function']['parameters'] for c in self.w.control_definitions() if c['function']['name']==name)
+        proposal['task_goals']=[{'task_id':n['task_id'],'goal':n['goal']} for n in nodes]
+        for row in proposal['deliveries']:row.pop('goal',None)
         validate_contract(proposal,schema)
         r=self.w._dispatch(ToolRequest(name,proposal));self.assertEqual(r['status'],'planned',r)
         self.assertEqual(self.w.graph.nodes['c'].delivery('delta').acceptance_rule,[rule])

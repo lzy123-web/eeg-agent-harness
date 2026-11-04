@@ -564,7 +564,7 @@ def task_spec_schema(registry):
     return spec
 
 
-def model_write_schemas(registry):
+def model_write_schemas(registry, *, legacy=False):
     """Compact choices normalized into TaskSpec, not a second plan format store."""
     full=task_spec_schema(registry)
     delivery=full['properties']['required_outputs']['items']
@@ -611,4 +611,19 @@ def model_write_schemas(registry):
         {'if':{'not':{'required':['add_deliveries']}},'then':{'required':['output_key']}}]
     for key in (*patch_props,'left','right'):
         revise['allOf'].append({'if':{'required':[key]},'then':{'required':['output_key']}})
+    if not legacy:
+        # A task title belongs to the identity, not to each delivery. The
+        # delivery's scientific objective is its capability/scope/references.
+        for branch in create['properties']['deliveries']['items']['oneOf']:
+            branch['properties'].pop('goal',None)
+        create['properties']['task_goals']={'type':'array','minItems':1,'maxItems':32,
+            'items':{'type':'object','properties':{k:_copy(full['properties'][k]) for k in ('task_id','goal')},
+                     'required':['task_id','goal'],'additionalProperties':False},
+            'description':'Optional task-level titles, once per selected task identity. No scientific conditions or operation are inferred from a title.'}
+        # Keep the existing explicit interpretation escape hatch for genuine
+        # field relations. The default delta no longer needs to restate it.
+        revise['properties']['change_source']=_copy(interpretation_schema(locators_only=True)['properties']['source_ref'])
+        revise['properties']['change_source']['description']='Current complete user source for explicitly changed scope fields. Existing object/time facts are retained according to the selected fields; no value or target is inferred.'
+        revise['allOf'].append({'not':{'required':['change_source','interpretation']}})
+        revise['allOf'].append({'if':{'required':['change_source']},'then':{'required':['output_key','scope']}})
     return create,revise

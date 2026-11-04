@@ -1,3 +1,9 @@
+## Issue62源码职责（已实现，真实待验证）
+
+model_write_schemas分离task_goals与交付科学定义，保留旧输入；TaskPlanController._change_interpretation按显式变动scope路由change_source到旧解释，没有自然语言意图选择或新增状态。原_revision_updates/完整TaskSpec/PlanGraph.revise及Store/Executor负责原子性、版本、实际证据；比较字段方向不变。interpreted_sources统一核验历史对象与当前range parent的family/对象归属，关闭独立发现的A/B共同误放行。既有issue61_live增加scope policy，原资金与恢复保护不改。公开working_memory_issue62只做原失败重放和明确受控A/B，不构成模型成功。详见[报告](EEG_WORKING_MEMORY_ISSUE62.md)。
+
+---
+
 ## Issue61续作最终事实：共享控制已实现，恢复设计部分可用（2026-11-04）
 
 最终dfb4114/source c6051258/behavior593f77b7。实际诊断键为tool/code/field_path/message；与严格结构问题集合缩小共享每轮3信用，不清零错误、不看提案参数。唯一修订来自真实v1第7/8次记录→窗口来源错误变化，原提案仍拒绝。最终T05/M01未修订，T07跨行goal冲突未计算，M02旧结果复用及独立新计算成功。最终只7/8用户轮实际发送，1/4完整通过。无科学变更后重抽或跨版拼接。
