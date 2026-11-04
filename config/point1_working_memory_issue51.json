@@ -1,0 +1,59 @@
+{
+  "protocol_version": "issue51-v1",
+  "purpose": "科学子目标多结果、可信归档与自主记忆续接的实现确认；不是未见任务准确率实验",
+  "limits": {"completions": 72, "api_tokens": 650000},
+  "phase_limits": {
+    "development": {"completions": 18, "api_tokens": 150000},
+    "confirmation": {"completions": 36, "api_tokens": 500000},
+    "comparison": {"completions": 18, "api_tokens": 300000}
+  },
+  "comparison_arm_limits": {"completions": 6, "api_tokens": 100000},
+  "model_settings": {"max_output_tokens": 2200, "max_retries": 0, "timeout_seconds": 90},
+  "agent_settings": {"max_rounds": 16, "max_tool_calls": 24, "timeout_seconds": 900},
+  "budget_policy": {
+    "reservation": "Actual UTF-8 JSON wire bytes plus maximum output tokens; every attempt charged before network",
+    "finalization": "Actual current final-input snapshot lease, with explicit partial-only fallback if stale",
+    "phase_pools": "Priority maxima under one global72/650000 ceiling, not additive grants: development18/150000, confirmation36/500000; only after scientific confirmation may the complete three-arm followup enter if at least18 calls/300000 global tokens remain. No old-stage allowance reused",
+    "unit_precheck": "Measure every turn and actual working-memory state using original Executor; separately report a bounded witness schedule, hard pool caps, and uncertainty of autonomous future actions",
+    "automatic_retries": 0,
+    "maximum_root_caused_development_revisions": 2
+  },
+  "arms": {
+    "scientific-working": {"architecture": "scientific", "context_mode": "working"},
+    "scientific-summary": {"architecture": "scientific", "context_mode": "summary"},
+    "scientific-full": {"architecture": "scientific", "context_mode": "full"}
+  },
+  "arm_order": {
+    "confirmation": ["scientific-working"],
+    "comparison": ["scientific-full", "scientific-summary", "scientific-working"]
+  },
+  "development": {"requests": [
+    "我想了解两份记录的基础信号情况：请在记录A的SYNTH-C1、0到2秒这一范围同时给出RMS和alpha绝对功率；记录B的SYNTH-C1只看2到4秒的RMS，说明对象、窗口和单位。另外我想了解记录A中stimulus事件的SYNTH-C2 theta绝对功率，不做基线校正或筛选，事件相对窗口我稍后提供。先交付可以确定的部分。",
+    "事件相对窗口使用发生后0到1.25秒，其余条件不变。记录A的SYNTH-C1连续分析再看4到6秒的alpha绝对功率，与第一次0到2秒比较差值和新旧比值，保留原结果；不要改动记录B的窗口。",
+    "沿用刚才记录A的原事件试次和处理选择，追加质量测量，说明实际标准、试次数和是否做过筛选；已有适用的频带结果不要重算，并再次说明这批试次上SYNTH-C2的theta绝对功率及来源。最后回顾记录B之前窗口的RMS及其范围与单位。"
+  ]},
+  "confirmation": {"requests_from": "development", "new_synthetic_values": true, "each_arm_once": true},
+  "comparison": {
+    "kind": "same_controlled_real_executor_history_then_autonomous_followup",
+    "requires_manual_scientific_audit": true,
+    "requests": ["请回顾记录A的SYNTH-C1在0到2秒的RMS及之前stimulus原试次上SYNTH-C2的theta绝对功率，保留范围、单位和来源；沿用这批原试次追加质量测量，说明实际标准、试次数和处理依据，不做筛选，已有适用的结果不要重算。"],
+    "interpretation": "All three modes share task organization/scientific contracts/read rights; this contrast measures context presentation and reading granularity, not task-organization contribution"
+  },
+  "evaluation_only": {
+    "never_send_to_agent": true,
+    "required_observations": [
+      "Model proposes at least one useful multi-result scientific task; first result does not archive it",
+      "Independent continuous outputs proceed while event window remains genuinely unspecified",
+      "A and B record ownership and distinct continuous windows remain correct",
+      "Actual event supplement uses relative window0..1.25s and original real Epoch object",
+      "Revision preserves0..2s evidence and computes4..6s; difference and ratio come from program-verified operands",
+      "Archived summaries and active action-observation enter the next actual model request",
+      "Historical result or original process is genuinely used for subsequent evidence or quality analysis; restore is optional when unnecessary",
+      "Exact reads, process restoration, final visible evidence and final claims are audited separately"
+    ],
+    "failure_classes": ["intent_or_grouping", "record_or_scope_binding", "outcome_completion", "numeric_execution", "archive_or_context", "historical_use", "comparison_semantics", "final_delivery", "budget_resource"],
+    "equivalent_behaviors": ["Batch independent native actions or separate calls", "Read only when necessary; directly visible exact evidence may be used", "All-channel/all-band tool results permitted", "Correct partial and clarification distinct from full success"],
+    "no_causal_inference_from_temporal_overlap": true,
+    "development_examples_are_not_unseen_tests": true
+  }
+}

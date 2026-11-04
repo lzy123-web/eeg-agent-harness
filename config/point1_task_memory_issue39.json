@@ -1,0 +1,50 @@
+{
+  "version": "issue39-preregistered-before-paid-calls",
+  "development_session_ids": ["N-medium"],
+  "confirmation_session_ids": ["C-short", "C-long"],
+  "policies": ["F", "S", "H", "HE"],
+  "confirmation_schedule": {
+    "C-short": ["F", "S", "H", "HE"],
+    "C-long": ["H", "HE", "F", "S"]
+  },
+  "max_external_completions": 160,
+  "max_external_tokens": 300000,
+  "planned_allocation": {
+    "smoke_max": 8,
+    "initial_four_arm_max": 48,
+    "development_revisions_max": 32,
+    "confirmation_four_arm_max": 56,
+    "reserve_max": 16
+  },
+  "confirmation_sessions": [
+    {
+      "id": "C-short",
+      "split": "confirmation",
+      "event_labels": {"A": ["tone", "quiet"], "B": ["rare", "common"]},
+      "steps": [
+        {"key": "a_amp", "text": "请计算 A 记录 SYNTH-C1 通道 0 到 2 秒的幅值 RMS。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "a_power", "text": "接着看同一记录 SYNTH-C1 在 3 到 5 秒的连续绝对频带功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}}
+      ],
+      "queries": [
+        {"text": "之前 A 的 SYNTH-C1 在 0 到 2 秒的幅值 RMS 是多少？", "target": "a_amp", "field": ["SYNTH-C1", "rms"]}
+      ]
+    },
+    {
+      "id": "C-long",
+      "split": "confirmation",
+      "event_labels": {"A": ["tone", "quiet"], "B": ["rare", "common"]},
+      "steps": [
+        {"key": "b_rare_old", "text": "切到 B 并统计 rare 事件后 0 到 1 秒的有效试次数。", "record": "B", "capability": "epoch_summary", "parameters": {"labels": ["rare"], "tmin": 0, "tmax": 1}},
+        {"key": "a_continuous", "text": "再对 A 的 SYNTH-C2 通道 0 到 2 秒计算连续绝对频带功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C2"], "start": 0, "end": 2}},
+        {"key": "a_tone_old", "text": "A 的 tone 事件后 0 到 1 秒，计算各通道绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["tone"], "tmin": 0, "tmax": 1}},
+        {"key": "b_amplitude", "text": "切回 B，计算 SYNTH-C1 在 3 到 5 秒的幅值 RMS。", "record": "B", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}},
+        {"key": "a_tone_new", "text": "回 A，把 tone 事件功率的窗口改为事件后 0 到 1.5 秒，并保留前一版本。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["tone"], "tmin": 0, "tmax": 1.5}, "revision_of": "a_tone_old"},
+        {"key": "b_rare_new", "text": "最后把 B 的 rare 试次统计窗口改为事件后 0 到 0.5 秒，也保留旧版。", "record": "B", "capability": "epoch_summary", "parameters": {"labels": ["rare"], "tmin": 0, "tmax": 0.5}, "revision_of": "b_rare_old"}
+      ],
+      "queries": [
+        {"text": "修改前 B 的 rare 事件后 0 到 1 秒，有效试次数是多少？", "target": "b_rare_old", "field": ["valid_epoch_count"]},
+        {"text": "修改后 A 的 tone 事件后 0 到 1.5 秒，SYNTH-C1 的 alpha 绝对功率是多少？", "target": "a_tone_new", "field": ["conditions", "tone", "channels", "SYNTH-C1", "alpha"]}
+      ]
+    }
+  ]
+}

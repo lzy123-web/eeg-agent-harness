@@ -1,0 +1,42 @@
+{
+  "status": "evaluation_only_never_send_to_agent",
+  "purpose": "原 Issue52 自然请求的逐轮结果清单；不由模型 DAG 推导，不改变原请求、窗口或完成标准。回答、复用和科学条件仍需独立人工复核。",
+  "format": ["key", "turn", "record", "capability", "scope", "fields"],
+  "cases": {
+    "T01": [
+      ["rms",1,"A","amplitude",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","rms"]]],
+      ["alpha",1,"A","psd",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","alpha"]]]
+    ],
+    "T02": [
+      ["early",1,"A","psd",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","alpha"]]],
+      ["late",1,"A","psd",{"channels":["SYNTH-C1"],"start":4,"end":6},[["SYNTH-C1","alpha"]]]
+    ],
+    "T03": [
+      ["rms",1,"B","amplitude",{"channels":["SYNTH-C1"],"start":2,"end":4},[["SYNTH-C1","rms"]]],
+      ["count",2,"A","create_epochs",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["valid_epoch_count"]]],
+      ["theta",2,"A","event_bandpower",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["conditions","stimulus","channels","SYNTH-C2","theta"]]]
+    ],
+    "T04": [
+      ["a-rms",1,"A","amplitude",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","rms"]]],
+      ["b-rms",1,"B","amplitude",{"channels":["SYNTH-C1"],"start":2,"end":4},[["SYNTH-C1","rms"]]]
+    ],
+    "T05": [
+      ["old-alpha",1,"A","psd",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","alpha"]]],
+      ["b-rms",1,"B","amplitude",{"channels":["SYNTH-C1"],"start":2,"end":4},[["SYNTH-C1","rms"]]],
+      ["new-alpha",2,"A","psd",{"channels":["SYNTH-C1"],"start":4,"end":6},[["SYNTH-C1","alpha"]]]
+    ],
+    "T06": [
+      ["count",1,"A","create_epochs",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["valid_epoch_count"]]]
+    ],
+    "T07": [
+      ["rms",1,"A","amplitude",{"channels":["SYNTH-C1"],"start":0,"end":2},[["SYNTH-C1","rms"]]],
+      ["theta",1,"A","event_bandpower",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["conditions","stimulus","channels","SYNTH-C2","theta"]]],
+      ["quality",2,"A","epoch_quality",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[]]
+    ],
+    "T08": [
+      ["count",1,"A","create_epochs",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["valid_epoch_count"]]],
+      ["theta",1,"A","event_bandpower",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[["conditions","stimulus","channels","SYNTH-C2","theta"]]],
+      ["quality",2,"A","epoch_quality",{"labels":["stimulus"],"tmin":0,"tmax":1.25},[]]
+    ]
+  }
+}

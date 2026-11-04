@@ -1,0 +1,356 @@
+{
+  "protocol_version": "issue55-v1",
+  "authorized_limits": {
+    "external_completions": 0,
+    "api_tokens": 0
+  },
+  "old_stage_budget_reuse": false,
+  "model_settings": {
+    "model": "deepseek-chat",
+    "max_output_tokens": 2200,
+    "max_retries": 0,
+    "thinking": {
+      "type": "disabled"
+    },
+    "temperature": null
+  },
+  "agent_settings": {
+    "max_rounds": 12,
+    "max_tool_calls": 36,
+    "timeout_seconds": 900,
+    "max_context_bytes": 256000
+  },
+  "synthetic_data": {
+    "scales": {
+      "A": 1.17,
+      "B": 0.81
+    },
+    "added_sine_volts": 1.3e-06,
+    "added_sine_hz": 7
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "requests": [
+        "请分别报告记录A的SYNTH-C1在0.5到2.5秒的RMS和alpha功率，以及记录B的同名通道在2.5到4.5秒的RMS。各结果注明记录、窗口和单位。",
+        "仅把记录A SYNTH-C1的alpha分析窗口修订为4.5到6.5秒，给出相对最初窗口的功率差值和比值；记录B不要重算，旧结果保留。",
+        "请再次报告最初记录A SYNTH-C1在0.5到2.5秒的RMS与alpha功率，说明它们和修订版本的区别，使用已有结果。"
+      ],
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "obligations": [
+          {
+            "key": "a-rms",
+            "turn": 1,
+            "capability": "amplitude",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0.5,
+              "end": 2.5
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "rms"
+              ]
+            ]
+          },
+          {
+            "key": "a-old",
+            "turn": 1,
+            "capability": "psd",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0.5,
+              "end": 2.5
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "alpha"
+              ]
+            ]
+          },
+          {
+            "key": "b-rms",
+            "turn": 1,
+            "capability": "amplitude",
+            "record": "B",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 2.5,
+              "end": 4.5
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "rms"
+              ]
+            ]
+          },
+          {
+            "key": "a-new",
+            "turn": 2,
+            "capability": "psd",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 4.5,
+              "end": 6.5
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "alpha"
+              ]
+            ]
+          }
+        ],
+        "review": [
+          "跨记录同名通道无串用",
+          "第二轮真实比较两版差值/比值",
+          "第三轮实际交付最初精确值及版本",
+          "没有重复真实计算"
+        ],
+        "allowed_stops": [
+          "completed",
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "requests": [
+        "记录B SYNTH-C1在1到3秒的RMS和alpha功率请先给出；另外分析记录A的stimulus事件，报告有效试次数与SYNTH-C2的theta功率。事件相对窗口我还没确定，不要猜测，也不要做基线校正或筛选。",
+        "记录A stimulus事件的窗口定为相对起点-0.25到1.25秒，请继续未完成分析，保留前面的连续结果。",
+        "请核对上一轮事件分析的实际处理过程，沿用同一批试次追加质量测量，报告原事件theta精确值和质量限制；不要重新切分试次，也不要筛选。"
+      ],
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "obligations": [
+          {
+            "key": "b-rms",
+            "turn": 1,
+            "capability": "amplitude",
+            "record": "B",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 1,
+              "end": 3
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "rms"
+              ]
+            ]
+          },
+          {
+            "key": "b-alpha",
+            "turn": 1,
+            "capability": "psd",
+            "record": "B",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 1,
+              "end": 3
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "alpha"
+              ]
+            ]
+          },
+          {
+            "key": "count",
+            "turn": 2,
+            "capability": "epoch_summary",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": -0.25,
+              "tmax": 1.25
+            },
+            "fields": [
+              [
+                "valid_epoch_count"
+              ]
+            ]
+          },
+          {
+            "key": "theta",
+            "turn": 2,
+            "capability": "event_bandpower",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": -0.25,
+              "tmax": 1.25
+            },
+            "fields": [
+              [
+                "conditions",
+                "stimulus",
+                "channels",
+                "SYNTH-C2",
+                "theta"
+              ]
+            ]
+          },
+          {
+            "key": "quality",
+            "turn": 3,
+            "capability": "epoch_quality",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": -0.25,
+              "tmax": 1.25
+            },
+            "fields": []
+          }
+        ],
+        "review": [
+          "首轮合法连续交付并询问事件窗",
+          "补参前零事件计算",
+          "同一任务身份合法续接",
+          "原工件身份及未经筛选/基线校正",
+          "实际过程呈现与后续模型使用分开核查",
+          "质量所有报告字段独立复算"
+        ],
+        "allowed_stops": [
+          "clarification_required",
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "requests": [
+        "记录A SYNTH-C1在0.25到2.25秒以及4.25到6.25秒的alpha功率分别是多少？同时统计记录B的stimulus事件相对0到1.5秒的有效试次数。只有至少5个有效试次才能认为事件部分满足条件，否则如实报告不足，连续分析仍需交付。不扩大范围，不做筛选。",
+        "不要放宽事件试次数条件。请比较上述两个连续窗口的alpha差值和比值，并保留事件条件未满足的说明。"
+      ],
+      "evaluation_only": {
+        "never_send_to_agent": true,
+        "obligations": [
+          {
+            "key": "early",
+            "turn": 1,
+            "capability": "psd",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 0.25,
+              "end": 2.25
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "alpha"
+              ]
+            ]
+          },
+          {
+            "key": "late",
+            "turn": 1,
+            "capability": "psd",
+            "record": "A",
+            "scope": {
+              "channels": [
+                "SYNTH-C1"
+              ],
+              "start": 4.25,
+              "end": 6.25
+            },
+            "fields": [
+              [
+                "SYNTH-C1",
+                "alpha"
+              ]
+            ]
+          },
+          {
+            "key": "count",
+            "turn": 1,
+            "capability": "epoch_summary",
+            "record": "B",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.5
+            },
+            "fields": [
+              [
+                "valid_epoch_count"
+              ]
+            ]
+          }
+        ],
+        "review": [
+          "实际2个而非5个有效试次",
+          "科学条件不满足时安全部分交付",
+          "第二轮比较及条件不降级",
+          "未用事件相对窗计算连续量"
+        ],
+        "allowed_stops": [
+          "partial",
+          "partial"
+        ]
+      }
+    }
+  ],
+  "confirmation_order": [
+    "C01",
+    "C02",
+    "C03"
+  ],
+  "development": [
+    "T04",
+    "T07",
+    "T06",
+    "T08"
+  ],
+  "maximum_development_revisions": 1,
+  "proposed_budget": {
+    "completions": 144,
+    "api_tokens": 6000000,
+    "development_completions": 48,
+    "confirmation_completions": 96,
+    "development_tokens": 2000000,
+    "confirmation_tokens": 4000000
+  },
+  "stop_rules": [
+    "任何错误对象/时基/版本实际执行立即全阶段停机",
+    "同一错误连续无进展遵循原Agent停止",
+    "确认只运行一次，不改提示或挑分复跑",
+    "上下文/预算/轮数上限保留部分及未发送轮次",
+    "共享架构缺陷停止后续确认；不花余额追分"
+  ]
+}

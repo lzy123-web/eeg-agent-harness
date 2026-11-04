@@ -1,0 +1,154 @@
+# Issue58：共享增量计划契约、真实开发结果与预算
+
+## 当前结论：工程续接完成，完整真实会话均未通过（2026-11-02）
+
+最新授权下三条完整两轮自然会话已执行，包含一次有实际行为修正依据的T07复查；不再付费重抽。原DAG/Store/Executor内修复了“合法工件动作实际完成，但计划缺范围导致结果无法挂接”的共享接口缺口，修复前后原生提案重放和科学反证成立。**完整科学目标未通过**，剩余来源继承问题仍是内部契约限制，不能说成仅缺配置或预算；独立评分保持null，执行者自审分列。全部原始材料/中间失败/受控反证见[同一公开索引的live_continuation](evidence/issue58_incremental_contract.json)。
+
+| 实际完整会话 | 行为版本 | 两轮停止原因 | 原数值核验 | 实际送达回答自审 | calls / API tokens |
+| --- | --- | --- | --- | --- | --- |
+| T05首次 | v1/b9d4d3f，科学接口继承b3fda03 | completed / no_progress | 首轮通过；后轮缺新版A | 首轮通过；后轮失败 | 6 / 74,244 |
+| T07首次 | 同一v1 | completed / round_limit | 两轮要求数值均通过 | 首轮通过；后轮只有保存点，报告草案被拒 | 23 / 365,553 |
+| T07唯一复查 | v2/e2aaf63 | completed / no_progress | 首轮核心数值通过；后轮缺质量 | 首轮把实际1.0 Hz写成0.5 Hz，失败；后轮失败 | 13 / 203,024 |
+
+复查v2完整source指纹`7dd0eee20ea5691b87e8751bdab7821da2be55d374de9f2e05d64c97c7b51944`，科学行为指纹`1bf0e712351d3724d64e4deec3385dab36008b43b96ab51c2a18ffc7705b7e3c`。提示/schema仍29,298字节，无新增提示、工具或数值算法；执行回执增加运行时上下文。实际三会话wire分别266,440 / 1,296,281 / 721,453字节，不能当作tokens，v1/v2路径不同也不能据此声称成本下降。共享修复六组同享，不是C独有收益。
+
+**复查残余归因**：模型先把input_refs放在任务层，随后只保留control/dependencies，尚未调用质量工具；它改用revise_plan修复引用/范围。第10提案缺新来源，第11/13提案拼接当前与历史来源，拒绝有依据。第12提案则显式引用原有效Epoch生产者，并使用其原source/window，但`_validate_revision_sources`仅取本交付自身旧输出作来源见证（新质量交付尚无旧输出），没有传递显式InputRef的合法生产者。离线受控干预只在该预检的临时旧节点副本提供唯一明确生产者，原第12提案可修订为revision2；其余原错误仍拒绝，后续原revision1过期，固定轨迹耗尽导致llm_error。**此干预未进入生产代码，不是自主成功、完整修复或安全完备证明**。它支持剩余来源证据接口不一致的归因，不能全归咎模型。
+
+已尝试并排除：重放不改变提案仍复现；错误来源/层级不是回执缺失；提供明确生产者见证可改变该次拒绝，说明并非真实API配置阻塞。后续明确决策点是：是否把显式生产者的来源见证与本交付历史结果统一进入修订预检，并验证多引用/错工件/旧版本安全边界。当前获批的一批行为修正及唯一完整复查已交付，不再展开第二批接口整改或第四会话，不因剩余调用可用而重抽。
+
+**工程验证与成本**：最终行为751项=736通过+15跳过（14外部EDF/模型/R3资源、1真实LLM opt-in），原24链111/111、0控制错误，新接口12条两轮链通过；compileall/pip check/diff check通过。[实现CI #392](https://github.com/lzy123-web/eeg-agent-harness/actions/runs/41389127525) success（751项/15跳过）。本轮42次、642,821输入输出API tokens、保守US$0.2034276；原账本累计167次、1,877,118 tokens、US$0.6088482，未结0，确认0。阶段剩余30次/357,179 tokens/US$0.9965724不消费；硬调用/Token/费用都未耗尽，停止依据是两个首次会话加唯一修复复查的授权范围。旧125笔前缀逐字节不变，最终账本SHA256=`0553c0359c68a8bcc603fcc392ddd9f8791cc0658efc243e15b1fc14af450c07`。费用按原非缓存价保守计算，不冒充服务账单。
+
+工程续接、有限修复和证据交付已完成；不声明框架所有内部缺陷解决。新执行回执仅离线验证，真实v2没有走到该质量执行路径；稳定性、泛化、完整跨轮与相对强基线收益均未证明。Issue55/58 open、PR37 Draft，等待独立复核，无main合并/强推/研究内容二。最终文档提交及其CI回执由Issue/PR统一报告。
+
+## 零API工程起点（历史保留）
+
+依[Issue58全文](https://github.com/lzy123-web/eeg-agent-harness/issues/58)执行完整零研究API工程阶段。起点本地/实际远端`10a9ad92b1119a6eaca04a624b78630a54a7666c`一致，原分支、干净工作区、根AGENTS.md、Draft PR37已核对，无Python实验进程或运行锁。Issue57接受接缝已获主审接受，仅保持回归。当前新增研究calls/tokens/费用均0，正式账本不写，真实复测必须另获专项授权。
+
+## 原失败与职责判断
+
+已核原T05v3、T07v4 responses/requests/turn原件及公开索引哈希。T05 response5–7把修改A表示为新增alpha_A_rev，比较引用缺标量fields；新来源只指改窗子句。当前准确字段诊断仍拒绝缺fields，不能猜alpha或左右方向。T07 response8/11引用原Epoch但未重复列dependencies；下一请求确有错误回执。其回顾旧RMS/theta却新建测量义务、后续混淆task/delivery字段是另一层模型表示问题，不能都归因于调度丢回执。
+
+修复前实际Agent/Store/Executor原生提案不改重放：T05、T07均首轮completed/后轮no_progress。初次T07遇历史随机artifact_id与新分配ID不同，首轮llm_error，原轨迹保留；用于因果对照的重放仅将测试环境Epoch UUID分配固定为原创建记录中的ID，数值仍实际计算、原助手提案字节不改。另一次定位分配器模块错误的夹具结果也保留。不称这些受控重放为新模型行为。
+
+## 最小方案及取舍
+
+1. 仅补提示/在入口union依赖：不解决版本就绪与控制前提，也不减少修订字段，放弃。
+2. 另建统一操作DSL/计划状态：重复Planner/Store职责，新增迁移及安全面，放弃。
+3. **选择原契约的共享增量扩展**：InputRef为数据依赖唯一来源；在原PlanGraph处理就绪、循环、历史和失效；revise_plan增加明确单交付patch，经原完整TaskSpec验证、来源/义务检查与同一graph.revise提交。历史读取继续原read_dependency/read_result/restore_task，不新建读取任务。
+
+依赖兼容：旧dependencies中同时被InputRef引用的项仍视为旧式重复数据声明，未被引用的项保留原控制前提；新的control_dependencies用于明确要求某个任务整体完成，即使同时引用其局部交付。两种输入归一为同一控制关系，数据关系始终由引用动态派生，不另存一份可漂移的边表。固定旧版只依赖实际旧输出，不虚构当前节点循环；明确控制前提仍约束当前任务完成。派生来源对外可审查。
+
+增量修改一次只针对一个task/key及预期revision，scope和interpretation只合并明确字段，input_refs/acceptance_rule按整个列表替换。不能改key/record/capability或偷偷移除义务；多交付修改仍用原updates事务，二者互斥并归一到同一原验证/提交路径。修改科学scope必须显式给出来源定位变化，不能由程序猜新来源。未改记录/通道/原对象来源/其他交付保留。未知目标、版本、字段或来源冲突均原子拒绝。合法独立新增仍由plan_tasks表达，不按名称猜修订。
+
+历史视图只增加真实可读/可修订的状态指引；比较字段、记录、时基、左右方向、版本和新条件由模型明确选择。六组共享接口，自动接受与依赖证据呈现差异不变。
+
+## 已实现与因果证据
+
+已在原`task_plan.py`实现数据关系派生，贯穿合法性、当前/历史循环边、实际交付就绪、改动影响传播；独立控制前提单独保留。依赖来源写入原graph history及下一输入，未持久化第二套边状态。已在原`task_plan_agent.py`将单key增量修改归一为原完整更新，继续调用原来源/义务检查、graph.revise、Store与Executor。scope/interpretation按明确字段合并，列表替换；任务/交付身份不猜测，拒绝前不结算活动任务、不修改图版本。读取提示来自真实输出状态，未增设历史任务或数值算法。
+
+这不是名称或句式补丁：通用层只有现有对象身份、InputRef版本、字段合并和统一契约；任务编号、原文、固定窗口及动作序列只存在离线研究夹具。没有自动把新增节点转换为修订，也没有补alpha、比较左右方向或重写source_ref。新质量任务只新增epoch_quality，旧RMS/theta通过原读取工具回顾。已有可见证据可直接使用，机制不强迫读取。
+
+### 三类证据分别解释
+
+| 材料 | 修复前 | 修复后 | 能说明什么 |
+| --- | --- | --- | --- |
+| T05v3原生提案，原两轮/原字段不改 | completed → no_progress，缺比较fields拒绝 | 相同 | 额外比较字段是模型选择，不能猜成功；原错误来源也未被擅自改正 |
+| T07v4原生提案，原两轮/原字段不改、固定原UUID分配 | completed → no_progress；第8和11提案因漏重复依赖拒绝 | 第8提案准入；原后续错层级仍拒绝，第11因已存在任务身份拒绝，不再因漏抄数据边拒绝；最终仍no_progress | 明确的冗余约束消除；不等于模型会选择正确后续动作或完成质量交付 |
+| 合法手写夹具：10a9ad9完整旧更新 → 本接口增量更新 | T05/T07×A/B/C全部两轮completed | T05/T07×六组全部两轮completed，0控制错误 | 相同科学意图可少表达重复状态；旧框架原本有合法链，不能包装为此前完全无能力 |
+| 独立构造反例/图状态测试 | 原有反例保留 | 当前/固定历史引用、显式控制前提、未知/循环、错目标/版本/字段/来源/时基、未授权窗口、原子拒绝均通过 | 有限行为与安全边界，不是全面语义安全证明 |
+
+原生重放没有生成新的模型响应；新接口链是**对既有手写合法夹具的明确机械迁移**，不是修正旧提案后冒称模型恢复。修复前基线从10a9ad9只读导出源码/config，在隔离本地目录运行；只复制本轮离线夹具帮助函数，不替换原Agent/Store/Executor。所有首次产物及两次UUID定位夹具问题保留。旧真实原文、实际送达答案、原评分和null独立审查字段均未修改。
+
+T05真实工具结果：A原[0,2)绝对窗口alpha为`2.00e-10 V²`，新[4,6)为`3.92e-10 V²`；真实compare_results计算新减旧`1.92e-10 V²`、新/旧`1.96`，操作数带原scope/source/result_id，旧值在revision1保留，新值revision2，B不重算。T07沿原同一artifact_id/fingerprint追加质量测量；3个已创建试次、0个质量标记、可用比例1；平直阈值1e-8 V/比例0.95，高振幅0.0002 V/比例0.01，线噪比0.2，均为实际工具输出的经验标准、非临床校准。原theta/RMS不重算，不新建或删除Epoch。受控最终固定文本不计自主回答正确率，具体数值/范围/质量标准在公开工具证据中逐项列出。
+
+## 表达负担及代价
+
+同科学意图、候选C的配对数据如下；A/B对应实测也在公开证据中，六组工具schema一致。wire是既有序列化见证预算单位（包含输出预留），**不是API tokens或账单**。
+
+| 项目 | 旧完整契约 | 新增量契约 |
+| --- | ---: | ---: |
+| T05改窗参数体UTF-8字节 | 399 | 212 |
+| 实际工具schema字节 | 25,486 | 29,298 |
+| T05受控决策数 / EEG计算 / 重复计算 | 9 / 3 / 0 | 9 / 3 / 0 |
+| T07受控决策数 / EEG计算 / 重复计算 | 10 / 4 / 0 | 10 / 4 / 0 |
+| T05全部消息字节 / wire见证单位 | 114,302 / 364,295 | 122,732 / 407,033 |
+| T07全部消息字节 / wire见证单位 | 178,070 / 455,840 | 189,178 / 505,068 |
+
+模型不再重复维护数据边对应dependencies，改窗不再重抄capability/record/channels/原source_ref/time_reference/acceptance_rule/其他交付列表；仍明确task/key/revision、新窗口及range_ref。程序只保留已有未改状态、派生确定关系和维护版本失效。旧入口兼容、增量schema、派生可审查关系及状态指引增加了上下文；步骤和计算数未下降，总wire增加。因此本轮的确定结论是表达责任收敛和可执行性修复，不是token、延迟或模型成功率改善。不能以单次参数体减少掩盖整体成本增加。
+
+## 验证、冻结与原始产物
+
+新增8个测试方法覆盖代表性组合（非笛卡尔积），包括真实两轮六组链、合法独立新增、增量拒绝原子性、数据/控制/固定历史版本区分，以及原live驱动/最终回答预留/费用结算TEST链。保留Issue57接受生命周期及回执交接、比较字段、科学来源/范围/工件和原子修订回归。全量**743项=728通过+15跳过**：14项外部EDF/模型/R3资源，1项默认关闭的真实LLM网络测试。原T01–T08×A/B/C **24链111/111 oracle、0控制错误**，compileall、pip check、diff check通过。
+
+一次旧单元测试仍期待“漏重复dependencies必须拒绝”，随契约改变移出负例并保留未知引用负例；新增正例证明派生边仍要求实际交付。没有放宽既有科学约束来追分。原生后续失败、初次UUID重放失败、所有源材料保留，不称所有原提案通过。
+
+最后一次有限生命周期反证发现：旧dependencies原本是独立控制前提，后续只添加InputRef会使动态分类把它消成重复数据边。首次图状态反例（非模型行为）保留在`control-promotion-first-failure.json`。修正仍在原revise事务内：没有显式修改任务依赖时，把即将丢失的已有控制承诺保留到原control_dependencies字段；不新增状态仓库。新测试证明只获得局部真实输出时仍不放行，整个控制前提完成后才就绪；修正后重跑全部742项基础及新增该项，最终743项/24链/新接口链均通过。该问题没有推给下一阶段，也未扩展到全部旧级联版本重写。
+
+唯一[公开证据索引](evidence/issue58_incremental_contract.json)包含关键原生提案/下一输入错误、前后工具状态、三类材料标注、实际差比/质量结果/工件身份、六组公平性、字节/步数、冻结和预算预检。完整产物位于忽略目录`artifacts/point1_task_memory/issue58/`：`native-before*.json`、`native-after-bound-handles.json`、`controlled-before-legacy.json`、`controlled-final.json`、`controlled24.json`、测试日志及`frozen/TEST-wire-preflight/`中的原live manifest/messages/responses/逐轮截止评分/TEST账本。各原件哈希见公开索引；旧Issue57公开证据不改。
+
+冻结行为源码/config总哈希：`7ff607f37247254c4178ef601e15723755999bd6e98c1f8597ce60ea1300c39f`；原请求/数据/followup_policy/评分未改，tools与各组system提示哈希及数据SHA另见索引。运行目标保持原deepseek-flash、thinking disabled、timeout90、输出2200、重试0；每轮12次completion/36工具/900秒/256000上下文字节。服务端点及费率基于原已核manifest冻结，不搜索凭据、不连通探测；获授权后原客户端实际配置仍须匹配该冻结目标，漂移停止。
+
+复现（激活eegagent环境；输出必须使用不存在的新路径以保护旧证据）：
+
+```powershell
+$env:PYTHONPATH='src;tests'
+$env:PYTHONIOENCODING='utf-8'
+python -m eeg_harness.research.working_memory_issue58 --native-output artifacts/point1_task_memory/issue58/recheck-native.json --original-handles
+python -m unittest discover -s tests -p test_issue58_incremental.py -v
+python -m unittest discover -s tests -v
+python -m compileall -q src tests
+python -m pip check
+git diff --check
+python -m eeg_harness.research.working_memory_issue58 --preflight-output artifacts/point1_task_memory/issue58/recheck/preflight.json
+```
+
+原24链用`working_memory_issue52.run_case(case,arm,actions=working_memory_issue56.interface_steps(case))`；新增链用`working_memory_issue58.incremental_steps(case)`，旧完整表达用`legacy_revision=True`并在10a9ad9原科学源码运行。原生重放只恢复历史UUID分配，不修改助手提案。不能从这些命令推断新模型自主成功。
+
+发布前补充安全核对（独立构造，不是历史模型行为）：实际Agent/Store/Executor先完成A/C1的0–2秒功率，当前用户明确改为C2的4–6秒；故意只改窗并保留旧C1/source_ref、提供当前range_ref。原来源核验返回`INVALID_PLAN_SOURCE: Current supplement conflicts with the historical object`，图与档案原子不变，总数值执行仍1次。没有放宽继承或为新句式追加判断；可核查回执收入同一公开索引。
+
+## 真实开发续接：正式授权与最小承接（2026-11-02）
+
+[正式授权](https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6568419952)取代下方旧申请的当前权限状态，原历史不改：自125次/1,234,297 tokens/保守US$0.4054206固定快照起，本轮最多72次（含旧剩19）、1M输入输出API tokens、US$1.20；开发累计197次/2,234,297 tokens，总293次/6,234,297 tokens/US$3，确认96次/4M保持禁止使用。原T05→T07各一次完整两轮；另一次最多24次完整复查仅限真实失败经同一契约内实际行为修复后，至多三会话，无同版本重抽。
+
+原`apply_authorization_revision`和`authorization_limits`从单次固定追加改为仅两条明确已批授权的有序链；绑定URL、标识、新旧绝对上限、前缀字节/哈希及原累计。真实本次前缀固定为主审快照，TEST使用显式测试账本。`MoneyBudgetClient`同时核验原US$3、本轮US$1.20及累计US$1.6054206，原预约/结算/异常与最终回答lease不变；旧关闭、安全停止或确认开始不能被覆盖。科学接口、原题/评分及服务未改。完整运行manifest仍包含runner源码，科学行为指纹另外列出，排除纯账务runner变更，不能以新SHA冒充复查资格。
+
+临时TEST/Fake正反验证及原全量747项通过（732通过、15资源/真实API跳过）。首轮两个TEST夹具问题保留：复用等价输入/输出模拟价导致阶段费用不足，及把分轮动作列表交给单动作客户端；改用明确0.3/1.2模拟费率和原真实工具链夹具，未降低预算保护或改科学判定。本承接提交不代表真实调用已经发生；真实首次与复查轨迹、逐轮截止和预算将在运行后追加。
+
+### v1真实失败与唯一一批行为修正
+
+预算承接版本b9d4d3f的完整source为`98b7dd63c3f3c6be701f2853e1a9fddb2d14cebda27c3cc4f1c70e555e80778b`；排除账务runner的科学行为指纹`1a80bea3a922e1195d72c4eeb1291175370cf7772e6e894b25daa15ae1fcc7ad`，科学接口继承已接受工程。实际配置为原deepseek-flash、thinking disabled、timeout90、输出2200、重试0，无ping。
+
+T05原完整两轮：6次/74,244 API tokens，首轮两项数值及最终回答自审通过；后轮连续plan_tasks重建A_alpha_power，依次误放input_refs层级、漏引用、漏fields，no_progress，无新版A或差比。回执实际送达，增量工具也已可见；不把模型错误选择归结为API配置或自动猜比较字段。此任务本轮不重抽。
+
+T07原完整两轮：23次/365,553 API tokens，首轮RMS/theta结果与回答自审通过；后轮主动read_result旧RMS/theta，新增epoch_summary/epoch_quality并显式指定原artifact_id，真实质量结果正确、旧计算不重算。计划scope为空且无InputRef，执行时合法工件提供完整科学范围；Store接受并计算，但PlanController._matches仍要求计划scope含完整必需字段，node.outputs为空。后续正确result_id的complete_node也无法接受；模型尝试缺revision/错revision和finish_task均拒绝，最终达到轮数上限，实际送达的只有保存点。第21提案包含完整报告但未被finish_task接受，不能代替最终送达回答。不是T03旧回执丢失或Issue57已闭合的接受同步问题。
+
+最小修正选取“保留不可变计划意图，记录实际已归属执行回执”，不选放宽空scope匹配，也不自动替模型补InputRef或改写科学计划。在原node.outputs增加execution_scope_binding：确定选中的交付经原Store/Executor成功后，以真实回执result_id+完整tool_trace核对唯一结果，绑定task_id、交付契约哈希、result_id与科学binding。只对消费工件的动作补全实际工件已经确定的范围，声明字段优先，完整必需字段、时基、record、来源与工件核验保留。新状态不是平行仓库；原交付接受指纹包含它，普通同步保留、契约/结果/真实binding变化后失效；已绑定交付不能通过后续动作换工件。原明确owner和单义旧入口同享，未执行的类似交付不能从档案抢结果。
+
+原生T07提案不改+仅恢复原UUID的重放：修正前second round_limit/epoch_qc.outputs=0，修正后completed/outputs=2，实际数值操作均5次。旧最终提案仍含“接受步骤未能落地”的过时陈述，因此这只是接口因果证据，不是新自主回答或完整科学通过。首次实现的回执全等比较漏考虑观察附加result_id，未挂接的中间失败也保留；最终按真实ID及去除该派生ID后的完整原trace校验，没有按最后结果猜测。
+
+四类新构造测试覆盖六组/旧入口、同步、未执行交付、错owner/key/revision/record、换工件、契约/结果/真实记录失效；原24链111/111、12条增量两轮链、751项全量（736通过+15跳过）通过。构造初版重复了Store禁止的相同任务内要求，原拒绝正确；改为独立未执行任务检验归属，不放松Store重复要求保护。仅此有真实根因的T07进入授权内一次复查，独立完整自然会话、新行为冻结，不能与v1 T05拼接通过。
+
+## 一次性专项预算预检：当时未授权、未消费（历史保留）
+
+正式唯一账本只读：125次、1,234,297输入+输出API tokens、保守US$0.4054206；未结0。开发现行上限144次/2M，余19次/765,703 tokens；总240次/6M/US$3，确认96次/4M保持不动且禁止使用。正式账本SHA256前后均`6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1`。原费用是按既有价率的保守计算，不是服务账单。
+
+预检通过原run_session→MoneyBudgetClient→JournaledBudgetClient→TaskPlanEEGAgent及实际工具链，唯一替代为**无网络传输能力的OfflineWireClient**，写独立明确TEST账本，未制造正式授权。两例共19次Fake决策、908,579实际序列化wire字节，既有保守预约口径合计950,379单位（wire字节+每次2200输出预留）；19个最终回答lease，最大lease28,458，最大当轮决策+lease89,616。模拟usage刻意按预约上界结算，仅为压力见证，不当作真实tokens。所有原生API usage仍待真实响应。该合法受控路径不是任意48次自主选择的资源上界。
+
+申请方案（须用户单独明确批准后才能追加授权并运行）：
+
+| 项目 | 本次请求的可用上界 | 沿原账本累计上限如何修改 |
+| --- | --- | --- |
+| 会话/顺序 | C组原T05→T07，各一条完整两轮会话，不择优重抽 | 同Issue58/原分支/原账本，不开新池 |
+| completion | 最多48次，包含最终回答；不是预计实际消费 | 开发144→173，总240→269，即增加29次上限；与原剩19合成48次，仅新授权后可用 |
+| 输入+输出API tokens | 最多1,000,000 | 开发2,000,000→2,234,297，总6,000,000→6,234,297，即增加234,297；确认4M不动 |
+| 货币 | 本次保守最多US$1.20 | 原总US$3不增加；累计最多US$1.6054206，含原费用 |
+
+Token申请由完整wire见证950,379加最大最终lease28,458后向上取整至100k得到1M，并非把字节报告为API实耗；真实usage计入同一累计账本，每次发送仍按实际wire保守预约，达到任一上限即停止，不能保证所有未知48步均能跑满。费率沿已核2026-11-01原依据：输入非缓存US$0.3/百万、输出US$1.2/百万，预约按二者较高者。1M×1.2给货币上界；模拟结算US$0.3111993仅为TEST计算，不是预报账单。
+
+最终回答采用现有不可变snapshot lease；未知/异常usage、未结占用或意外模型标识按原预约保守计费并安全停止，不自动重试、不清停机标记。确认池不借，真实受试者数据/私有路径/凭据不出站，仅合成信息。原单次追加授权入口只接受已批准的固定授权；**未来取得专项批准后，须在同一幂等前缀核验/追加路径绑定新评论及本次累计上限**，不清旧交易、不重建预算平台。本预检不把Issue58方向许可当付费许可。
+
+## 零API工程当时的状态与授权暂停点（历史保留，已由顶部续接结果取代）
+
+工程实现、有限对照/反证、全量回归与证据文档已完成，正常提交/远端及CI回执记入PROJECT_STATUS。本轮新增研究calls/tokens/费用均0。**真实自主复测尚未运行，等待专项授权**，这是Issue58第5节要求的明确权限暂停点；不是缺配置、额度全部耗尽或工程无法推进。
+
+待验证：模型是否实际选用增量修订/历史读取，能否完整交付T05新旧差比与T07原工件质量续算；总体wire增加能否被减少失败抵消；广泛语义理解、稳定性、全部旧级联版本机制及相对强基线收益仍未证明。旧T04/T03成功仍限原版本，旧T05/T07完整自主失败未撤销，受控结果不填独立评分true。DAG/真实交付/分层证据协作已有离线执行证据，未形成新候选的真实自主成功证据。共享修复不算C独有创新。Issue58/55保持open，PR37保持Draft；不开展正式三臂/消融、确认或研究内容二。获批后同Issue继续两个原自然会话，未获批则到此结束本回合。

@@ -1,0 +1,35 @@
+{
+  "version": "issue43-prefreeze-2026-10-26",
+  "max_external_completions": 80,
+  "max_external_tokens": 180000,
+  "model_max_output_tokens": 900,
+  "policies": ["S", "HC", "F"],
+  "inline_result_max_utf8_bytes": 256,
+  "development_same_history": ["C-mixed"],
+  "confirmation": ["N-continuous", "N-mixed"],
+  "workflows": [
+    {
+      "id": "N-continuous",
+      "signal_scales": {"A": 1.13, "B": 0.81},
+      "event_labels": {"A": ["pulse", "quiet"], "B": ["click", "rest"]},
+      "turns": [
+        {"kind": "analysis", "key": "a_early", "text": "分析记录 A 的 SYNTH-C1 连续信号 0 到 2 秒 alpha 绝对频带功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}, "fields": [["SYNTH-C1", "alpha"]]},
+        {"kind": "analysis", "key": "b_early", "text": "切换到记录 B，对 SYNTH-C1 连续信号 0 到 2 秒也计算 alpha 绝对频带功率。", "record": "B", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}, "fields": [["SYNTH-C1", "alpha"]]},
+        {"kind": "analysis", "key": "a_late", "text": "把 A 的 SYNTH-C1 连续功率分析窗口从 0 到 2 秒修订为 3 到 5 秒；保留原结果。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}, "revision_of": "a_early", "fields": [["SYNTH-C1", "alpha"]]},
+        {"kind": "history", "text": "比较记录 A 连续信号修改前 0 到 2 秒、修改后 3 到 5 秒，以及记录 B 连续信号 0 到 2 秒的 SYNTH-C1 alpha 绝对功率；分别给出来源、窗口、版本和单位，说明 A 的变化方向及 B 与 A 旧版谁更大。", "targets": [{"key": "a_early", "fields": [["SYNTH-C1", "alpha"]]}, {"key": "a_late", "fields": [["SYNTH-C1", "alpha"]]}, {"key": "b_early", "fields": [["SYNTH-C1", "alpha"]]}]}
+      ]
+    },
+    {
+      "id": "N-mixed",
+      "signal_scales": {"A": 1.21, "B": 0.86},
+      "event_labels": {"A": ["pulse", "quiet"], "B": ["click", "rest"]},
+      "turns": [
+        {"kind": "analysis", "key": "a_count", "text": "统计记录 A 的 pulse 事件后 0 到 1 秒有效试次数。", "record": "A", "capability": "epoch_summary", "parameters": {"labels": ["pulse"], "tmin": 0, "tmax": 1}, "fields": [["valid_epoch_count"]]},
+        {"kind": "analysis", "key": "b_event", "text": "切换到 B，计算 click 事件后 0 到 1 秒的 SYNTH-C1 alpha 绝对频带功率。", "record": "B", "capability": "event_bandpower", "parameters": {"labels": ["click"], "tmin": 0, "tmax": 1}, "fields": [["conditions", "click", "channels", "SYNTH-C1", "alpha"]]},
+        {"kind": "analysis", "key": "a_rms", "text": "回到 A，计算连续记录 SYNTH-C1 在 3 到 5 秒的幅值 RMS，不要把事件相对时间当作连续时间。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}, "fields": [["SYNTH-C1", "rms"]]},
+        {"kind": "analysis", "key": "a_event", "text": "再计算记录 A 的 pulse 事件后 0 到 1 秒的 SYNTH-C1 alpha 绝对功率，与先前 B 的 click 对照。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["pulse"], "tmin": 0, "tmax": 1}, "fields": [["conditions", "pulse", "channels", "SYNTH-C1", "alpha"]]},
+        {"kind": "history", "text": "分别报告 A pulse 事件后 0 到 1 秒与 B click 事件后 0 到 1 秒的 SYNTH-C1 alpha 绝对功率并比较大小；再给出 A pulse 的有效试次数，以及 A 连续记录 3 到 5 秒的 SYNTH-C1 RMS。逐项注明来源、条件或连续窗口和单位，不能把试次数、事件功率、连续幅值混成同一指标。", "targets": [{"key": "a_event", "fields": [["conditions", "pulse", "channels", "SYNTH-C1", "alpha"]]}, {"key": "b_event", "fields": [["conditions", "click", "channels", "SYNTH-C1", "alpha"]]}, {"key": "a_count", "fields": [["valid_epoch_count"]]}, {"key": "a_rms", "fields": [["SYNTH-C1", "rms"]]}]}
+      ]
+    }
+  ]
+}

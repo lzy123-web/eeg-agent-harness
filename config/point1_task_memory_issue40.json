@@ -1,0 +1,24 @@
+{
+  "version": "issue40-frozen-before-paid-calls",
+  "source_protocol": "point1_task_memory_protocol_v2.json",
+  "max_external_completions": 96,
+  "max_external_tokens": 240000,
+  "policies": ["F", "S", "H", "HE"],
+  "pair_reservation": {"completions": 8, "tokens": 24000},
+  "development": [
+    {"session": "N-short", "query_index": 0},
+    {"session": "N-medium", "query_index": 0},
+    {"session": "N-long", "query_index": 0}
+  ],
+  "confirmation": [
+    {"session": "N-short", "query_index": 1},
+    {"session": "N-medium", "query_index": 1},
+    {"session": "N-long", "query_index": 1}
+  ],
+  "closed_loop": {
+    "session": "N-short",
+    "policies": ["F", "H"],
+    "step_indices": [0, 1, 2],
+    "query_indices": [0]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "grant": "https://github.com/lzy123-web/eeg-agent-harness/issues/55#issuecomment-6546527306",
+  "test_only": false,
+  "conclusion": "no_prior_issue55_calls",
+  "prior_usage": {
+    "completions": 0,
+    "api_tokens": 0,
+    "usd": 0
+  },
+  "unsettled": [],
+  "prior_stage_closed": false,
+  "prior_confirmation_started": false,
+  "reviewed_at_utc": "2026-11-01T08:58:01.010308+00:00",
+  "coverage": {
+    "authorized_from_utc": "2026-10-31T17:08:03Z",
+    "current_thread": "01a192bd-b255-7583-92f3-c517047d95a6",
+    "current_thread_history_page_complete": true,
+    "completed_turns_after_grant": [
+      {
+        "id": "01a1959d-2214-7b11-9e97-86aa62cb3320",
+        "started_at": 1793511465,
+        "completed_at": 1793513206,
+        "commands": 49
+      },
+      {
+        "id": "01a19544-d531-7372-924a-7633be2d0023",
+        "started_at": 1793505678,
+        "completed_at": 1793507157,
+        "commands": 45
+      },
+      {
+        "id": "01a1930e-38c9-7571-bd90-19b93bbf14d2",
+        "started_at": 1793468545,
+        "completed_at": 1793469829,
+        "commands": 30
+      }
+    ],
+    "commands_after_grant_reviewed": 124,
+    "raw_commands_truncated": false,
+    "other_same_project_thread": "01a15d5f-328b-74f0-b5f2-91674bb72ae2",
+    "other_thread_last_update_epoch": 1793115512,
+    "archived_same_project_threads": 0,
+    "active_experiment_processes": 0,
+    "project_locks": 0,
+    "current_audit_paid_requests": 0,
+    "catalog_scope": "local app visible and archived Codex threads; only same project inspected",
+    "review": "Actual invocations were local tests, controlled/Fake replays, file edits, Git and GitHub operations. Client construction in written source was not execution. Combined with original receipts and grant chronology this supports first Issue55 opening; not an account-wide statement."
+  },
+  "evidence": [
+    {
+      "path": "docs/research/evidence/issue55_history_audit_20261101.json",
+      "sha256": "311698bbb5f4387d14c7a48ba0d0ca1dc733f8f30df2f9250fb40e2fc6e18a68"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue55/history-thread-commands-20261101.json",
+      "sha256": "d9f05d8401ce25418cbb4ac86077c773998962e87e8be4b32ec4da59074b7373"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue51/budget.jsonl",
+      "sha256": "5c8e59acdd897fcf700306691767bc3b05facae181d5f9c3013ded3e9bb3446a"
+    }
+  ],
+  "supersedes_initial_unknown_by_additional_execution_history": true,
+  "credential_source_restored": "Exact previously used file located from successful Issue51 launch item exec-5f576499-fe2a-4b17-acfa-c3a2ee4345f4; readable; no secret/path published",
+  "actual_endpoint": "https://api.deepseek.com",
+  "requested_model": "deepseek-flash",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "conservative_input_usd_per_million": "0.3",
+  "conservative_output_usd_per_million": "1.2",
+  "pricing_basis": "peak noncached input/output upper bounds; not a billing receipt"
+}

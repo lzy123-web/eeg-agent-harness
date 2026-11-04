@@ -1,0 +1,5794 @@
+{
+  "instruction": "https://github.com/lzy123-web/eeg-agent-harness/issues/57#issuecomment-6560727410",
+  "base_commit": "59652769ae410cade805d60e017958269df91707",
+  "classification": "constructed_Fake_Agent_Store_Executor_integration_not_historical_model_behavior",
+  "research_api": {
+    "calls": 0,
+    "tokens": 0,
+    "usd": 0,
+    "formal_ledger_changed": false,
+    "ledger_sha256": "6346c342723594590ab1fc2112824f403ca8cbf56f4070aadf5d631bc99264d1"
+  },
+  "request": "记录A stimulus事件后0到1.25秒建立试次并计算功率；只有试次数至少2才继续功率分析。",
+  "plans": {
+    "conditional": [
+      {
+        "task_id": "events",
+        "goal": "科学目的 events",
+        "dependencies": [],
+        "required_outputs": [
+          {
+            "key": "epochs",
+            "capability": "create_epochs",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [],
+            "acceptance_rule": [
+              {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              }
+            ]
+          },
+          {
+            "key": "power",
+            "capability": "event_bandpower",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [
+              {
+                "task_id": "events",
+                "key": "epochs",
+                "level": "result",
+                "fields": []
+              }
+            ],
+            "acceptance_rule": []
+          }
+        ],
+        "optional_operations": []
+      }
+    ],
+    "unconditional": [
+      {
+        "task_id": "events",
+        "goal": "科学目的 events",
+        "dependencies": [],
+        "required_outputs": [
+          {
+            "key": "epochs",
+            "capability": "create_epochs",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [],
+            "acceptance_rule": []
+          },
+          {
+            "key": "power",
+            "capability": "event_bandpower",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [
+              {
+                "task_id": "events",
+                "key": "epochs",
+                "level": "result",
+                "fields": []
+              }
+            ],
+            "acceptance_rule": []
+          }
+        ],
+        "optional_operations": []
+      }
+    ],
+    "split": [
+      {
+        "task_id": "events",
+        "goal": "科学目的 events",
+        "dependencies": [],
+        "required_outputs": [
+          {
+            "key": "epochs",
+            "capability": "create_epochs",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [],
+            "acceptance_rule": [
+              {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              }
+            ]
+          }
+        ],
+        "optional_operations": []
+      },
+      {
+        "task_id": "consumer",
+        "goal": "科学目的 consumer",
+        "dependencies": [
+          "events"
+        ],
+        "required_outputs": [
+          {
+            "key": "power",
+            "capability": "event_bandpower",
+            "record": "A",
+            "scope": {
+              "labels": [
+                "stimulus"
+              ],
+              "tmin": 0,
+              "tmax": 1.25
+            },
+            "input_refs": [
+              {
+                "task_id": "events",
+                "key": "epochs",
+                "level": "result",
+                "fields": []
+              }
+            ],
+            "acceptance_rule": []
+          }
+        ],
+        "optional_operations": []
+      }
+    ]
+  },
+  "before": [
+    {
+      "structure": "conditional",
+      "arm": "A",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": false,
+          "error": {
+            "code": "DELIVERY_INPUT_NOT_READY",
+            "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-3b35a9c8-0b86-4f2a-999d-64dae98d5159",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-3b35a9c8-0b86-4f2a-999d-64dae98d5159",
+        "revision": 1
+      },
+      "consumer_input_artifact": null,
+      "same_actual_artifact": null,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "B",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": false,
+          "error": {
+            "code": "DELIVERY_INPUT_NOT_READY",
+            "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-9d8025d9-18d3-465f-af29-120b22272011",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-9d8025d9-18d3-465f-af29-120b22272011",
+        "revision": 1
+      },
+      "consumer_input_artifact": null,
+      "same_actual_artifact": null,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-7a2e9bb6-ba70-4847-8c4e-10e0eeafa198",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-7a2e9bb6-ba70-4847-8c4e-10e0eeafa198",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-7a2e9bb6-ba70-4847-8c4e-10e0eeafa198",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": false,
+          "error": {
+            "code": "DELIVERY_INPUT_NOT_READY",
+            "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-e11cf80c-ee96-44fc-94b2-e7686897ddfe",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-e11cf80c-ee96-44fc-94b2-e7686897ddfe",
+        "revision": 1
+      },
+      "consumer_input_artifact": null,
+      "same_actual_artifact": null,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-2e547688-a182-47ab-af47-39e0fce9a0da",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-2e547688-a182-47ab-af47-39e0fce9a0da",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-2e547688-a182-47ab-af47-39e0fce9a0da",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-9d448bda-4503-4665-9971-1571f3ebd7ef",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-9d448bda-4503-4665-9971-1571f3ebd7ef",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-9d448bda-4503-4665-9971-1571f3ebd7ef",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "A",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-e7da2a62-0a7a-4c89-b1a1-0431405cb4ff",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-e7da2a62-0a7a-4c89-b1a1-0431405cb4ff",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-e7da2a62-0a7a-4c89-b1a1-0431405cb4ff",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "B",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-5980a865-8a9d-4ce7-8bb3-7edd8e8ab6a7",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-5980a865-8a9d-4ce7-8bb3-7edd8e8ab6a7",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-5980a865-8a9d-4ce7-8bb3-7edd8e8ab6a7",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-a2baf295-acb7-499e-9850-5328738e7002",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-a2baf295-acb7-499e-9850-5328738e7002",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-a2baf295-acb7-499e-9850-5328738e7002",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-5cf32f94-b0e2-4604-8f01-7e7454c35e9e",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-5cf32f94-b0e2-4604-8f01-7e7454c35e9e",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-5cf32f94-b0e2-4604-8f01-7e7454c35e9e",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-5617cf35-6edf-4b52-8178-d1502bb1cae2",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-5617cf35-6edf-4b52-8178-d1502bb1cae2",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-5617cf35-6edf-4b52-8178-d1502bb1cae2",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-4e14322e-5245-4c84-afe3-9b6307f7a513",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-4e14322e-5245-4c84-afe3-9b6307f7a513",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-4e14322e-5245-4c84-afe3-9b6307f7a513",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "A",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-8f07ff68-b133-46ed-a127-179dbddaefa5",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-8f07ff68-b133-46ed-a127-179dbddaefa5",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-8f07ff68-b133-46ed-a127-179dbddaefa5",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "B",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-8f6dbb41-6ab1-48dc-987e-72556e29e39b",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-8f6dbb41-6ab1-48dc-987e-72556e29e39b",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-8f6dbb41-6ab1-48dc-987e-72556e29e39b",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-173bec8a-cceb-4857-ab73-635415852e70",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-173bec8a-cceb-4857-ab73-635415852e70",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-173bec8a-cceb-4857-ab73-635415852e70",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-03450471-f430-490d-95cd-5feea46907b9",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-03450471-f430-490d-95cd-5feea46907b9",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-03450471-f430-490d-95cd-5feea46907b9",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-7c6de121-d40e-450f-b7b0-55aa42defe10",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-7c6de121-d40e-450f-b7b0-55aa42defe10",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-7c6de121-d40e-450f-b7b0-55aa42defe10",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-1deb3b8c-c56e-43eb-8f63-209dffabdfe8",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-1deb3b8c-c56e-43eb-8f63-209dffabdfe8",
+        "revision": 1
+      },
+      "consumer_input_artifact": "epochs-1deb3b8c-c56e-43eb-8f63-209dffabdfe8",
+      "same_actual_artifact": true,
+      "client_errors": []
+    }
+  ],
+  "after": [
+    {
+      "structure": "conditional",
+      "arm": "A",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "delivery_accepted"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-858720a8-9b1a-4d4c-847c-5e522d8e9bdc",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-858720a8-9b1a-4d4c-847c-5e522d8e9bdc",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "ab778eefa99afeabf43303a5803adb2a474f9fe25a4541900055aea0461013be",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-858720a8-9b1a-4d4c-847c-5e522d8e9bdc",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "B",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "delivery_accepted"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-e3a68811-54af-49da-816b-9c595ae12f96",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-e3a68811-54af-49da-816b-9c595ae12f96",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "9afd4452832df7ef0ac12681badafdecb3602f9ab1c1ddc791e211047b28570b",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-e3a68811-54af-49da-816b-9c595ae12f96",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "33bb4fb07583822f402e0d6e9662d52a176b2689e497538e471c362b30601621",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-cfbc1b4a-00a2-4014-bf34-73d413bc2a40",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-cfbc1b4a-00a2-4014-bf34-73d413bc2a40",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "33bb4fb07583822f402e0d6e9662d52a176b2689e497538e471c362b30601621",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-cfbc1b4a-00a2-4014-bf34-73d413bc2a40",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "delivery_accepted"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-dc258d4f-f9c0-4201-9a20-e4268e44fbff",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-dc258d4f-f9c0-4201-9a20-e4268e44fbff",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "2d06efac347a6e1385db998ce3561bc99a6ea5b7ff8fccbfa4aeef029e65472c",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-dc258d4f-f9c0-4201-9a20-e4268e44fbff",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "2e2b514ef4226df8e2674ff6b1c07893029aaf3f3b37f09e052afc8171ca0e50",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-a59417b8-f32f-4fb5-8b72-e690113c4d03",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-a59417b8-f32f-4fb5-8b72-e690113c4d03",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "2e2b514ef4226df8e2674ff6b1c07893029aaf3f3b37f09e052afc8171ca0e50",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-a59417b8-f32f-4fb5-8b72-e690113c4d03",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "conditional",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "baa0e3840a0ec6dabc2e5389bdc31f01134205e934152a9ecf8545bb96e1e919",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-c4974a33-2359-43c2-aeb2-8cb28d2bf303",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-c4974a33-2359-43c2-aeb2-8cb28d2bf303",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "baa0e3840a0ec6dabc2e5389bdc31f01134205e934152a9ecf8545bb96e1e919",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-c4974a33-2359-43c2-aeb2-8cb28d2bf303",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "A",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": null,
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-48676e65-7ba8-4be7-8f87-c4cc74d0443d",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-48676e65-7ba8-4be7-8f87-c4cc74d0443d",
+        "revision": 1,
+        "acceptance": {
+          "owner": "common_output_check",
+          "accepted_revision": 1,
+          "fingerprint": "2dc7fc6339429017654668fb572b29bad745b776cabe05a11e2f1fa7020c1a93",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-48676e65-7ba8-4be7-8f87-c4cc74d0443d",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "B",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": null,
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-9e3470f3-525c-4547-ae0a-95c9c199d89d",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-9e3470f3-525c-4547-ae0a-95c9c199d89d",
+        "revision": 1,
+        "acceptance": {
+          "owner": "common_output_check",
+          "accepted_revision": 1,
+          "fingerprint": "e0cc41507e6cfaa468005cd1fbfe23305123390dde23336c27849cca45a3327b",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-9e3470f3-525c-4547-ae0a-95c9c199d89d",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "24da0c5b9f021c26702cf6dc4f55e06da350ad048cbda6999f1a1f6959631200",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-c2630122-1f95-4792-aa6a-996f5016bb2a",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-c2630122-1f95-4792-aa6a-996f5016bb2a",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "24da0c5b9f021c26702cf6dc4f55e06da350ad048cbda6999f1a1f6959631200",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-c2630122-1f95-4792-aa6a-996f5016bb2a",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": null,
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-6d417f2f-86a5-4c3d-a972-478fbbf15fcf",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-6d417f2f-86a5-4c3d-a972-478fbbf15fcf",
+        "revision": 1,
+        "acceptance": {
+          "owner": "common_output_check",
+          "accepted_revision": 1,
+          "fingerprint": "9b517f777f4e6d77daa23600e8da5a53208e1a8e18447e06b12b32eff485d087",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-6d417f2f-86a5-4c3d-a972-478fbbf15fcf",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "d375af780cb42d784e6babf6e7b301ecbd1703247a44084e4564e59f660f891d",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-6ce6c089-48b7-4621-9e43-74b7c006b4ab",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-6ce6c089-48b7-4621-9e43-74b7c006b4ab",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "d375af780cb42d784e6babf6e7b301ecbd1703247a44084e4564e59f660f891d",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-6ce6c089-48b7-4621-9e43-74b7c006b4ab",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "unconditional",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "61abe32c783ddc3c8f9c95c82f158a1085e1affc0c6d52f15bfc7ba6e4a803e7",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "MISSING_DELIVERY",
+            "message": "All required scoped output instances must exist"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-5889b3f1-5528-44a3-8a39-a16f39d9c5dd",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-5889b3f1-5528-44a3-8a39-a16f39d9c5dd",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "61abe32c783ddc3c8f9c95c82f158a1085e1affc0c6d52f15bfc7ba6e4a803e7",
+          "scientifically_accepted": true,
+          "predicates": []
+        }
+      },
+      "consumer_input_artifact": "epochs-5889b3f1-5528-44a3-8a39-a16f39d9c5dd",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "A",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-18c6d073-1ce0-4a27-8225-1fd2ed979b4f",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-18c6d073-1ce0-4a27-8225-1fd2ed979b4f",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "d291f2f4f102f9bcd717e1889cefaab9848c9894f8b67934f0985919ecc57dd4",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-18c6d073-1ce0-4a27-8225-1fd2ed979b4f",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "B",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-4fa5ed86-9b14-471a-a2f0-9f099c5b37e3",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-4fa5ed86-9b14-471a-a2f0-9f099c5b37e3",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "70ade188133bbfbdaa2aebce5114daf6d5db24b37953d32e4a20cfef7bb94e59",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-4fa5ed86-9b14-471a-a2f0-9f099c5b37e3",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "ae1342610ad78e2ac045eee12c0b7334a2fdb92664f4f79c6937770c62a38496",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-b7842776-71e0-43f7-877a-2a6d4e2992a2",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-b7842776-71e0-43f7-877a-2a6d4e2992a2",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "ae1342610ad78e2ac045eee12c0b7334a2fdb92664f4f79c6937770c62a38496",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-b7842776-71e0-43f7-877a-2a6d4e2992a2",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C-no-delivery",
+      "producer_status_before_acceptance": "TOOL_SUCCEEDED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": null,
+        "output_status": "TOOL_SUCCEEDED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": true,
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-3871165c-8bec-4727-bdbb-645730eb4953",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-3871165c-8bec-4727-bdbb-645730eb4953",
+        "revision": 1,
+        "acceptance": {
+          "owner": "model",
+          "accepted_revision": 1,
+          "fingerprint": "26968f776e34e2590c2db5234010da1cd795f282023920db1a6c7f5754488a46",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-3871165c-8bec-4727-bdbb-645730eb4953",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "C-no-selection",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "dd399504815fa8e8ae4a31ab70dfd0b2cb61187f99f669fe5fa86add7c52a00f",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-c8d221ad-ee5b-4ccb-90c9-c3bdaaf3b550",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-c8d221ad-ee5b-4ccb-90c9-c3bdaaf3b550",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "dd399504815fa8e8ae4a31ab70dfd0b2cb61187f99f669fe5fa86add7c52a00f",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-c8d221ad-ee5b-4ccb-90c9-c3bdaaf3b550",
+      "same_actual_artifact": true,
+      "client_errors": []
+    },
+    {
+      "structure": "split",
+      "arm": "A-equivalent",
+      "producer_status_before_acceptance": "DELIVERY_SATISFIED",
+      "producer_check": {
+        "key": "epochs",
+        "required": true,
+        "output_valid": true,
+        "predicates": [
+          {
+            "rule": {
+              "path": [
+                "valid_epoch_count"
+              ],
+              "op": "gte",
+              "value": 2,
+              "source": "只有试次数至少2才继续功率分析"
+            },
+            "value": 3.0,
+            "meaning": {
+              "kind": "epoch_count",
+              "unit_or_kind": "count",
+              "value_type": "nonnegative_integer",
+              "contract": "eeg_tool_scalar_v1"
+            },
+            "passed": true
+          }
+        ],
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "5e6481c1ac99aa49e0fddbd7c283c3d146d4ae4f7c8a053fb56e358cfc9deec9",
+          "scientifically_accepted": true
+        },
+        "output_status": "DELIVERY_SATISFIED",
+        "accepted": true
+      },
+      "tools": [
+        {
+          "name": "plan_tasks",
+          "success": true,
+          "error": null,
+          "status": "planned"
+        },
+        {
+          "name": "create_epochs",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "check_deliveries",
+          "success": true,
+          "error": null,
+          "status": "checked"
+        },
+        {
+          "name": "complete_node",
+          "success": false,
+          "error": {
+            "code": "SELECT_CURRENT_TASK",
+            "message": "Select this ready task before changing its completion state"
+          },
+          "status": "rejected"
+        },
+        {
+          "name": "event_bandpower",
+          "success": true,
+          "error": null,
+          "status": "observed"
+        },
+        {
+          "name": "finish_task",
+          "success": true,
+          "error": null,
+          "status": "partial"
+        }
+      ],
+      "scientific_executions": [
+        "create_epochs",
+        "event_bandpower"
+      ],
+      "producer_output": {
+        "result_id": "plan-t1",
+        "processing_version": {
+          "record_fingerprint": "d3b0351cea240f6559552d983e81443604eb99bdffca5db86f954ffa2e74c367",
+          "config": {},
+          "artifact_id": "epochs-323bcf64-33f6-483d-920f-c18a53f3eb6c",
+          "artifact_fingerprint": "sha256:e98fe9940d3d01fd732984279675ee18acd9785d9aa9f004b474dfdf9008965e"
+        },
+        "output_artifact": "epochs-323bcf64-33f6-483d-920f-c18a53f3eb6c",
+        "revision": 1,
+        "acceptance": {
+          "owner": "program",
+          "accepted_revision": 1,
+          "fingerprint": "5e6481c1ac99aa49e0fddbd7c283c3d146d4ae4f7c8a053fb56e358cfc9deec9",
+          "scientifically_accepted": true,
+          "predicates": [
+            {
+              "rule": {
+                "path": [
+                  "valid_epoch_count"
+                ],
+                "op": "gte",
+                "value": 2,
+                "source": "只有试次数至少2才继续功率分析"
+              },
+              "value": 3.0,
+              "meaning": {
+                "kind": "epoch_count",
+                "unit_or_kind": "count",
+                "value_type": "nonnegative_integer",
+                "contract": "eeg_tool_scalar_v1"
+              },
+              "passed": true
+            }
+          ]
+        }
+      },
+      "consumer_input_artifact": "epochs-323bcf64-33f6-483d-920f-c18a53f3eb6c",
+      "same_actual_artifact": true,
+      "client_errors": []
+    }
+  ],
+  "safety_and_lifecycle": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "traces": [
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_acceptance_handoff_idempotency_and_sync_without_extra_reads",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "3b83588660f3ca9b4e95ccba0524613eb7e4ce858e57cf5563ef7c37d08bfe23",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "3b83588660f3ca9b4e95ccba0524613eb7e4ce858e57cf5563ef7c37d08bfe23",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "read_dependency",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_binding_invalidation_cannot_be_reaccepted",
+        "kind": "actual_Agent_with_record_fault_injection",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "3e5e4f22f05f3234b63d032d16450345aea3b48be655d94874c8498b1795646b",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "The delivery or its scientific dependency binding is not valid"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_declining_failed_predicate_allows_independent_branch",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "check_deliveries",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "wait_node",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_explicit_acceptance_cannot_bypass_user_processing_prohibition",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "INVALID_SCOPE",
+              "message": "Scientific scope contains unsupported fields or processing transforms"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "a8b2867453f167e1d84da7a85b044dc322d802272641c942dbb5c82655e12df5",
+              "scientifically_accepted": false
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 4,
+                    "source": "只有试次数至少4才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": false
+                }
+              ],
+              "accepted": false
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "19e2d9e0096470f9e2c764f85ea78cd332ce86c3e1178e50ecfaa48e5628a79c",
+              "scientifically_accepted": false
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 4,
+                    "source": "只有试次数至少4才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": false
+                }
+              ],
+              "accepted": false
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "SCIENTIFIC_ACCEPTANCE_FAILED",
+              "message": "Real results do not meet the declared conditions"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "4949cd28219f25884ea371eac31ed93b0e28df1d36872274a492a4fb575188f3",
+              "scientifically_accepted": false
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 4,
+                    "source": "只有试次数至少4才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": false
+                }
+              ],
+              "accepted": false
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "SCIENTIFIC_ACCEPTANCE_FAILED",
+              "message": "Real results do not meet the declared conditions"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_failed_extra_predicate_preserves_method_responsibility",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "SCIENTIFIC_ACCEPTANCE_FAILED",
+              "message": "Real results do not meet the declared conditions"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_illegal_acceptance_is_transactional_and_whole_completion_still_waits",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "MISSING_DELIVERY",
+              "message": "All required scoped output instances must exist"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_illegal_acceptance_is_transactional_and_whole_completion_still_waits",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Local acceptance requires task_id, output_key, revision and result_id"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "MISSING_DELIVERY",
+              "message": "All required scoped output instances must exist"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_illegal_acceptance_is_transactional_and_whole_completion_still_waits",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "MISSING_DELIVERY",
+              "message": "All required scoped output instances must exist"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_illegal_acceptance_is_transactional_and_whole_completion_still_waits",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "MISSING_DELIVERY",
+              "message": "All required scoped output instances must exist"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_illegal_acceptance_is_transactional_and_whole_completion_still_waits",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Local acceptance requires task_id, output_key, revision and result_id"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "MISSING_DELIVERY",
+              "message": "All required scoped output instances must exist"
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_real_scope_revision_invalidates_acceptance_and_consumer_keeps_history",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "a6f8d2f917fcfeee664a013f6a76e32b5bde67a5e1ab78fed4e5cbbfa48ff531",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "amplitude",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_real_scope_revision_invalidates_acceptance_and_consumer_keeps_history",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "revise_plan",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": false,
+            "error": {
+              "code": "INVALID_DELIVERY_ACCEPTANCE",
+              "message": "Use an existing delivery, current revision and its actual result identity"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "DELIVERY_INPUT_NOT_READY",
+              "message": "This delivery needs actual accepted producer outputs; execute its producers or repair the declared references first"
+            }
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 2,
+              "fingerprint": "29f7e1740e6d36d5ea0594145bc3fca9e1f1dedc66bd86f4c31ca6dfdc6110db",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_receipt_binding_to_changed_contract_or_replaced_result",
+        "kind": "state_fault_injection",
+        "stop_reason": "partial",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "dbc1a2bdc5fe68dbbf0a7edb407d8af744918ebef2374b68faf7666f822ca0fe",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "7c9a745379025d684dc6e5a5d601686523cb3f396ca2432ac2b4e2baee76400f",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "e4f68cbf2eff96e88b640d434fc7c084d457f2e90475de4be708fe7e3a7e492f",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "program",
+              "accepted_revision": 1,
+              "fingerprint": "a8b27b0495f5d77a2af34d4bd08a9cc4f163e2ed6ebc99a187fa3789d9664f2c",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "model",
+              "accepted_revision": 1,
+              "fingerprint": "70a996c5548f66d7e231504670b3e572d52f024c5ba405616c38306d8a8dd77e",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "program",
+              "accepted_revision": 1,
+              "fingerprint": "d57a61f103346424283d838e76d3aac0a178acde4a000d83fd498e051a8fd51a",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      {
+        "test": "test_issue57_acceptance.DeliveryAcceptanceTest.test_wrong_artifact_and_unauthorized_scope_remain_common_hard_failures",
+        "kind": "constructed_actual_Agent_path",
+        "stop_reason": "completed",
+        "tools": [
+          {
+            "name": "plan_tasks",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "create_epochs",
+            "success": false,
+            "error": {
+              "code": "ACTION_OWNER_SCOPE_CONFLICT",
+              "message": "Revise the planned delivery before changing its scientific scope"
+            }
+          },
+          {
+            "name": "create_epochs",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "complete_node",
+            "success": true,
+            "error": null,
+            "acceptance": {
+              "owner": "program",
+              "accepted_revision": 1,
+              "fingerprint": "6eaf876865b22a9cb370ddec6577dde300ef8ece5fd1d3c16912a2fd8957c1c0",
+              "scientifically_accepted": true
+            },
+            "check": {
+              "key": "epochs",
+              "required": true,
+              "output_valid": true,
+              "predicates": [
+                {
+                  "rule": {
+                    "path": [
+                      "valid_epoch_count"
+                    ],
+                    "op": "gte",
+                    "value": 2,
+                    "source": "只有试次数至少2才继续功率分析"
+                  },
+                  "value": 3.0,
+                  "meaning": {
+                    "kind": "epoch_count",
+                    "unit_or_kind": "count",
+                    "value_type": "nonnegative_integer",
+                    "contract": "eeg_tool_scalar_v1"
+                  },
+                  "passed": true
+                }
+              ],
+              "accepted": true
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": false,
+            "error": {
+              "code": "ARTIFACT_DEPENDENCY_MISMATCH",
+              "message": "Use the actual artifact of the declared producer output"
+            }
+          },
+          {
+            "name": "event_bandpower",
+            "success": true,
+            "error": null
+          },
+          {
+            "name": "finish_task",
+            "success": true,
+            "error": null
+          }
+        ]
+      }
+    ]
+  },
+  "controlled24": [
+    {
+      "case": "T01",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 3,
+      "oracle_passed": 3,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T01",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 3,
+      "oracle_passed": 3,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T01",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 3,
+      "oracle_passed": 3,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T02",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T02",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T02",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T03",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "clarification_required",
+        "completed"
+      ]
+    },
+    {
+      "case": "T03",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "clarification_required",
+        "completed"
+      ]
+    },
+    {
+      "case": "T03",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "clarification_required",
+        "completed"
+      ]
+    },
+    {
+      "case": "T04",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T04",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T04",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "completed"
+      ]
+    },
+    {
+      "case": "T05",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 7,
+      "oracle_passed": 7,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T05",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 7,
+      "oracle_passed": 7,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T05",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 7,
+      "oracle_passed": 7,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T06",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "partial"
+      ]
+    },
+    {
+      "case": "T06",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "partial"
+      ]
+    },
+    {
+      "case": "T06",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 2,
+      "oracle_passed": 2,
+      "stop_reasons": [
+        "partial"
+      ]
+    },
+    {
+      "case": "T07",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T07",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T07",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 6,
+      "oracle_passed": 6,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T08",
+      "arm": "A",
+      "controlled_errors": [],
+      "oracle_count": 5,
+      "oracle_passed": 5,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T08",
+      "arm": "B",
+      "controlled_errors": [],
+      "oracle_count": 5,
+      "oracle_passed": 5,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    },
+    {
+      "case": "T08",
+      "arm": "C",
+      "controlled_errors": [],
+      "oracle_count": 5,
+      "oracle_passed": 5,
+      "stop_reasons": [
+        "completed",
+        "completed"
+      ]
+    }
+  ],
+  "full_regression": {
+    "total": 735,
+    "passed": 720,
+    "skipped": 15,
+    "skip_categories": {
+      "external_EDF_model_or_R3_resources": 14,
+      "explicit_real_LLM_network_opt_in_disabled": 1
+    }
+  },
+  "local_artifacts": [
+    {
+      "path": "artifacts/point1_task_memory/issue57-closeout/before.json",
+      "sha256": "2406ee251ac7858738af00d585947dab33510ba91fd2d5b8f37252af08e99b44"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue57-closeout/after.json",
+      "sha256": "459ee75a1008112ad6003cd68123740ef03d6f23435e8fe7ceaada14afeb3234"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue57-closeout/lifecycle-safety.json",
+      "sha256": "e1ffa83895700bcea5ea0a8a2f3c73d2c64ad0b3c08769371b0af213655c9c78"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue57-closeout/controlled24.json",
+      "sha256": "3b016f664c10afd3feee207550e5c0e0632c28a089d6c187a9b38fd39033ab85"
+    },
+    {
+      "path": "artifacts/point1_task_memory/issue57-closeout/full-regression-final.txt",
+      "sha256": "3a1dd08cd4181125544eef35fd9f588d16187d685a24bf919e8d5e7639e4b5f4"
+    }
+  ],
+  "implementation_sha256": "5326cba14623e188d4c486504d830e321df8de3a3d264504d7822b7cbb4a0925",
+  "development_regression_first_attempt": {
+    "tests": 9,
+    "failures": 2,
+    "classification": "test_development_not_model_scores",
+    "details": [
+      "非法接受负例串联触发原 no_progress；改为独立会话，不改变生产保护。",
+      "状态级替换传入含旧 receipt 的 evidence；统一剥离传入 receipt，只从原有效绑定继承。"
+    ]
+  },
+  "limitations": [
+    "新接口未真实自主复测",
+    "不同版本真实成功不能拼接",
+    "相对强基线收益未证明",
+    "不包含全部旧级联版本证明"
+  ]
+}

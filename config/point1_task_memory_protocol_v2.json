@@ -1,0 +1,64 @@
+{
+  "version": "2.0-frozen-before-v2-selector-results",
+  "purpose": "offline design-stage replay; not an unseen natural-user benchmark",
+  "recent_full_tasks": 3,
+  "retrieval_top_k": 3,
+  "sessions": [
+    {
+      "id": "N-short",
+      "split": "development",
+      "event_labels": {"A": ["cue", "rest"], "B": ["target", "standard"]},
+      "steps": [
+        {"key": "a_power", "text": "先看 A 的 SYNTH-C1 在 0 到 2 秒的连续绝对频带功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "a_amplitude", "text": "同一窗口再计算 A 的 SYNTH-C1 幅值。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "b_power", "text": "切到 B，计算 SYNTH-C1 相同时间窗的连续绝对频带功率。", "record": "B", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}}
+      ],
+      "queries": [
+        {"text": "回顾记录 A 的连续频带功率 alpha 结果。", "target": "a_power", "field": ["SYNTH-C1", "alpha"]},
+        {"text": "刚算的 B 的 alpha 值呢？", "target": "b_power", "field": ["SYNTH-C1", "alpha"]}
+      ]
+    },
+    {
+      "id": "N-medium",
+      "split": "development",
+      "event_labels": {"A": ["cue", "rest"], "B": ["target", "standard"]},
+      "steps": [
+        {"key": "a_cue_count_old", "text": "A 的 cue 事件后 0 到 1 秒，先统计有效试次数。", "record": "A", "capability": "epoch_summary", "parameters": {"labels": ["cue"], "tmin": 0, "tmax": 1}},
+        {"key": "a_cue_power", "text": "同一批 A 的 cue 试次，计算绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["cue"], "tmin": 0, "tmax": 1}},
+        {"key": "a_continuous", "text": "另看 A 的 SYNTH-C1 在 0 到 2 秒的连续功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "b_target_count", "text": "切到 B，统计 target 事件后 0 到 1 秒的有效试次。", "record": "B", "capability": "epoch_summary", "parameters": {"labels": ["target"], "tmin": 0, "tmax": 1}},
+        {"key": "b_target_power", "text": "B 的 target 同一事件窗再算绝对频带功率。", "record": "B", "capability": "event_bandpower", "parameters": {"labels": ["target"], "tmin": 0, "tmax": 1}},
+        {"key": "a_cue_count_new", "text": "回到 A，把 cue 试次数的窗口改成事件后 0 到 0.5 秒，保留旧结果。", "record": "A", "capability": "epoch_summary", "parameters": {"labels": ["cue"], "tmin": 0, "tmax": 0.5}, "revision_of": "a_cue_count_old"}
+      ],
+      "queries": [
+        {"text": "修改前 A 的 cue 有效试次数是多少？", "target": "a_cue_count_old", "field": ["valid_epoch_count"]},
+        {"text": "B 的 target 事件窗 alpha 功率是什么？", "target": "b_target_power", "field": ["conditions", "target", "channels", "SYNTH-C1", "alpha"]},
+        {"text": "先前 A 的连续 SYNTH-C1 alpha 值呢？", "target": "a_continuous", "field": ["SYNTH-C1", "alpha"]}
+      ]
+    },
+    {
+      "id": "N-long",
+      "split": "validation-design",
+      "event_labels": {"A": ["cue", "rest"], "B": ["target", "standard"]},
+      "steps": [
+        {"key": "a_power_old", "text": "A 的 SYNTH-C1 在 0 到 2 秒计算连续绝对频带功率。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "a_amplitude", "text": "同一记录同一窗口计算 SYNTH-C1 幅值。", "record": "A", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 0, "end": 2}},
+        {"key": "a_cue_count", "text": "A 的 cue 事件后 0 到 1 秒统计有效试次。", "record": "A", "capability": "epoch_summary", "parameters": {"labels": ["cue"], "tmin": 0, "tmax": 1}},
+        {"key": "a_rest_power", "text": "A 的 rest 事件后 0 到 1 秒算绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["rest"], "tmin": 0, "tmax": 1}},
+        {"key": "b_power", "text": "切到 B，计算 SYNTH-C2 在 0 到 2 秒的连续功率。", "record": "B", "capability": "psd", "parameters": {"channels": ["SYNTH-C2"], "start": 0, "end": 2}},
+        {"key": "b_target_power", "text": "B 的 target 事件后 0 到 1 秒算绝对频带功率。", "record": "B", "capability": "event_bandpower", "parameters": {"labels": ["target"], "tmin": 0, "tmax": 1}},
+        {"key": "a_power_new", "text": "回 A，把第一次连续功率的 SYNTH-C1 窗口改成 3 到 5 秒，旧结果仍保留。", "record": "A", "capability": "psd", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}, "revision_of": "a_power_old"},
+        {"key": "b_standard_count", "text": "B 的 standard 事件后 0 到 1 秒统计有效试次。", "record": "B", "capability": "epoch_summary", "parameters": {"labels": ["standard"], "tmin": 0, "tmax": 1}},
+        {"key": "a_cue_power", "text": "A 的 cue 事件后 0 到 1 秒算绝对频带功率。", "record": "A", "capability": "event_bandpower", "parameters": {"labels": ["cue"], "tmin": 0, "tmax": 1}},
+        {"key": "b_amplitude", "text": "最后计算 B 的 SYNTH-C1 在 3 到 5 秒的幅值。", "record": "B", "capability": "amplitude", "parameters": {"channels": ["SYNTH-C1"], "start": 3, "end": 5}}
+      ],
+      "queries": [
+        {"text": "最初 A 的 SYNTH-C1 连续功率 alpha 是多少？", "target": "a_power_old", "field": ["SYNTH-C1", "alpha"]},
+        {"text": "修改后 A 的 SYNTH-C1 连续功率 alpha 呢？", "target": "a_power_new", "field": ["SYNTH-C1", "alpha"]},
+        {"text": "B 的 target 事件条件 alpha 功率是多少？", "target": "b_target_power", "field": ["conditions", "target", "channels", "SYNTH-C1", "alpha"]},
+        {"text": "回顾 A 的 rest 事件窗 alpha 功率。", "target": "a_rest_power", "field": ["conditions", "rest", "channels", "SYNTH-C1", "alpha"]},
+        {"text": "B 最后那次 SYNTH-C1 幅值 RMS 是多少？", "target": "b_amplitude", "field": ["SYNTH-C1", "rms"]}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "version":"1.0-frozen-before-implementation-and-llm",
+  "seed":3601,
+  "max_external_completions":96,
+  "max_external_tokens":300000,
+  "sessions":[
+    {"id":"M1","split":"development","turns":[
+      {"text":"在记录 A 的 SYNTH-C1 上计算 0 到 2 秒绝对频带功率。","op":"analyze","record":"A","capability":"psd","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},
+      {"text":"同一记录同一窗口，再看 SYNTH-C1 的幅值。","op":"analyze","record":"A","capability":"amplitude","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},
+      {"text":"把第一次频带功率的窗口改成 3 到 5 秒，保留原结果。","op":"revise","record":"A","parent":1,"capability":"psd","parameters":{"channels":["SYNTH-C1"],"start":3,"end":5}},
+      {"text":"修改前那次频带功率的 alpha 值是多少？","op":"history","target":1},
+      {"text":"现在修改后的 alpha 值呢？","op":"history","target":3}
+    ]},
+    {"id":"M2","split":"development","turns":[
+      {"text":"记录 A 的 stimulus 事件后 0 到 1 秒有多少有效试次？","op":"analyze","record":"A","capability":"epoch_summary","parameters":{"labels":["stimulus"],"tmin":0,"tmax":1}},
+      {"text":"同样的 stimulus 试次，给我绝对频带功率。","op":"analyze","record":"A","capability":"event_bandpower","parameters":{"labels":["stimulus"],"tmin":0,"tmax":1}},
+      {"text":"切到记录 B。","op":"switch","record":"B"},
+      {"text":"在 B 的 control 事件后 0 到 1 秒计算绝对频带功率。","op":"analyze","record":"B","capability":"event_bandpower","parameters":{"labels":["control"],"tmin":0,"tmax":1}},
+      {"text":"回顾 A 的 stimulus 试次数，不要用 B 的结果。","op":"history","target":1}
+    ]},
+    {"id":"M3","split":"development","turns":[
+      {"text":"记录 A 的 SYNTH-C2，0 到 2 秒的绝对频带功率。","op":"analyze","record":"A","capability":"psd","parameters":{"channels":["SYNTH-C2"],"start":0,"end":2}},
+      {"text":"切到记录 B。","op":"switch","record":"B"},
+      {"text":"B 的 SYNTH-C2 同一窗口也算绝对频带功率。","op":"analyze","record":"B","capability":"psd","parameters":{"channels":["SYNTH-C2"],"start":0,"end":2}},
+      {"text":"回到 A。","op":"switch","record":"A"},
+      {"text":"刚才 B 那条 SYNTH-C2 的 alpha 值呢？","op":"history","target":2},
+      {"text":"现在 A 那条的 alpha 值呢？","op":"history","target":1}
+    ]},
+    {"id":"M4","split":"development","turns":[
+      {"text":"A 的 stimulus 事件后 0 到 1 秒算绝对频带功率。","op":"analyze","record":"A","capability":"event_bandpower","parameters":{"labels":["stimulus"],"tmin":0,"tmax":1}},
+      {"text":"A 的 control 事件后 0 到 1 秒也算绝对频带功率。","op":"analyze","record":"A","capability":"event_bandpower","parameters":{"labels":["control"],"tmin":0,"tmax":1}},
+      {"text":"再看 SYNTH-C1 导联 0 到 2 秒的连续幅值。","op":"analyze","record":"A","capability":"amplitude","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},
+      {"text":"刚才那种事件的频带功率是多少？","op":"clarify"},
+      {"text":"我指的是 control 事件后那次。","op":"history","target":2}
+    ]},
+    {"id":"M5","split":"holdout","turns":[
+      {"text":"在 B 上先统计 control 事件后 0 到 1 秒的有效试次数。","op":"analyze","record":"B","capability":"epoch_summary","parameters":{"labels":["control"],"tmin":0,"tmax":1}},
+      {"text":"同一事件条件再看绝对频带功率。","op":"analyze","record":"B","capability":"event_bandpower","parameters":{"labels":["control"],"tmin":0,"tmax":1}},
+      {"text":"把试次数分析的事件窗改成 0 到 0.5 秒，旧结果别覆盖。","op":"revise","record":"B","parent":1,"capability":"epoch_summary","parameters":{"labels":["control"],"tmin":0,"tmax":0.5}},
+      {"text":"切到记录 A。","op":"switch","record":"A"},
+      {"text":"修改前 B 的 control 有效试次数是多少？","op":"history","target":1},
+      {"text":"修改后的那次用的相对时间窗是什么？","op":"history","target":3}
+    ]},
+    {"id":"M6","split":"holdout","turns":[
+      {"text":"B 的 SYNTH-C1 在 0 到 2 秒的幅值是多少？","op":"analyze","record":"B","capability":"amplitude","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},
+      {"text":"A 的 SYNTH-C1 同一窗口的幅值也计算。","op":"analyze","record":"A","capability":"amplitude","parameters":{"channels":["SYNTH-C1"],"start":0,"end":2}},
+      {"text":"再算 B 的 control 事件后 0 到 1 秒的绝对频带功率。","op":"analyze","record":"B","capability":"event_bandpower","parameters":{"labels":["control"],"tmin":0,"tmax":1}},
+      {"text":"回到 A。","op":"switch","record":"A"},
+      {"text":"先前 B 的幅值 RMS 是多少？","op":"history","target":1},
+      {"text":"A 的幅值 RMS 又是多少？","op":"history","target":2}
+    ]}
+  ]
+}

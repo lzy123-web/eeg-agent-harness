@@ -1,3 +1,137 @@
+## Issue62最终源码与真实触发核对（已实现；自主部分通过）
+
+8a3920a/source2a97b154/behavior2bb189a1冻结后未改；独立只读核对187项源文件。真实T05的change_source在拒绝混用后实际归一并修订task revision1→2，原结果/不变任务保留；T07 task_goals多交付实际使用，原Epoch复用无原数值重算。M01没有选择修订，新建来源拒绝仍合法，不能宣称操作选择问题解决。M02独立任务保持，A/B各重复读取两次仍有成本。
+
+全部送达回答另核：T07首轮新计算误述为重算/复用，因此核心3/4、严格完整2/4；原自动分数未改。共享时基父对象漏洞在A/B同样修复，六组旧保存点/安全/原24链及846项全量通过，公开源码和证据在[集中报告](EEG_WORKING_MEMORY_ISSUE62.md)。目前边界：窄delta保守歧义拒绝、完整interpretation兼容维护成本、比较显式字段负担；没有第二Planner/Store/Executor或语义自动猜测。
+
+---
+
+## Issue62源码职责（已实现，真实待验证）
+
+model_write_schemas分离task_goals与交付科学定义，保留旧输入；TaskPlanController._change_interpretation按显式变动scope路由change_source到旧解释，没有自然语言意图选择或新增状态。原_revision_updates/完整TaskSpec/PlanGraph.revise及Store/Executor负责原子性、版本、实际证据；比较字段方向不变。interpreted_sources统一核验历史对象与当前range parent的family/对象归属，关闭独立发现的A/B共同误放行。既有issue61_live增加scope policy，原资金与恢复保护不改。公开working_memory_issue62只做原失败重放和明确受控A/B，不构成模型成功。详见[报告](EEG_WORKING_MEMORY_ISSUE62.md)。
+
+---
+
+## Issue61续作最终事实：共享控制已实现，恢复设计部分可用（2026-11-04）
+
+最终dfb4114/source c6051258/behavior593f77b7。实际诊断键为tool/code/field_path/message；与严格结构问题集合缩小共享每轮3信用，不清零错误、不看提案参数。唯一修订来自真实v1第7/8次记录→窗口来源错误变化，原提案仍拒绝。最终T05/M01未修订，T07跨行goal冲突未计算，M02旧结果复用及独立新计算成功。最终只7/8用户轮实际发送，1/4完整通过。无科学变更后重抽或跨版拼接。
+
+恢复字段主要从公开schema生成，但跨行goal错误仍用内部root path，另有数值动作channel_reference拒绝仍建议required_outputs[].interpretation.channel_reference，已由独立只读实际触发确认，不能将“全路径一致”当作事实。T05原system明确保留原source_ref改range_ref，实际模型没采用；字段级来源表达仍有负担。三项职责的工程门通过不意味着自主能力或所有设计缺陷消失。[集中报告](EEG_WORKING_MEMORY_ISSUE61.md)保留前后证据、预算、自审及独立复核。833全量(15跳过)、18专项与14独立设计检查通过；六组方法差异不变，未新建状态/预算平台。
+
+---
+
+## Issue61主审续作：操作/进展/交付控制同源（已实现，真实待验证）
+
+scientific_contracts.contract_diagnostics从原有限schema词汇收集结构问题，selected_contract仅显式enum选支；TaskPlanController恢复字段/报错路径对应当前公开表示，canonical诊断另留。原WorkingMemoryController新增可选进展hook，TaskPlanController使用自身已有图、当前wire与有限诊断额度；没有独立状态平台。字段/值/单位/所属结果关联原子用于审查信号，不替代科学Binding核验。软delivery_review在决策视图中选择且保留所有工具，hard_final_delivery复用真实可见final视图并检查上下文限额；预算/最后轮/工具边界实际wire一致。
+
+working_memory_issue61_live只在原账本追加scope_permission和至多两个新候选，原scope冻结/候选上限不改；跨scope行为去重、初始M01/修订候选仅final、120实际请求上限及逐请求剩余覆盖规划由原MoneyBudgetClient准入调用。资金链仍六次，confirm及未处置保护继续阻断。无凭据公开原失败回放入口working_memory_issue61_continuation；手工后续动作明确受控。首次独立反例、修正取舍及限制见[报告](EEG_WORKING_MEMORY_ISSUE61.md)，不能由离线门推断自主收益。
+
+---
+
+## Issue61最终冻结与证据边界（已实现/部分自主可用，2026-11-04）
+
+最终科学提交567a12e/source8380a282/behavior dcf0f02b，冻结后仅文档证据变化。815项=800通过+15跳过；原111/78/78受控检查及六组24条保存点续接通过。独立只读逐文件冻结核对和8项机制测试通过。实际v3 T05/M02核心完整，T07质量计算完成但最终交付失败，M01无合法次轮修订；最终未自主触发add_deliveries或新增窗口继承，故实现与自主收益分列。合法操作误拒的修复由v2原call16未修改提案离线对照支持，不能冒称原会话自主通过。未见本次覆盖内科学边界退化，保守数值冲突仍有潜在过拒。
+
+原始轨迹、独立复核、最终送达回答与账务汇总见[Issue61集中报告](EEG_WORKING_MEMORY_ISSUE61.md)及公开索引final_v3_closeout；原null评分保持。工具schema27029→35365字节，不主张接口/实际费用全面缩小。仅原资金链第六许可，原409前缀不变，106新增调用全部结算，保留原未知占用；不发布配置或私有账本。
+
+---
+
+## Issue61第二批字段来源收敛（已实现，2026-11-04）
+
+interpreted_sources仅在显式绑定有效实际结果且时间两字段不变、没有显式范围locator时，以kind=result记录继承时间；_check_retained_window复用现有完整科学对象/相邻来源关系拒绝当前冲突和数值归属不明；_window_origin_matches沿真实result_id/field/binding边核验显式历史窗口，检测环/错绑定/字段，不扫相似结果。TaskPlanController统一所有规划拒绝路径的实际操作效果与final-only可执行建议。未改Executor科学计算、原题或评分。只读门与首次反例见[报告](EEG_WORKING_MEMORY_ISSUE61.md)。
+
+---
+
+## Issue61源码增量（2026-11-04，已实现）
+
+公开add_deliveries→TaskPlanController._normalize_write→原_revision_updates/PlanGraph.revise；完整候选图和来源核验在live graph提交前完成。输入新key/消费者引用均由模型给定；不变结果、旧版本、独立控制前提沿原机制保存。scientific_contracts按显式enum诊断oneOf，不放宽条件。ToolRegistry工件类型提供发现事实，未引入科学依赖推导器。来源错误不再建议规划不可写的inherit_result。
+
+working_memory_issue61_live只在原账本追加候选、最终冻结和覆盖预算事实；MoneyBudgetClient仍负责资金、预约、结算与原503恢复。StageBudgetExhausted实现LLMServiceError结构化契约。详见[Issue61报告](EEG_WORKING_MEMORY_ISSUE61.md)，已通过离线/只读门，真实自主证据待追加。
+
+---
+
+## Issue60 HTTP503恢复事实（2026-11-03）
+
+已实现：working_memory_issue50原单次入口增加独立尝试元数据/提交钩子；JournaledBudgetClient保留request ID与HTTP status；MoneyBudgetClient在原锁、预约、final lease和结算上执行限定恢复；working_memory_issue60_recovery仅为原账本事件校验函数，不是新预算/科学状态系统。原科学模块/提示/schema/数据/评分逐文件冻结。许可/历史证据append-only，处置必须关联已保守结算503和独立retry reserved；孤儿处置不解锁、预约状态未知不重发；只对具体事件生效。真实首T05完全同输入恢复，后续工具状态进程内保留；非空状态跨进程无法可靠还原时仍失败关闭。
+
+已关闭主审侧只读反例：money_settled后、safety_stop前崩溃原首版可绕过502保护；现补缺stop，不重复收费。802项及原受控链通过；真实T05/M02完整、T07/M01失败，真实后无科学修改。M01来源反馈要求继承但默认计划不接受inherit_result，T07缺前置交付后的默认追加表达仍有负担，不能把它们描述为已完全简化或纯模型错误。完整请求、旧失败、费用和边界见[Issue60报告](EEG_WORKING_MEMORY_ISSUE60.md)。
+
+---
+
+## Issue60主审整改续作审计（2026-11-03）
+
+工程efcd6de：interpretation_schema/comparison_properties共用公开表示和解析；原TaskPlanController增加默认扁平交付/直接修订/显式左右单字段的机械规范化，仍提交原TaskSpec/PlanGraph/Store事务，旧兼容不默认展示。记录/空scope仅由显式比较操作数取得；不猜对象/字段/方向。contract返回当前/历史/过期可选状态，不回退旧值。只读审查发现的字段引用类型丢失及比较非空条件丢失已修复，788项/15跳过和既有科学反例通过。
+
+真实首请求503未给模型提案或usage，账本受保护停止，科学代码未继续变更；新接口自主有效性与四题覆盖未验证，不能归因科学执行或称仅缺配置。旧v1“M01数值+结果谱系成立但任务身份失败”结论保留。详见[集中续作与原始证据](EEG_WORKING_MEMORY_ISSUE60.md)。
+
+---
+
+## Issue60增量审计（2026-11-03）
+
+TaskSpec同一schema表达比较输入基数与能力相关解释；TaskPlanController读视图显式区分声明/修订目标，原read_dependency可读取实际字段契约而不注入数值。精确已有ID新建错误分类提前，增量事务/Executor未替换。科学来源按显式有效旧结果复用未变窗口，并核对原执行来源，不凭相同数字借窗。原六组、版本/工件、接受生命周期和安全回归保持；780项/15跳过通过。491a653实际四条同版覆盖中T07/M02完整、T05未交付新值、M01未保持预登记同一任务身份；尚无普遍可使用性/收益证明。最终后科学代码未改，参见[Issue60报告](EEG_WORKING_MEMORY_ISSUE60.md)。
+
+---
+
+## Issue59 v5冻结收口审计补记（2026-11-02）
+
+执行提交8be4de9仅更改原运行器授权追加及费用起点继承，科学src/config逐文件与aa37ad4相同（预算模块实际diff另核），模型/schema/协议未改。原C组两会话：T05首轮通过次轮失败，旧A/B状态保持、无新A/差比；T07原工件质量与旧值复用真实完整通过。原提案/实际下一输入/工具回执/完整答案及只读复核均见[Issue59集中报告](EEG_WORKING_MEMORY_ISSUE59.md)和唯一索引v5_closeout。没有revise_plan、成功质量提案省略measurement_channels，最后两处新增分支未被自主触发；不能把整个会话通过当分支因果证明。全量775项/15跳过及CI408成功，原独立评分null保留。未新增科学实现或论文收益主张。
+
+---
+
+## Issue59 最终共同机制与证据边界（2026-11-02）
+
+原Controller/PlanGraph/ScientificTaskStore/Executor共用只读科学绑定，保留候选事务、当前/固定历史版本、明确来源角色、实际字段、工件身份/处理binding及执行回执。未变化真实交付可保留，不作为当前新动作授权。实际成功结果创建时记录user-turn，历史输出仅索引原snapshot；未见实际结果仍pending，不猜语义/字段。locator互斥表示按明确补丁替换；完整实际工件通道轴可提供物理维度，不能猜子集或覆盖明确当前通道。质量工具只增加原算法事实定义，数值未改。
+
+最终772项/15跳过、24链111/111及12增量链通过；A/B/C与相关组共享契约而保留原接受/证据策略。四个真实版本八条原两轮开发会话中仅v3 T07完整自审通过；最终两个修复没有真实复查，T05始终未完整，不能写成科学目标或独立主审通过。完整代价、原生前后与保留的错误见[Issue59报告](EEG_WORKING_MEMORY_ISSUE59.md)。
+
+## Issue59 科学来源统一审计补记（2026-11-02）
+
+已实现：scientific_binding只读解析显式InputRef、同交付历史、原执行回执和精确artifact，区分待定/冲突/实际见证；task_plan_agent的计划、两种修订、范围、动作装配和匹配共用。候选图复用原PlanGraph事务逻辑，避免修改生产者后仍使用旧当前输出。Store工件消费复用来源事实检查；无新Planner/Executor/Store，原资源依赖、数值算法和方法组差异不变。复杂度与反证见[Issue59报告](EEG_WORKING_MEMORY_ISSUE59.md)。760项/15跳过与受控链通过仅属工程证据，原生固定提案响应12修复不等于真实模型成功；随后依已批授权开展原题开发验证。
+
+## Issue58真实续接审计补记（2026-11-02）
+
+原live授权追加改为两条明确已批授权的有序不可变前缀链，原MoneyBudgetClient加入本轮/累计金额共同保护；不新增预算平台、客户端或确认许可。真实42次全部结算，旧125笔字节前缀不变。
+
+真实T07发现：显式合法artifact动作能让Store补全范围，PlanController._matches却仍仅用空计划scope，实际结果无法挂接。现由原_sync_outputs关联成功Store回执的result_id及完整原trace，在原输出记录execution_scope_binding，_matches/_execution_scope共同校验task、交付契约、实际结果/工件binding后使用真实范围；原声明字段优先，必需字段检查保留。接受指纹包含此回执，正常同步保持，实质变化失效。仅科学工件消费工具走此路径，无模型字段猜测或第二状态库，原数值工具/资源依赖不变。751项/15跳过、24链111/111通过。
+
+未解决：修订来源预检_validate_revision_sources仍仅采用本交付旧输出作历史见证，显式InputRef生产者没有对等入口；复查原提案与临时反事实证明该接缝存在。生产代码未合入该干预，新执行回执也尚无完整真实自主成功；三会话均失败，不能用局部数值通过覆盖最终回答错误。详见[集中结果和限制](EEG_WORKING_MEMORY_ISSUE58.md)。
+
+## Issue58此前增量接口审计补记（历史保留）
+
+已实现：`TaskSpec.control_prerequisites`兼容旧重复数据声明并保留独立控制条件；`PlanGraph.dependency_relations/dependency_state/_validate/revise`基于InputRef动态派生数据关系，区分当前与固定历史版本，不维护第二份边状态。原controller的`_revision_updates`只合并明确单交付字段，经原完整TaskSpec、来源、义务校验后调用同一graph.revise；身份不猜测，错误不部分提交。read_dependency/read_result/restore_task及原EEG数值工具不变，六组共享契约。
+
+资源依赖仍为原合成数据/NumPy/SciPy与eegagent环境，无新权重/数据/数值算法。研究夹具原生提案重放、机械迁移链、原live驱动TEST预算见证分别标记；没有服务客户端或凭据发现入口。743项（15跳过）、24链111/111；新接口未真实自主复测，原科学语义边界仍在。调用链、复杂度及待专项授权预算集中于[Issue58报告](EEG_WORKING_MEMORY_ISSUE58.md)，不把共享接口修复作为候选独有收益。
+
+## Issue56 共享接口审计补记（2026-11-01）
+
+已实现：`scientific_contracts.computation_scope`复用Registry派生科学计算scope；scientific/DAG计划/修订/Store使用同源参数。新有限schema验证负责结构，原Store/Executor负责来源、元数据、物理范围、工件及版本事实，不把类型合法当科学授权。
+
+`source_catalog/resolve_source_ref`直接从已有用户请求SourceFrame定位完整父句；无进程全局数据或新来源数据库。历史引用仅在原合法对象/结果和当前补参约束下使用。TaskPlanController在原Agent顺序批次中核验task_id/output_key/revision并记录每动作前后状态；`finish_task.clarifications`渲染真实送达问题，live以原followup_policy核验条件式补参，gold仅用于评价。
+
+来源、旧错误语义边界、实验方法和成本见[Issue56结果记录](EEG_WORKING_MEMORY_ISSUE56.md)。710项回归（15资源跳过）、24条受控链111/111oracle通过；这些不是新模型自主能力证据。新增API0，未动Issue55累计账本。原六会话/首次失败保留；旧无owner批次兼容损失明确列示。
+
+## Issue55 真实诊断后补审（2026-11-01）
+
+原服务配置从同项目成功命令恢复，唯一正式账本按正面历史证据首次初始化；48笔真实请求/响应/预约/结算已逐笔对应。初始化新增入口不替代既有client/journal/final lease。实际轨迹促成小范围修订：measurement_channels使用同一已核验字段关系；计划解释错误回到原revise_plan；原RequirementValidationError与纯结构错误透传有限诊断；PlanGraph先验证无变化/循环等再settle活动目标，拒绝保持科学状态。live遵循原补窗协议，不要求特定状态标签或预展开epoch节点。工具算法/数据/gold不变。
+
+最终702项（687通过、15资源跳过）及24路径111数值核验通过；原T04自主开发复查通过，但T07失败、T03/T05未进入第二轮。开发48次用满，确认未准入；不存在待补API配置，自主恢复与跨轮能力仍不足。详见[全部轨迹、费用和局限](EEG_WORKING_MEMORY_ISSUE55_HISTORY_AND_LIVE.md)。下文保留原时点审计。
+
+## Issue55 职责收敛补审（2026-11-01；评论6553986150）
+
+- 真实调用链未新增系统：TaskPlanEEGAgent/DeliveryItem.interpretation → ScientificTaskStore.execute_action → scientific_request_binding.interpreted_sources/ground_bound_scope → 原Executor → TaskEntry/交付复用/证据读取。未增加科学工具、模型、数据集或全局EEG状态。
+- owned_intervals只在单一元数据角色内定位字面范围，混合角色不按最近名称猜时基。完整父句与数值/元数据可确定核验；语义解释标记model_interpretation_not_intent_proof，不冒充原文意图事实。字段引用只传通道名，目标记录/窗/工件独立检查，目标冲突/多候选拒绝。
+- 旧底层输入契约/依赖沿用原工具注册表与合成记录，Executor无数值算法改动；DeliveryItem解释为可选字段，旧单一对象接口保留，旧混合父句未提供解释可能需澄清（T07裸动作partial/1次证据保留）。
+- live.scientific_guard从gold精确匹配改为实际来源、时基、scope和数值核验；gold只评价原请求。MoneyBudgetClient仍复用Issue50原子预约/journal/final lease，每笔固化价格和runtime；异常不释放，缺历史依据停机，冻结实际thinking/timeout/端点等。
+- 可复用证据：693项回归（678通过、15资源跳过）、24路径111个数值核验、15项live专项。局限：自洽但错误语义未被程序证明、真实自主/回答未验证、历史费用缺依据不能自动恢复为可付费状态。见[设计/原始哈希/复现](EEG_WORKING_MEMORY_ISSUE55_RESPONSIBILITIES.md)。以下是旧版本审计，不代表当前语义职责。
+
+## Issue55 主审纠偏补审（2026-11-01；历史记录保留）
+
+- 复用链仍为 TaskPlanEEGAgent → ScientificTaskStore → scientific_request_binding → 原 ExecutionContext/Executor → TaskEntry/交付核验/依赖读取。首次反例证明旧“事件+通道+单窗口”放行导致真实错误事件切段。
+- owned_intervals 依据实际元数据对象组/范围位置核验当前轮来源；同组多个窗口延续最近对象组，同类多对象可共享，异类时基不能借用。legacy _ground_scope 缓存先恢复、最终来源再提交，模型channel_reference不得自行创造目标用户选择。
+- 新 working_memory_issue55_live 仅研究运行器，不是第二Planner/Executor。复用 Issue50 wire/final lease、JournaledBudgetClient；固定144/6M/US$3及分池，实际费率核验、费用预约结算、独占/追加账本、逐轮评分/原始证据、一次性确认冻结。旧token-only工厂禁止接入客户端。
+- 输入资源仅项目合成EEG；真实运行需已有客户端环境配置、费率/模型核实记录和累计账本。Fake用临时TEST ONLY账本。没有密钥/真实EEG/模型权重引入。
+- 事实限制：T04安全关系授权仍未解决，自动完整自然语言回答评分/自主记忆使用仍待原始回答独立复核。不能以通过681项回归宣布研究机制验收通过。详见 [纠偏材料](EEG_WORKING_MEMORY_ISSUE55_REVIEWER_REPAIR.md)。
+
 # EEGAgent 源码系统审计
 
 ## 1. 审计范围与结论口径
@@ -180,3 +314,12 @@
 1. 数据契约和 Profile，消除全局数据及 22/19/2 导冲突。
 2. 工具惰性加载、输入校验和 JSON 输出，形成真正可独立复用的工具接口。
 3. 可复现路径、资源清单与无 LLM 自动化测试，再恢复 Agent 端到端评估。
+
+## Issue55接口审计补记（2026-11-01）
+
+`task_plan_agent.PlannedTaskStore`已共享分离辅助失败与必需结果；`TaskPlanController`仍复用原EEGAgent和Executor。`scientific_request_binding._request_frames/ground_bound_scope`的字面对象/异域约束导致T04/T07共同误拒，未解决；不可从DAG声明推断完整原请求。唯一运行时修正为拒绝不再计实际used。合成输入契约、依赖/寿命/限制、代码职责图及证据等级见[Issue55审计与协议](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。没有模型权重/真实数据依赖，没有新的数值算法。原历史审计和失败记录不改。
+
+
+## Issue55共享机制整改（2026-11-01）
+
+共享来源层新增唯一通道字段引用，保留记录/窗/工件隔离；事件通道选择不再自动构成异域。TaskPlan公开完整原文父句，Executor与数值算法不变。 666项回归651通过/15跳过、24条受控路径111项oracle通过；真实服务配置及累计账本无法核实，未启动付费。具体前后证据、安全反例及尚未完成的live入口验收见[Issue55当前阶段](EEG_WORKING_MEMORY_ISSUE55_PROTOCOL_AND_RESULTS.md)。

@@ -1,0 +1,66 @@
+{
+  "protocol_version": "issue50-v1",
+  "purpose": "执行职责与工作记忆的有界诊断，不是效能排行榜",
+  "limits": {"completions": 64, "api_tokens": 400000},
+  "model_settings": {"max_output_tokens": 1800, "max_retries": 0, "timeout_seconds": 60},
+  "agent_settings": {"max_rounds": 24, "max_tool_calls": 24, "timeout_seconds": 600},
+  "budget_policy": {
+    "reservation": "actual UTF-8 JSON wire bytes plus maximum output tokens",
+    "finalization": "immutable actual-current final snapshot lease; stale checkpoint can only deliver partial",
+    "paired_admission_tokens": {"layer1": 200000, "layer2": 90000},
+    "paired_admission_calls": {"layer1": 24, "layer2": 18},
+    "admission_is_not_a_completion_guarantee": true,
+    "automatic_retries": 0,
+    "maximum_root_caused_development_revisions": 2
+  },
+  "arms": {
+    "development": {"architecture": "managed", "context_mode": "full"},
+    "old-full": {"architecture": "lifecycle", "context_mode": "full"},
+    "managed-full": {"architecture": "managed", "context_mode": "full"},
+    "managed-summary": {"architecture": "managed", "context_mode": "summary"},
+    "managed-working": {"architecture": "managed", "context_mode": "working"}
+  },
+  "layer_order": {"layer1": ["old-full", "managed-full"], "layer2": ["managed-full", "managed-summary", "managed-working"]},
+  "development": {"requests": [
+    "请给出记录A中SYNTH-C1在0到2秒的RMS和alpha绝对功率，说明范围与单位。另分析stimulus事件中SYNTH-C2的theta绝对功率，不做基线校正、不筛选，事件窗口我稍后提供。请先完成可以确定的部分。",
+    "事件窗使用发生后0到1.25秒，其余事件条件不变。连续分析窗口改为4到6秒，比较新旧alpha功率，保留旧结果。"
+  ]},
+  "layer1": {"requests": [
+    "请给出记录A中SYNTH-C1在0到2秒的RMS和alpha绝对功率，说明范围与单位。另分析stimulus事件中SYNTH-C2的theta绝对功率，不做基线校正、不筛选，事件窗口我稍后提供。请先完成可以确定的部分。",
+    "事件窗使用发生后0到1.25秒，其余事件条件不变。连续分析窗口改为4到6秒，比较新旧alpha功率，保留旧结果。",
+    "再告诉我第一次0到2秒窗口的RMS及其记录、通道、单位和来源，不必重新计算。"
+  ], "second_turn_gate": "actual_relevant_window_clarification"},
+  "layer2": {"kind": "controlled-real-tool-history_then_autonomous_followup", "requests": [
+    "告诉我记录A第一次0到2秒窗口中SYNTH-C1的RMS及来源，不必重新计算。",
+    "沿用之前stimulus事件分析的原试次和处理选择，追加质量测量。说明实际测量标准、是否设置额外阈值、是否做过筛选，并比较这批试次上两个通道的theta绝对功率。已有适用结果不要重算，并说明处理依据。"
+  ]},
+  "data_definition": {
+    "sfreq": 128.0, "duration_seconds": 8.0,
+    "channels": ["SYNTH-C1", "SYNTH-C2"],
+    "A": {"channel_1": "10Hz 8uV before3s,14uV afterwards; plus24Hz 2uV", "channel_2": "6Hz 12uV before4s,6uV afterwards; plus28Hz 2uV", "events": [["stimulus",1.0],["control",2.5],["stimulus",3.5],["control",5.0],["stimulus",6.5]]},
+    "B": {"channel_1": "10Hz 10uV; plus5Hz 3uV", "channel_2": "6Hz 9uV before4s,4uV afterwards", "events": [["stimulus",1.0],["control",2.5],["stimulus",4.25],["control",6.0]]}
+  },
+  "evaluation_only": {
+    "never_send_to_agent": true,
+    "preflight": {
+      "continuous_old": {"channels":["SYNTH-C1"],"start":0,"end":2},
+      "continuous_new": {"channels":["SYNTH-C1"],"start":4,"end":6},
+      "event_scope": {"labels":["stimulus"],"tmin":0,"tmax":1.25},
+      "negative_event_window_seconds": 0.75
+    },
+    "clarification_gate": {"record":"A","tool":"event_bandpower","scope":{"labels":["stimulus"]},"missing_fields":["tmin","tmax"]},
+    "semantic_requirements": [
+      "Independent continuous RMS and alpha are not blocked by missing event window",
+      "Never infer the missing event window before actual user supplement",
+      "Event power uses3 boundary-valid epochs, not a quality-passing claim",
+      "Revision preserves0..2s evidence while computing4..6s and comparison",
+      "Old RMS query uses actual old evidence rather than recomputation",
+      "Quality applies to the identical original Epoch artifact; no baseline or rejection invented",
+      "Power comparison reuses actual compatible results and explains process sources",
+      "Numerical values, V or V², scientific range, record, and version are all checked"
+    ],
+    "failure_classes": ["semantic_action", "global_goal_barrier", "lifecycle_bookkeeping", "scientific_contract", "numeric_execution", "memory_context", "final_delivery", "budget_resource"],
+    "equivalent_behaviors": ["One or several semantic tasks allowed", "Directly visible valid evidence may answer without recovery", "All-band or all-channel calculation allowed", "Completion, partial, clarification and resource stop reported separately"],
+    "development_and_confirmation_are_not_unseen_accuracy_tests": true
+  }
+}

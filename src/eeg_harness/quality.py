@@ -182,5 +182,12 @@ def epoch_quality(epochs, profile_id, *, thresholds=None):
         "usable_fraction_of_created": 0.0 if original_valid == 0 else quality_valid / original_valid,
         "thresholds": thresholds,
         "threshold_status": "empirical_not_clinically_calibrated",
+        "measurement_contract": {
+            "flatline": "For each channel, fraction of adjacent absolute sample differences <= flatline_delta_volts; flagged when fraction >= flatline_fraction",
+            "high_amplitude": "For each channel, fraction of samples with absolute amplitude >= high_amplitude_volts; flagged when fraction >= high_amplitude_fraction",
+            "epoch_flag": "An Epoch is flagged if any channel satisfies either rule; no samples or Epochs are deleted",
+            "reason_counts": "Counts channel-rule occurrences, not unique Epochs",
+            "line_noise": "line_noise_ratio is a configured reference threshold, not used for Epoch flags; raw line-noise observability is unknown from Epoch provenance",
+        },
         "validity": "screening_suggestion_only; no automatic deletion performed",
     }
